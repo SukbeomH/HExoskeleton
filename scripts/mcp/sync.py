@@ -32,7 +32,37 @@ def load_mcp_config(project_root: Path) -> Dict[str, Any]:
 
 	try:
 		with open(mcp_json_path, "r", encoding="utf-8") as f:
-			return json.load(f)
+			config = json.load(f)
+
+		# JSON 구조 검증
+		if not isinstance(config, dict):
+			log(".mcp.json이 유효한 JSON 객체가 아닙니다.", "error")
+			sys.exit(1)
+
+		if "mcpServers" not in config:
+			log(".mcp.json에 'mcpServers' 키가 없습니다.", "error")
+			sys.exit(1)
+
+		if not isinstance(config["mcpServers"], dict):
+			log(".mcp.json의 'mcpServers'가 유효한 객체가 아닙니다.", "error")
+			sys.exit(1)
+
+		# 각 서버 설정 검증
+		for server_name, server_config in config["mcpServers"].items():
+			if not isinstance(server_config, dict):
+				log(f"서버 '{server_name}'의 설정이 유효한 객체가 아닙니다.", "error")
+				sys.exit(1)
+			if "command" not in server_config:
+				log(f"서버 '{server_name}'에 'command' 키가 없습니다.", "error")
+				sys.exit(1)
+			if "args" not in server_config:
+				log(f"서버 '{server_name}'에 'args' 키가 없습니다.", "error")
+				sys.exit(1)
+			if not isinstance(server_config["args"], list):
+				log(f"서버 '{server_name}'의 'args'가 유효한 배열이 아닙니다.", "error")
+				sys.exit(1)
+
+		return config
 	except json.JSONDecodeError as e:
 		log(f".mcp.json 파싱 오류: {e}", "error")
 		sys.exit(1)
@@ -54,7 +84,12 @@ def normalize_path(path_str: str, project_root: Path) -> str:
 	"""상대 경로를 절대 경로로 변환"""
 	if os.path.isabs(path_str):
 		return path_str
-	return str((project_root / path_str).resolve())
+	try:
+		return str((project_root / path_str).resolve())
+	except Exception as e:
+		# 경로 변환 실패 시 원본 경로 반환 (경고 로그 출력)
+		log(f"경로 변환 실패: {path_str} -> {e}", "warning")
+		return path_str
 
 
 def build_command(server_name: str, server_config: Dict[str, Any], project_root: Path) -> str:
@@ -95,6 +130,11 @@ def build_command(server_name: str, server_config: Dict[str, Any], project_root:
 		return f"mise x -- npx {args_str}"
 
 	# 기타 명령어는 mise x -- [command] [args...] 형식
+	# command가 빈 문자열인 경우 처리
+	if not command:
+		log(f"경고: 서버 '{server_name}'의 command가 비어있습니다.", "warning")
+		return ""
+
 	normalized_args = []
 	for arg in args:
 		if is_path_like(arg):
@@ -103,7 +143,11 @@ def build_command(server_name: str, server_config: Dict[str, Any], project_root:
 			normalized_args.append(arg)
 
 	args_str = " ".join(normalized_args) if normalized_args else ""
-	return f"mise x -- {command} {args_str}".strip()
+	# 이중 공백 방지: command와 args_str 사이 공백 처리
+	if args_str:
+		return f"mise x -- {command} {args_str}"
+	else:
+		return f"mise x -- {command}"
 
 
 def generate_cursor_config(mcp_config: Dict[str, Any], project_root: Path) -> str:
