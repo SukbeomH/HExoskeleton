@@ -58,6 +58,9 @@ docker-restart = { run = "docker-compose restart", description = "Restart GUI Do
 # infra:setup 태스크: 인프라 설정 자동화 (kubefwd, certifi 확인)
 infra-setup = { run = "scripts/core/setup_infra.sh", description = "Check infrastructure setup (kubefwd, certifi)" }
 
+# mcp:sync 태스크: MCP 설정 동기화 (Cursor, Claude Desktop용 설정 스니펫 생성)
+mcp-sync = { run = "python3 scripts/mcp/sync.py", description = "Generate MCP configuration snippets for Cursor and Claude Desktop" }
+
 # 주의: scripts/core/ 하위 스크립트들이 Phase 4에서 구현될 예정입니다.
 # 현재는 기본 구조만 정의되어 있으며, 실제 실행 시 경고 메시지가 출력됩니다.
 

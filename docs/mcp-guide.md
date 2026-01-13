@@ -22,17 +22,20 @@
 3. 각 서버를 하나씩 추가:
    - **Type**: `command` 선택
    - **Name**: 서버 이름 (예: `Serena`, `Codanna`)
-   - **Command**: `.mcp.json`에 정의된 전체 명령어 입력
-     - 예: `npx -y @modelcontextprotocol/server-serena`
+   - **Command**: `mise run mcp-sync` 명령어로 생성된 가이드를 사용하거나, 다음 형식으로 입력:
+     * **Serena**: `uvx @modelcontextprotocol/server-serena`
+     * **기타 서버**: `mise x -- npx -y @modelcontextprotocol/server-[name]`
+     * `mise x --`를 사용하면 프로젝트 환경이 자동으로 적용됩니다.
    - **Environment Variables** (필요한 경우): Proxymock 등 환경 변수가 필요한 서버의 경우 추가
 
 **빠른 설정 가이드**:
 ```bash
 # 프로젝트 루트에서 실행
-scripts/core/sync-mcp.sh
+mise run mcp-sync
 ```
 
-이 스크립트는 `.mcp.json`을 파싱하여 Cursor 설정에 복사하기 쉬운 형식으로 출력합니다.
+이 명령어는 `.mcp.json`을 파싱하여 Cursor 및 Claude Desktop 설정에 복사하기 쉬운 형식으로 출력합니다.
+생성된 Command 필드에는 `mise x --`가 포함되어 있어 프로젝트 환경이 자동으로 적용됩니다.
 
 **이름 충돌 방지**:
 - 여러 프로젝트를 동시에 개발하는 경우, 프로젝트별 접두어를 사용하세요

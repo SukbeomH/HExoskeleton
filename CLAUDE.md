@@ -177,10 +177,14 @@ CLAUDE.md는 단순한 문서가 아닌, AI가 시간이 지날수록 더 똑똑
 코드를 한 줄이라도 작성하기 전에 다음 초기 구성 단계를 반드시 순서대로 완료해야 합니다:
 
 1. **MCP 설정 확인 및 등록**: 현재 사용 중인 어시스턴트(Cursor/Claude Code/Claude Desktop)에서 MCP 서버가 등록되어 있는지 확인
+   - **표준 도구 기반 실행**: 모든 MCP 서버는 `mise x --`를 통해 실행되며, 프로젝트 환경이 자동으로 적용됩니다.
+     * **Serena**: `uvx`를 사용하여 설치 없이 실행됩니다.
+     * **기타 서버**: `mise x -- npx -y [package]` 형식으로 실행됩니다.
    - **Cursor 사용자**: Settings > Features > MCP Servers에서 `.mcp.json`의 서버들을 등록할 것. 등록 전에는 MCP 기능을 사용할 수 없음.
+     * 설정 가이드 생성: `mise run mcp-sync` 명령어를 실행하여 Cursor 설정에 복사하기 쉬운 형식의 가이드를 생성할 수 있음.
+     * 생성된 가이드의 Command 필드에는 `mise x --`가 포함되어 있어 프로젝트 환경이 자동으로 적용됨.
    - **Claude Code 사용자**: 프로젝트 진입 시 자동 로드됨을 확인하고, 안 될 경우 `claude mcp add`를 수행할 것.
    - **초기 분석**: 모든 MCP가 등록되면 반드시 `Codanna`의 `get_index_info`를 호출하여 분석을 시작할 것.
-   - **설정 가이드**: `scripts/core/sync-mcp.sh` 스크립트를 실행하여 어시스턴트별 설정 가이드를 확인할 수 있음.
 
 2. **Shrimp Task Manager 초기화**: 프로젝트 규칙 초기화 명령 실행
 3. **Serena 활성화**: 프로젝트 활성화 및 온보딩 프로세스 수행

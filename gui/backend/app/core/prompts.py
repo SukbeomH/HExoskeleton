@@ -125,7 +125,7 @@ def generate_setup_prompt(
      * 환경 변수 설정 필요 여부 (Proxymock 등)
 
 2. **어시스턴트별 맞춤형 등록 가이드 생성**:
-   - **Cursor 사용자용**: `scripts/core/sync-mcp.sh` 스크립트를 실행하여 Cursor 설정에 복사하기 쉬운 형식의 가이드를 생성하라. 이름 충돌을 방지하기 위해 `[ProjectName]-[ServerName]` 형식의 프로젝트 고유 별칭을 제안하라.
+   - **Cursor 사용자용**: `mise run mcp-sync` 명령어를 실행하여 Cursor 설정에 복사하기 쉬운 형식의 가이드를 생성하라. 생성된 Command 필드에는 `mise x --`가 포함되어 있어 프로젝트 환경이 자동으로 적용된다. 이름 충돌을 방지하기 위해 `[ProjectName]-[ServerName]` 형식의 프로젝트 고유 별칭을 제안하라.
    - **Claude Code 사용자용**: 프로젝트 루트의 `.mcp.json`이 자동 인식되는지 확인하고, 필요시 `claude mcp add` 명령어로 등록하라.
    - **Claude Desktop 사용자용**: 전역 설정 파일(`~/.config/claude_desktop_config.json`)에 `.mcp.json`의 내용을 병합하는 가이드를 제공하라.
 
