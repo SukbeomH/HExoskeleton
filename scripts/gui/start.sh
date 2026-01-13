@@ -110,6 +110,7 @@ echo "${BLUE}   UI: http://localhost:3000${NC}"
 
 echo ""
 echo "${GREEN}✅ Boilerplate Injector GUI is running!${NC}"
+echo "${BLUE}   Project-Specific Control Plane Started at: $PROJECT_ROOT${NC}"
 echo "${BLUE}   Frontend: http://localhost:3000${NC}"
 echo "${BLUE}   Backend API: http://localhost:8000${NC}"
 echo ""
