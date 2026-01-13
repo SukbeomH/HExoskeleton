@@ -9,16 +9,45 @@ AI를 단순한 도구가 아닌 '함께 성장하는 페어 프로그래머'로
 
 ## 1. 초기 환경 설정 (Getting Started)
 
+### GUI를 통한 보일러플레이트 주입 (권장)
+
+가장 쉬운 방법은 GUI를 통한 보일러플레이트 주입입니다:
+
+```bash
+# 1. GUI 실행
+mise run gui
+# 브라우저에서 http://localhost:3000 접속
+
+# 2. GUI에서 다음 단계 수행:
+#    - 대상 프로젝트 경로 입력
+#    - 스택 자동 감지 확인
+#    - 주입할 자산 선택 (.claude/, scripts/, CLAUDE.md, mise.toml 등)
+#    - 주입 옵션 설정 (백업, 병합 등)
+#    - 주입 실행
+#    - AI 초기화 프롬프트 복사하여 Cursor/Claude Code에 붙여넣기
+```
+
+**AI 초기화 프롬프트**: 주입 완료 후 GUI에서 자동 생성된 프롬프트를 복사하여 Cursor/Claude Code에 붙여넣으면, AI가 즉시 프로젝트 환경을 이해하고 작업을 시작할 수 있습니다.
+
+### 수동 설정 (GUI 없이)
+
 모든 개발 환경은 `mise`를 통해 표준화되어 있습니다. 터미널에서 다음 명령어를 실행하여 도구들을 설치하세요.
 
 ```bash
 # 1. 툴체인 자동 설치 (Node, Python, AI CLI 등)
 mise install
 
-# 2. 보일러플레이트 초기화 스크립트 실행
-./scripts/setup-boilerplate.sh
+# 2. 보일러플레이트 파일 수동 복사
+cp -r .claude/ scripts/ CLAUDE.md mise.toml <your-project>/
 
-# 3. AI 권한 설정 (사전 정의된 화이트리스트 로드)
+# 3. 대상 프로젝트로 이동
+cd <your-project>
+mise install
+
+# 4. 검증
+mise run verify
+
+# 5. AI 권한 설정 (사전 정의된 화이트리스트 로드)
 # .claude/settings.json의 설정을 확인하세요.
 ```
 
@@ -33,12 +62,18 @@ mise install
 * **방법**: 작업 시작 시 반드시 `[MODE: PLAN]` 또는 `Plan 모드`로 시작합니다.
 * **목적**: AI가 코드를 쓰기 전, 팀의 컨벤션과 `spec.md`를 이해했는지 확인합니다.
 * **팁**: "이 기능을 구현하기 위한 계획을 세워줘"라고 요청하고, 제안된 파일 구조와 로직을 먼저 승인하세요.
+* **도구 활용**:
+  - **Shrimp Task Manager**: 작업을 구조화된 개발 작업으로 변환
+  - **Codanna**: 변경사항이 전체 프로젝트에 미치는 영향 분석
 
 **이유**: 계획 단계에서 충분히 다듬으면, 실행 단계에서 AI가 한 번에 완성할 수 있어 전체 시간이 단축됩니다.
 
 ### **Step 2: Build (자동 구현)**
 
-* **방법**: 계획이 승인되면 `auto-accept` 모드로 전환하여 AI가 코드를 작성하게 합니다.
+* **방법**: 계획이 승인되면 `[MODE: EXECUTE]`로 전환하여 AI가 코드를 작성하게 합니다.
+* **도구 활용**:
+  - **Serena**: 심볼 기반 정밀 편집 (IDE 수준의 정확도)
+  - **Fourth Principle**: 수정 후 즉시 `read_file`로 검증
 * **주의**: 대량의 파일 수정이 일어날 때는 터미널을 지켜보며 이상 동작 시 즉시 중단(`Ctrl+C`)하세요.
 
 **이유**: 계획이 충분히 구체적이면, AI가 자동으로 구현하는 것이 수동으로 하나씩 지시하는 것보다 빠르고 정확합니다.
@@ -50,8 +85,10 @@ mise install
   - **기본 검증** (`auto_verify.sh`): 린트, 타입 체크, 테스트
   - **코드 단순화 분석** (`simplifier.js`): 복잡도 분석 및 리팩토링 제안
   - **보안 감사** (`security-audit.js`): 취약점 스캔
-  - **로컬 로그 분석** (`log_analyzer.js`): ERROR/CRITICAL 로그 감지
-  - **시각적 검증** (`visual_verifier.js`): 웹 프로젝트의 경우 UI 검증 가이드
+  - **로컬 로그 분석** (`log_analyzer.js`): ERROR/CRITICAL 로그 감지 (Codanna/Serena MCP 연계)
+  - **시각적 검증** (`visual_verifier.js`): 웹 프로젝트의 경우 UI 검증 (Chrome DevTools MCP)
+  - **Git 규칙 검증** (`git-guard.js`): Git Guide 규칙 준수 확인
+* **GUI를 통한 검증**: GUI의 Agent Skills Hub에서 각 스킬을 개별적으로 실행하고 실시간 결과를 확인할 수 있습니다.
 * **사용 방법**:
   ```bash
   # boilerplate 프로젝트에서 실행하고, 대상 프로젝트 경로를 인자로 전달
@@ -71,6 +108,7 @@ mise install
   node scripts/agents/simplifier.js /path/to/target/project
   node scripts/agents/log_analyzer.js /path/to/target/project /path/to/app.log
   node scripts/agents/visual_verifier.js /path/to/target/project 3000
+  node scripts/agents/git-guard.js /path/to/target/project
   ```
 * **스택 감지 실패 처리**: 스택이 감지되지 않은 경우, Agent는 경고만 표시하고 계속 진행합니다. 이는 정상적인 동작이며, 스택이 없는 프로젝트에서도 일부 검증을 수행할 수 있습니다.
 * **핵심**: 모든 검증 결과를 종합하여 사용자 승인을 요청하며, 심각한 에러가 발견되면 승인을 차단합니다.
@@ -83,6 +121,7 @@ mise install
 
 * **언제 업데이트하나요?**: AI가 특정 실수를 반복하거나, 새로운 팀 컨벤션이 결정되었을 때.
 * **PR 기반 업데이트**: PR 리뷰 중 AI에게 가르칠 내용이 있다면 코멘트에 `@.claude` 태그를 남기세요. GitHub Action이 이를 요약하여 `CLAUDE.md`에 자동 반영합니다.
+* **GUI를 통한 편집**: GUI의 Config Editor에서 CLAUDE.md의 Lessons Learned와 Team Standards 섹션을 직접 편집할 수 있습니다.
 * **금기 사항**: `CLAUDE.md`를 한 번에 너무 크게 수정하지 마세요. AI가 컨텍스트 과부하를 느낄 수 있습니다.
 
 **이유**: CLAUDE.md는 팀의 지식이 복리로 쌓이는 공간입니다. 시간이 지날수록 AI가 더 똑똑해지고, 팀의 실수를 반복하지 않게 됩니다.
@@ -148,13 +187,14 @@ Boris Cherny처럼 여러 세션을 운영할 때 컨텍스트 혼선을 방지�
 
 1. **이슈 선행 생성**: 모든 변경사항은 반드시 GitHub Issue를 먼저 생성
 2. **브랜치 생성**: GitHub Issue 화면에서 "Development > Create a branch" 기능 사용
-   - Prefix 필수: `feature/` (신규 기능) 또는 `bugfix/` (버그 수정)
-   - 형식: `feature/{issue_number}-{description}` 또는 `bugfix/{issue_number}-{description}`
+   - Prefix 필수: `feature/` (신규 기능) 또는 `hotfix/` (버그 수정)
+   - 형식: `feature/{issue_number}-{description}` 또는 `hotfix/{issue_number}-{description}`
 3. **커밋 메시지**: `Resolved #{Issue No} - {Description}` 형식 강제
    - 주의: "Resovled"가 아닌 "Resolved"로 정확히 작성
 4. **PR 병합**:
-   - `feature/bugfix` → `develop`: 반드시 **Squash and merge**
+   - `feature/hotfix` → `develop`: 반드시 **Squash and merge**
    - `develop` → `main`: **Merge pull request** (Create merge commit)
+5. **Git 규칙 검증**: `git-guard` Agent Skill을 사용하여 브랜치명, 커밋 메시지, Issue 번호 포함 여부를 자동으로 검증할 수 있습니다.
 
 ### Python 프로젝트 표준
 
@@ -170,8 +210,8 @@ Boris Cherny처럼 여러 세션을 운영할 때 컨텍스트 혼선을 방지�
    uv run pytest
    uv run python main.py
    ```
-   - Poetry 프로젝트 마이그레이션: `scripts/core/migrate_to_uv.sh` 실행
-   - `detect_stack.sh`가 자동으로 uv.lock을 감지하고 마이그레이션 제안
+   - Poetry 프로젝트 마이그레이션: GUI의 Config Editor에서 "UV 마이그레이션" 탭 사용 또는 `scripts/core/migrate_to_uv.sh` 실행
+   - `detect_stack.sh`가 자동으로 poetry.lock을 감지하고 마이그레이션 제안
 
 2. **로깅 설정**:
    - 프로젝트 루트에 `logging.conf` 파일 사용
@@ -193,18 +233,60 @@ Boris Cherny처럼 여러 세션을 운영할 때 컨텍스트 혼선을 방지�
    - 포매팅: `uv run ruff format`
    - 린팅: `uv run ruff check --fix`
 
+## 8. GUI 기능 활용
+
+### Agent Skills Hub
+
+GUI의 Agent Skills Hub에서 다음 6가지 Agent Skills를 실행할 수 있습니다:
+
+1. **Simplifier**: 코드 복잡도 분석 및 리팩토링 제안
+2. **Log Analyzer**: 로컬 로그 분석 및 에러 추적 (Codanna/Serena MCP 연계)
+3. **Security Audit**: 보안 취약점 감사 (Python: safety, Node.js: npm/pnpm audit)
+4. **Visual Verifier**: 웹 프로젝트 시각적 검증 (Chrome DevTools MCP)
+5. **Git Guard**: Git Guide 규칙 준수 검증
+6. **Claude Knowledge Updater**: 검증 결과를 CLAUDE.md에 자동 기록
+
+각 스킬의 Instructions와 Engineering Philosophy를 확인할 수 있으며, 실시간으로 실행 결과를 모니터링할 수 있습니다.
+
+### Log Monitor
+
+GUI의 Log Monitor에서 실시간 로그를 확인하고, 에러 발생 시 "Analyze with AI" 버튼으로 즉시 분석할 수 있습니다.
+
+### Knowledge Base
+
+GUI의 Knowledge Base에서:
+- **Knowledge Timeline**: CLAUDE.md의 Lessons Learned를 타임라인으로 시각화
+- **Tool Reference**: AI-Native 툴체인 명세 및 설계 의도 설명
+
+### Config Editor
+
+GUI의 Config Editor에서:
+- **CLAUDE.md 편집**: Lessons Learned, Team Standards 섹션 직접 편집
+- **환경변수 관리**: 수동으로 환경변수 확인 및 업데이트
+- **UV 마이그레이션**: Poetry 프로젝트를 uv로 자동 마이그레이션
+- **도구 상태 확인**: mise, uv, MCP, pnpm, gh 설치 상태 확인
+
+### Tutorial
+
+GUI의 Tutorial 페이지에서:
+- **인터랙티브 가이드**: 3-Step Loop (Plan, Execute, Verify) 시각화
+- **도구별 가이드**: 각 단계에서 사용할 도구 설명
+- **AI 초기화 가이드**: 프롬프트 복사 및 사용법 안내
+
 ## 💡 온보딩 체크리스트
 
 * [ ] `mise` 설치 및 환경 구성 완료
+* [ ] 보일러플레이트 주입 (GUI 또는 수동)
+* [ ] AI 초기화 프롬프트 복사하여 Cursor/Claude Code에 붙여넣기
 * [ ] `CLAUDE.md`의 `Anti-patterns` 섹션 1회 정독
 * [ ] 팀 Git Flow 및 Python 표준 섹션 정독
 * [ ] 첫 번째 작업 시 `/verify-app`으로 전체 테스트 통과 확인
 * [ ] PR 생성 시 AI가 작성한 요약본 검토 후 제출
 * [ ] 세션 관리 전략 수립 (단일 세션 vs 병렬 세션)
 * [ ] Python 프로젝트인 경우: `logging.conf` 및 `.pre-commit-config.yaml` 확인
+* [ ] GUI 기능 탐색 (Agent Skills Hub, Log Monitor, Knowledge Base 등)
 
 ---
 
 > **"우리는 코드를 더 적게 쓰고, 더 가치 있는 문제를 해결하는 데 집중합니다."**
 > 가이드에 의문이 생기면 언제든 팀 채널에 공유해 주세요.
-

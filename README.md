@@ -689,7 +689,6 @@ cd gui/frontend && pnpm install
 
 - [AI 온보딩 가이드](docs/ai-onboarding.md): AI와 함께 작업하는 방법
 - [MCP 가이드](docs/mcp-guide.md): MCP 서버 설정 및 사용법
-- [Git Guide](.cursor/docs/raw/Git%20Guide): Git 워크플로우 및 규칙
 
 ## 🎓 핵심 개념
 
@@ -744,8 +743,6 @@ graph LR
 3. 변경사항 커밋: `Resolved #{issue_number} - {description}`
 4. PR 생성: `Resolved #{issue_number} - {issue 이름}`
 5. 리뷰 후 병합
-
-자세한 내용은 [Git Guide](.cursor/docs/raw/Git%20Guide) 참고
 
 ## 📝 라이선스
 

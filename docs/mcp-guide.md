@@ -117,7 +117,7 @@ PROXYMOCK_ENDPOINT=
 
 **RIPER-5 모드별 활용**:
 
-- **RESEARCH 모드**: 
+- **RESEARCH 모드**:
   - `find_symbol`: 심볼 이름으로 정확한 위치 찾기
   - `find_referencing_symbols`: 특정 심볼을 참조하는 모든 위치 찾기
   - `get_symbols_overview`: 파일의 심볼 구조 개요 파악
@@ -382,7 +382,7 @@ RIPER-5 프로토콜의 각 모드에서 어떤 MCP 도구를 어떤 타이밍�
 **필수 도구**: Codanna MCP
 
 **활용 시점 및 방법**:
-1. **프로젝트 시작 시**: 
+1. **프로젝트 시작 시**:
    - Codanna의 `semantic_search_with_context`로 관련 코드 검색
    - `get_index_info`로 색인 상태 확인
 2. **코드 구조 파악**:
@@ -496,6 +496,7 @@ RIPER-5 프로토콜의 각 모드에서 어떤 MCP 도구를 어떤 타이밍�
 - **Playwright MCP**: E2E 시나리오 검증
 - **Sentry MCP**: 프로덕션 에러 패턴과 비교
 - **Serena MCP**: Fourth Principle 검증 (read_file)
+- **Codanna MCP**: 로그 분석 시 에러 위치 정확히 찾기 (log_analyzer 스킬 연계)
 
 ### REVIEW 단계
 - **Shrimp Task Manager**: 작업 검토 및 개선 (필수)
