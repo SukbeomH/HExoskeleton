@@ -662,6 +662,18 @@ stateDiagram-v2
 | **Serena** | 심볼 단위 정밀 편집 | IDE 수준의 정밀도로 필요한 부분만 수정 (Surgical Precision) |
 | **Shrimp** | 구조화된 작업 관리 | AI가 무작정 코딩하지 않고 PLAN 단계에서 명확한 할 일 목록 작성 |
 
+**MCP 설정 방법**:
+프로젝트 루트의 `.mcp.json` 파일을 어시스턴트별로 등록해야 합니다. Cursor의 경우 `mise run mcp-sync` 명령어를 실행하여 설정 가이드를 생성할 수 있습니다:
+
+```bash
+# 프로젝트 루트에서 실행
+mise run mcp-sync
+```
+
+이 명령어는 `.mcp.json`을 파싱하여 Cursor 및 Claude Desktop 설정에 복사하기 쉬운 형식으로 출력합니다. 생성된 Command 필드에는 `mise x --`가 포함되어 있어 프로젝트 환경이 자동으로 적용됩니다.
+
+자세한 설정 방법은 [MCP 가이드](docs/mcp-guide.md)를 참조하세요.
+
 ### Agent Skills
 
 | 스킬 | 설명 | 설계 의도 |
@@ -753,6 +765,24 @@ sequenceDiagram
 - [uv](https://github.com/astral-sh/uv): Python 패키지 관리 (권장)
 - [pnpm](https://pnpm.io/): Node.js 패키지 관리 (권장)
 - [gh](https://cli.github.com/): GitHub CLI (선택사항)
+
+### MCP 서버 설정
+
+보일러플레이트 주입 후, 프로젝트 루트의 `.mcp.json` 파일을 어시스턴트에 등록해야 합니다:
+
+**Cursor IDE 설정**:
+1. `mise run mcp-sync` 명령어 실행하여 설정 가이드 생성
+2. Cursor Settings → Features → MCP Servers에서 생성된 가이드 복사
+3. 각 서버를 하나씩 추가 (이름 충돌 방지를 위해 `[ProjectName]-[ServerName]` 형식 권장)
+
+**Claude Code 설정**:
+- 프로젝트 루트의 `.mcp.json`이 자동으로 인식됩니다
+- 확인: `claude mcp list`
+
+**Claude Desktop 설정**:
+- 전역 설정 파일(`~/.config/claude_desktop_config.json`)에 `.mcp.json`의 내용을 병합
+
+자세한 설정 방법은 [MCP 가이드](docs/mcp-guide.md)를 참조하세요.
 
 ### 설치
 

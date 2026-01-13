@@ -162,16 +162,22 @@ def generate_claude_desktop_config(mcp_config: Dict[str, Any], project_root: Pat
 
 		# command와 args를 분리
 		parts = command.split()
-		if parts[0] == "mise" and parts[1] == "x" and parts[2] == "--":
+
+		# 충분한 요소가 있는지 확인 후 접근
+		if len(parts) >= 3 and parts[0] == "mise" and parts[1] == "x" and parts[2] == "--":
 			# mise x -- 이후의 명령어 추출
 			converted_config["command"] = parts[3] if len(parts) > 3 else ""
 			converted_config["args"] = parts[4:] if len(parts) > 4 else []
-		elif parts[0] == "uvx":
+		elif len(parts) >= 1 and parts[0] == "uvx":
 			converted_config["command"] = "uvx"
-			converted_config["args"] = parts[1:]
-		else:
+			converted_config["args"] = parts[1:] if len(parts) > 1 else []
+		elif len(parts) >= 1:
 			converted_config["command"] = parts[0]
-			converted_config["args"] = parts[1:]
+			converted_config["args"] = parts[1:] if len(parts) > 1 else []
+		else:
+			# 빈 명령어인 경우 기본값 설정
+			converted_config["command"] = ""
+			converted_config["args"] = []
 
 		converted_servers[server_name] = converted_config
 

@@ -86,6 +86,35 @@ mise run verify
 
 **이유**: `mise`를 통한 환경 표준화는 팀 전체가 동일한 도구 버전을 사용하게 하여 "내 컴퓨터에서는 되는데" 문제를 방지합니다.
 
+### MCP 서버 설정 (필수)
+
+보일러플레이트 주입 후, 프로젝트 루트의 `.mcp.json` 파일을 어시스턴트에 등록해야 AI가 Codanna, Serena, Shrimp 등의 MCP 도구를 사용할 수 있습니다.
+
+**빠른 설정 (Cursor 사용자)**:
+```bash
+# 프로젝트 루트에서 실행
+mise run mcp-sync
+```
+
+이 명령어는 `.mcp.json`을 파싱하여 Cursor 설정에 복사하기 쉬운 형식의 가이드를 생성합니다. 생성된 Command 필드에는 `mise x --`가 포함되어 있어 프로젝트 환경이 자동으로 적용됩니다.
+
+**설정 방법**:
+1. **Cursor IDE**:
+   - `mise run mcp-sync` 실행하여 가이드 생성
+   - Cursor Settings → Features → MCP Servers에서 생성된 가이드 복사
+   - 이름 충돌 방지를 위해 `[ProjectName]-[ServerName]` 형식의 별칭 사용 권장
+
+2. **Claude Code**:
+   - 프로젝트 루트의 `.mcp.json`이 자동으로 인식됩니다
+   - 확인: `claude mcp list`
+
+3. **Claude Desktop**:
+   - 전역 설정 파일(`~/.config/claude_desktop_config.json`)에 `.mcp.json`의 내용을 병합
+
+**중요**: MCP 서버가 등록되지 않으면 AI가 Codanna(시맨틱 검색), Serena(정밀 편집), Shrimp(작업 관리) 등의 핵심 도구를 사용할 수 없어 RIPER-5 프로토콜을 제대로 수행할 수 없습니다.
+
+자세한 설정 방법은 [MCP 가이드](../docs/mcp-guide.md)를 참조하세요.
+
 ## 2. 핵심 워크플로우: "The 3-Step Loop"
 
 우리 팀은 결과물의 품질을 보장하기 위해 반드시 다음 루프를 준수합니다.
