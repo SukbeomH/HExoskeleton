@@ -92,8 +92,55 @@ class BoilerplateInjector:
 							merged_files.append(asset)
 							continue
 
+				# scripts/ 주입 시 gui/ 디렉토리도 scripts/gui/로 복사
+				if asset == "scripts/":
+					if self._copy_asset(source_path, target_asset_path):
+						# gui/ 디렉토리를 scripts/gui/로 복사
+						gui_source = self.boilerplate_root / "gui"
+						gui_target = target / "scripts" / "gui"
+						if gui_source.exists() and gui_source.is_dir():
+							# scripts/gui/ 디렉토리 생성
+							gui_target.mkdir(parents=True, exist_ok=True)
+
+							# scripts/gui/start.sh는 이미 있으므로 backend와 frontend만 복사
+							if (gui_source / "backend").exists():
+								backend_target = gui_target / "backend"
+								# 기존 파일 처리 (백업 옵션 확인)
+								if backend_target.exists():
+									if options.skip_existing:
+										skipped_files.append("scripts/gui/backend")
+									else:
+										if options.backup_existing:
+											backup_path = self.backup_manager.create_backup(backend_target)
+											if backup_path:
+												backed_up_files.append(str(backup_path.relative_to(target)))
+										if self._copy_asset(gui_source / "backend", backend_target):
+											injected_files.append("scripts/gui/backend")
+								else:
+									if self._copy_asset(gui_source / "backend", backend_target):
+										injected_files.append("scripts/gui/backend")
+
+							if (gui_source / "frontend").exists():
+								frontend_target = gui_target / "frontend"
+								# 기존 파일 처리 (백업 옵션 확인)
+								if frontend_target.exists():
+									if options.skip_existing:
+										skipped_files.append("scripts/gui/frontend")
+									else:
+										if options.backup_existing:
+											backup_path = self.backup_manager.create_backup(frontend_target)
+											if backup_path:
+												backed_up_files.append(str(backup_path.relative_to(target)))
+										if self._copy_asset(gui_source / "frontend", frontend_target):
+											injected_files.append("scripts/gui/frontend")
+								else:
+									if self._copy_asset(gui_source / "frontend", frontend_target):
+										injected_files.append("scripts/gui/frontend")
+						injected_files.append(asset)
+					else:
+						skipped_files.append(asset)
 				# 파일/디렉토리 복사
-				if self._copy_asset(source_path, target_asset_path):
+				elif self._copy_asset(source_path, target_asset_path):
 					injected_files.append(asset)
 				else:
 					skipped_files.append(asset)

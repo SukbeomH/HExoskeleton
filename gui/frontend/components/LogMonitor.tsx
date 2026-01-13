@@ -100,14 +100,17 @@ export default function LogMonitor({ targetPath, logFile }: LogMonitorProps) {
 	});
 
 	// 타임라인 데이터 생성
-	const timelineData = filteredLogs.map((line, index) => {
-		const parsed = parseLogLine(line);
-		return {
-			index,
-			...parsed,
-			line,
-		};
-	});
+	const timelineData = filteredLogs
+		.map((line, index) => {
+			const parsed = parseLogLine(line);
+			if (!parsed) return null;
+			return {
+				index,
+				...parsed,
+				line,
+			};
+		})
+		.filter((entry): entry is LogEntry & { index: number; line: string } => entry !== null);
 
 	return (
 		<div className="space-y-6 dark:text-gray-100">
@@ -338,7 +341,14 @@ export default function LogMonitor({ targetPath, logFile }: LogMonitorProps) {
 								<div
 									key={`critical-${index}`}
 									className="bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500 dark:border-red-400 p-3 cursor-pointer hover:bg-red-100 dark:hover:bg-red-900/30"
-									onClick={() => setSelectedError(critical)}
+									onClick={() => setSelectedError({
+										timestamp: critical.timestamp,
+										level: critical.level,
+										message: critical.message,
+										module: critical.module ?? undefined,
+										funcName: critical.funcName ?? undefined,
+										lineno: critical.lineno ?? undefined,
+									})}
 								>
 									<div className="font-semibold text-red-800 dark:text-red-200">
 										[CRITICAL]
@@ -363,7 +373,14 @@ export default function LogMonitor({ targetPath, logFile }: LogMonitorProps) {
 								<div
 									key={`error-${index}`}
 									className="bg-orange-50 dark:bg-orange-900/20 border-l-4 border-orange-500 dark:border-orange-400 p-3 cursor-pointer hover:bg-orange-100 dark:hover:bg-orange-900/30"
-									onClick={() => setSelectedError(error)}
+									onClick={() => setSelectedError({
+										timestamp: error.timestamp,
+										level: error.level,
+										message: error.message,
+										module: error.module ?? undefined,
+										funcName: error.funcName ?? undefined,
+										lineno: error.lineno ?? undefined,
+									})}
 								>
 									<div className="font-semibold text-orange-800 dark:text-orange-200">
 										[ERROR]
