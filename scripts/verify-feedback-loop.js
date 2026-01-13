@@ -199,8 +199,23 @@ function findSkillScript(skillName) {
 		return skillPath;
 	}
 
-	// 레거시 scripts/agents 폴백
-	const legacyPath = path.join(AGENTS_DIR, skillName === 'log-analyzer' ? 'log_analyzer.js' : `${skillName}.js`);
+	// 레거시 scripts/agents 폴백 - 스킬 이름을 레거시 파일명으로 매핑
+	const legacyNameMap = {
+		'log-analyzer': 'log_analyzer.js',
+		'visual-verifier': 'visual_verifier.js',
+		'claude-knowledge-updater': 'update_claude_knowledge.js',
+		// 다른 스킬들은 하이픈을 언더스코어로 변환
+	};
+
+	let legacyFileName;
+	if (legacyNameMap[skillName]) {
+		legacyFileName = legacyNameMap[skillName];
+	} else {
+		// 기본 변환: 하이픈을 언더스코어로 변환
+		legacyFileName = `${skillName.replace(/-/g, '_')}.js`;
+	}
+
+	const legacyPath = path.join(AGENTS_DIR, legacyFileName);
 	if (fs.existsSync(legacyPath)) {
 		return legacyPath;
 	}
@@ -733,4 +748,3 @@ module.exports = {
 	runProxymockVerification,
 	runApproveStep,
 };
-
