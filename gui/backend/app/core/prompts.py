@@ -111,23 +111,39 @@ def generate_setup_prompt(
 
 ---
 
-## Step 3. MCP 서버 활성화 (Tool Activation)
+## Step 3. MCP 환경 진단 및 서버 활성화 (Tool Activation)
 
-**목적**: 감지된 스택과 프로젝트 성격에 따라 필요한 MCP 서버들을 활성화하고 상태를 점검하라.
+**목적**: 현재 어시스턴트 환경에서 MCP 서버가 올바르게 등록되어 있는지 진단하고, 필요시 어시스턴트별 맞춤형 등록 가이드를 생성하라.
 
 **동작**:
-1. **공통 필수 MCP**:
+1. **MCP 환경 진단**:
+   - 현재 사용 가능한 MCP 서버 목록을 조사하라 (사용 중인 어시스턴트가 Cursor인지 Claude Code인지 확인).
+   - 프로젝트 루트의 `.mcp.json` 파일을 확인하고, 각 서버의 `command`와 `args`를 파악하라.
+   - 현재 활성화된 MCP 설정과 `.mcp.json`을 비교하여 다음 사항을 보고하라:
+     * 이름이 중복되는 기존 MCP 서버 존재 여부
+     * 누락된 필수 MCP 서버 목록
+     * 환경 변수 설정 필요 여부 (Proxymock 등)
+
+2. **어시스턴트별 맞춤형 등록 가이드 생성**:
+   - **Cursor 사용자용**: `scripts/core/sync-mcp.sh` 스크립트를 실행하여 Cursor 설정에 복사하기 쉬운 형식의 가이드를 생성하라. 이름 충돌을 방지하기 위해 `[ProjectName]-[ServerName]` 형식의 프로젝트 고유 별칭을 제안하라.
+   - **Claude Code 사용자용**: 프로젝트 루트의 `.mcp.json`이 자동 인식되는지 확인하고, 필요시 `claude mcp add` 명령어로 등록하라.
+   - **Claude Desktop 사용자용**: 전역 설정 파일(`~/.config/claude_desktop_config.json`)에 `.mcp.json`의 내용을 병합하는 가이드를 제공하라.
+
+3. **공통 필수 MCP 활성화 확인**:
    - `Shrimp Task Manager`: `list_tasks` 또는 `get_current_config`로 초기화 확인
    - `Serena`: `get_symbols_overview`로 프로젝트 심볼 검색 가능 여부 확인
-   - `Codanna`: 이미 Step 1에서 사용했으므로 정상 동작 확인됨
+   - `Codanna`: `get_index_info`를 호출하여 인덱스 상태 확인 (Step 1에서 사용했지만 재확인)
    - `Context7`: 대규모 코드베이스인 경우 컨텍스트 최적화 준비
 
-2. **도메인별 MCP** (프로젝트 성격에 따라):{mcp_activation}
+4. **도메인별 MCP** (프로젝트 성격에 따라):{mcp_activation}
    - **API 프로젝트**: `Proxymock MCP` 및 `Playwright` 준비 상태 확인
 
-3. `.mcp.json` 설정 파일을 확인하고, 각 서버의 `comment_usage`를 숙지하라.
+5. **`.mcp.json` 설정 통합**:
+   - 주입된 `.mcp.json` 파일의 각 서버 설정을 현재 어시스턴트의 MCP 설정에 추가하라.
+   - 각 MCP 서버의 `comment_usage`를 숙지하여 올바른 사용법을 파악하라.
+   - 사용자에게 "현재 어시스턴트 설정에 MCP가 등록되어 있나요?"라고 먼저 묻고, 등록되지 않았다면 위에서 생성한 가이드를 제공하라.
 
-**보고 형식**: "✅ MCP 활성화 완료 - [활성화된 MCP 서버 목록]"
+**보고 형식**: "✅ MCP 환경 진단 완료 - [사용 중인 어시스턴트], [활성화된 MCP 서버 목록], [등록 필요 서버 목록(있는 경우)]"
 
 ---
 

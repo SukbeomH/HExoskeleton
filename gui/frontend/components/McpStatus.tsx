@@ -3,8 +3,10 @@
  * MCP 서버 헬스체크 대시보드 - 각 MCP 서버의 온라인/오프라인 상태 표시
  */
 
+import { useState } from "react";
 import { motion } from "framer-motion";
-import { CheckCircle2, XCircle, AlertCircle, Loader2 } from "lucide-react";
+import { CheckCircle2, XCircle, AlertCircle, Loader2, Copy, Check } from "lucide-react";
+import { useToast } from "./ToastProvider";
 
 interface McpServer {
 	name: string;
@@ -12,6 +14,8 @@ interface McpServer {
 	description: string;
 	status: "online" | "offline" | "checking" | "unknown";
 	category: "core" | "domain" | "optional";
+	command?: string; // Cursor 설정용 명령어
+	args?: string[]; // 명령어 인자
 }
 
 interface McpStatusProps {
@@ -25,6 +29,8 @@ const defaultServers: McpServer[] = [
 		description: "심볼 기반 검색 및 정밀 편집 (필수)",
 		status: "unknown",
 		category: "core",
+		command: "npx",
+		args: ["-y", "@modelcontextprotocol/server-serena"],
 	},
 	{
 		name: "codanna",
@@ -32,6 +38,8 @@ const defaultServers: McpServer[] = [
 		description: "시맨틱 검색 및 사실 기반 분석 (필수)",
 		status: "unknown",
 		category: "core",
+		command: "npx",
+		args: ["-y", "@modelcontextprotocol/server-codanna"],
 	},
 	{
 		name: "shrimp-task-manager",
@@ -39,6 +47,8 @@ const defaultServers: McpServer[] = [
 		description: "구조화된 작업 관리 및 지속적 메모리 (필수)",
 		status: "unknown",
 		category: "core",
+		command: "npx",
+		args: ["-y", "@modelcontextprotocol/server-shrimp-task-manager"],
 	},
 	{
 		name: "context7",
@@ -46,6 +56,8 @@ const defaultServers: McpServer[] = [
 		description: "대규모 코드베이스 컨텍스트 최적화 (권장)",
 		status: "unknown",
 		category: "core",
+		command: "npx",
+		args: ["-y", "@modelcontextprotocol/server-context7"],
 	},
 	{
 		name: "chrome-devtools",
@@ -53,6 +65,8 @@ const defaultServers: McpServer[] = [
 		description: "브라우저 UI 검증 및 콘솔 에러 확인 (웹 프로젝트)",
 		status: "unknown",
 		category: "domain",
+		command: "npx",
+		args: ["-y", "@modelcontextprotocol/server-chrome-devtools"],
 	},
 	{
 		name: "proxymock",
@@ -60,6 +74,8 @@ const defaultServers: McpServer[] = [
 		description: "실제 운영 트래픽 재현 및 API 검증 (API 프로젝트)",
 		status: "unknown",
 		category: "domain",
+		command: "npx",
+		args: ["-y", "@modelcontextprotocol/server-proxymock"],
 	},
 	{
 		name: "playwright",
@@ -67,10 +83,34 @@ const defaultServers: McpServer[] = [
 		description: "자동화된 E2E 테스트 실행 (선택)",
 		status: "unknown",
 		category: "optional",
+		command: "npx",
+		args: ["-y", "@modelcontextprotocol/server-playwright"],
 	},
 ];
 
 export default function McpStatus({ servers = defaultServers }: McpStatusProps) {
+	const { showToast } = useToast();
+	const [copiedServer, setCopiedServer] = useState<string | null>(null);
+
+	const handleCopyForCursor = async (server: McpServer) => {
+		if (!server.command || !server.args) {
+			showToast("이 서버의 설정 정보가 없습니다.", "error");
+			return;
+		}
+
+		const command = `${server.command} ${server.args.join(" ")}`;
+		const cursorConfig = `Name: ${server.displayName}\nType: command\nCommand: ${command}`;
+
+		try {
+			await navigator.clipboard.writeText(cursorConfig);
+			setCopiedServer(server.name);
+			showToast(`${server.displayName} 설정이 클립보드에 복사되었습니다`, "success");
+			setTimeout(() => setCopiedServer(null), 2000);
+		} catch (error) {
+			showToast("복사에 실패했습니다", "error");
+		}
+	};
+
 	const getStatusIcon = (status: McpServer["status"]) => {
 		switch (status) {
 			case "online":
@@ -143,6 +183,28 @@ export default function McpStatus({ servers = defaultServers }: McpStatusProps) 
 									</div>
 									<div className="text-xs text-zinc-400">{server.description}</div>
 								</div>
+								{server.command && server.args && (
+									<button
+										onClick={() => handleCopyForCursor(server)}
+										className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded text-xs font-medium transition-all ${
+											copiedServer === server.name
+												? "bg-green-500/10 text-green-400 border border-green-500/30"
+												: "bg-indigo-500/10 text-indigo-400 border border-indigo-500/30 hover:bg-indigo-500/20 active:scale-95"
+										}`}
+									>
+										{copiedServer === server.name ? (
+											<>
+												<Check className="h-3.5 w-3.5" />
+												<span>복사됨</span>
+											</>
+										) : (
+											<>
+												<Copy className="h-3.5 w-3.5" />
+												<span>Copy for Cursor</span>
+											</>
+										)}
+									</button>
+								)}
 							</motion.div>
 						))}
 					</div>
@@ -170,6 +232,28 @@ export default function McpStatus({ servers = defaultServers }: McpStatusProps) 
 									</div>
 									<div className="text-xs text-zinc-400">{server.description}</div>
 								</div>
+								{server.command && server.args && (
+									<button
+										onClick={() => handleCopyForCursor(server)}
+										className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded text-xs font-medium transition-all ${
+											copiedServer === server.name
+												? "bg-green-500/10 text-green-400 border border-green-500/30"
+												: "bg-indigo-500/10 text-indigo-400 border border-indigo-500/30 hover:bg-indigo-500/20 active:scale-95"
+										}`}
+									>
+										{copiedServer === server.name ? (
+											<>
+												<Check className="h-3.5 w-3.5" />
+												<span>복사됨</span>
+											</>
+										) : (
+											<>
+												<Copy className="h-3.5 w-3.5" />
+												<span>Copy for Cursor</span>
+											</>
+										)}
+									</button>
+								)}
 							</motion.div>
 						))}
 					</div>
@@ -197,6 +281,28 @@ export default function McpStatus({ servers = defaultServers }: McpStatusProps) 
 									</div>
 									<div className="text-xs text-zinc-400">{server.description}</div>
 								</div>
+								{server.command && server.args && (
+									<button
+										onClick={() => handleCopyForCursor(server)}
+										className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded text-xs font-medium transition-all ${
+											copiedServer === server.name
+												? "bg-green-500/10 text-green-400 border border-green-500/30"
+												: "bg-indigo-500/10 text-indigo-400 border border-indigo-500/30 hover:bg-indigo-500/20 active:scale-95"
+										}`}
+									>
+										{copiedServer === server.name ? (
+											<>
+												<Check className="h-3.5 w-3.5" />
+												<span>복사됨</span>
+											</>
+										) : (
+											<>
+												<Copy className="h-3.5 w-3.5" />
+												<span>Copy for Cursor</span>
+											</>
+										)}
+									</button>
+								)}
 							</motion.div>
 						))}
 					</div>

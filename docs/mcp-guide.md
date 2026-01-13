@@ -8,6 +8,76 @@
 
 각 MCP 서버는 단순한 도구가 아닌, **검증 피드백 루프의 핵심 구성 요소**입니다. AI가 코드를 작성한 후, 이 도구들을 통해 스스로 검증하고 문제를 발견하며 수정하는 루프를 형성합니다. 이는 최종 결과물의 품질을 **2~3배 향상시키는 가장 중요한 요소**입니다.
 
+## 어시스턴트별 MCP 설정 방법
+
+어시스턴트별로 MCP 설정 방식이 다르기 때문에, 현재 프로젝트의 `.mcp.json`을 각 도구가 인식할 수 있도록 **어시스턴트 맞춤형 브릿지 설정**이 필요합니다.
+
+### Cursor IDE 설정
+
+**중요**: Cursor는 프로젝트 루트의 `.mcp.json`을 자동으로 읽지 않으므로, 수동으로 등록해야 합니다.
+
+**설정 방법**:
+1. **Cursor Settings** (Cmd+Shift+J 또는 Ctrl+Shift+J) → **Features** → **MCP Servers**로 이동
+2. **+ Add New MCP Server** 클릭
+3. 각 서버를 하나씩 추가:
+   - **Type**: `command` 선택
+   - **Name**: 서버 이름 (예: `Serena`, `Codanna`)
+   - **Command**: `.mcp.json`에 정의된 전체 명령어 입력
+     - 예: `npx -y @modelcontextprotocol/server-serena`
+   - **Environment Variables** (필요한 경우): Proxymock 등 환경 변수가 필요한 서버의 경우 추가
+
+**빠른 설정 가이드**:
+```bash
+# 프로젝트 루트에서 실행
+scripts/core/sync-mcp.sh
+```
+
+이 스크립트는 `.mcp.json`을 파싱하여 Cursor 설정에 복사하기 쉬운 형식으로 출력합니다.
+
+**이름 충돌 방지**:
+- 여러 프로젝트를 동시에 개발하는 경우, 프로젝트별 접두어를 사용하세요
+- 예: `[ProjectName]-serena`, `[ProjectName]-codanna`
+
+### Claude Code (CLI) 설정
+
+Claude Code는 프로젝트 루트의 `.mcp.json`을 자동으로 인식합니다.
+
+**확인 방법**:
+```bash
+cd /path/to/project
+claude mcp list  # MCP 서버 목록 확인
+```
+
+**수동 등록** (필요한 경우):
+```bash
+claude mcp add --name serena --command "npx" --args "-y" "@modelcontextprotocol/server-serena"
+```
+
+### Claude Desktop 설정
+
+Claude Desktop은 전역 설정을 사용합니다.
+
+**설정 파일 위치**:
+- macOS: `~/.config/claude_desktop_config.json`
+- Windows: `%APPDATA%\Claude\claude_desktop_config.json`
+- Linux: `~/.config/claude_desktop_config.json`
+
+**설정 방법**:
+1. 설정 파일을 열고 (없으면 생성)
+2. `.mcp.json`의 `mcpServers` 섹션을 복사하여 추가
+3. Claude Desktop 재시작
+
+**주의**: Claude Desktop은 전역 설정이므로 모든 프로젝트에서 동일한 MCP 서버를 사용합니다. 프로젝트별로 다른 설정이 필요한 경우 Claude Code를 사용하세요.
+
+### Windsurf / VS Code 설정
+
+Windsurf는 VS Code 확장 프로그램을 통해 MCP를 설정합니다.
+
+**설정 방법**:
+1. VS Code 확장 프로그램에서 'MCP Client' 또는 유사한 확장 설치
+2. 설정 파일 (`.vscode/mcp.json` 또는 전역 설정)에 `.mcp.json`의 내용 추가
+3. 확장 프로그램의 문서를 참조하여 정확한 설정 방법 확인
+
 ## 초기 구성 의무 (Initial Setup Mandate)
 
 코드를 한 줄이라도 작성하기 전에 다음 초기 구성 단계를 **반드시** 순서대로 완료해야 합니다. 이는 RIPER-5 프로토콜의 필수 요구사항입니다.
