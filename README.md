@@ -12,6 +12,7 @@ AI 에이전트와 함께 코드를 작성하고, 팀의 지식을 복리로 축
 - **📚 지식 축적**: `CLAUDE.md`를 통한 팀 단위 지식 복리화 시스템
 - **🔧 Tech-Agnostic**: Node.js, Python, Go, Rust 등 다양한 스택 지원
 - **✅ 검증 피드백 루프**: Plan → Execute → Verify → Human Approval 프로세스
+- **🤖 Agent Skills 통합 관리**: 표준화된 서브 에이전트 시스템 (코드 분석, 보안, 로그, 시각적 검증)
 - **🎨 GUI 기반 주입**: Phase 6 Boilerplate Injector로 기존 프로젝트에 쉽게 적용
 - **🔒 안전한 자동화**: 백업, 병합, 선택적 적용으로 기존 설정 보호
 
@@ -61,10 +62,12 @@ boilerplate/
 │   │   ├── auto_verify.sh         # 자동 검증
 │   │   ├── commit-push-pr.sh      # Git 워크플로우
 │   │   └── check_env.sh           # 환경 변수 진단
-│   ├── agents/                    # 서브 에이전트
+│   ├── agents/                    # Agent Skills 표준 기반 서브 에이전트
 │   │   ├── simplifier.js          # 코드 단순화 분석
-│   │   ├── visual_verifier.js     # 시각적 검증
-│   │   └── update_claude_knowledge.js
+│   │   ├── visual_verifier.js     # 시각적 검증 (웹 프로젝트)
+│   │   ├── security-audit.js      # 보안 감사
+│   │   ├── log_analyzer.js        # 로컬 로그 분석
+│   │   └── update_claude_knowledge.js  # 지식 복리화
 │   └── verify-feedback-loop.js    # 통합 검증 루프
 ├── gui/                           # Phase 6: Boilerplate Injector
 │   ├── backend/                   # FastAPI 백엔드
@@ -98,10 +101,16 @@ boilerplate/
 - ✅ `scripts/core/commit-push-pr.sh`: Git 워크플로우
 - ✅ `scripts/core/check_env.sh`: 환경 변수 진단
 
-### Phase 5: 서브에이전트 및 검증 피드백 루프
-- ✅ `scripts/agents/simplifier.js`: 코드 단순화 분석
-- ✅ `scripts/agents/visual_verifier.js`: 시각적 검증
-- ✅ `scripts/verify-feedback-loop.js`: 통합 검증 루프
+### Phase 5: Agent Skills 표준 기반 서브에이전트 및 검증 피드백 루프
+- ✅ `scripts/agents/`: Agent Skills 표준 기반 에이전트 라이브러리
+  - `simplifier.js`: 코드 단순화 및 복잡도 분석
+  - `visual_verifier.js`: 웹 프로젝트 시각적 검증 (Chrome DevTools MCP)
+  - `security-audit.js`: 보안 취약점 감사 (Python: safety, Node.js: npm/pnpm audit)
+  - `log_analyzer.js`: 로컬 로그 분석 및 에러 추적 (Codanna/Serena MCP 연계)
+  - `update_claude_knowledge.js`: 검증 결과를 CLAUDE.md에 자동 기록
+- ✅ `scripts/verify-feedback-loop.js`: 통합 검증 루프 (모든 에이전트 조율)
+- ✅ `gui/backend/app/api/agents.py`: GUI 기반 에이전트 통합 관리 API
+- ✅ `gui/frontend/components/AgentHub.tsx`: 에이전트 대시보드 UI
 
 ### Phase 6: GUI 기반 Boilerplate Injector
 - ✅ FastAPI 백엔드 (스택 감지, 파일 주입, 사후 진단)
@@ -138,6 +147,14 @@ boilerplate/
 ```bash
 # 검증 (lint, type-check, test)
 mise run verify
+
+# 통합 검증 루프 (Agent Skills 기반)
+node scripts/verify-feedback-loop.js
+
+# 개별 에이전트 실행
+node scripts/agents/simplifier.js      # 코드 단순화 분석
+node scripts/agents/security-audit.js  # 보안 감사
+node scripts/agents/log_analyzer.js    # 로그 분석
 
 # 포매팅
 mise run format
