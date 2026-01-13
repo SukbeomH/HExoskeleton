@@ -95,5 +95,6 @@ class InjectResponse(BaseModel):
 	merged_files: List[str] = Field(default_factory=list, description="병합된 파일 목록")
 	post_diagnosis: Optional[PostDiagnosis] = Field(None, description="사후 진단 결과")
 	post_process: Optional[PostProcess] = Field(None, description="후처리 결과 (Poetry 설정 등)")
+	setup_prompt: Optional[str] = Field(None, description="LLM 어시스턴트 초기 동기화 프롬프트")
 	error: Optional[str] = Field(None, description="에러 메시지 (실패 시)")
 

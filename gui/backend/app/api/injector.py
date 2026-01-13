@@ -63,6 +63,7 @@ async def inject_boilerplate(request: InjectRequest) -> InjectResponse:
 	"""
 	from app.core.injector import BoilerplateInjector
 	from app.core.validator import PostDiagnosisValidator
+	from app.core.prompts import generate_setup_prompt
 	from app.models.schemas import PostDiagnosis
 
 	try:
@@ -78,6 +79,21 @@ async def inject_boilerplate(request: InjectRequest) -> InjectResponse:
 		validator = PostDiagnosisValidator(boilerplate_root)
 		diagnosis_result = validator.validate(request.target_path)
 
+		# 프롬프트 생성 (인젝션 성공 시)
+		setup_prompt = None
+		if inject_result.get("status") in ["success", "partial"]:
+			try:
+				# 스택 정보 재감지 (프롬프트 생성용)
+				detector = StackDetector(boilerplate_root)
+				stack_result = detector.detect(request.target_path)
+				setup_prompt = generate_setup_prompt(
+					target_path=request.target_path,
+					stack_info=stack_result,
+				)
+			except Exception:
+				# 프롬프트 생성 실패해도 인젝션은 성공으로 처리
+				pass
+
 		post_process_data = inject_result.get("post_process", {})
 		post_process = None
 		if post_process_data:
@@ -86,7 +102,7 @@ async def inject_boilerplate(request: InjectRequest) -> InjectResponse:
 				success=post_process_data.get("success", False),
 				message=post_process_data.get("message", ""),
 			)
-		
+
 		return InjectResponse(
 			status=inject_result.get("status", "success"),
 			injected_files=inject_result.get("injected_files", []),
@@ -98,6 +114,7 @@ async def inject_boilerplate(request: InjectRequest) -> InjectResponse:
 				git_status=diagnosis_result.get("git_status"),
 			),
 			post_process=post_process,
+			setup_prompt=setup_prompt,
 			error=inject_result.get("error"),
 		)
 	except Exception as e:

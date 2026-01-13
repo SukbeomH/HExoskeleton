@@ -8,6 +8,7 @@ import StackDetection from "./StackDetection";
 import AssetSelection from "./AssetSelection";
 import ProgressReport from "./ProgressReport";
 import EnvDiagnosis from "./EnvDiagnosis";
+import PromptCopyCard from "./PromptCopyCard";
 import { injectBoilerplate } from "@/lib/api";
 import type { StackInfo, InjectResponse, InjectionOptions, PostDiagnosis } from "@/lib/types";
 
@@ -169,6 +170,11 @@ export default function InjectorStep({ onStackDetected, onDiagnosisUpdate }: Inj
 			{/* 진행 리포트 */}
 			{(loading || injectResult) && (
 				<ProgressReport progress={progress} logs={logs} error={injectResult?.error || null} />
+			)}
+
+			{/* 프롬프트 복사 카드 (인젝션 성공 시) */}
+			{injectResult?.status === "success" && injectResult?.setup_prompt && (
+				<PromptCopyCard prompt={injectResult.setup_prompt} />
 			)}
 
 			{/* 사후 진단 */}

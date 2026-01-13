@@ -42,6 +42,7 @@ export interface InjectResponse {
 	skipped_files: string[];
 	merged_files: string[];
 	post_diagnosis?: PostDiagnosis | null;
+	setup_prompt?: string | null;
 	error?: string | null;
 }
 

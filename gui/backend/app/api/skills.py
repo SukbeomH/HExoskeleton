@@ -11,8 +11,8 @@ import re
 from typing import List, Dict, Optional
 
 # 프로젝트 루트를 Python 경로에 추가
-backend_root = Path(__file__).parent.parent.parent
-boilerplate_root = backend_root.parent.parent
+backend_root = Path(__file__).parent.parent  # gui/backend/app
+boilerplate_root = backend_root.parent.parent.parent  # boilerplate 루트
 sys.path.insert(0, str(backend_root))
 
 router = APIRouter(prefix="/api/v1/skills", tags=["skills"])
@@ -21,7 +21,7 @@ router = APIRouter(prefix="/api/v1/skills", tags=["skills"])
 SKILLS_DIR = boilerplate_root / "skills"
 CLAUDE_MD_PATH = boilerplate_root / "CLAUDE.md"
 
-VALID_SKILLS = ["simplifier", "log-analyzer", "security-audit", "visual-verifier", "claude-knowledge-updater"]
+VALID_SKILLS = ["simplifier", "log-analyzer", "security-audit", "visual-verifier", "claude-knowledge-updater", "git-guard"]
 
 
 @router.get("/{skill_name}/instructions")

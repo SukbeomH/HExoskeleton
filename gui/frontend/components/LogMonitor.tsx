@@ -51,12 +51,20 @@ export default function LogMonitor({ targetPath, logFile }: LogMonitorProps) {
 	}, [targetPath, logFile, autoRefresh]);
 
 	const handleAnalyze = async () => {
+		// 로그가 없으면 분석하지 않음
+		if (logs.length === 0) {
+			alert("분석할 로그가 없습니다. 먼저 로그 파일을 확인하세요.");
+			return;
+		}
+
 		setLoading(true);
 		try {
 			const result = await analyzeLogs(targetPath, logFile);
 			setAnalysis(result);
-		} catch (error) {
+		} catch (error: any) {
 			console.error("Failed to analyze logs:", error);
+			const errorMessage = error.response?.data?.detail || error.message || "로그 분석에 실패했습니다.";
+			alert(`로그 분석 실패: ${errorMessage}`);
 		} finally {
 			setLoading(false);
 		}
@@ -138,9 +146,9 @@ export default function LogMonitor({ targetPath, logFile }: LogMonitorProps) {
 					<button
 						type="button"
 						onClick={handleAnalyze}
-						disabled={loading}
+						disabled={loading || logs.length === 0}
 						className={`px-6 py-2 rounded-lg font-semibold ${
-							loading
+							loading || logs.length === 0
 								? "bg-gray-400 dark:bg-gray-600 text-gray-600 dark:text-gray-400 cursor-not-allowed"
 								: "bg-blue-600 dark:bg-blue-500 text-white hover:bg-blue-700 dark:hover:bg-blue-600"
 						}`}
@@ -242,7 +250,7 @@ export default function LogMonitor({ targetPath, logFile }: LogMonitorProps) {
 									<div className={`flex-1 ${colorClass} whitespace-pre-wrap`}>
 										{line}
 									</div>
-									{isError && (
+									{isError && logs.length > 0 && (
 										<button
 											type="button"
 											onClick={() => {
@@ -252,7 +260,8 @@ export default function LogMonitor({ targetPath, logFile }: LogMonitorProps) {
 													handleAnalyze();
 												}
 											}}
-											className="opacity-0 group-hover:opacity-100 px-2 py-1 text-xs font-medium bg-indigo-500 text-white rounded hover:bg-indigo-600 transition-opacity"
+											disabled={loading}
+											className="opacity-0 group-hover:opacity-100 px-2 py-1 text-xs font-medium bg-indigo-500 text-white rounded hover:bg-indigo-600 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
 										>
 											Analyze with AI
 										</button>

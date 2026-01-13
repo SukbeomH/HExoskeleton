@@ -5,6 +5,7 @@
 
 import type { AppProps } from "next/app";
 import { useEffect } from "react";
+import ToastProvider from "@/components/ToastProvider";
 import "@/styles/globals.css";
 
 export default function App({ Component, pageProps }: AppProps) {
@@ -22,6 +23,10 @@ export default function App({ Component, pageProps }: AppProps) {
 		}
 	}, []);
 
-	return <Component {...pageProps} />;
+	return (
+		<ToastProvider>
+			<Component {...pageProps} />
+		</ToastProvider>
+	);
 }
 

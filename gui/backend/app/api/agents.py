@@ -23,7 +23,7 @@ router = APIRouter(prefix="/api/v1/agents", tags=["agents"])
 
 class AgentRunRequest(BaseModel):
 	"""에이전트 실행 요청"""
-	agent_name: str  # "simplifier", "visual_verifier", "security_audit", "log_analyzer"
+	agent_name: str  # "simplifier", "visual_verifier", "security_audit", "log_analyzer", "git_guard"
 	target_path: Optional[str] = None
 	options: Optional[Dict] = None
 
@@ -34,6 +34,7 @@ AGENT_SCRIPTS = {
 	"visual_verifier": boilerplate_root / "scripts" / "agents" / "visual_verifier.js",
 	"security_audit": boilerplate_root / "scripts" / "agents" / "security-audit.js",
 	"log_analyzer": boilerplate_root / "scripts" / "agents" / "log_analyzer.js",
+	"git_guard": boilerplate_root / "skills" / "git-guard" / "run.js",
 }
 
 
@@ -41,10 +42,10 @@ AGENT_SCRIPTS = {
 async def run_agent(request: AgentRunRequest) -> Dict:
 	"""
 	개별 에이전트를 실행합니다.
-	
+
 	Args:
 		request: 에이전트 실행 요청
-		
+
 	Returns:
 		에이전트 실행 결과
 	"""
@@ -54,28 +55,28 @@ async def run_agent(request: AgentRunRequest) -> Dict:
 				status_code=400,
 				detail=f"Invalid agent name: {request.agent_name}. Must be one of {list(AGENT_SCRIPTS.keys())}"
 			)
-		
+
 		script_path = AGENT_SCRIPTS[request.agent_name]
-		
+
 		if not script_path.exists():
 			raise HTTPException(
 				status_code=404,
 				detail=f"Agent script not found: {script_path}"
 			)
-		
+
 		# Node.js 스크립트 실행
 		cmd = ["node", str(script_path)]
-		
+
 		# 옵션이 있으면 JSON으로 전달
 		if request.options:
 			import tempfile
 			with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
 				json.dump(request.options, f)
 				cmd.append(f.name)
-		
+
 		# 작업 디렉토리 설정
 		cwd = request.target_path if request.target_path else boilerplate_root
-		
+
 		result = subprocess.run(
 			cmd,
 			cwd=cwd,
@@ -83,14 +84,14 @@ async def run_agent(request: AgentRunRequest) -> Dict:
 			text=True,
 			timeout=300,  # 5분 타임아웃
 		)
-		
+
 		if result.returncode != 0:
 			return {
 				"status": "failed",
 				"error": result.stderr,
 				"output": result.stdout,
 			}
-		
+
 		# JSON 결과 파싱 시도
 		try:
 			output_json = json.loads(result.stdout)
@@ -116,10 +117,10 @@ async def run_agent(request: AgentRunRequest) -> Dict:
 async def run_agent_stream(request: AgentRunRequest) -> StreamingResponse:
 	"""
 	에이전트를 실행하고 실시간 로그를 스트리밍합니다.
-	
+
 	Args:
 		request: 에이전트 실행 요청
-		
+
 	Returns:
 		실시간 로그 스트림 (Server-Sent Events)
 	"""
@@ -128,28 +129,28 @@ async def run_agent_stream(request: AgentRunRequest) -> StreamingResponse:
 			status_code=400,
 			detail=f"Invalid agent name: {request.agent_name}"
 		)
-	
+
 	script_path = AGENT_SCRIPTS[request.agent_name]
-	
+
 	if not script_path.exists():
 		raise HTTPException(
 			status_code=404,
 			detail=f"Agent script not found: {script_path}"
 		)
-	
+
 	def generate_logs():
 		"""에이전트 실행 로그를 스트리밍"""
 		try:
 			cmd = ["node", str(script_path)]
-			
+
 			if request.options:
 				import tempfile
 				with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
 					json.dump(request.options, f)
 					cmd.append(f.name)
-			
+
 			cwd = request.target_path if request.target_path else boilerplate_root
-			
+
 			process = subprocess.Popen(
 				cmd,
 				cwd=cwd,
@@ -158,13 +159,13 @@ async def run_agent_stream(request: AgentRunRequest) -> StreamingResponse:
 				text=True,
 				bufsize=1,
 			)
-			
+
 			for line in process.stdout:
 				# SSE 형식으로 전송
 				yield f"data: {json.dumps({'type': 'log', 'message': line.rstrip()})}\n\n"
-			
+
 			process.wait()
-			
+
 			# 완료 메시지
 			if process.returncode == 0:
 				yield f"data: {json.dumps({'type': 'success', 'message': 'Agent completed successfully'})}\n\n"
@@ -172,7 +173,7 @@ async def run_agent_stream(request: AgentRunRequest) -> StreamingResponse:
 				yield f"data: {json.dumps({'type': 'error', 'message': f'Agent failed with exit code {process.returncode}'})}\n\n"
 		except Exception as e:
 			yield f"data: {json.dumps({'type': 'error', 'message': str(e)})}\n\n"
-	
+
 	return StreamingResponse(
 		generate_logs(),
 		media_type="text/event-stream",

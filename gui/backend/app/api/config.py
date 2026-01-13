@@ -11,7 +11,7 @@ import sys
 import re
 import subprocess
 import json
-from typing import Optional, Dict, List
+from typing import Optional, Dict, List, Any
 from pydantic import BaseModel
 
 # 프로젝트 루트를 Python 경로에 추가
@@ -295,7 +295,7 @@ async def migrate_to_uv(request: MigrationRequest) -> StreamingResponse:
 
 
 @router.get("/tools/check")
-async def check_tools() -> Dict[str, Dict[str, any]]:
+async def check_tools() -> Dict[str, Dict[str, Any]]:
 	"""
 	필수 도구(mise, uv, mcp, pnpm, gh)의 설치 상태를 확인합니다.
 

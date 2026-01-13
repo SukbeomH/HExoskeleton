@@ -7,7 +7,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { motion } from "framer-motion";
-import { Zap, Brain, FileText, BookOpen, Menu, X } from "lucide-react";
+import { Zap, Brain, FileText, BookOpen, Menu, X, Settings } from "lucide-react";
 import StatusBadge from "./StatusBadge";
 import ThemeToggle from "./ThemeToggle";
 import type { StackInfo, PostDiagnosis } from "@/lib/types";
@@ -22,6 +22,7 @@ const navigation = [
 	{ name: "Injector", href: "/", icon: Zap },
 	{ name: "Skills", href: "/skills", icon: Brain },
 	{ name: "Logs", href: "/logs", icon: FileText },
+	{ name: "Config", href: "/config", icon: Settings },
 	{ name: "Knowledge", href: "/knowledge", icon: BookOpen },
 ];
 

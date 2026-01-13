@@ -36,7 +36,10 @@ class PostDiagnosisValidator:
 		target = Path(target_path).resolve()
 
 		return {
-			"env_check": self._check_env(target),
+			# 환경변수 체크 비활성화: 주입될 프로젝트마다 환경변수가 다를 수 있음
+			# 필요시 주석을 해제하여 활성화 가능
+			# "env_check": self._check_env(target),
+			"env_check": None,
 			"git_status": self._check_git_status(target),
 		}
 

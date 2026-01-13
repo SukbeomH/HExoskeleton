@@ -1,0 +1,133 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Git Guard Skill Schema",
+  "description": "Git Guide 규칙 준수 검증 스킬의 입력/출력 인터페이스 정의",
+  "type": "object",
+  "properties": {
+    "input": {
+      "type": "object",
+      "description": "스킬 입력 파라미터",
+      "properties": {
+        "target_path": {
+          "type": "string",
+          "description": "검증할 Git 저장소 경로 (선택적, 기본값: 현재 작업 디렉토리)",
+          "default": "."
+        },
+        "check_branch": {
+          "type": "boolean",
+          "description": "브랜치명 검증 여부 (기본값: true)",
+          "default": true
+        },
+        "check_commit": {
+          "type": "boolean",
+          "description": "최근 커밋 메시지 검증 여부 (기본값: true)",
+          "default": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "output": {
+      "type": "object",
+      "description": "스킬 출력 결과",
+      "properties": {
+        "timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "검증 실행 시각 (ISO 8601 형식)"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["passed", "failed", "warning"],
+          "description": "전체 검증 상태 (passed: 모든 검증 통과, failed: 필수 규칙 위반, warning: 경고 수준 문제)"
+        },
+        "checks": {
+          "type": "object",
+          "description": "개별 검증 항목 결과",
+          "properties": {
+            "branch_name": {
+              "type": "object",
+              "description": "브랜치명 검증 결과",
+              "properties": {
+                "valid": {
+                  "type": "boolean",
+                  "description": "검증 통과 여부"
+                },
+                "message": {
+                  "type": "string",
+                  "description": "검증 결과 메시지"
+                },
+                "current": {
+                  "type": "string",
+                  "description": "현재 브랜치명"
+                },
+                "issue_number": {
+                  "type": "string",
+                  "description": "추출된 Issue 번호 (없으면 null)"
+                }
+              },
+              "required": ["valid", "message", "current"],
+              "additionalProperties": false
+            },
+            "commit_message": {
+              "type": "object",
+              "description": "커밋 메시지 검증 결과",
+              "properties": {
+                "valid": {
+                  "type": "boolean",
+                  "description": "검증 통과 여부"
+                },
+                "message": {
+                  "type": "string",
+                  "description": "검증 결과 메시지"
+                },
+                "latest": {
+                  "type": "string",
+                  "description": "최근 커밋 메시지"
+                },
+                "issue_number": {
+                  "type": "string",
+                  "description": "추출된 Issue 번호 (없으면 null)"
+                }
+              },
+              "required": ["valid", "message", "latest"],
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        "violations": {
+          "type": "array",
+          "description": "발견된 규칙 위반 목록",
+          "items": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": ["branch_name", "commit_message"],
+                "description": "위반 유형"
+              },
+              "severity": {
+                "type": "string",
+                "enum": ["error", "warning"],
+                "description": "심각도 (error: 필수 규칙 위반, warning: 권장 사항 미준수)"
+              },
+              "message": {
+                "type": "string",
+                "description": "위반 내용 설명"
+              },
+              "suggestion": {
+                "type": "string",
+                "description": "수정 제안"
+              }
+            },
+            "required": ["type", "severity", "message"],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": ["timestamp", "status", "checks", "violations"],
+      "additionalProperties": false
+    }
+  }
+}
+

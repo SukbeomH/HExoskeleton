@@ -5,9 +5,12 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronLeft, ChevronRight, CheckCircle2, Circle, Play, Code, CheckCircle } from "lucide-react";
+import { ChevronLeft, ChevronRight, CheckCircle2, Circle, Play, Code, CheckCircle, ClipboardList, Search, Edit3 } from "lucide-react";
 import Layout from "@/components/Layout";
 import ToolChecker from "@/components/ToolChecker";
+import Tooltip from "@/components/Tooltip";
+import ToolReference from "@/components/ToolReference";
+import PromptCopyCard from "@/components/PromptCopyCard";
 
 interface TutorialStep {
 	title: string;
@@ -129,6 +132,27 @@ mise install
 					<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 						{WORKFLOW_STEPS.map((step, index) => {
 							const Icon = step.icon;
+							const relatedTools = [
+								{
+									name: "Plan",
+									tool: "Shrimp",
+									icon: <ClipboardList className="w-4 h-4" />,
+									description: "구조화된 작업 관리 및 계획 수립",
+								},
+								{
+									name: "Execute",
+									tool: "Serena",
+									icon: <Edit3 className="w-4 h-4" />,
+									description: "IDE 수준의 정밀도로 코드 수정",
+								},
+								{
+									name: "Verify",
+									tool: "Skills",
+									icon: <Search className="w-4 h-4" />,
+									description: "simplifier, log-analyzer, security-audit 등",
+								},
+							][index];
+
 							return (
 								<motion.div
 									key={step.title}
@@ -161,7 +185,18 @@ mise install
 										</div>
 									</div>
 									<h3 className="font-semibold text-lg mb-2 text-zinc-100">{step.title}</h3>
-									<p className="text-sm text-zinc-400">{step.description}</p>
+									<p className="text-sm text-zinc-400 mb-4">{step.description}</p>
+
+									{/* 관련 도구 카드 */}
+									<Tooltip content={relatedTools.description}>
+										<div className="mt-4 p-3 rounded-lg bg-zinc-900/50 border border-zinc-800 cursor-help">
+											<div className="flex items-center gap-2 text-xs text-zinc-400 mb-1">
+												{relatedTools.icon}
+												<span>관련 도구</span>
+											</div>
+											<div className="text-sm font-medium text-zinc-200">{relatedTools.tool}</div>
+										</div>
+									</Tooltip>
 								</motion.div>
 							);
 						})}
@@ -337,6 +372,51 @@ mise install
 							</a>
 						</div>
 					</div>
+
+					{/* AI와 첫 대화 시작하기 */}
+					{currentStep === steps.length && (
+						<motion.div
+							initial={{ opacity: 0, y: 20 }}
+							animate={{ opacity: 1, y: 0 }}
+							transition={{ delay: 0.3 }}
+							className="mt-8 bg-zinc-900/50 rounded-lg border border-zinc-800 p-8 backdrop-blur-sm"
+						>
+							<h2 className="text-2xl font-bold text-zinc-100 mb-4">🤖 AI와 첫 대화 시작하기</h2>
+							<p className="text-zinc-400 mb-6">
+								보일러플레이트 주입이 완료되었다면, 이제 AI 어시스턴트에게 프로젝트 환경을 설명할 차례입니다.
+								아래 프롬프트를 복사하여 Cursor 또는 Claude Code 터미널에 붙여넣으세요.
+							</p>
+
+							<div className="space-y-4 mb-6">
+								<div className="bg-indigo-500/10 border-l-4 border-indigo-500 p-4 rounded">
+									<h3 className="font-semibold text-indigo-400 mb-2">단계별 가이드</h3>
+									<ol className="list-decimal list-inside space-y-2 text-sm text-zinc-300">
+										<li>아래 프롬프트를 복사합니다</li>
+										<li>Cursor 또는 Claude Code의 채팅 터미널을 엽니다</li>
+										<li>프롬프트를 붙여넣고 Enter를 누릅니다</li>
+										<li>AI가 프로젝트 스택을 감지하는 과정을 관찰합니다</li>
+									</ol>
+								</div>
+							</div>
+
+							<PromptCopyCard
+								prompt={`너는 이제부터 이 프로젝트의 **Senior AI-Native Software Engineer**로서 행동하라.
+이 프로젝트에는 방금 **AI-Native Boilerplate**가 주입되었다.
+
+**1. 지식 베이스 확인**: 프로젝트 루트의 \`CLAUDE.md\`를 먼저 읽고, 그곳에 정의된 AI Role, Persona, Anti-patterns, Team Standards를 완벽히 숙지하라.
+
+**2. 프로토콜 준수**: 모든 작업은 \`RIPER-5\` 프로토콜(Research → Innovate → Plan → Execute → Review)을 엄격히 따라야 한다. 계획 수립 전에는 반드시 \`spec.md\`를 작성하거나 업데이트하라.
+
+**3. MCP 도구 활용**: 사실 기반 분석을 위해 \`Codanna\`를, 정밀 편집을 위해 \`Serena\`를, 작업 관리를 위해 \`Shrimp\` MCP를 적극 활용하라.
+
+**4. 환경 표준**: 이 프로젝트는 표준 패키지 관리자를 사용하며, 모든 검증은 \`mise run verify\` 또는 \`scripts/verify-feedback-loop.js\`를 통해 수행한다.
+
+**5. 프로젝트 스택**: 현재 프로젝트의 스택 정보를 확인하기 위해 \`scripts/core/detect_stack.sh\`를 실행하세요.
+
+이제 첫 번째 작업으로, \`scripts/core/detect_stack.sh\`를 실행하여 현재 프로젝트의 스택을 확인하고 보고하라.`}
+							/>
+						</motion.div>
+					)}
 				</div>
 			</div>
 		</Layout>
