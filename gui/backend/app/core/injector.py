@@ -173,6 +173,12 @@ class BoilerplateInjector:
 			with open(source_settings, "r", encoding="utf-8") as f:
 				source_config = json.load(f)
 
+			# JSON 구조 검증
+			if not isinstance(target_config, dict):
+				raise ValueError("Target config is not a valid JSON object")
+			if not isinstance(source_config, dict):
+				raise ValueError("Source config is not a valid JSON object")
+
 			# 설정 병합
 			merged_config = self._merge_json_config(target_config, source_config)
 
@@ -201,8 +207,18 @@ class BoilerplateInjector:
 
 		# permissions: 합집합 (중복 제거)
 		if "permissions" in source:
-			target_perms = set(target.get("permissions", []))
-			source_perms = set(source.get("permissions", []))
+			target_perms_list = target.get("permissions", [])
+			source_perms_list = source.get("permissions", [])
+
+			# 리스트 타입 검증
+			if not isinstance(target_perms_list, list):
+				target_perms_list = []
+			if not isinstance(source_perms_list, list):
+				source_perms_list = []
+
+			# 모든 항목이 문자열인지 확인
+			target_perms = set(p for p in target_perms_list if isinstance(p, str))
+			source_perms = set(p for p in source_perms_list if isinstance(p, str))
 			merged["permissions"] = sorted(list(target_perms | source_perms))
 
 		# hooks: 새 설정 우선 (기존 설정 백업 후)

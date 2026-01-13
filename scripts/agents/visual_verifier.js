@@ -93,9 +93,15 @@ function isWebProject(stackInfo, projectRoot) {
 
 	try {
 		const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
+
+		// packageJson 구조 검증
+		if (!packageJson || typeof packageJson !== 'object') {
+			return false;
+		}
+
 		const dependencies = {
-			...packageJson.dependencies,
-			...packageJson.devDependencies,
+			...(packageJson.dependencies || {}),
+			...(packageJson.devDependencies || {}),
 		};
 
 		// 웹 프레임워크 감지
@@ -153,6 +159,12 @@ function startDevServer(stackInfo, projectRoot, port = 3000) {
 
 	try {
 		const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
+
+		// packageJson 구조 검증
+		if (!packageJson || typeof packageJson !== 'object') {
+			return null;
+		}
+
 		const scripts = packageJson.scripts || {};
 
 		// 개발 서버 시작 명령어 찾기

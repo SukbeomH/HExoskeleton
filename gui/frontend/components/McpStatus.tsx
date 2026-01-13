@@ -98,7 +98,30 @@ export default function McpStatus({ servers = defaultServers }: McpStatusProps) 
 			return;
 		}
 
-		const command = `${server.command} ${server.args.join(" ")}`;
+		// args가 배열인지 확인
+		if (!Array.isArray(server.args)) {
+			showToast("서버 설정의 args가 유효한 배열이 아닙니다.", "error");
+			return;
+		}
+
+		// 명령어 형식 변환: mise x -- 형식으로 변환
+		let command: string;
+		if (server.name === "serena") {
+			// Serena는 uvx 사용
+			const packageName = server.args.length > 0
+				? server.args[server.args.length - 1]
+				: "@modelcontextprotocol/server-serena";
+			command = `uvx ${packageName}`;
+		} else if (server.command === "npx") {
+			// npx 서버는 mise x -- npx -y 형식
+			const args = server.args.includes("-y") ? server.args : ["-y", ...server.args];
+			command = `mise x -- npx ${args.join(" ")}`;
+		} else {
+			// 기타 명령어는 mise x -- 형식
+			const args = server.args.length > 0 ? ` ${server.args.join(" ")}` : "";
+			command = `mise x -- ${server.command}${args}`;
+		}
+
 		const cursorConfig = `Name: ${server.displayName}\nType: command\nCommand: ${command}`;
 
 		try {

@@ -55,12 +55,21 @@ def load_mcp_config(project_root: Path) -> Dict[str, Any]:
 			if "command" not in server_config:
 				log(f"서버 '{server_name}'에 'command' 키가 없습니다.", "error")
 				sys.exit(1)
+			# command가 빈 문자열이 아닌지 검증
+			if not isinstance(server_config["command"], str) or not server_config["command"].strip():
+				log(f"서버 '{server_name}'의 'command'가 유효한 비어있지 않은 문자열이 아닙니다.", "error")
+				sys.exit(1)
 			if "args" not in server_config:
 				log(f"서버 '{server_name}'에 'args' 키가 없습니다.", "error")
 				sys.exit(1)
 			if not isinstance(server_config["args"], list):
 				log(f"서버 '{server_name}'의 'args'가 유효한 배열이 아닙니다.", "error")
 				sys.exit(1)
+			# args 리스트의 모든 항목이 문자열인지 검증
+			for i, arg in enumerate(server_config["args"]):
+				if not isinstance(arg, str):
+					log(f"서버 '{server_name}'의 'args[{i}]'가 문자열이 아닙니다 (타입: {type(arg).__name__}).", "error")
+					sys.exit(1)
 
 		return config
 	except json.JSONDecodeError as e:
