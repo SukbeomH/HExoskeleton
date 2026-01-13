@@ -9,9 +9,14 @@ import AssetSelection from "./AssetSelection";
 import ProgressReport from "./ProgressReport";
 import EnvDiagnosis from "./EnvDiagnosis";
 import { injectBoilerplate } from "@/lib/api";
-import type { StackInfo, InjectResponse, InjectionOptions } from "@/lib/types";
+import type { StackInfo, InjectResponse, InjectionOptions, PostDiagnosis } from "@/lib/types";
 
-export default function InjectorStep() {
+interface InjectorStepProps {
+	onStackDetected?: (stackInfo: StackInfo | null) => void;
+	onDiagnosisUpdate?: (diagnosis: PostDiagnosis | null) => void;
+}
+
+export default function InjectorStep({ onStackDetected, onDiagnosisUpdate }: InjectorStepProps) {
 	const [targetPath, setTargetPath] = useState("");
 	const [stackInfo, setStackInfo] = useState<StackInfo | null>(null);
 
@@ -32,6 +37,7 @@ export default function InjectorStep() {
 
 	const handleDetected = (info: StackInfo) => {
 		setStackInfo(info);
+		onStackDetected?.(info);
 		// targetPath는 사용자가 입력한 경로이므로 변경하지 않음
 	};
 
@@ -80,6 +86,9 @@ export default function InjectorStep() {
 			}
 
 			setInjectResult(result);
+			if (result.post_diagnosis) {
+				onDiagnosisUpdate?.(result.post_diagnosis);
+			}
 		} catch (error: any) {
 			setLogs((prev) => [...prev, `❌ 에러: ${error.message}`]);
 			setProgress(0);
@@ -89,10 +98,8 @@ export default function InjectorStep() {
 	};
 
 	return (
-		<div style={{ maxWidth: "900px", margin: "0 auto", padding: "2rem" }}>
-			<h1 style={{ marginBottom: "2rem", fontSize: "2rem", fontWeight: "bold" }}>
-				AI-Native Boilerplate Injector
-			</h1>
+		<div className="space-y-6">
+			<h1 className="mb-8 text-2xl font-bold text-zinc-100">AI-Native Boilerplate Injector</h1>
 
 			{/* 스택 감지 */}
 			<StackDetection onDetected={handleDetected} onPathChange={handlePathChange} />
@@ -102,36 +109,39 @@ export default function InjectorStep() {
 
 			{/* 주입 옵션 */}
 			{selectedAssets.length > 0 && (
-				<div style={{ marginBottom: "2rem" }}>
-					<h2 style={{ marginBottom: "1rem", fontSize: "1.5rem", fontWeight: "bold" }}>주입 옵션</h2>
-					<div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-						<label style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+				<div className="mb-8 rounded-lg border border-zinc-800 bg-zinc-900/30 p-6">
+					<h2 className="mb-4 text-xl font-bold text-zinc-100">주입 옵션</h2>
+					<div className="flex flex-col gap-3">
+						<label className="flex items-center gap-3 text-zinc-300">
 							<input
 								type="checkbox"
 								checked={injectionOptions.backup_existing}
 								onChange={(e) =>
 									setInjectionOptions({ ...injectionOptions, backup_existing: e.target.checked })
 								}
+								className="h-4 w-4 rounded border-zinc-700 bg-zinc-800 text-indigo-500 focus:ring-2 focus:ring-indigo-500"
 							/>
 							<span>기존 파일 백업 (.bak 파일 생성)</span>
 						</label>
-						<label style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+						<label className="flex items-center gap-3 text-zinc-300">
 							<input
 								type="checkbox"
 								checked={injectionOptions.merge_claude_config}
 								onChange={(e) =>
 									setInjectionOptions({ ...injectionOptions, merge_claude_config: e.target.checked })
 								}
+								className="h-4 w-4 rounded border-zinc-700 bg-zinc-800 text-indigo-500 focus:ring-2 focus:ring-indigo-500"
 							/>
 							<span>.claude/ 설정 병합 (기존 설정과 합성)</span>
 						</label>
-						<label style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+						<label className="flex items-center gap-3 text-zinc-300">
 							<input
 								type="checkbox"
 								checked={injectionOptions.skip_existing}
 								onChange={(e) =>
 									setInjectionOptions({ ...injectionOptions, skip_existing: e.target.checked })
 								}
+								className="h-4 w-4 rounded border-zinc-700 bg-zinc-800 text-indigo-500 focus:ring-2 focus:ring-indigo-500"
 							/>
 							<span>기존 파일 건너뛰기</span>
 						</label>
@@ -141,20 +151,15 @@ export default function InjectorStep() {
 
 			{/* Apply 버튼 */}
 			{selectedAssets.length > 0 && (
-				<div style={{ marginBottom: "2rem" }}>
+				<div className="mb-8">
 					<button
 						onClick={handleApply}
 						disabled={loading}
-						style={{
-							padding: "0.75rem 2rem",
-							backgroundColor: loading ? "#ccc" : "#0070f3",
-							color: "white",
-							border: "none",
-							borderRadius: "4px",
-							cursor: loading ? "not-allowed" : "pointer",
-							fontSize: "1.1rem",
-							fontWeight: "bold",
-						}}
+						className={`rounded-lg px-8 py-3 text-lg font-bold transition-all ${
+							loading
+								? "cursor-not-allowed bg-zinc-700 text-zinc-400"
+								: "bg-indigo-500 text-white hover:bg-indigo-600 hover:shadow-lg hover:shadow-indigo-500/50 active:scale-95"
+						}`}
 					>
 						{loading ? "주입 중..." : "Apply AI-Native Standards"}
 					</button>

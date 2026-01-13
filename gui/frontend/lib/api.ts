@@ -44,6 +44,8 @@ export interface ToolStatus {
 	mise: { installed: boolean; version: string | null };
 	uv: { installed: boolean; version: string | null };
 	mcp: { installed: boolean; config_exists: boolean };
+	pnpm?: { installed: boolean; version: string | null };
+	gh?: { installed: boolean; version: string | null };
 }
 
 export const getClaudeSections = async (): Promise<ClaudeSections> => {
@@ -135,7 +137,7 @@ export const analyzeLogs = async (
 	const params: Record<string, string> = {};
 	if (targetPath) params.target_path = targetPath;
 	if (logFile) params.log_file = logFile;
-	
+
 	const response = await api.get<LogAnalysisResult>("/api/v1/logs/analyze", { params });
 	return response.data;
 };
@@ -148,7 +150,7 @@ export const readLogs = async (
 	const params: Record<string, string | number> = { lines };
 	if (targetPath) params.target_path = targetPath;
 	if (logFile) params.log_file = logFile;
-	
+
 	const response = await api.get("/api/v1/logs/read", { params });
 	return response.data;
 };
@@ -184,7 +186,7 @@ export const runAgentStream = (
 			...(request.target_path && { target_path: request.target_path }),
 		})}`
 	);
-	
+
 	eventSource.onmessage = (event) => {
 		try {
 			const data = JSON.parse(event.data);
@@ -193,7 +195,34 @@ export const runAgentStream = (
 			console.error("Failed to parse SSE message:", error);
 		}
 	};
-	
+
 	return eventSource;
+};
+
+// Skills API
+export interface SkillInstructions {
+	skill_name: string;
+	content: string;
+}
+
+export interface LessonItem {
+	date: string;
+	title: string;
+	content: string;
+	items: string[];
+}
+
+export interface ClaudeLessons {
+	lessons: LessonItem[];
+}
+
+export const getSkillInstructions = async (skillName: string): Promise<SkillInstructions> => {
+	const response = await api.get<SkillInstructions>(`/api/v1/skills/${skillName}/instructions`);
+	return response.data;
+};
+
+export const getClaudeLessons = async (): Promise<ClaudeLessons> => {
+	const response = await api.get<ClaudeLessons>("/api/v1/skills/claude/lessons");
+	return response.data;
 };
 

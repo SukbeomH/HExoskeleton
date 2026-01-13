@@ -105,13 +105,26 @@ export default function StackDetection({ onDetected, onPathChange }: StackDetect
 				<div
 					style={{
 						padding: "1rem",
-						backgroundColor: "#f5f5f5",
+						backgroundColor: stackInfo.stack ? "#f5f5f5" : "#fff8e1",
 						borderRadius: "4px",
-						border: "1px solid #ddd",
+						border: `1px solid ${stackInfo.stack ? "#ddd" : "#ffc107"}`,
 					}}
 				>
-					{stackInfo.error ? (
-						<div style={{ color: "#c33" }}>⚠️ {stackInfo.error}</div>
+					{stackInfo.error && !stackInfo.stack ? (
+						<div style={{ color: "#f57c00", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+							<span style={{ fontSize: "1.5rem" }}>⚠️</span>
+							<div>
+								<div style={{ fontWeight: "bold", marginBottom: "0.25rem" }}>
+									스택을 감지하지 못했습니다
+								</div>
+								<div style={{ fontSize: "0.9rem", color: "#666" }}>
+									{stackInfo.error}
+								</div>
+								<div style={{ fontSize: "0.85rem", color: "#666", marginTop: "0.5rem" }}>
+									💡 일부 기능이 제한될 수 있지만, 보일러플레이트 주입은 계속 진행할 수 있습니다.
+								</div>
+							</div>
+						</div>
 					) : stackInfo.stack ? (
 						<div>
 							<div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.5rem" }}>
@@ -130,9 +143,24 @@ export default function StackDetection({ onDetected, onPathChange }: StackDetect
 									감지된 파일: {stackInfo.detected_files.join(", ")}
 								</div>
 							)}
+							{stackInfo.error && (
+								<div style={{ marginTop: "0.5rem", padding: "0.5rem", backgroundColor: "#fff8e1", borderRadius: "4px", fontSize: "0.9rem", color: "#f57c00" }}>
+									⚠️ 경고: {stackInfo.error}
+								</div>
+							)}
 						</div>
 					) : (
-						<div>⚠️ 스택을 감지하지 못했습니다.</div>
+						<div style={{ color: "#f57c00", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+							<span style={{ fontSize: "1.5rem" }}>⚠️</span>
+							<div>
+								<div style={{ fontWeight: "bold", marginBottom: "0.25rem" }}>
+									스택을 감지하지 못했습니다
+								</div>
+								<div style={{ fontSize: "0.85rem", color: "#666", marginTop: "0.5rem" }}>
+									💡 일부 기능이 제한될 수 있지만, 보일러플레이트 주입은 계속 진행할 수 있습니다.
+								</div>
+							</div>
+						</div>
 					)}
 				</div>
 			)}

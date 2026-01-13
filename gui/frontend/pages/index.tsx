@@ -1,94 +1,164 @@
 /**
- * 메인 페이지
+ * 메인 페이지 - Cybernetic Minimalism Theme
  */
 
 import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import Layout from "@/components/Layout";
 import InjectorStep from "@/components/InjectorStep";
 import AgentHub from "@/components/AgentHub";
 import LogMonitor from "@/components/LogMonitor";
 import ConfigEditor from "@/components/ConfigEditor";
-import ThemeToggle from "@/components/ThemeToggle";
+import KnowledgeTimeline from "@/components/KnowledgeTimeline";
+import type { StackInfo, PostDiagnosis } from "@/lib/types";
 
-type TabType = "injector" | "agents" | "logs" | "config";
+type TabType = "injector" | "agents" | "logs" | "config" | "knowledge";
 
 export default function Home() {
 	const [activeTab, setActiveTab] = useState<TabType>("injector");
+	const [stackInfo, setStackInfo] = useState<StackInfo | null>(null);
+	const [diagnosis, setDiagnosis] = useState<PostDiagnosis | null>(null);
+
+	const tabs = [
+		{ id: "injector" as TabType, label: "Boilerplate Injector" },
+		{ id: "agents" as TabType, label: "에이전트 관리" },
+		{ id: "logs" as TabType, label: "로그 모니터" },
+		{ id: "config" as TabType, label: "설정 편집기" },
+		{ id: "knowledge" as TabType, label: "Knowledge" },
+	];
 
 	return (
-		<main className="min-h-screen bg-gray-50 dark:bg-gray-900">
-			<div className="bg-white dark:bg-gray-800 border-b dark:border-gray-700 shadow-sm">
-				<div className="max-w-7xl mx-auto px-4">
-					<div className="flex items-center justify-between py-4">
-						<h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100">
-							AI-Native Control Plane
-						</h1>
-						<nav className="flex items-center gap-4">
-							<a
-								href="/tutorial"
-								className="px-4 py-2 text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100"
-							>
-								튜토리얼
-							</a>
-							<ThemeToggle />
-						</nav>
-					</div>
-					
-					<div className="flex border-t dark:border-gray-700">
-						<button
-							type="button"
-							onClick={() => setActiveTab("injector")}
-							className={`px-6 py-3 font-semibold ${
-								activeTab === "injector"
-									? "border-b-2 border-blue-500 text-blue-600 dark:text-blue-400"
-									: "text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100"
-							}`}
-						>
-							Boilerplate Injector
-						</button>
-						<button
-							type="button"
-							onClick={() => setActiveTab("agents")}
-							className={`px-6 py-3 font-semibold ${
-								activeTab === "agents"
-									? "border-b-2 border-blue-500 text-blue-600 dark:text-blue-400"
-									: "text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100"
-							}`}
-						>
-							에이전트 관리
-						</button>
-						<button
-							type="button"
-							onClick={() => setActiveTab("logs")}
-							className={`px-6 py-3 font-semibold ${
-								activeTab === "logs"
-									? "border-b-2 border-blue-500 text-blue-600 dark:text-blue-400"
-									: "text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100"
-							}`}
-						>
-							로그 모니터
-						</button>
-						<button
-							type="button"
-							onClick={() => setActiveTab("config")}
-							className={`px-6 py-3 font-semibold ${
-								activeTab === "config"
-									? "border-b-2 border-blue-500 text-blue-600 dark:text-blue-400"
-									: "text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100"
-							}`}
-						>
-							설정 편집기
-						</button>
+		<Layout stackInfo={stackInfo} diagnosis={diagnosis}>
+			<div className="min-h-screen">
+				{/* 탭 네비게이션 */}
+				<div className="border-b border-zinc-800 bg-zinc-900/30 backdrop-blur-sm">
+					<div className="max-w-7xl mx-auto px-4 md:px-6">
+						<div className="flex space-x-1 overflow-x-auto">
+							{tabs.map((tab) => (
+								<button
+									key={tab.id}
+									type="button"
+									onClick={() => setActiveTab(tab.id)}
+									className={`relative px-6 py-4 text-sm font-medium transition-colors ${
+										activeTab === tab.id
+											? "text-indigo-400"
+											: "text-zinc-400 hover:text-zinc-200"
+									}`}
+								>
+									{tab.label}
+									{activeTab === tab.id && (
+										<motion.div
+											layoutId="activeTab"
+											className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-500"
+											initial={false}
+											transition={{ type: "spring", stiffness: 500, damping: 30 }}
+										/>
+									)}
+								</button>
+							))}
+						</div>
 					</div>
 				</div>
+
+				{/* 컨텐츠 영역 */}
+				<div className="max-w-7xl mx-auto px-4 md:px-6 py-8">
+					<AnimatePresence mode="wait">
+						<motion.div
+							key={activeTab}
+							initial={{ opacity: 0, y: 20 }}
+							animate={{ opacity: 1, y: 0 }}
+							exit={{ opacity: 0, y: -20 }}
+							transition={{ duration: 0.2 }}
+						>
+							{activeTab === "injector" && (
+								<div className="grid gap-6 md:grid-cols-1 lg:grid-cols-3">
+									{/* 메인 인젝터 카드 */}
+									<div className="lg:col-span-2">
+										<motion.div
+											initial={{ opacity: 0, scale: 0.95 }}
+											animate={{ opacity: 1, scale: 1 }}
+											transition={{ delay: 0.1 }}
+											className="rounded-lg border border-zinc-800 bg-zinc-900/50 p-6 backdrop-blur-sm cyber-glow"
+										>
+											<InjectorStep
+												onStackDetected={setStackInfo}
+												onDiagnosisUpdate={setDiagnosis}
+											/>
+										</motion.div>
+									</div>
+
+									{/* 사이드바 정보 카드 */}
+									<div className="space-y-6">
+										<motion.div
+											initial={{ opacity: 0, x: 20 }}
+											animate={{ opacity: 1, x: 0 }}
+											transition={{ delay: 0.2 }}
+											className="rounded-lg border border-zinc-800 bg-zinc-900/50 p-6 backdrop-blur-sm"
+										>
+											<h3 className="mb-4 text-sm font-semibold text-zinc-300">시스템 상태</h3>
+											<div className="space-y-3">
+												{stackInfo && (
+													<div className="text-sm">
+														<div className="text-zinc-400">감지된 스택</div>
+														<div className="mt-1 font-mono text-indigo-400">
+															{stackInfo.stack?.toUpperCase() || "N/A"}
+														</div>
+													</div>
+												)}
+											</div>
+										</motion.div>
+									</div>
+								</div>
+							)}
+
+							{activeTab === "agents" && (
+								<motion.div
+									initial={{ opacity: 0, scale: 0.95 }}
+									animate={{ opacity: 1, scale: 1 }}
+									transition={{ delay: 0.1 }}
+									className="rounded-lg border border-zinc-800 bg-zinc-900/50 p-6 backdrop-blur-sm"
+								>
+									<AgentHub />
+								</motion.div>
+							)}
+
+							{activeTab === "logs" && (
+								<motion.div
+									initial={{ opacity: 0, scale: 0.95 }}
+									animate={{ opacity: 1, scale: 1 }}
+									transition={{ delay: 0.1 }}
+									className="rounded-lg border border-zinc-800 bg-zinc-900/50 p-6 backdrop-blur-sm"
+								>
+									<LogMonitor />
+								</motion.div>
+							)}
+
+							{activeTab === "config" && (
+								<motion.div
+									initial={{ opacity: 0, scale: 0.95 }}
+									animate={{ opacity: 1, scale: 1 }}
+									transition={{ delay: 0.1 }}
+									className="rounded-lg border border-zinc-800 bg-zinc-900/50 p-6 backdrop-blur-sm"
+								>
+									<ConfigEditor />
+								</motion.div>
+							)}
+
+							{activeTab === "knowledge" && (
+								<motion.div
+									initial={{ opacity: 0, scale: 0.95 }}
+									animate={{ opacity: 1, scale: 1 }}
+									transition={{ delay: 0.1 }}
+									className="rounded-lg border border-zinc-800 bg-zinc-900/50 p-6 backdrop-blur-sm"
+								>
+									<KnowledgeTimeline />
+								</motion.div>
+							)}
+						</motion.div>
+					</AnimatePresence>
+				</div>
 			</div>
-			
-			<div className="max-w-7xl mx-auto px-4 py-8">
-				{activeTab === "injector" && <InjectorStep />}
-				{activeTab === "agents" && <AgentHub />}
-				{activeTab === "logs" && <LogMonitor />}
-				{activeTab === "config" && <ConfigEditor />}
-			</div>
-		</main>
+		</Layout>
 	);
 }
 

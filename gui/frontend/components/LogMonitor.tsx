@@ -205,29 +205,63 @@ export default function LogMonitor({ targetPath, logFile }: LogMonitorProps) {
 				</div>
 			</div>
 
-			{/* 로그 뷰어 (기존) */}
-			<div className="bg-gray-900 text-green-400 p-4 rounded-lg font-mono text-sm overflow-auto max-h-96">
-				{filteredLogs.length === 0 ? (
-					<div className="text-gray-500">로그 파일이 없거나 비어있습니다.</div>
-				) : (
-					filteredLogs.map((line, index) => {
-						// 로그 레벨에 따른 색상
-						let colorClass = "text-green-400";
-						if (line.includes("[ERROR]") || line.includes("[CRITICAL]")) {
-							colorClass = "text-red-400";
-						} else if (line.includes("[WARNING]")) {
-							colorClass = "text-yellow-400";
-						} else if (line.includes("[INFO]")) {
-							colorClass = "text-blue-400";
-						}
+			{/* 터미널 스타일 로그 뷰어 */}
+			<div className="bg-black border border-zinc-800 rounded-lg font-mono text-sm overflow-hidden">
+				{/* 터미널 헤더 */}
+				<div className="bg-zinc-900 border-b border-zinc-800 px-4 py-2 flex items-center gap-2">
+					<div className="flex gap-1.5">
+						<div className="w-3 h-3 rounded-full bg-red-500" />
+						<div className="w-3 h-3 rounded-full bg-yellow-500" />
+						<div className="w-3 h-3 rounded-full bg-green-500" />
+					</div>
+					<span className="text-xs text-zinc-400 ml-2">Terminal</span>
+				</div>
 
-						return (
-							<div key={index} className={colorClass}>
-								{line}
-							</div>
-						);
-					})
-				)}
+				{/* 로그 컨텐츠 */}
+				<div className="p-4 overflow-auto max-h-[600px]">
+					{filteredLogs.length === 0 ? (
+						<div className="text-zinc-500">로그 파일이 없거나 비어있습니다.</div>
+					) : (
+						filteredLogs.map((line, index) => {
+							const isError = line.includes("[ERROR]") || line.includes("[CRITICAL]");
+							const isWarning = line.includes("[WARNING]");
+							const isInfo = line.includes("[INFO]");
+
+							// 로그 레벨에 따른 색상
+							let colorClass = "text-green-400";
+							if (isError) {
+								colorClass = "text-red-400";
+							} else if (isWarning) {
+								colorClass = "text-yellow-400";
+							} else if (isInfo) {
+								colorClass = "text-blue-400";
+							}
+
+							return (
+								<div key={index} className="flex items-start gap-2 group hover:bg-zinc-900/50 px-2 py-1 rounded">
+									<div className={`flex-1 ${colorClass} whitespace-pre-wrap`}>
+										{line}
+									</div>
+									{isError && (
+										<button
+											type="button"
+											onClick={() => {
+												// log_analyzer 스킬 호출
+												const parsed = parseLogLine(line);
+												if (parsed) {
+													handleAnalyze();
+												}
+											}}
+											className="opacity-0 group-hover:opacity-100 px-2 py-1 text-xs font-medium bg-indigo-500 text-white rounded hover:bg-indigo-600 transition-opacity"
+										>
+											Analyze with AI
+										</button>
+									)}
+								</div>
+							);
+						})
+					)}
+				</div>
 			</div>
 
 			{/* 분석 결과 */}
