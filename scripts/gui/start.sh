@@ -98,7 +98,25 @@ elif [ ! -d "venv" ] && command -v python3 >/dev/null 2>&1; then
 fi
 
 # 백엔드 실행 (백그라운드)
-uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload > /tmp/injector-backend.log 2>&1 &
+# uvicorn 실행 명령어 결정
+if command -v uv >/dev/null 2>&1 && [ -f "uv.lock" ]; then
+	# uv 프로젝트인 경우
+	UVICORN_CMD="uv run uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
+elif [ -f "venv/bin/uvicorn" ]; then
+	# venv에 uvicorn이 설치된 경우
+	UVICORN_CMD="venv/bin/uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
+elif [ -f "venv/bin/activate" ]; then
+	# venv를 활성화하고 uvicorn 실행
+	UVICORN_CMD="bash -c 'source venv/bin/activate && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload'"
+elif command -v uvicorn >/dev/null 2>&1; then
+	# 시스템에 uvicorn이 설치된 경우
+	UVICORN_CMD="uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
+else
+	echo "${RED}❌ uvicorn을 찾을 수 없습니다. 의존성을 설치해주세요.${NC}"
+	exit 1
+fi
+
+eval "$UVICORN_CMD" > /tmp/injector-backend.log 2>&1 &
 BACKEND_PID=$!
 echo "${GREEN}✅ Backend started (PID: $BACKEND_PID)${NC}"
 echo "${BLUE}   Logs: /tmp/injector-backend.log${NC}"
