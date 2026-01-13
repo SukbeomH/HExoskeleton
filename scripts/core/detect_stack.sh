@@ -34,9 +34,21 @@ else
 	NC=''
 fi
 
-# 프로젝트 루트 디렉토리 찾기 (스크립트 위치 기준)
-SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
-PROJECT_ROOT=$(cd "$SCRIPT_DIR/../.." && pwd)
+# 프로젝트 루트 디렉토리 찾기
+# 1. PROJECT_ROOT 환경 변수가 있으면 사용
+# 2. 없으면 현재 작업 디렉토리 사용 (백엔드 API에서 cwd=target으로 실행)
+# 3. 그것도 아니면 스크립트 위치 기준으로 계산 (기존 로직)
+if [ -n "$PROJECT_ROOT" ]; then
+	# 환경 변수가 설정된 경우 사용
+	PROJECT_ROOT=$(cd "$PROJECT_ROOT" && pwd)
+elif [ -n "$PWD" ] && [ "$PWD" != "/" ]; then
+	# 현재 작업 디렉토리 사용 (백엔드 API에서 cwd=target으로 실행하는 경우)
+	PROJECT_ROOT="$PWD"
+else
+	# 기존 로직: 스크립트 위치 기준
+	SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
+	PROJECT_ROOT=$(cd "$SCRIPT_DIR/../.." && pwd)
+fi
 
 # 초기값 설정
 DETECTED_STACK=""
@@ -145,6 +157,33 @@ elif [ -f "$PROJECT_ROOT/pyproject.toml" ] && [ -f "$PROJECT_ROOT/poetry.lock" ]
 	# Poetry shell 활성화 필요성 안내
 	if [ -z "$VIRTUAL_ENV" ]; then
 		echo "${YELLOW}   💡 Tip: Run 'poetry shell' to activate the virtual environment.${NC}"
+	fi
+elif [ -f "$PROJECT_ROOT/pyproject.toml" ]; then
+	# pyproject.toml만 있고 lock 파일이 없는 경우 (Python 프로젝트로 감지, 패키지 매니저는 미확정)
+	DETECTED_STACK="python"
+	DETECTED_PACKAGE_MANAGER="unknown"
+	
+	# pyproject.toml에서 Python 버전 추출
+	if command -v grep >/dev/null 2>&1; then
+		PYTHON_VERSION=$(grep -E "^python\s*=|^requires-python\s*=" "$PROJECT_ROOT/pyproject.toml" 2>/dev/null | head -1 | sed 's/.*=\s*"\([^"]*\)".*/\1/' | sed "s/.*=\s*'\([^']*\)'.*/\1/" || echo "")
+		if [ -n "$PYTHON_VERSION" ]; then
+			DETECTED_PYTHON_VERSION=$(echo "$PYTHON_VERSION" | sed 's/[^0-9.]*\([0-9]\+\.[0-9]\+\).*/\1/' | head -1)
+		fi
+	fi
+	
+	# 가상 환경 경로 확인
+	if [ -d "$PROJECT_ROOT/.venv" ]; then
+		DETECTED_VENV_PATH=".venv"
+	elif [ -d "$PROJECT_ROOT/venv" ]; then
+		DETECTED_VENV_PATH="venv"
+	fi
+	
+	echo "${GREEN}✅ Detected: Python project (pyproject.toml found)${NC}"
+	echo "${YELLOW}   ⚠️  No lock file found (poetry.lock or uv.lock)${NC}"
+	echo "${YELLOW}   💡 Tip: Consider using uv or Poetry for dependency management${NC}"
+	
+	if [ -n "$DETECTED_VENV_PATH" ]; then
+		echo "   Virtual Environment: $DETECTED_VENV_PATH"
 	fi
 fi
 

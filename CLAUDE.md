@@ -187,6 +187,59 @@ CLAUDE.md는 단순한 문서가 아닌, AI가 시간이 지날수록 더 똑똑
 
 **이유**: 이러한 변경사항은 시스템에 치명적인 영향을 줄 수 있으므로, AI가 자동으로 진행하기 전에 반드시 인간의 검토와 승인이 필요하다.
 
+### Available Agent Skills
+
+프로젝트에는 Claude Agent Skills 표준 구조를 따르는 여러 검증 스킬이 포함되어 있습니다. 각 스킬은 재사용 가능한 모듈로 구성되어 있으며, `skills/` 디렉토리에서 관리됩니다.
+
+**스킬 목록**:
+
+1. **simplifier** (`skills/simplifier/`)
+   - **목적**: 코드 복잡도 분석 및 단순화 제안
+   - **사용 시점**: VERIFY, REVIEW 단계
+   - **참조**: [skills/simplifier/instructions.md](skills/simplifier/instructions.md)
+   - **조건**: 모든 스택 지원
+
+2. **security-audit** (`skills/security-audit/`)
+   - **목적**: 스택별 보안 취약점 검사 (Python: safety, Node.js: npm/pnpm audit)
+   - **사용 시점**: VERIFY 단계
+   - **참조**: [skills/security-audit/instructions.md](skills/security-audit/instructions.md)
+   - **조건**: Python 또는 Node.js 프로젝트
+
+3. **log-analyzer** (`skills/log-analyzer/`)
+   - **목적**: 로컬 로그 분석 및 ERROR/CRITICAL 감지
+   - **사용 시점**: PLAN, VERIFY, REVIEW 단계
+   - **참조**: [skills/log-analyzer/instructions.md](skills/log-analyzer/instructions.md)
+   - **조건**: Python 프로젝트 (app.log 파일 필요)
+
+4. **visual-verifier** (`skills/visual-verifier/`)
+   - **목적**: 웹 프로젝트 시각적 검증 (Chrome DevTools MCP 연계)
+   - **사용 시점**: VERIFY, REVIEW 단계
+   - **참조**: [skills/visual-verifier/instructions.md](skills/visual-verifier/instructions.md)
+   - **조건**: 웹 프로젝트 (Node.js 기반)
+
+5. **claude-knowledge-updater** (`skills/claude-knowledge-updater/`)
+   - **목적**: 검증 결과를 CLAUDE.md의 'Lessons Learned' 섹션에 자동 기록
+   - **사용 시점**: Approve 단계
+   - **참조**: [skills/claude-knowledge-updater/instructions.md](skills/claude-knowledge-updater/instructions.md)
+   - **조건**: 검증 피드백 루프 실행 후
+
+**스킬 실행 방법**:
+
+- **통합 실행**: `node scripts/skill-orchestrator.js` - 모든 검증 스킬을 순차적으로 실행
+- **개별 실행**: `node skills/[skill-name]/run.js [args]` - 특정 스킬만 실행
+
+**스킬 오케스트레이터 사용**:
+
+`skill-orchestrator.js`는 `skills/` 디렉토리의 모든 스킬을 동적으로 감지하고 실행합니다:
+- Plan 단계 확인
+- Build 단계 확인
+- Verify 단계: 기본 검증 + 스킬 실행
+- Approve 단계: 사용자 승인 및 CLAUDE.md 업데이트
+
+**레거시 호환성**:
+
+기존 `verify-feedback-loop.js`는 레거시로 유지되며, 새로운 `skill-orchestrator.js` 사용을 권장합니다. 두 시스템은 동일한 결과 구조를 사용하여 호환됩니다.
+
 ## 💡 Token Optimization (토큰 최적화)
 
 토큰 사용량을 최적화하여 비용을 절감하고 응답 속도를 향상시킨다:

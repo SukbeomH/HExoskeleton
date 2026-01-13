@@ -278,8 +278,8 @@ mise install
 						<h3 className="font-semibold mb-3">Git Flow 워크플로우</h3>
 						<ol className="list-decimal list-inside space-y-2 text-sm text-gray-700">
 							<li><strong>이슈 선행 생성:</strong> 모든 변경사항은 반드시 GitHub Issue를 먼저 생성</li>
-							<li><strong>브랜치 생성:</strong> <code className="bg-gray-100 px-1 rounded">feature/{issue_number}-{description}</code> 또는 <code className="bg-gray-100 px-1 rounded">bugfix/{issue_number}-{description}</code></li>
-							<li><strong>커밋 메시지:</strong> <code className="bg-gray-100 px-1 rounded">Resolved #{Issue No} - {Description}</code> 형식 강제</li>
+							<li><strong>브랜치 생성:</strong> <code className="bg-gray-100 px-1 rounded">feature/&#123;issue_number&#125;-&#123;description&#125;</code> 또는 <code className="bg-gray-100 px-1 rounded">bugfix/&#123;issue_number&#125;-&#123;description&#125;</code></li>
+							<li><strong>커밋 메시지:</strong> <code className="bg-gray-100 px-1 rounded">Resolved #&#123;Issue No&#125; - &#123;Description&#125;</code> 형식 강제</li>
 							<li><strong>PR 병합:</strong> <code className="bg-gray-100 px-1 rounded">feature/bugfix</code> → <code className="bg-gray-100 px-1 rounded">develop</code>: 반드시 <strong>Squash and merge</strong></li>
 						</ol>
 					</div>

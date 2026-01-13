@@ -1,0 +1,42 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Claude Knowledge Updater Skill Schema",
+  "description": "CLAUDE.md 지식 복리화 업데이트 스킬의 입력/출력 인터페이스 정의",
+  "type": "object",
+  "properties": {
+    "input": {
+      "type": "object",
+      "description": "스킬 입력 파라미터",
+      "properties": {
+        "verification_result_json": {
+          "type": "string",
+          "description": "검증 결과 JSON 문자열 (필수)",
+          "pattern": "^\\{.*\\}$"
+        }
+      },
+      "required": ["verification_result_json"],
+      "additionalProperties": false
+    },
+    "output": {
+      "type": "object",
+      "description": "스킬 출력 결과 (CLAUDE.md 파일 업데이트)",
+      "properties": {
+        "success": {
+          "type": "boolean",
+          "description": "업데이트 성공 여부"
+        },
+        "message": {
+          "type": "string",
+          "description": "실행 결과 메시지"
+        },
+        "file_path": {
+          "type": "string",
+          "description": "업데이트된 파일 경로"
+        }
+      },
+      "required": ["success", "message"],
+      "additionalProperties": false
+    }
+  }
+}
+

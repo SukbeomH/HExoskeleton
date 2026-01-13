@@ -465,7 +465,6 @@ async function runApproveStep() {
 	const hasSuggestions = verificationResults.steps.verify.simplifier.suggestions.length > 0;
 	const hasVulnerabilities = verificationResults.steps.verify.security.status === 'failed';
 	const hasLogErrors = verificationResults.steps.verify.log_analysis?.status === 'failed';
-	const hasLogErrors = verificationResults.steps.verify.log_analysis?.status === 'failed';
 
 	if (hasErrors) {
 		log('\n❌ Errors found during verification:', 'red');
