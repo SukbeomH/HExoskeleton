@@ -1,0 +1,52 @@
+# docker-compose.yml
+# AI-Native Boilerplate Injector GUI Control Plane
+# 백엔드(FastAPI)와 프론트엔드(Next.js)를 통합 실행
+
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./gui/backend
+      dockerfile: Dockerfile
+    container_name: boilerplate-backend
+    ports:
+      - "8000:8000"
+    volumes:
+      # 보일러플레이트 자산 접근 (스크립트, 설정 파일 등)
+      - .:/workspace/boilerplate:ro
+      # 주입 대상 프로젝트 연결 (환경 변수로 지정)
+      - ${TARGET_PROJECT_PATH:-./workspace}:/workspace/target:rw
+    environment:
+      - TARGET_PROJECT_PATH=${TARGET_PROJECT_PATH:-/workspace/target}
+      - PYTHONUNBUFFERED=1
+    working_dir: /app
+    restart: unless-stopped
+    networks:
+      - boilerplate-network
+
+  frontend:
+    build:
+      context: ./gui/frontend
+      dockerfile: Dockerfile
+    container_name: boilerplate-frontend
+    ports:
+      - "3000:3000"
+    volumes:
+      # 개발 모드에서 핫 리로드를 위한 소스 코드 마운트
+      - ./gui/frontend:/app
+      - /app/node_modules
+      - /app/.next
+    environment:
+      - NEXT_PUBLIC_API_URL=http://backend:8000
+      - NODE_ENV=development
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - boilerplate-network
+
+networks:
+  boilerplate-network:
+    driver: bridge
+

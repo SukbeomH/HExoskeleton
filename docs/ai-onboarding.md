@@ -9,9 +9,42 @@ AI를 단순한 도구가 아닌 '함께 성장하는 페어 프로그래머'로
 
 ## 1. 초기 환경 설정 (Getting Started)
 
-### GUI를 통한 보일러플레이트 주입 (권장)
+### Docker를 통한 GUI 실행 (가장 권장 - 로컬 도구 설치 불필요)
 
-가장 쉬운 방법은 GUI를 통한 보일러플레이트 주입입니다:
+로컬에 Node.js나 Python을 설치하지 않고도 Docker로 즉시 시작할 수 있습니다:
+
+```bash
+# 1. 주입 대상 프로젝트 경로를 환경 변수로 설정 (선택사항)
+export TARGET_PROJECT_PATH=/path/to/target/project
+
+# 2. Docker Compose로 GUI 실행
+mise run docker:up
+# 또는 직접 실행
+docker-compose up -d
+
+# 3. 브라우저에서 접속
+# - 프론트엔드: http://localhost:3000
+# - 백엔드 API: http://localhost:8000
+
+# 4. GUI에서 다음 단계 수행:
+#    - 대상 프로젝트 경로 입력
+#    - 스택 자동 감지 확인
+#    - 주입할 자산 선택 (.claude/, scripts/, CLAUDE.md, mise.toml 등)
+#    - 주입 옵션 설정 (백업, 병합 등)
+#    - 주입 실행
+#    - AI 초기화 프롬프트 복사하여 Cursor/Claude Code에 붙여넣기
+
+# 5. 종료
+mise run docker:down
+```
+
+**Docker 사용 시 장점**:
+- 로컬 도구 설치 불필요 (Node.js, Python, uv 등)
+- 격리된 환경에서 안전하게 실행
+- 팀원 모두 동일한 환경 보장
+- Agent Skills가 컨테이너 내에서 실행되어 호스트 시스템에 영향 없음
+
+### 로컬 환경에서 GUI 실행
 
 ```bash
 # 1. GUI 실행

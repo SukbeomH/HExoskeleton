@@ -314,6 +314,37 @@ CLAUDE.md는 단순한 문서가 아닌, AI가 시간이 지날수록 더 똑똑
 
 ## 📋 Team Standards (팀 표준)
 
+### 컨테이너 기반 개발 환경 (Container-Based Development)
+
+**목적**: 로컬 도구 설치 없이도 일관된 개발 환경을 제공하고, 격리된 환경에서 안전하게 테스트를 수행합니다.
+
+**표준 워크플로우**:
+
+1. **GUI Control Plane 실행**:
+   - **Docker 사용 (권장)**: `mise run docker:up` 또는 `docker-compose up -d`
+   - **로컬 실행**: `mise run gui` (Node.js, Python, uv 등 로컬 설치 필요)
+   - Docker 사용 시 로컬 도구 설치 불필요하며, 팀원 모두 동일한 환경 보장
+
+2. **주입 대상 프로젝트 연결**:
+   - 환경 변수 `TARGET_PROJECT_PATH`로 주입 대상 프로젝트 경로 지정
+   - Docker Compose 볼륨 마운트를 통해 실시간 파일 주입 및 로그 분석 가능
+
+3. **Agent Skills 실행**:
+   - 컨테이너 내에서 실행되어 호스트 시스템에 영향 없음
+   - 격리된 환경에서 안전하게 검증 수행
+
+**이유**:
+- 환경 일관성: `uv` 및 `Node` 버전 차이로 인한 에러를 원천 차단
+- 즉각적인 시작: `docker-compose up` 명령 하나로 모든 분석 스킬과 GUI 기동
+- 격리된 검증: `log_analyzer`나 `security-audit` 스킬이 호스트 시스템에 영향을 주지 않고 안전하게 작동
+
+**Docker 태스크 (mise.toml)**:
+- `mise run docker:up`: GUI 서비스 시작
+- `mise run docker:down`: GUI 서비스 종료
+- `mise run docker:logs`: 컨테이너 로그 확인
+- `mise run docker:build`: 이미지 빌드
+- `mise run docker:restart`: 컨테이너 재시작
+
 ### Git Flow 및 브랜치 정책
 
 **워크플로우**: 이슈 선행 생성 → 브랜치 생성(Prefix 필수) → Squash & Merge

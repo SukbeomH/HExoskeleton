@@ -152,7 +152,41 @@ boilerplate/
 
 ## 🚀 빠른 시작
 
-### 1. 보일러플레이트를 새 프로젝트에 주입
+### 1. Docker를 통한 GUI 실행 (권장 - 로컬 도구 설치 불필요)
+
+로컬에 Node.js나 Python을 설치하지 않고도 Docker로 즉시 시작할 수 있습니다:
+
+```bash
+# 1. 주입 대상 프로젝트 경로를 환경 변수로 설정 (선택사항)
+export TARGET_PROJECT_PATH=/path/to/target/project
+
+# 2. Docker Compose로 GUI 실행
+mise run docker:up
+# 또는 직접 실행
+docker-compose up -d
+
+# 3. 브라우저에서 접속
+# - 프론트엔드: http://localhost:3000
+# - 백엔드 API: http://localhost:8000
+
+# 4. 로그 확인
+mise run docker:logs
+# 또는
+docker-compose logs -f
+
+# 5. 종료
+mise run docker:down
+# 또는
+docker-compose down
+```
+
+**Docker 사용 시 장점**:
+- 로컬 도구 설치 불필요 (Node.js, Python, uv 등)
+- 격리된 환경에서 안전하게 실행
+- 팀원 모두 동일한 환경 보장
+- Agent Skills가 컨테이너 내에서 실행되어 호스트 시스템에 영향 없음
+
+### 2. 로컬 환경에서 GUI 실행
 
 ```bash
 # GUI 기반 주입 (Phase 6)
@@ -168,7 +202,7 @@ GUI에서 다음 단계를 수행:
 5. 주입 실행
 6. AI 초기화 프롬프트 복사하여 Cursor/Claude Code에 붙여넣기
 
-### 2. 수동 설정 (GUI 없이)
+### 3. 수동 설정 (GUI 없이)
 
 ```bash
 # 1. 핵심 파일 복사

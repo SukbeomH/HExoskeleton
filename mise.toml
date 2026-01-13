@@ -48,6 +48,13 @@ pre-pr = { run = "echo '✅ Ready for PR'", description = "Final check before cr
 # gui 태스크: Boilerplate Injector GUI 실행 (백엔드 + 프론트엔드)
 gui = { run = "scripts/gui/start.sh", description = "Start Boilerplate Injector GUI (backend + frontend)" }
 
+# Docker 태스크: 컨테이너 환경에서 GUI 실행
+docker:up = { run = "docker-compose up -d", description = "Start GUI services in Docker containers (backend + frontend)" }
+docker:down = { run = "docker-compose down", description = "Stop and remove GUI Docker containers" }
+docker:logs = { run = "docker-compose logs -f", description = "View GUI Docker container logs" }
+docker:build = { run = "docker-compose build", description = "Build GUI Docker images" }
+docker:restart = { run = "docker-compose restart", description = "Restart GUI Docker containers" }
+
 # infra:setup 태스크: 인프라 설정 자동화 (kubefwd, certifi 확인)
 infra-setup = { run = "scripts/core/setup_infra.sh", description = "Check infrastructure setup (kubefwd, certifi)" }
 
