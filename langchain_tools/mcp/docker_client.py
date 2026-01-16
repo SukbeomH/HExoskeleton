@@ -12,7 +12,7 @@ from typing import Any
 
 
 # mcp-docker-runner.js 경로
-MCP_RUNNER_PATH = Path(__file__).parent.parent.parent.parent / "mcp" / "mcp-docker-runner.js"
+MCP_RUNNER_PATH = Path(__file__).parent.parent.parent / "mcp" / "mcp-docker-runner.js"
 
 
 class MCPDockerClient:

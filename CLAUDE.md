@@ -52,6 +52,7 @@ CLAUDE.md는 단순한 문서가 아닌, AI가 시간이 지날수록 더 똑똑
 - **자기 검증 루프**: 구현 직후 반드시 `/verify-app` 명령어를 실행하여 스스로 검증 루프를 수행할 것. 이는 최종 결과물 품질을 2~3배 향상시킨다.
 - **파일 참조 우선**: 코드 조각을 채팅에 복사하지 말고 `@file` 또는 `/Reference Open Editors` 기능을 사용하여 필요한 파일 전체를 컨텍스트로 제공할 것. 이는 토큰을 절약하고 컨텍스트 드리프트를 방지한다.
 - **인라인 bash 계산**: 슬래시 커맨드에서 `git status`, `ls -R` 등의 정보를 미리 계산하여 모델과의 불필요한 왕복을 방지할 것.
+- **AI-Native Governance**: 오픈소스 프로젝트 운영 시 `community-manager` 스킬을 활용하여 이슈와 PR을 자동으로 관리할 것. 구조화된 템플릿과 자동화된 워크플로우로 커뮤니티 규모 확장을 대비한다.
 
 ### 🔧 Workarounds (해결 방법)
 
@@ -241,7 +242,20 @@ CLAUDE.md는 단순한 문서가 아닌, AI가 시간이 지날수록 더 똑똑
    - **참조**: [skills/claude-knowledge-updater/instructions.md](skills/claude-knowledge-updater/instructions.md)
    - **조건**: 검증 피드백 루프 실행 후
 
+6. **community-manager** (`skills/community-manager/`)
+   - **목적**: AI 기반 커뮤니티 관리 (이슈 트리아지, PR 리뷰, 기여자 온보딩)
+   - **사용 시점**: 외부 기여 관리, PLAN/REVIEW 단계
+   - **참조**: [skills/community-manager/SKILL.md](skills/community-manager/SKILL.md)
+   - **조건**: GitHub 통합 프로젝트, 오픈소스 협업 환경
+   - **핵심 기능**:
+     * **Issue Triage**: 이슈 분류, 우선순위 판단, 자동 라벨링
+     * **PR Review**: 기여 가이드 준수 확인, 커밋 메시지 검증, CLAUDE.md 정렬 검토
+     * **Onboarding**: 신규 기여자 환영, 문서 안내, 멘토링
+     * **Knowledge Update**: 반복 패턴 감지 및 문서화 제안
+   - **통합**: Librarian (문서 업데이트), Guardian (PR 검증)과 협업
+
 **스킬 실행 방법**:
+
 
 - **통합 실행**: `node scripts/skill-orchestrator.js` - 모든 검증 스킬을 순차적으로 실행
 - **개별 실행**: `node skills/[skill-name]/run.js [args]` - 특정 스킬만 실행

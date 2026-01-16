@@ -11,10 +11,14 @@
 ## 🚀 주요 특징
 
 - **🐍 Python & LangChain 1.0**: 최신 LangChain 에이전트 아키텍처 기반
+- **🤖 Agentic MoE**: Architect, Artisan, Guardian, Librarian 등 전문가 에이전트 협업 시스템
 - **🛠️ MCP Tools 통합**: Serena, Codanna, Shrimp 등 핵심 도구를 Docker 컨테이너로 실행하고 LangChain으로 제어
 - **⚡ CLI 기반 주입**: 단 한 줄의 명령어로 프로젝트에 표준 설정 주입 (`langchain-tools inject`)
 - **📡 Google Antigravity 지원**: 최신 AI-First IDE를 위한 MCP 설정 자동화
 - **🧠 지식 복리화**: `CLAUDE.md`를 통한 프로젝트 간 지식 동기화 시스템
+- **🏛️ AI-Native Governance**: GitHub 워크플로우, 이슈 템플릿, 기여 가이드를 통한 커뮤니티 관리 표준화
+- **🤝 Community Manager Skill**: AI 에이전트가 이슈 트리아지, PR 리뷰, 기여자 온보딩을 자동 수행
+
 
 ## 📦 설치 및 시작
 
@@ -45,9 +49,14 @@ uv run langchain-tools inject /path/to/target/project
 
 **자동 생성되는 파일**:
 - `CLAUDE.md`: AI 페르소나 및 팀 규칙
-- `.mcp.json`: Claude Code, VS Code 용 MCP 설정
-- `.cursor/mcp.json`: Cursor IDE 용 MCP 설정
+- `CONTRIBUTING.md`: 기여 가이드 (AI-Native 개발 철학 포함)
+- `.github/workflows/`: GitHub Actions 자동화 (환영 메시지, 자동 라벨링)
+- `.github/ISSUE_TEMPLATE/`: 구조화된 이슈 템플릿 (버그 리포트, 기능 요청)
+- `.mcp.json` / `.cursor/mcp.json`: IDE별 Docker MCP 설정 (자동 주입)
+- `.mcp/`: Docker MCP 런타임 파일 (`mcp-docker-runner.js`, `docker-compose.mcp.yml` 등)
 - `mise.toml`: 프로젝트별 도구 관리자 설정
+- `skills/`: AI 에이전트 스킬 디렉토리 (community-manager 등)
+
 
 ### 2. 도구 설정 가이드 (Show Config)
 
@@ -80,25 +89,48 @@ uv run langchain-tools verify /path/to/target/project
 uv run langchain-tools sync-knowledge --from /project-a --to /project-b
 ```
 
+### 5. Agentic MoE 실행 (Agent) (Beta)
+
+전문가 에이전트 팀이 협업하여 복잡한 작업을 수행합니다.
+
+```bash
+# 대화형 모드 (Interactive)
+uv run langchain-tools agent interactive --prompt "로그인 페이지 만들어줘"
+
+# GUI 모드 (LangGraph Studio)
+uv run langchain-tools agent studio
+
+# 서버 모드 (API)
+uv run langchain-tools agent server
+```
+
+**전문가 팀 구성**:
+- **🏛️ Architect**: 사용자 의도 파악, 요구사항 분석 (`Codanna`), 구현 계획 수립 (`Shrimp`)
+- **🔨 Artisan**: 계획에 따른 코드 구현 및 리팩토링 (`Serena`)
+- **🛡️ Guardian**: 구현 결과 검증 (`AutoVerify`), 보안 감사 (`SecurityAudit`), 의도 일치 확인 (`IntentVerifier`)
+- **📚 Librarian**: 성공 사례 지식화 및 동기화 (`CLAUDE.md`)
+- **🤝 Community Manager**: 이슈 트리아지, PR 리뷰, 기여자 온보딩 자동화 (GitHub API 연계)
+
+
 ## 🏗️ 아키텍처
 
 ```mermaid
 graph TD
-    CLI[CLI (langchain-tools)] --> Inject[Injection Engine]
-    CLI --> Agent[Verification Agent]
+    CLI[CLI] --> Inject[Injection Engine]
+    CLI --> MoE[Agentic MoE (LangGraph)]
     CLI --> Sync[Knowledge Sync]
 
     Inject --> Templates[Jinja2 Templates]
+    Inject --> DockerFiles[Docker Assets]
 
-    Agent --> Tools[LangChain Tools]
-    Agent --> Middleware[Middleware]
+    MoE --> Supervisor(Supervisor Node)
+    Supervisor --> Architect(Architect Node)
+    Supervisor --> Artisan(Artisan Node)
+    Supervisor --> Guardian(Guardian Node)
+    Supervisor --> Librarian(Librarian Node)
 
-    Tools --> MCP[MCP Wrapper]
+    Architect & Artisan & Guardian --> MCP[MCP Client]
     MCP --> Docker[Docker Containers]
-
-    Docker --> Serena[Serena MCP]
-    Docker --> Codanna[Codanna MCP]
-    Docker --> Shrimp[Shrimp MCP]
 ```
 
 ### 핵심 컴포넌트

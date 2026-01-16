@@ -36,6 +36,9 @@ def create_parser() -> argparse.ArgumentParser:
 
   # 프로젝트 간 지식 동기화
   uv run python -m langchain_tools.cli sync-knowledge --from /a --to /b
+
+  # Agentic MoE 실행
+  uv run python -m langchain_tools.cli agent interactive --prompt "Hello"
 """,
     )
 
@@ -120,6 +123,21 @@ def create_parser() -> argparse.ArgumentParser:
         help="실제 변경 없이 미리보기만 표시",
     )
 
+    # agent 명령
+    agent_parser = subparsers.add_parser(
+        "agent",
+        help="Agentic MoE 실행",
+    )
+    agent_parser.add_argument(
+        "mode",
+        choices=["interactive", "plan", "code", "verify", "studio", "server"],
+        default="interactive",
+        help="실행 모드 (interactive, studio, server 등)",
+    )
+    agent_parser.add_argument(
+        "--prompt",
+        help="초기 프롬프트 (Optional)",
+    )
     return parser
 
 
@@ -242,6 +260,71 @@ def cmd_sync_knowledge(args: argparse.Namespace) -> int:
         print(f"❌ 동기화 실패: {result.get('message', 'Unknown error')}", file=sys.stderr)
         return 1
 
+def cmd_agent(args: argparse.Namespace) -> int:
+    """agent 명령 실행."""
+    from langchain_tools.agent.graph.host import create_agent_graph
+    from langchain_core.messages import HumanMessage
+    from langchain_tools.agent.graph.state import AgentState
+
+    mode = args.mode
+
+    if mode == 'studio':
+        print("🚀 Starting LangGraph Studio...")
+        # Check if langgraph-cli is installed
+        try:
+            import subprocess
+            subprocess.run(["langgraph", "dev"], check=True)
+        except FileNotFoundError:
+            print("❌ 'langgraph' CLI not found. Please install it with: uv pip install langgraph-cli[inmem]")
+            return 1
+        return 0
+
+    if mode == 'server':
+        print("🚀 Starting API Server...")
+        # Basic Uvicorn runner for the graph (if we were to wrap it in FastAPI)
+        # For now, we guide to use studio or implement simple uvicorn run if needed.
+        # But let's just use langgraph dev as it provides the server too.
+        print("ℹ️  For API server, LangGraph Studio also provides an API endpoint.")
+        print("   Running 'langgraph dev' is recommended.")
+        import subprocess
+        subprocess.run(["langgraph", "dev"], check=True)
+        return 0
+
+    # Interactive Mode
+    print(f"🚀 Starting Agentic MoE (Mode: {mode})...")
+
+    prompt = args.prompt
+
+    initial_state: AgentState = {
+        "messages": [HumanMessage(content=prompt)] if prompt else [],
+        "intent_path": None,
+        "plan_path": None,
+        "changed_files": [],
+        "retry_count": 0
+    }
+
+    graph = create_agent_graph()
+
+    print("🤖 [Supervisor] Routing...")
+
+    try:
+        # Run graph
+        for event in graph.stream(initial_state):
+            for key, value in event.items():
+                print(f"  -> Node '{key}' executed.")
+                if value and "messages" in value:
+                    last_msg = value["messages"][-1].content
+                    print(f"     Output: {last_msg}")
+        return 0
+    except KeyboardInterrupt:
+        print("\n🛑 Agent stopped by user.")
+        return 0
+    except Exception as e:
+        print(f"❌ 에이전트 실행 중 오류 발생: {e}", file=sys.stderr)
+        import traceback
+        traceback.print_exc()
+        return 1
+
 
 def main() -> NoReturn:
     """CLI 진입점."""
@@ -257,6 +340,7 @@ def main() -> NoReturn:
         "verify": cmd_verify,
         "show-config": cmd_show_config,
         "sync-knowledge": cmd_sync_knowledge,
+        "agent": cmd_agent,
     }
 
     handler = commands.get(args.command)

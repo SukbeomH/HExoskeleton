@@ -1,0 +1,7 @@
+{
+  "dependencies": ["."],
+  "graphs": {
+    "agentic_moe": "./langchain_tools/agent/graph/host.py:agent_graph"
+  },
+  "env": ".env"
+}

@@ -13,6 +13,9 @@ from langchain_tools.tools.stack_detector import StackDetectorTool
 
 # 템플릿 디렉토리
 TEMPLATES_DIR = Path(__file__).parent / "templates"
+# MCP 소스 디렉토리 (boilerplate/mcp)
+MCP_SOURCE_DIR = Path(__file__).parent.parent.parent / "mcp"
+
 
 
 def get_template_env() -> Environment:
@@ -70,6 +73,39 @@ def inject_boilerplate(
         (".mcp.json.j2", ".mcp.json"),
         (".cursor/mcp.json.j2", ".cursor/mcp.json"),
     ]
+
+    # [New] Docker MCP 런타임 파일 복사
+    mcp_dest_dir = target / ".mcp"
+    mcp_dest_dir.mkdir(parents=True, exist_ok=True)
+
+    # Docker 빌드 및 실행에 필요한 모든 파일 복사
+    mcp_files_to_copy = [
+        "mcp-docker-runner.js",
+        "docker-compose.mcp.yml",
+        "codanna.Dockerfile",
+        "serena.Dockerfile",
+        "shrimp.Dockerfile",
+        "SKCC_ROOT.pem"
+    ]
+
+    for filename in mcp_files_to_copy:
+        src = MCP_SOURCE_DIR / filename
+        dst = mcp_dest_dir / filename
+
+        if src.exists():
+            if not dst.exists() or force:
+                if not dry_run:
+                    shutil.copy2(src, dst)
+                result["created_files"].append(str(dst))
+            else:
+                result["skipped_files"].append(str(dst))
+        else:
+            # 필수 파일이 아니면 경고만 (예: pem 파일이 없을 수도 있음)
+            if filename.endswith(".pem"):
+                 result["errors"].append(f"Warning: SSL Cert not found: {src}")
+            else:
+                 result["errors"].append(f"MCP source file not found: {src}")
+
 
     env = get_template_env()
 

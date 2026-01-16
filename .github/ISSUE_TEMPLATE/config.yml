@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 💬 Discussions
+    url: https://github.com/SukbeomH/LLM_Bolierplate_Pack/discussions
+    about: Ask questions and discuss ideas with the community
+  - name: 📖 Documentation
+    url: https://github.com/SukbeomH/LLM_Bolierplate_Pack/blob/main/README.md
+    about: Read the project documentation
