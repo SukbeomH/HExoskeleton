@@ -1,0 +1,7 @@
+langchain
+langgraph
+langchain-openai
+langchain-anthropic
+python-dotenv
+httpx
+pydantic

@@ -112,7 +112,7 @@ async def inject_kit(req: InjectRequest):
         if not (target / ".git").is_dir():
             subprocess.run(["git", "init"], cwd=target, capture_output=True)
 
-        # Add .agent-booster to .gitignore if it exists (optional - for privacy)
+        # Add .agent-booster to .gitignore if it exists
         gitignore_path = target / ".gitignore"
         if gitignore_path.exists():
             content = gitignore_path.read_text()
@@ -120,13 +120,23 @@ async def inject_kit(req: InjectRequest):
                 with open(gitignore_path, "a") as f:
                     f.write(f"\n# Agent Booster config (may contain API keys)\n{BOILERPLATE_DIR}/\n")
 
+        # Create .env with absolute path to project root
+        env_path = inject_target / ".env"
+        with open(env_path, "w") as f:
+            f.write(f"# Auto-generated config\n")
+            f.write(f"PROJECT_ROOT=\"{target}\"\n")
+            f.write(f"PROJECT_NAME=\"{req.project_name}\"\n")
+            # Copy other defaults from example if needed, but let's keep it minimal for now
+            with open(common_path / ".env.example") as example:
+                f.write("\n" + example.read())
+
         return {
             "success": True,
             "message": f"Option {req.option.upper()} injected into '{BOILERPLATE_DIR}/' successfully!",
             "inject_path": str(inject_target),
             "next_steps": [
                 f"Review {BOILERPLATE_DIR}/INSTRUCTIONS.md",
-                f"Configure {BOILERPLATE_DIR}/.env",
+                f"Check {BOILERPLATE_DIR}/.env (PROJECT_ROOT is pre-configured)",
                 f"Run: docker-compose -f {BOILERPLATE_DIR}/mcp/docker-compose.mcp.yml up -d",
             ]
         }
