@@ -70,9 +70,13 @@ async def scan_project(req: ScanRequest):
 
 @app.post("/api/inject")
 async def inject_kit(req: InjectRequest):
-    """Inject the selected kit into the target project."""
+    """Inject the selected kit into a dedicated subdirectory of the target project."""
     target = Path(req.target_path).expanduser().resolve()
     kits_dir = Path(__file__).parent.parent / "kits"
+
+    # Create dedicated boilerplate directory to avoid conflicts
+    BOILERPLATE_DIR = ".agent-booster"
+    inject_target = target / BOILERPLATE_DIR
 
     if not target.exists():
         return JSONResponse({"error": f"Target path not found: {target}"}, status_code=400)
@@ -85,33 +89,45 @@ async def inject_kit(req: InjectRequest):
         return JSONResponse({"error": f"Kit not found: option_{req.option}"}, status_code=400)
 
     try:
-        # Copy common files
+        # Create the dedicated directory
+        inject_target.mkdir(parents=True, exist_ok=True)
+
+        # Copy common files into .agent-booster/
         for item in common_path.iterdir():
-            dest = target / item.name
+            dest = inject_target / item.name
             if item.is_file():
                 shutil.copy2(item, dest)
             elif item.is_dir():
                 shutil.copytree(item, dest, dirs_exist_ok=True)
 
-        # Copy option-specific files
+        # Copy option-specific files into .agent-booster/
         for item in kit_path.iterdir():
-            dest = target / item.name
+            dest = inject_target / item.name
             if item.is_file():
                 shutil.copy2(item, dest)
             elif item.is_dir():
                 shutil.copytree(item, dest, dirs_exist_ok=True)
 
-        # Initialize git if not present
+        # Initialize git in project root if not present
         if not (target / ".git").is_dir():
             subprocess.run(["git", "init"], cwd=target, capture_output=True)
 
+        # Add .agent-booster to .gitignore if it exists (optional - for privacy)
+        gitignore_path = target / ".gitignore"
+        if gitignore_path.exists():
+            content = gitignore_path.read_text()
+            if BOILERPLATE_DIR not in content:
+                with open(gitignore_path, "a") as f:
+                    f.write(f"\n# Agent Booster config (may contain API keys)\n{BOILERPLATE_DIR}/\n")
+
         return {
             "success": True,
-            "message": f"Option {req.option.upper()} injected successfully!",
+            "message": f"Option {req.option.upper()} injected into '{BOILERPLATE_DIR}/' successfully!",
+            "inject_path": str(inject_target),
             "next_steps": [
-                "Review INSTRUCTIONS.md",
-                "Configure .env",
-                "Run: docker-compose -f mcp/docker-compose.mcp.yml up -d",
+                f"Review {BOILERPLATE_DIR}/INSTRUCTIONS.md",
+                f"Configure {BOILERPLATE_DIR}/.env",
+                f"Run: docker-compose -f {BOILERPLATE_DIR}/mcp/docker-compose.mcp.yml up -d",
             ]
         }
     except Exception as e:

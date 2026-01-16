@@ -75,12 +75,13 @@ class GitWorkflowManager:
 
     def _save_state(self, state: TaskState):
         with open(self.state_file, "w") as f:
-            f.write(state.json(indent=2))
+            f.write(state.model_dump_json(indent=2))
 
     def load_state(self) -> Optional[TaskState]:
         if not self.state_file.exists():
             return None
         try:
-            return TaskState.parse_file(self.state_file)
+            with open(self.state_file, "r") as f:
+                return TaskState.model_validate_json(f.read())
         except Exception:
             return None
