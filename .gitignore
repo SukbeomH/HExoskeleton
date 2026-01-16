@@ -6,3 +6,5 @@ node_modules/
 .next/
 __pycache__/
 *.pem
+.legacy/
+.env
