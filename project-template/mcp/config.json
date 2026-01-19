@@ -1,0 +1,18 @@
+{
+  "server_name": "local-codegraph",
+  "version": "1.0.0",
+  "description": "Local CodeGraph MCP Server for OmniGraph",
+  "capabilities": {
+    "tools": [
+      "agentic_impact",
+      "agentic_architecture",
+      "codegraph_search",
+      "codegraph_index"
+    ],
+    "resources": []
+  },
+  "fallback": {
+    "enabled": true,
+    "message": "Mock mode active when codegraph CLI is not installed"
+  }
+}

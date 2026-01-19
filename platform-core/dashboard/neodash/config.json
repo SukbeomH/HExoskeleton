@@ -1,0 +1,31 @@
+{
+  "title": "OmniGraph Architecture Monitor",
+  "version": "2.4",
+  "pages": [
+    {
+      "title": "Overview",
+      "reports": [
+        {
+          "title": "Total Projects",
+          "query": "MATCH (n:Project) RETURN count(n)",
+          "type": "value"
+        },
+        {
+          "title": "Library Dependencies",
+          "query": "MATCH (p:Project)-[r:DEPENDS_ON]->(l:Library) RETURN p.name, l.name",
+          "type": "table"
+        }
+      ]
+    },
+    {
+      "title": "Architecture Violations",
+      "reports": [
+        {
+          "title": "Circular Dependencies",
+          "query": "MATCH path = (n)-[:CALLS*]->(n) RETURN path",
+          "type": "graph"
+        }
+      ]
+    }
+  ]
+}

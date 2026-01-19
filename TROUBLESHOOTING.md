@@ -6,191 +6,92 @@
 
 ## 🚨 일반적인 문제
 
-### 1. 포트 충돌
+### 1. MCP 서버 실행 실패
 
 **증상**:
-```
-ERROR: Address already in use
-OSError: [Errno 48] Address already in use
+```bash
+Error response from daemon: container mcp-serena is not running
 ```
 
-**원인**: 8000 또는 8001 포트가 이미 사용 중
+**원인**: Docker 컨테이너가 정상적으로 시작되지 않았거나 종료됨
 
 **해결**:
 ```bash
-# Mac/Linux
-lsof -ti:8000 | xargs kill
-lsof -ti:8001 | xargs kill
+# 컨테이너 상태 확인
+docker-compose -f mcp/docker-compose.mcp.yml ps
 
-# 또는 수동으로 프로세스 찾기
-lsof -i:8000
-lsof -i:8001
-# PID 확인 후
-kill -9 <PID>
+# 로그 확인
+docker-compose -f mcp/docker-compose.mcp.yml logs serena
+
+# 재시작
+docker-compose -f mcp/docker-compose.mcp.yml restart
 ```
 
 ---
 
-### 2. Dashboard 로그가 안 보임
+### 2. Antigravity에서 MCP 도구 인식 불가
 
-**증상**: "Start Demo" 클릭했지만 로그 출력 없음
+**증상**: Antigravity 채팅창에서 MCP 도구(serena_search 등)가 나타나지 않음
 
-**원인 1**: WebSocket 연결 실패
-```javascript
-// 브라우저 개발자 도구 콘솔 확인
-WebSocket connection to 'ws://localhost:8001/ws/logs' failed
-```
-
-**해결**: 페이지 새로고침 (F5 또는 Ctrl+R)
-
-**원인 2**: `PROJECT_ROOT` 환경 변수 미설정
-```bash
-# .env 파일 확인
-cat .agent-booster/.env | grep PROJECT_ROOT
-```
-
-**해결**: `.env` 파일에 절대 경로 설정
-```bash
-PROJECT_ROOT="/absolute/path/to/project"
-```
-
-**원인 3**: `TaskContext` 타입 에러
-```
-ValidationError: work_dir
-```
-
-**해결**: 이미 수정됨 (최신 코드 사용 시 발생 안 함)
-
----
-
-### 3. Mock Agent 실행 안 됨
-
-**증상**: "Starting CLI Worker..." 이후 멈춤
-
-**원인**: `.env`의 `CLI_COMMAND_PATH` 설정 오류
+**원인 1**: `.agent/mcp_config.json` 설정 누락 또는 오류
 
 **해결**:
-```bash
-# .env 파일 확인
-cat .agent-booster/.env
+1. `.agent/mcp_config.json` 파일이 존재하는지 확인
+2. 설정값이 `MCP_CONFIG.json.example`과 일치하는지 확인
+3. Antigravity 프로젝트 재로드 (폴더 닫았다 다시 열기)
 
-# mock_agent.sh 경로로 수정
-CLI_COMMAND_PATH="/absolute/path/to/boilerplate/kits/option_c/mock_agent.sh"
-```
+**원인 2**: Docker 컨테이너 미구동
 
-권한 확인:
-```bash
-chmod +x /path/to/mock_agent.sh
-```
+**해결**: `docker ps` 명령어로 `mcp-serena`, `mcp-codanna` 등이 실행 중인지 확인
 
 ---
 
-### 4. Launcher GUI 안 열림
+### 3. Context7 API 키 관련 오류
 
-**증상**: `python -m launcher.app` 실행했지만 브라우저 안 열림
+**증상**: Context7 검색 시 API 키 오류 발생
+
+**원인**: `.env` 파일에 `CONTEXT7_API_KEY`가 설정되지 않음
 
 **해결**:
-```bash
-# 수동으로 브라우저 열기
-open http://localhost:8000
-# 또는
-xdg-open http://localhost:8000  # Linux
-```
-
-**로그 확인**:
-```bash
-# 서버 실행 중인지 확인
-ps aux | grep launcher
-```
+1. `.env` 파일 생성 및 키 추가:
+   ```bash
+   CONTEXT7_API_KEY=your_actual_key_here
+   ```
+2. Docker 컨테이너 재시작:
+   ```bash
+   docker-compose -f mcp/docker-compose.mcp.yml up -d context7
+   ```
 
 ---
 
-### 5. 주입 실패
-
-**증상**: "Injection failed" 또는 파일 생성 안 됨
-
-**원인 1**: 권한 문제
-```bash
-# 대상 디렉토리 쓰기 권한 확인
-ls -la /path/to/target/directory
-```
-
-**원인 2**: `.agent-booster` 이미 존재
-```bash
-# 기존 디렉토리 확인
-ls -la .agent-booster
-```
-
-**해결**: 기존 디렉토리 제거 후 재주입
-```bash
-rm -rf .agent-booster
-# Launcher에서 재주입
-```
-
----
-
-### 6. Pydantic 경고
+### 4. 권한 문제
 
 **증상**:
-```
-PydanticDeprecatedSince20: The `__fields__` attribute is deprecated
-```
-
-**원인**: Python 3.14 + Pydantic v2 호환성
-
-**해결**: 경고이므로 무시 가능 (기능 정상 작동)
-
-장기 해결: `langchain_core` 업그레이드 대기
-
----
-
-### 7. SQLite 로그 DB 오류
-
-**증상**:
-```
-sqlite3.OperationalError: database is locked
-```
-
-**원인**: 여러 프로세스가 동시에 DB 접근
-
-**해결**:
 ```bash
-# Dashboard 재시작
-# 또는 DB 파일 삭제 후 재생성
-rm .logs/events.db
+permission denied while trying to connect to the Docker daemon socket
 ```
+
+**원인**: 현재 사용자가 Docker 그룹에 속해 있지 않음
+
+**해결**: `sudo`를 사용하거나 사용자를 docker 그룹에 추가
 
 ---
 
 ## 🔍 디버깅 팁
 
-### 로그 확인
+### Docker 상태 확인
 ```bash
-# Dashboard 서버 로그 (터미널에서 확인)
-cd .agent-booster
-python -m uvicorn runtime.app:app --port 8001
+# 전체 MCP 컨테이너 확인
+docker ps -a | grep mcp
 
-# SQLite DB 직접 확인
-sqlite3 .logs/events.db "SELECT * FROM logs ORDER BY timestamp DESC LIMIT 10;"
+# 리소스 사용량 확인
+docker stats mcp-codanna
 ```
 
-### 환경 변수 확인
-```python
-# Python REPL에서
-import os
-from dotenv import load_dotenv
-load_dotenv('.agent-booster/.env')
-print(os.getenv('PROJECT_ROOT'))
-print(os.getenv('CLI_COMMAND_PATH'))
-```
-
-### 네트워크 확인
+### 볼륨 확인
 ```bash
-# 포트 리스닝 확인
-netstat -an | grep 8001
-
-# localhost 연결 테스트
-curl http://localhost:8001/api/state
+# 데이터 영속화 확인
+docker volume ls | grep mcp
 ```
 
 ---
@@ -200,38 +101,26 @@ curl http://localhost:8001/api/state
 문제가 해결되지 않으면 다음 정보와 함께 Issue 등록:
 
 1. **환경 정보**:
-   ```bash
-   python --version
-   uname -a  # OS 정보
-   ```
+   - OS 버전
+   - Docker / Docker Compose 버전
+   - Antigravity 버전
 
-2. **에러 로그**: 전체 traceback
+2. **에러 로그**: 터미널 출력 전문
 
-3. **재현 단계**: 문제 재현 방법
-
-4. **설정 파일**: `.env` 내용 (민감 정보 제거)
+3. **재현 단계**: 어떤 조작 시 문제가 발생했는지
 
 ---
 
 ## ✅ 자주 묻는 질문 (FAQ)
 
-### Q: Claude CLI 없이 테스트 가능한가요?
-A: 네! `mock_agent.sh`로 테스트하세요.
+### Q: Antigravity 없이도 사용 가능한가요?
+A: 네. `docker-compose`로 서버 구동 후 Cursor나 Claude Code 등 다른 도구에 수동으로 연결할 수 있습니다.
 
-### Q: 실제 프로젝트에 주입해도 안전한가요?
-A: 네. `.agent-booster/` 서브디렉토리에만 파일 생성하고 `.gitignore`에 자동 추가됩니다.
+### Q: 특정 MCP 서버만 끄고 싶어요.
+A: `docker-compose -f mcp/docker-compose.mcp.yml stop <service_name>` 명령을 사용하세요.
 
-### Q: 주입 후 제거하려면?
-A: `.agent-booster` 디렉토리만 삭제하면 됩니다.
-```bash
-rm -rf .agent-booster
-```
-
-### Q: Dashboard 비밀번호 설정 가능한가요?
-A: 현재는 로컬호스트만 지원. 외부 접근 시 reverse proxy + 인증 추가 필요.
-
-### Q: MCP 서버가 필수인가요?
-A: Option A, B에서는 선택사항. Option C는 MCP 없이 CLI만으로도 동작.
+### Q: 파일 수정 내용이 MCP 서버에 반영되지 않아요.
+A: MCP 서버는 실시간으로 파일을 읽지만, 인덱싱 기반 서버(Codanna 등)는 업데이트에 시간이 약간 소요될 수 있습니다.
 
 ---
 
@@ -239,4 +128,4 @@ A: Option A, B에서는 선택사항. Option C는 MCP 없이 CLI만으로도 동
 
 - [README.md](file:///Users/sukbeom/Desktop/workspace/boilerplate/README.md) - 프로젝트 개요
 - [QUICKSTART.md](file:///Users/sukbeom/Desktop/workspace/boilerplate/QUICKSTART.md) - 시작 가이드
-- GitHub Issues - 버그 리포트 및 기능 요청
+- [MANUAL_SETUP.md](file:///Users/sukbeom/Desktop/workspace/boilerplate/MANUAL_SETUP.md) - 상세 매뉴얼

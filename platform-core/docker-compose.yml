@@ -1,0 +1,24 @@
+services:
+  neo4j:
+    image: neo4j:5.15.0
+    container_name: omnigraph-neo4j
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    environment:
+      - NEO4J_AUTH=neo4j/omnigraph
+      - NEO4J_PLUGINS=["apoc", "graph-data-science"]
+    volumes:
+      - ./graph-db/data:/data
+      - ./graph-db/plugins:/plugins
+
+  neodash:
+    image: neo4jlabs/neodash:latest
+    platform: linux/amd64
+    container_name: omnigraph-neodash
+    ports:
+      - "5005:5005"
+    environment:
+      - ssoEnabled=false
+    depends_on:
+      - neo4j

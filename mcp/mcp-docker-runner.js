@@ -34,7 +34,7 @@ const shouldBuild = flags.includes("--build");
 const verbose = flags.includes("--verbose");
 
 // 컨테이너 이름 확인
-const VALID_CONTAINERS = ["serena", "codanna", "shrimp"];
+const VALID_CONTAINERS = ["serena", "codanna", "shrimp", "context7"];
 const containerName = positionalArgs[0];
 
 if (!containerName) {

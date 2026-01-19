@@ -1,6 +1,6 @@
-# ⚡ Quick Start Guide
+# ⚡ Quick Start Guide (Manual Mode)
 
-5분 안에 LLM Boilerplate Pack 시작하기
+5분 안에 MCP 기반 수동 모드 설정하기
 
 ---
 
@@ -12,140 +12,68 @@ python --version
 
 # Docker 확인 (MCP 서버용)
 docker --version
+
+# Node.js 확인
+node --version
 ```
 
 ---
 
-## 🚀 설치 및 실행
+## 🚀 단계별 설정
 
-### 1단계: 가상환경 생성 및 의존성 설치
-
-```bash
-cd /path/to/boilerplate
-python -m venv .venv
-source .venv/bin/activate  # Windows: .venv\Scripts\activate
-
-pip install -r requirements.txt
-```
-
-### 2단계: Launcher 실행
+### 1단계: 환경 변수 설정
+복잡한 설정 없이 템플릿을 복사하여 사용합니다.
 
 ```bash
-python -m launcher.app
+cp .env.example .env
 ```
 
-브라우저가 자동으로 `http://localhost:8000`을 엽니다.
+`.env` 파일을 열어 다음을 확인하세요:
+- `PROJECT_NAME`: 현재 프로젝트 이름
 
-### 3단계: 프로젝트 스캔
-
-1. **프로젝트 경로 입력**
-   - 예: `.legacy` (상대 경로)
-   - 예: `/absolute/path/to/project` (절대 경로)
-
-2. **Scan Project 클릭**
-   - 자동으로 프로젝트 분석
-   - 적합한 모드 추천
-
-### 4단계: 모드 선택 및 주입
-
-#### 옵션 A: Manual Mode
-- 설정 파일만 필요한 경우
-- MCP 서버 Docker Compose 포함
-- 사용자가 직접 도구 제어
-
-#### 옵션 B: Full Auto
-- 완전 자동화 원하는 경우
-- LangGraph 에이전트 사용
-- API 키 필요 (`.env` 설정)
-
-#### 옵션 C: Hybrid ⭐ 추천
-- Dashboard로 모니터링하면서 제어
-- Pause/Resume 가능
-- **실시간 로그 확인**
-
-**Inject Selected Kit 클릭**
-
-### 5단계: 사용
-
-#### Option C 선택한 경우:
+### 2단계: MCP 서버 Docker 실행
+Docker Compose를 사용하여 4개의 핵심 MCP 서버(Serena, Codanna, Shrimp, Context7)를 실행합니다.
 
 ```bash
-# 주입된 디렉토리로 이동
-cd your-project/.agent-booster
-
-# Dashboard 실행
-python -m uvicorn runtime.app:app --host 0.0.0.0 --port 8001
+# Antigravity `/mcp-docker` 또는 다음 명령 실행
+/mcp-docker
 ```
 
-브라우저에서 `http://localhost:8001` 접속
+또는 직접 실행:
+```bash
+docker-compose -f mcp/docker-compose.mcp.yml up -d
+```
 
-**Dashboard 사용법**:
-1. **▶️ Start Demo** - Mock Agent 실행
-2. **⏸️ Pause** - 실행 일시정지
-3. **▶️ Resume** - 재개
-4. **🗑️ Clear** - 로그 지우기
+### 3단계: 도구(Editor/IDE) 연결
+AI 도구가 MCP 서버를 Stdion 방식으로 호출할 수 있도록 설정합니다.
+
+`MCP_CONFIG.json.example`의 내용을 복사하여 환경에 맞게 추가하세요:
+- **Cursor**: `Settings > Models > MCP`에서 서버 추가
+- **Claude Code**: `.mcp.json` 파일 생성
+
+### 4단계: Antigravity Slash 커맨드 활용
+Antigravity를 사용 중이라면 채팅창에서 바로 명령을 내릴 수 있습니다.
+
+- `/setup-boilerplate`: 자동 프로젝트 초기화
+- `/mcp-docker`: Docker 컨네이너 상태 관리
 
 ---
 
-## 🎯 첫 테스트
+## 📁 주요 디렉토리
 
-### Mock Agent로 테스트
-
-Option C Dashboard에서:
-1. "Start Demo" 클릭
-2. 로그에서 다음 확인:
-   - `[Mock Agent] 🤔 Analyzing request...`
-   - `[Mock Agent] ✅ Task completed successfully!`
-3. Pause/Resume 버튼 테스트
-
-### 실제 CLI 연동 (선택)
-
-`.agent-booster/.env` 파일 수정:
-```bash
-CLI_COMMAND_PATH="claude"  # 또는 실제 CLI 경로
-```
-
----
-
-## 📁 주입된 구조
-
-주입 후 프로젝트 구조:
-```
-your-project/
-├── .agent-booster/        # 🆕 주입된 디렉토리
-│   ├── .env              # 환경 변수
-│   ├── runtime/          # Dashboard (Option C)
-│   ├── langchain_tools/  # 핵심 라이브러리
-│   └── .logs/           # SQLite 로그
-├── .gitignore           # 🆕 .agent-booster 추가됨
-└── (기존 프로젝트 파일들)
-```
+- `mcp/`: Dockerfile 및 Docker Compose 설정
+- `.agent/`: Antigravity 용 워크플로우 및 환경 설정
+- `.gsd/`: 프로젝트 관리용 마크다운 명세서
 
 ---
 
 ## ⚠️ 문제 발생 시
 
-### 포트 충돌
+### Docker 실행 오류
 ```bash
-# 기존 프로세스 종료
-lsof -ti:8000 | xargs kill
-lsof -ti:8001 | xargs kill
+# 기존 컨테이너 청소
+docker-compose -f mcp/docker-compose.mcp.yml down
+docker-compose -f mcp/docker-compose.mcp.yml up -d --build
 ```
 
-### Dashboard 로그 안 보임
-1. 브라우저 새로고침 (F5)
-2. WebSocket 연결 확인 (개발자 도구)
-3. `.env` 파일의 `PROJECT_ROOT` 확인
-
-더 자세한 내용: [TROUBLESHOOTING.md](file:///Users/sukbeom/Desktop/workspace/boilerplate/TROUBLESHOOTING.md)
-
----
-
-## 🎓 다음 단계
-
-- [ ] 실제 프로젝트에 주입해보기
-- [ ] Dashboard에서 실시간 로그 확인
-- [ ] 실제 Claude CLI와 연동
-- [ ] Git 워크플로우 확인
-
-궁금한 점이 있다면 [README.md](file:///Users/sukbeom/Desktop/workspace/boilerplate/README.md) 참조!
+더 자세한 내용: [MANUAL_SETUP.md](file:///Users/sukbeom/Desktop/workspace/boilerplate/MANUAL_SETUP.md)

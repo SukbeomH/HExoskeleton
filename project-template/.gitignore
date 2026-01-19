@@ -1,0 +1,16 @@
+# Environment Variables
+.env
+
+# CodeGraph Index
+.codegraph/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# Node
+node_modules/
+
+# System
+.DS_Store

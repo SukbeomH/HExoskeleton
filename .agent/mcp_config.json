@@ -1,60 +1,34 @@
 {
   "mcpServers": {
     "serena": {
-      "command": "uvx",
+      "command": "node",
       "args": [
+        "mcp/mcp-docker-runner.js",
         "serena"
-      ],
-      "env": {
-        "PROJECT_ROOT": "/Users/sukbeom/Desktop/workspace/boilerplate"
-      },
-      "metadata": {
-        "description": "Python code analysis and suggestions",
-        "language": "python",
-        "scope": "project"
-      }
+      ]
     },
     "codanna": {
-      "command": "/Users/sukbeom/.cargo/bin/codanna",
-      "args": [],
-      "env": {
-        "PROJECT_ROOT": "/Users/sukbeom/Desktop/workspace/boilerplate"
-      },
-      "metadata": {
-        "description": "High-performance code intelligence (Rust)",
-        "language": "multi",
-        "scope": "project"
-      }
+      "command": "node",
+      "args": [
+        "mcp/mcp-docker-runner.js",
+        "codanna"
+      ]
     },
     "shrimp-task-manager": {
       "command": "node",
       "args": [
-        "/Users/sukbeom/Desktop/side/mcp-shrimp-task-manager/dist/index.js"
-      ],
-      "env": {
-        "PROJECT_ROOT": "/Users/sukbeom/Desktop/workspace/boilerplate"
-      },
-      "metadata": {
-        "description": "Task tracking and management",
-        "language": "javascript",
-        "scope": "project"
-      }
+        "mcp/mcp-docker-runner.js",
+        "shrimp"
+      ]
     },
     "context7": {
-      "command": "npx",
+      "command": "node",
       "args": [
-        "-y",
-        "@upstash/context7-mcp"
+        "mcp/mcp-docker-runner.js",
+        "context7"
       ],
       "env": {
-        "CONTEXT7_API_KEY": "${CONTEXT7_API_KEY}",
-        "PROJECT_ROOT": "/Users/sukbeom/Desktop/workspace/boilerplate"
-      },
-      "metadata": {
-        "description": "Semantic code search and context retrieval",
-        "language": "javascript",
-        "scope": "project",
-        "requires_api_key": true
+        "CONTEXT7_API_KEY": "${CONTEXT7_API_KEY}"
       }
     }
   }

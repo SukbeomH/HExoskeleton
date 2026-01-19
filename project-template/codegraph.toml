@@ -1,0 +1,5 @@
+[index]
+tier = "balanced"  # 속도와 정확도 균형
+
+[mcp]
+transport = "stdio"
