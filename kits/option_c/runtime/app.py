@@ -51,6 +51,9 @@ git_mgr = GitWorkflowManager(str(PROJECT_PATH))
 cli_command = os.getenv("CLI_COMMAND_PATH", "echo")
 worker = CLIWorker(cli_command=cli_command, project_path=str(PROJECT_PATH))
 
+# Global pause state for user control
+is_paused = False
+
 
 def run_cli_task(task_id: str, prompt: str):
     """Background task to run the CLI worker."""
@@ -138,6 +141,40 @@ async def start_task(request: Request, background_tasks: BackgroundTasks):
     background_tasks.add_task(run_cli_task, task_id, prompt)
 
     return {"success": True, "task_id": task_id}
+
+
+@app.post("/api/pause")
+async def pause_execution():
+    """Pause the agent execution."""
+    global is_paused
+    is_paused = True
+    logger.log(LogEvent(
+        task_id="system",
+        phase="paused",
+        actor="user",
+        message="Execution paused by user"
+    ))
+    return {"success": True, "paused": True}
+
+
+@app.post("/api/resume")
+async def resume_execution():
+    """Resume the agent execution."""
+    global is_paused
+    is_paused = False
+    logger.log(LogEvent(
+        task_id="system",
+        phase="resumed",
+        actor="user",
+        message="Execution resumed by user"
+    ))
+    return {"success": True, "paused": False}
+
+
+@app.get("/api/pause/status")
+async def get_pause_status():
+    """Get current pause status."""
+    return {"paused": is_paused}
 
 
 if __name__ == "__main__":

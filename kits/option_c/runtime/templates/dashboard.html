@@ -105,24 +105,36 @@
     }
 
     .log-line {
-      padding: 0.3rem 0;
+      padding: 0.5rem 0;
       border-bottom: 1px solid var(--border);
-      display: flex;
-      gap: 0.5rem;
+      display: grid;
+      grid-template-columns: 80px 1fr;
+      grid-template-rows: auto auto;
+      gap: 0.3rem 0.5rem;
     }
 
     .log-time {
       color: #8b949e;
-      width: 80px;
+      grid-column: 1;
+      grid-row: 1;
     }
 
     .log-actor {
       color: var(--primary);
-      width: 100px;
+      grid-column: 2;
+      grid-row: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
     .log-message {
-      flex: 1;
+      grid-column: 1 / -1;
+      grid-row: 2;
+      padding-left: 0.5rem;
+      word-break: break-word;
+      overflow-wrap: break-word;
+      white-space: pre-wrap;
     }
 
     .log-level-ERROR .log-message {
@@ -203,6 +215,8 @@
           <div class="card-title">🎛️ Controls</div>
           <div class="controls">
             <button onclick="startDemo()">▶️ Start Demo</button>
+            <button onclick="pauseExecution()" id="pauseBtn">⏸️ Pause</button>
+            <button onclick="resumeExecution()" id="resumeBtn" style="display: none;">▶️ Resume</button>
             <button onclick="clearLogs()">🗑️ Clear</button>
           </div>
         </div>
@@ -265,6 +279,18 @@
 
       statusBadge.textContent = (state.phase || 'idle').toUpperCase();
       statusBadge.className = `status-badge status-${state.phase || 'idle'}`;
+    }
+
+    async function pauseExecution() {
+      await fetch('/api/pause', { method: 'POST' });
+      document.getElementById('pauseBtn').style.display = 'none';
+      document.getElementById('resumeBtn').style.display = 'inline-block';
+    }
+
+    async function resumeExecution() {
+      await fetch('/api/resume', { method: 'POST' });
+      document.getElementById('pauseBtn').style.display = 'inline-block';
+      document.getElementById('resumeBtn').style.display = 'none';
     }
 
     // Poll state every 2s

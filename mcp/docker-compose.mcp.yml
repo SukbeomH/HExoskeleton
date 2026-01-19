@@ -29,7 +29,7 @@ services:
     volumes:
       - ${TARGET_PROJECT_PATH:-..}:/workspace:ro
     working_dir: /workspace
-    restart: "no"
+    restart: always
 
   # Codanna MCP - 시맨틱 코드 검색 및 분석
   codanna:
@@ -42,8 +42,22 @@ services:
     tty: true
     volumes:
       - ${TARGET_PROJECT_PATH:-..}:/workspace:ro
-    working_dir: /workspace
-    restart: "no"
+      - codanna-index:/root/.codanna
+    working_dir: /root
+    restart: always
+
+  # Context7 MCP - Upstash 시맨틱 검색
+  context7:
+    build:
+      context: .
+      dockerfile: context7.Dockerfile
+    image: mcp-context7:latest
+    container_name: mcp-context7
+    stdin_open: true
+    tty: true
+    environment:
+      - CONTEXT7_API_KEY=${CONTEXT7_API_KEY}
+    restart: always
 
   # Shrimp Task Manager - 구조화된 작업 관리
   shrimp:
@@ -64,7 +78,11 @@ services:
     working_dir: /workspace
     restart: "no"
 
+# 영속성 볼륨 정의
 volumes:
-  # Shrimp Task Manager 데이터 영속화
+  # Shrimp Task Manager 데이터
   shrimp-data:
     name: mcp-shrimp-data
+  # Codanna 인덱스 캐시
+  codanna-index:
+    name: mcp-codanna-index

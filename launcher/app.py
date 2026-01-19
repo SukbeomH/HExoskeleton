@@ -130,6 +130,12 @@ async def inject_kit(req: InjectRequest):
             with open(common_path / ".env.example") as example:
                 f.write("\n" + example.read())
 
+            # For Option C, add mock agent path as the default CLI command
+            if req.option == "c":
+                mock_agent_path = kits_dir.parent / "kits" / "option_c" / "mock_agent.sh"
+                f.write(f"\n# Option C: Mock Agent for testing (override with real CLI path)\n")
+                f.write(f"CLI_COMMAND_PATH=\"{mock_agent_path.resolve()}\"\n")
+
         return {
             "success": True,
             "message": f"Option {req.option.upper()} injected into '{BOILERPLATE_DIR}/' successfully!",
