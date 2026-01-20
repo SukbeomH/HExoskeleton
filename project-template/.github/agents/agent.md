@@ -1,6 +1,6 @@
 # OmniGraph Agent Specification
 
-> **Version**: 1.2.0
+> **Version**: 1.3.0
 > **Standard**: GitHub Agents (6-Core Structure)
 > **Last Updated**: 2026-01-20
 
@@ -30,7 +30,7 @@ You are a **Senior Staff Engineer** specialized in the OmniGraph framework.
 |-------|------------|
 | **Agent Orchestration** | LangChain v1.2+, LangGraph |
 | **Protocol** | Model Context Protocol (MCP) |
-| **Local Database** | CodeGraph (AST Index, SurrealDB) |
+| **Local Database** | CodeGraph Rust (AST Index, SurrealDB) |
 | **Global Database** | Neo4j (Knowledge Graph) + Vector Index |
 | **MCP Adapter** | `langchain-mcp-adapters` (MultiServerMCPClient) |
 | **Methodology** | Get Shit Done (GSD) |
@@ -72,26 +72,22 @@ uv run pytest tests/
 uv init
 ```
 
-### Development
+### CodeGraph Rust Commands
 ```bash
-# CodeGraph Rust: Index codebase for local context
-# https://github.com/Jakedismo/codegraph-rust
+# Index codebase (https://github.com/Jakedismo/codegraph-rust)
 codegraph index . -r -l python,typescript,rust
 
-# Start CodeGraph MCP server (stdio mode with watch)
+# Start MCP server (stdio mode with auto-reload)
 codegraph start stdio --watch
 
-# Run local Python MCP server
-uv run python mcp/server.py
+# Re-index after major changes
+codegraph index . -r --force
 ```
 
 ### Verification
 ```bash
 # Run test suite
 uv run pytest tests/
-
-# OR for Node.js projects
-npm run test
 
 # Validate SPEC.md integrity
 uv run python scripts/validate_spec.py
@@ -100,15 +96,109 @@ uv run python scripts/validate_spec.py
 docker-compose ps
 ```
 
-### Sync
-```bash
-# Push local metadata to Global Hub
-./scripts/sync_to_hub.sh
+---
+
+## 4️⃣ CodeGraph Agentic Tools (7 Tools)
+
+**Always prefer CodeGraph tools over manual file reading.** These tools provide synthesized answers, not just file lists.
+
+### Quick Reference
+
+| I want to... | Ask for... |
+|--------------|------------|
+| Find code | `agentic_code_search` |
+| See what depends on X | `agentic_dependency_analysis` |
+| Trace execution flow | `agentic_call_chain_analysis` |
+| Understand architecture | `agentic_architecture_analysis` |
+| See public interfaces | `agentic_api_surface_analysis` |
+| Gather context for a task | `agentic_context_builder` |
+| Answer complex questions | `agentic_semantic_question` |
+
+### Tool Details
+
+#### `agentic_code_search`
+**Use when:** Finding code, exploring unfamiliar areas, discovering patterns
+```
+✅ "Find where user authentication is handled"
+✅ "Show me how error handling works in this codebase"
+✅ "Find all API endpoints"
+```
+
+#### `agentic_dependency_analysis`
+**Use when:** Before refactoring, understanding impact, checking coupling
+```
+✅ "What depends on the UserService class?"
+✅ "What would break if I change the auth module?"
+✅ "Show me the dependency tree for the payment system"
+```
+
+#### `agentic_call_chain_analysis`
+**Use when:** Tracing execution flow, debugging, understanding data paths
+```
+✅ "Trace the execution from HTTP request to database"
+✅ "What's the call chain when a user logs in?"
+```
+
+#### `agentic_architecture_analysis`
+**Use when:** Onboarding, architecture reviews, understanding the big picture
+```
+✅ "Give me an overview of this project's architecture"
+✅ "What design patterns are used in this codebase?"
+```
+
+#### `agentic_api_surface_analysis`
+**Use when:** API design review, breaking change detection
+```
+✅ "What public APIs does the auth module expose?"
+✅ "Would changing this function signature break anything?"
+```
+
+#### `agentic_context_builder`
+**Use when:** Before implementing a feature, gathering all relevant context
+```
+✅ "I need to add rate limiting. Gather all relevant context."
+✅ "Collect everything I need to add a new payment provider"
+```
+
+#### `agentic_semantic_question`
+**Use when:** Complex questions that span multiple areas
+```
+✅ "How does error handling work across all layers?"
+✅ "What conventions does this project use for async operations?"
 ```
 
 ---
 
-## 4️⃣ Code Style
+## 5️⃣ Working Patterns (CodeGraph)
+
+### Pattern 1: Exploration First
+When starting work on an unfamiliar area:
+1. **Architecture overview:** Use `agentic_architecture_analysis`
+2. **Find entry points:** Use `agentic_code_search`
+3. **Trace the flow:** Use `agentic_call_chain_analysis`
+4. **Check dependencies:** Use `agentic_dependency_analysis`
+
+### Pattern 2: Pre-Refactoring
+Before making changes:
+1. **Impact analysis:** Use `agentic_dependency_analysis`
+2. **Find consumers:** Use `agentic_api_surface_analysis`
+3. **Gather context:** Use `agentic_context_builder`
+
+### Pattern 3: Feature Implementation
+When adding new features:
+1. **Find patterns:** Use `agentic_code_search` for similar implementations
+2. **Gather context:** Use `agentic_context_builder`
+3. **Check conventions:** Use `agentic_semantic_question`
+
+### Pattern 4: Debugging
+When tracking down issues:
+1. **Find the code:** Use `agentic_code_search`
+2. **Trace execution:** Use `agentic_call_chain_analysis`
+3. **Check dependencies:** Use `agentic_dependency_analysis`
+
+---
+
+## 6️⃣ Code Style
 
 Prefer showing examples over lengthy explanations.
 
@@ -123,7 +213,7 @@ class AgentState(TypedDict):
     messages: Annotated[List, add_messages]
     intent: str
 
-# ✅ Good: Use Command for routing instead of complex conditional edges
+# ✅ Good: Use Command for routing
 def intent_classifier(state: AgentState) -> Command:
     if "global" in state["messages"][-1].content:
         return Command(goto="global_retriever")
@@ -132,12 +222,12 @@ def intent_classifier(state: AgentState) -> Command:
 
 ### MCP Integration
 ```python
-# ✅ Good: Use langchain-mcp-adapters (don't reinvent)
+# ✅ Good: Use langchain-mcp-adapters
 from langchain_mcp_adapters.client import MultiServerMCPClient
 
 async def get_tools():
     client = MultiServerMCPClient({
-        "codegraph": {"command": "codegraph", "args": ["start", "stdio"], "transport": "stdio"},
+        "codegraph": {"command": "codegraph", "args": ["start", "stdio", "--watch"], "transport": "stdio"},
         "neo4j": {"url": "http://localhost:8000/mcp", "transport": "sse"}
     })
     return await client.get_tools()
@@ -145,17 +235,17 @@ async def get_tools():
 
 ---
 
-## 5️⃣ Boundaries (3-Tier Rule)
+## 7️⃣ Boundaries (3-Tier Rule)
 
 You MUST strictly adhere to these operational boundaries.
 
 ### ✅ Always (Mandatory)
 | Action | Reason |
 |--------|--------|
-| Run `agentic_impact` before code modifications | Understand dependency chains |
+| Use `agentic_dependency_analysis` before refactoring | Understand impact |
+| Use `agentic_context_builder` before new features | Gather all context |
 | Read `.specs/SPEC.md` before implementation | Ensure task context is clear |
 | Update `.specs/PLAN.md` after completing a task | Maintain state persistence |
-| Use `codegraph` to verify symbols | Prevent hallucination |
 
 ### ⚠️ Ask First (Confirmation Required)
 | Action | Risk Level |
@@ -168,6 +258,7 @@ You MUST strictly adhere to these operational boundaries.
 ### 🚫 Never (Forbidden)
 | Action | Consequence |
 |--------|-------------|
+| Read files manually when CodeGraph tools are available | Inefficient |
 | Read or print `.env` files | Security breach |
 | Commit hardcoded secrets/passwords | Credential leak |
 | Assume API signatures without verification | Hallucination risk |
@@ -175,32 +266,32 @@ You MUST strictly adhere to these operational boundaries.
 
 ---
 
-## 6️⃣ Workflows
+## 8️⃣ Workflows
 
 Follow GSD methodology for all tasks.
 
 ### Feature Development
 ```
 1. /plan → Create SPEC.md
-2. /execute → Implement with STATE.md updates
-3. /verify → Empirical validation
-4. /pause → Context hygiene if needed
+2. agentic_context_builder → Gather context
+3. /execute → Implement with STATE.md updates
+4. /verify → Empirical validation
 ```
 
 ### Bug Fix
 ```
 1. Reproduce issue
-2. Identify root cause with agentic_impact
-3. Implement fix
-4. Verify with tests
-5. Update DECISIONS.md if architectural change
+2. agentic_call_chain_analysis → Trace execution
+3. agentic_dependency_analysis → Check impact
+4. Implement fix
+5. Verify with tests
 ```
 
 ### Before Any Session
 ```
 1. Read .specs/SPEC.md
 2. Read .specs/PLAN.md
-3. Check current phase position
+3. agentic_architecture_analysis → If unfamiliar area
 4. Resume from last checkpoint
 ```
 
@@ -208,3 +299,4 @@ Follow GSD methodology for all tasks.
 
 > **Note**: This specification follows the 6-Core structure validated across 2,500+ repositories.
 > For tool-specific instructions, see `.claude/skills/` directory.
+> CodeGraph Reference: https://github.com/Jakedismo/codegraph-rust

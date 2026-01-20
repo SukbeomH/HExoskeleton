@@ -154,7 +154,7 @@ shared-libs/
 |---------|------|
 | **Role** | "당신은 OmniGraph 기반의 수석 엔지니어입니다." |
 | **Context** | 프로젝트 스택 및 사용 도구 명시 |
-| **Commands** | 실행 가능한 명령어 (`npm test`, `poetry run lint` 등) |
+| **Commands** | 실행 가능한 명령어 (`npm test`, `poetry run lint` 등 <- 무조건 uv 우선적으로 활용>) |
 | **Boundaries** | 3티어 행동 제약 |
 
 **Boundaries 3-Tier**:
