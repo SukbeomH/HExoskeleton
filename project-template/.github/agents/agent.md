@@ -74,10 +74,14 @@ uv init
 
 ### Development
 ```bash
-# Index codebase for local context
-codegraph index --tier balanced
+# CodeGraph Rust: Index codebase for local context
+# https://github.com/Jakedismo/codegraph-rust
+codegraph index . -r -l python,typescript,rust
 
-# Run local MCP server
+# Start CodeGraph MCP server (stdio mode with watch)
+codegraph start stdio --watch
+
+# Run local Python MCP server
 uv run python mcp/server.py
 ```
 

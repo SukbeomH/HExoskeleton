@@ -430,7 +430,7 @@ python scripts/validate_spec.py
 - [LangChain MCP Adapters](https://github.com/langchain-ai/langchain-mcp-adapters)
 - [LangGraph Documentation](https://langchain-ai.github.io/langgraph/)
 - [Neo4j Graph Database](https://neo4j.com/)
-- [CodeGraph](https://github.com/codegraph/codegraph)
+- [CodeGraph Rust](https://github.com/Jakedismo/codegraph-rust) - 100% Rust implementation with SurrealDB backend
 - [GSD Methodology](https://gsd.dev/)
 
 ---

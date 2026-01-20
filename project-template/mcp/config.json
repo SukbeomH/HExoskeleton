@@ -1,18 +1,28 @@
 {
   "server_name": "local-codegraph",
   "version": "1.0.0",
-  "description": "Local CodeGraph MCP Server for OmniGraph",
+  "description": "Local CodeGraph MCP Server for OmniGraph (codegraph-rust)",
+  "repository": "https://github.com/Jakedismo/codegraph-rust",
+  "binary": "codegraph",
   "capabilities": {
     "tools": [
       "agentic_impact",
       "agentic_architecture",
+      "agentic_context",
+      "agentic_refactor_preview",
+      "agentic_test_context",
       "codegraph_search",
       "codegraph_index"
     ],
     "resources": []
   },
+  "mcp_config": {
+    "command": "codegraph",
+    "args": ["start", "stdio", "--watch"],
+    "transport": "stdio"
+  },
   "fallback": {
     "enabled": true,
-    "message": "Mock mode active when codegraph CLI is not installed"
+    "message": "codegraph-rust CLI not installed. Install from: https://github.com/Jakedismo/codegraph-rust"
   }
 }

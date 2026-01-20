@@ -1,5 +1,14 @@
+# CodeGraph Configuration
+# https://github.com/Jakedismo/codegraph-rust
+
 [index]
-tier = "balanced"  # 속도와 정확도 균형
+tier = "balanced"  # 속도와 정확도 균형 (minimal | balanced | full)
 
 [mcp]
 transport = "stdio"
+
+# Project-specific settings (optional)
+# Global config goes to ~/.codegraph/config.toml
+[project]
+languages = ["python", "typescript", "rust"]
+exclude = [".venv", "node_modules", "dist", "__pycache__"]
