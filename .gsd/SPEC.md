@@ -1,11 +1,10 @@
 # OmniGraph Framework - Unified Specification
 
 > **Status**: FINALIZED
-> **Version**: 1.2.0
-> **Last Updated**: 2026-01-20
-> **Stack**: LangChain v1.2+ / LangGraph / MCP Protocol / langchain-mcp-adapters
+> **Version**: 1.0.0
+> **Last Updated**: 2026-01-19
+> **Stack**: LangChain v1.2+ / LangGraph / MCP Protocol
 > **Methodology**: Get Shit Done (GSD)
-> **Principle**: "Don't Reinvent the Wheel" - 검증된 표준과 최신 라이브러리 적극 활용
 
 ---
 
@@ -19,18 +18,6 @@ OmniGraph는 **로컬(CodeGraph)** 과 **글로벌(Neo4j)** 지식 그래프를 
 - 🔗 **URN 기반 식별**: 로컬/글로벌 엔티티의 체계적 관리
 - 📝 **GSD 문서 주도**: SPEC → PLAN → Execution의 명확한 흐름
 - 🛡️ **Human-in-the-Loop**: 민감한 작업 전 승인 게이트
-
----
-
-## 🚀 v1.2 개선 전략: "Custom 구현 최소화, 표준 도구 채택"
-
-| 영역 | Before (v1.0) | **After (v1.2)** | 근거 |
-|:-----|:--------------|:-----------------|:-----|
-| **MCP 연결** | Custom Tool wrapping | **`langchain-mcp-adapters` 활용** | 표준 어댑터로 MCP 도구 자동 변환 |
-| **워크플로우 제어** | 복잡한 조건부 엣지 구현 | **`Command` 객체 활용** | 노드 내부에서 동적 라우팅 제어 |
-| **스킬 정의** | 단순 마크다운 파일 | **표준 `SKILL.md` 포맷** | YAML Frontmatter 포함 표준 구조 |
-| **컨텍스트 정의** | 임의 포맷의 텍스트 | **6-Core 영역 `agent.md`** | GitHub/Anthropic 검증 표준 구조 |
-| **Global DB 연동** | Custom Neo4j MCP 구현 | **공식 `mcp-neo4j-cypher` 서버** | 검증된 공식 이미지 활용 |
 
 ---
 
@@ -57,45 +44,36 @@ OmniGraph는 **로컬(CodeGraph)** 과 **글로벌(Neo4j)** 지식 그래프를 
 ## 📂 Project Directory Structure
 
 ### A. Local Spoke (project-template/)
-개발자가 사용할 보일러플레이트 템플릿입니다. **업계 표준(GitHub/Anthropic 권장사항)** 을 준수합니다.
+개발자가 사용할 보일러플레이트 템플릿입니다.
 
 ```
 project-template/
-├── .codegraph/                 # CodeGraph 인덱스 데이터 [git ignored]
+├── .codegraph/                # CodeGraph 인덱스 데이터 [git ignored]
 │
-├── .github/
-│   └── agents/                 # [GitHub Standard] 에이전트 정의 위치
-│       └── agent.md            # 6-Core 영역 (Role, Cmds, Boundaries 등)
+├── .agent/                    # [Context Layer] LLM 행동 지침
+│   ├── agent.md               # 에이전트 페르소나, Boundaries 정의
+│   ├── memory.jsonl           # 로컬 단기 기억 (MCP-Knowledge-Graph)
+│   ├── workflows/             # 표준 작업 절차 (SOP)
+│   │   ├── feature-dev.md     # 기능 개발: Spec → Plan → Code
+│   │   └── bug-fix.md         # 버그 수정: Reproduce → Fix → Test
+│   └── skills/                # 도구 활용 전략
+│       ├── architecture.md    # 아키텍처 위반 검사 (Global DB)
+│       └── impact-check.md    # 변경 영향도 분석 (Local CodeGraph)
 │
-├── .claude/                    # [Anthropic Standard] Claude Code 호환 설정
-│   └── skills/                 # 표준 스킬 디렉토리 구조
-│       ├── impact-analysis/    # 스킬별 폴더 격리
-│       │   └── SKILL.md        # YAML Frontmatter 포함 표준 스킬 정의
-│       └── arch-review/
-│           └── SKILL.md
+├── .specs/                    # [GSD] 문서 주도 개발
+│   ├── SPEC.md                # 현재 작업의 요구사항 정의서
+│   ├── PLAN.md                # 실행 계획 및 상태 (TODO/DONE)
+│   └── DECISIONS.md           # 아키텍처 의사결정 기록 (ADR)
 │
-├── .agent/                     # [Context Layer] LLM 행동 지침 (레거시 호환)
-│   ├── agent.md                # → .github/agents/agent.md 심볼릭 링크
-│   ├── memory.jsonl            # 로컬 단기 기억 (MCP-Knowledge-Graph)
-│   ├── workflows/              # 표준 작업 절차 (SOP)
-│   │   ├── feature-dev.md      # 기능 개발: Spec → Plan → Code
-│   │   └── bug-fix.md          # 버그 수정: Reproduce → Fix → Test
-│   └── skills/                 # → .claude/skills 심볼릭 링크
-│
-├── .specs/                     # [GSD] 문서 주도 개발
-│   ├── SPEC.md                 # 현재 작업의 요구사항 정의서
-│   ├── PLAN.md                 # 실행 계획 및 상태 (TODO/DONE)
-│   └── DECISIONS.md            # 아키텍처 의사결정 기록 (ADR)
-│
-├── mcp/                        # 로컬 MCP 서버 구성
-│   ├── server.py               # FastMCP 기반 도구 노출
-│   └── config.json             # CodeGraph 및 로컬 툴 설정
+├── mcp/                       # 로컬 MCP 서버 구성
+│   ├── server.py              # FastMCP 기반 도구 노출
+│   └── config.json            # CodeGraph 및 로컬 툴 설정
 │
 ├── scripts/
-│   ├── sync_to_hub.sh          # CI/CD: 메타데이터 추출 및 Hub 업로드
-│   └── validate_spec.py        # SPEC.md 검증 스크립트
+│   ├── sync_to_hub.sh         # CI/CD: 메타데이터 추출 및 Hub 업로드
+│   └── validate_spec.py       # SPEC.md 검증 스크립트
 │
-└── codegraph.toml              # CodeGraph 인덱싱 설정 (Tier: balanced)
+└── codegraph.toml             # CodeGraph 인덱싱 설정 (Tier: balanced)
 ```
 
 ### B. Global Hub (platform-core/)

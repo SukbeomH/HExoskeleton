@@ -1,90 +1,99 @@
-# 🚀 LLM Boilerplate Pack (Manual Mode)
+# 🧠 OmniGraph Framework
 
-**Antigravity 맞춤형 MCP & Git 워크플로우 보일러플레이트**
+**Hierarchical Hybrid RAG Framework with Local + Global Knowledge Graphs**
 
-이 보일러플레이트는 **Option A (Manual Mode)**에 집중되어 있으며, **Google Antigravity** 환경에서 최상의 AI 코딩 경험을 제공하기 위해 설계되었습니다.
+> **Version**: 1.2.0
+> **Principle**: "Don't Reinvent the Wheel" — 검증된 표준과 최신 라이브러리 활용
+> **Stack**: LangChain v1.2+ / LangGraph / MCP Protocol / langchain-mcp-adapters
 
 ---
 
-## ✨ 주요 기능
+## 📋 Overview
 
-- 🛠️ **MCP Server Docker 구성**: Serena, Codanna, Shrimp, Context7 서버를 Docker로 즉시 구동.
-- 🔗 **Antigravity 완벽 통합**: 프로젝트 스코프 MCP 설정 및 전용 Slash 커맨드 제공.
-- 📦 **GSD 방법론 지원**: Spec, State, Roadmap, Decisions 기반의 체계적인 개발 프로세스.
-- 🛡️ **안전한 환경**: 모든 도구 설정이 프로젝트 내부(`.agent/`, `.gsd/`)에서 관리되어 시스템 전역에 영향을 주지 않음.
+OmniGraph는 **로컬(CodeGraph)** 과 **글로벌(Neo4j)** 지식 그래프를 연결하는 **계층형 하이브리드 RAG 프레임워크**입니다.
+
+### 핵심 가치
+- 🎯 **Fast/Slow Thinking**: 로컬(즉시) + 글로벌(심층) 하이브리드 추론
+- 🔗 **URN 기반 식별**: 로컬/글로벌 엔티티의 체계적 관리
+- 📝 **GSD 문서 주도**: SPEC → PLAN → Execution의 명확한 흐름
+- 🛡️ **Human-in-the-Loop**: 민감한 작업 전 승인 게이트
 
 ---
 
 ## 🏗️ 프로젝트 구조
 
 ```
-boilerplate/
-├── .agent/              # Antigravity 설정 (MCP, 워크플로우)
-├── .gsd/                # Get Shit Done 방법론 문서
-├── mcp/                 # MCP 서버 Docker 설정 및 러너
-├── MANUAL_SETUP.md      # 상세 설치 및 가이드
-├── MCP_CONFIG.json.example # MCP 설정 템플릿
-└── README.md            # 프로젝트 개요
+OmniGraph/
+├── 📂 project-template/         # [Local Spoke] 개발자 IDE 템플릿
+│   ├── .github/agents/          # GitHub 표준 에이전트 정의
+│   │   └── agent.md             # 6-Core 영역 (Role, Cmds, Boundaries 등)
+│   ├── .claude/skills/          # Anthropic 표준 스킬 정의
+│   │   ├── impact-analysis/     # 영향도 분석 스킬
+│   │   └── arch-review/         # 아키텍처 검토 스킬
+│   ├── .agent/                   # Context Layer (레거시 호환)
+│   └── mcp/                      # 로컬 MCP 서버 구성
+│
+├── 📂 platform-core/            # [Global Hub] 중앙 통합 엔진
+│   ├── orchestration/           # LangGraph 에이전트
+│   │   ├── graph_v2.py          # Command 패턴 워크플로우
+│   │   ├── mcp_client.py        # langchain-mcp-adapters 클라이언트
+│   │   └── state.py             # TypedDict 상태 정의
+│   ├── graph-db/                # Neo4j 스키마
+│   └── docker-compose.yml       # Neo4j + NeoDash
+│
+├── 📂 mcp/                      # MCP 서버 Docker 구성
+│   └── docker-compose.mcp.yml   # Serena, Codanna, Shrimp, Context7
+│
+├── 📂 shared-libs/              # 공유 유틸리티
+│   └── urn_manager.py           # URN 생성 및 파싱
+│
+├── .gsd/                         # GSD 상태 관리
+└── OMNIGRAPH_SPEC.md            # ✨ 완전한 명세서
 ```
 
 ---
 
 ## 🚀 빠른 시작
 
-### 1. Antigravity에서 열기
-이 폴더를 Antigravity 작업 공간으로 열면 `.agent/` 설정이 자동으로 인식됩니다.
-
-### 2. 의존성 설치 및 환경 설정
-Antigravity 채팅창에서 다음 명령어를 입력하세요:
+### 1. 의존성 설치
 ```bash
-/setup-boilerplate
+cd platform-core
+pip install -r requirements.txt
 ```
 
-### 3. MCP 서버 실행
-Docker를 사용하여 MCP 서버들을 백그라운드에서 실행합니다:
+### 2. MCP 서버 실행
 ```bash
-/mcp-docker
+cd mcp && docker-compose -f docker-compose.mcp.yml up -d
+```
+
+### 3. 에이전트 테스트
+```bash
+python -m orchestration.graph_v2
 ```
 
 ---
 
-## 🤖 Google Antigravity 통합
+## 📚 Documentation
 
-### MCP 서버 (프로젝트 스코프)
-Antigravity는 다음 MCP 서버들을 자동으로 인식합니다:
-
-| 서버 | 설명 | 언어 |
-|------|------|------|
-| **Serena** | Python 코드 분석 및 제안 | Python (uv) |
-| **Codanna** | 고성능 코드 인텔리전스 | Rust |
-| **Shrimp** | 작업 추적 및 관리 | Node.js |
-| **Context7** | 시맨틱 코드 검색 | Node.js (API 키 필요) |
-
-> **중요**: MCP 서버는 **프로젝트별로 구성**됩니다. 각 프로젝트의 `.agent/mcp_config.json` 설정을 통해 Antigravity가 프로젝트를 열 때 자동으로 도구를 로드합니다.
-
-### 커스텀 워크플로우 (Slash 커맨드)
-- `/setup-boilerplate` - 의존성 설치 및 환경 설정
-- `/mcp-docker` - MCP 서버 관리 (Docker Compose)
+| 문서 | 설명 |
+|------|------|
+| [OMNIGRAPH_SPEC.md](./OMNIGRAPH_SPEC.md) | 완전한 프레임워크 명세서 |
+| [.github/agents/agent.md](./project-template/.github/agents/agent.md) | 에이전트 6-Core 스펙 |
+| [.gsd/STATE.md](./.gsd/STATE.md) | 현재 프로젝트 상태 |
 
 ---
 
-## 📚 관련 문서
+## 🔧 v1.2 개선 사항
 
-- [QUICKSTART.md](file:///Users/sukbeom/Desktop/workspace/boilerplate/QUICKSTART.md) - 5분 시작 가이드
-- [MANUAL_SETUP.md](file:///Users/sukbeom/Desktop/workspace/boilerplate/MANUAL_SETUP.md) - 상세 매뉴얼
-- [.agent/ANTIGRAVITY_QUICKSTART.md](file:///Users/sukbeom/Desktop/workspace/boilerplate/.agent/ANTIGRAVITY_QUICKSTART.md) - Antigravity 사용법
-
----
-
-## 🔧 요구사항
-
-- Python 3.11+
-- Docker & Docker Compose
-- Node.js (MCP Runner용)
-- Git
+| 영역 | Before | After |
+|------|--------|-------|
+| **MCP 연결** | Custom wrapping | `langchain-mcp-adapters` |
+| **워크플로우** | 조건부 엣지 | LangGraph `Command` 패턴 |
+| **스킬 정의** | 단순 마크다운 | YAML Frontmatter `SKILL.md` |
+| **컨텍스트** | 임의 포맷 | 6-Core `agent.md` |
 
 ---
 
-## 📝 라이선스
+## 📝 License
 
 MIT License

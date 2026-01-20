@@ -1,22 +1,132 @@
-.cursor/
+# ═══════════════════════════════════════════════════
+# OmniGraph Framework .gitignore
+# ═══════════════════════════════════════════════════
+
+# ─────────────────────────────────────────────────────
+# OS & IDE
+# ─────────────────────────────────────────────────────
 .DS_Store
+Thumbs.db
+.cursor/
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# ─────────────────────────────────────────────────────
+# Python
+# ─────────────────────────────────────────────────────
 venv/
 .venv/
-node_modules/
-.next/
 __pycache__/
-*.pem
-.legacy/
-.env
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Python testing & linting
 .pytest_cache/
 .ruff_cache/
-.logs/
-.env.mcp
+.mypy_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+
+# ─────────────────────────────────────────────────────
+# Node.js
+# ─────────────────────────────────────────────────────
+node_modules/
+.next/
+.nuxt/
+.cache/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# ─────────────────────────────────────────────────────
+# Environment & Secrets
+# ─────────────────────────────────────────────────────
 .env
+.env.local
+.env.*.local
+.env.mcp
+*.pem
+*.key
+secrets/
 
-# GSD state management (project-specific)
-.gsd/
+# ─────────────────────────────────────────────────────
+# OmniGraph Specific
+# ─────────────────────────────────────────────────────
 
-# Injected boilerplate (when using this repo as injection source)
+# CodeGraph index data (regenerated on demand)
+.codegraph/
+
+# Local logs
+.logs/
+*.log
+
+# GSD state management (project-specific, not versioned)
+# Note: .gsd/SPEC.md may be versioned for team projects
+.gsd/STATE.md
+.gsd/JOURNAL.md
+.gsd/TODO.md
+
+# Legacy archived files
+.legacy/
+
+# Agent memory (ephemeral)
+.agent/memory.jsonl
+**/memory.jsonl
+
+# ─────────────────────────────────────────────────────
+# Docker
+# ─────────────────────────────────────────────────────
+*.log
+docker-compose.override.yml
+
+# ─────────────────────────────────────────────────────
+# Database
+# ─────────────────────────────────────────────────────
+*.db
+*.sqlite
+*.sqlite3
+
+# Neo4j data (Docker volume mount)
+platform-core/graph-db/data/
+platform-core/graph-db/plugins/
+neo4j/data/
+neo4j/logs/
+
+# ─────────────────────────────────────────────────────
+# Build artifacts
+# ─────────────────────────────────────────────────────
+*.a
+*.o
+*.dll
+*.dylib
+
+# ─────────────────────────────────────────────────────
+# Miscellaneous
+# ─────────────────────────────────────────────────────
 .agent-booster/
-
+tmp/
+temp/
+*.tmp
+*.bak

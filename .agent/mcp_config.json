@@ -1,5 +1,12 @@
 {
   "mcpServers": {
+    "codegraph": {
+      "command": "codegraph",
+      "args": [
+        "start",
+        "stdio"
+      ]
+    },
     "serena": {
       "command": "node",
       "args": [
