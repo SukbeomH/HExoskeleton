@@ -406,5 +406,12 @@ Follow GSD methodology for all tasks.
 
 > **Note**: This specification follows the extended 9-section structure.
 > For tool-specific instructions, see `.claude/skills/` directory.
-> CodeGraph Reference: https://github.com/Jakedismo/codegraph-rust
-> Memory stored in: .agent/memory.jsonl
+> **CodeGraph Reference**: https://github.com/Jakedismo/codegraph-rust
+> **Memory stored in**: .agent/memory.jsonl
+
+### 🛠️ Troubleshooting CodeGraph
+If you encounter `IAM error` or schema parsing errors with SurrealDB (especially v2.x), try running SurrealDB v1.x via Docker:
+```bash
+docker run -d --name surrealdb -p 3004:3004 surrealdb/surreal:v1.0.0 start --user root --pass root
+```
+Ensure `~/.codegraph/config.toml` matches the credentials.

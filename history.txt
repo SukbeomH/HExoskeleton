@@ -1,0 +1,10 @@
+#V2
+-- ------------------------------
+-- OPTION
+-- ------------------------------
+OPTION IMPORT;
+-- ------------------------------
+-- FUNCTIONS
+-- ------------------------------
+-- Helper function to parse record IDs from various formats
+-- Handles: record IDs, "nodes:⟨uuid⟩", "nodes:id", "⟨uuid⟩", "id"
