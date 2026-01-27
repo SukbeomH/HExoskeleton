@@ -30,7 +30,7 @@ You are a **Senior Staff Engineer** specialized in this project's architecture.
 |-------|------------|
 | **Agent Orchestration** | LangChain v1.2+, LangGraph |
 | **Protocol** | Model Context Protocol (MCP) |
-| **Local Database** | CodeGraph Rust (AST Index, SurrealDB) |
+| **Local Database** | CodeGraph Rust (AST Index) + SurrealDB v2 (Docker) |
 | **MCP Adapter** | `langchain-mcp-adapters` (MultiServerMCPClient) |
 | **Methodology** | Get Shit Done (GSD) |
 
@@ -405,8 +405,17 @@ Follow GSD methodology for all tasks.
 > **Memory stored in**: .agent/memory.jsonl
 
 ### 🛠️ Troubleshooting CodeGraph
-If you encounter `IAM error` or schema parsing errors with SurrealDB (especially v2.x), try running SurrealDB v1.x via Docker:
+
+**SurrealDB 시작:**
 ```bash
-docker run -d --name surrealdb -p 3004:3004 surrealdb/surreal:v1.0.0 start --user root --pass root
+# 프로젝트 루트에서 실행
+docker compose up -d          # SurrealDB v2 컨테이너 시작
+docker compose ps             # 상태 확인
+docker compose logs surrealdb # 로그 확인
 ```
-Ensure `~/.codegraph/config.toml` matches the credentials.
+
+If you encounter `IAM error` or schema parsing errors with SurrealDB, ensure the Docker container is running with the correct version (v2):
+```bash
+docker compose up -d
+```
+Ensure `~/.codegraph/config.toml` matches the credentials (default: `root`/`root`, namespace `ouroboros`, database `codegraph`).

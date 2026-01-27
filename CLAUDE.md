@@ -49,6 +49,18 @@ codegraph index . -r --force                      # Force re-index
 python scripts/validate_spec.py                   # Validate SPEC.md integrity
 ```
 
+## Infrastructure
+
+```bash
+make setup                    # Full setup: SurrealDB + DB init + CodeGraph index
+make up                       # SurrealDB 시작
+make down                     # SurrealDB 중지
+make init-db                  # SurrealDB namespace/database 생성
+make status                   # 컨테이너 상태 확인
+make logs                     # SurrealDB 로그
+make clean                    # Docker volume + CodeGraph 인덱스 삭제
+```
+
 ## Architecture
 
 ### CodeGraph + MCP

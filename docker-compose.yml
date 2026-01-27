@@ -1,0 +1,20 @@
+services:
+  surrealdb:
+    image: surrealdb/surrealdb:v2
+    container_name: codegraph-surrealdb
+    ports:
+      - "3004:3004"
+    volumes:
+      - surrealdb-data:/data
+    command: start --bind 0.0.0.0:3004 --user root --pass root surrealkv:/data/surreal.db
+    user: "0"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "/surreal", "is-ready", "--endpoint", "ws://localhost:3004"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+
+volumes:
+  surrealdb-data:

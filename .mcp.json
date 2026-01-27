@@ -1,0 +1,30 @@
+{
+  "mcpServers": {
+    "local-mcp": {
+      "type": "stdio",
+      "command": "uv",
+      "args": [
+        "run",
+        "python",
+        "mcp/server.py"
+      ],
+      "env": {}
+    },
+    "codegraph": {
+      "type": "stdio",
+      "command": "codegraph",
+      "args": [
+        "start",
+        "stdio",
+        "--watch"
+      ],
+      "env": {
+        "CODEGRAPH_SURREALDB_URL": "ws://localhost:3004",
+        "CODEGRAPH_SURREALDB_NAMESPACE": "ouroboros",
+        "CODEGRAPH_SURREALDB_DATABASE": "codegraph",
+        "CODEGRAPH_SURREALDB_USERNAME": "root",
+        "CODEGRAPH_SURREALDB_PASSWORD": "root"
+      }
+    }
+  }
+}

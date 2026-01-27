@@ -7,6 +7,12 @@ tier = "balanced"  # 속도와 정확도 균형 (minimal | balanced | full)
 [mcp]
 transport = "stdio"
 
+# Database: SurrealDB v2 (docker compose up -d)
+# Connection config: ~/.codegraph/config.toml
+#   url = "ws://localhost:3004"
+#   namespace = "ouroboros"
+#   database = "codegraph"
+
 # Project-specific settings (optional)
 # Global config goes to ~/.codegraph/config.toml
 [project]

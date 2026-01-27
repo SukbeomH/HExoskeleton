@@ -16,7 +16,9 @@ AI 에이전트 기반 개발을 위한 경량 프로젝트 보일러플레이�
 ├── scripts/           — 유틸리티 스크립트
 ├── .env.example       — 환경변수 템플릿
 ├── codegraph.toml     — CodeGraph 설정
-├── Vagrantfile        — Vagrant VM 설정
+├── docker-compose.yml — SurrealDB v2 (CodeGraph 백엔드)
+├── Makefile           — 개발 명령어 (make help)
+├── pyproject.toml     — Python 프로젝트 설정 (uv)
 └── CLAUDE.md          — Claude Code 지침
 ```
 
@@ -29,19 +31,29 @@ cp .env.example .env
 # .env 파일에서 PROJECT_ID 수정
 ```
 
-### 2. CodeGraph 설치 및 인덱싱
+### 2. 원클릭 셋업 (권장)
 
 [codegraph-rust](https://github.com/Jakedismo/codegraph-rust) 설치 후:
 
 ```bash
-# 코드베이스 인덱싱
-codegraph index . -r -l python,typescript,rust
+make setup    # SurrealDB 시작 → DB 초기화 → CodeGraph 인덱싱
+```
 
-# MCP 서버 시작 (stdio, auto-reload)
+또는 수동으로:
+
+```bash
+make up       # SurrealDB v2 컨테이너 시작
+make init-db  # 네임스페이스/데이터베이스 생성
+make index    # CodeGraph 인덱싱
+```
+
+### 3. MCP 서버 시작
+
+```bash
 codegraph start stdio --watch
 ```
 
-### 3. GSD 워크플로우
+### 4. GSD 워크플로우
 
 ```
 /new-project    → SPEC.md 작성
@@ -52,7 +64,7 @@ codegraph start stdio --watch
 
 전체 25개 명령어: `/help` 참조
 
-### 4. 스펙 검증
+### 5. 스펙 검증
 
 ```bash
 python scripts/validate_spec.py
