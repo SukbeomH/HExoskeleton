@@ -1,8 +1,0 @@
-# AI-Native Boilerplate Injector Backend Requirements
-# FastAPI 기반 백엔드 API 서버 의존성
-
-fastapi>=0.104.0
-uvicorn[standard]>=0.24.0
-pydantic>=2.5.0
-pydantic-settings>=2.1.0
-

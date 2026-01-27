@@ -1,1 +1,0 @@
-"""Platform-core tests package."""

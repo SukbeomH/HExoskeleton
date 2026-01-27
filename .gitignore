@@ -1,5 +1,5 @@
 # ═══════════════════════════════════════════════════
-# OmniGraph Framework .gitignore
+# Developer Boilerplate .gitignore
 # ═══════════════════════════════════════════════════
 
 # ─────────────────────────────────────────────────────
@@ -72,7 +72,7 @@ yarn-error.log*
 secrets/
 
 # ─────────────────────────────────────────────────────
-# OmniGraph Specific
+# CodeGraph & Project
 # ─────────────────────────────────────────────────────
 
 # CodeGraph index data (regenerated on demand)
@@ -88,9 +88,6 @@ secrets/
 .gsd/JOURNAL.md
 .gsd/TODO.md
 
-# Legacy archived files
-.legacy/
-
 # Agent memory (ephemeral)
 .agent/memory.jsonl
 **/memory.jsonl
@@ -98,7 +95,6 @@ secrets/
 # ─────────────────────────────────────────────────────
 # Docker
 # ─────────────────────────────────────────────────────
-*.log
 docker-compose.override.yml
 
 # ─────────────────────────────────────────────────────
@@ -107,12 +103,6 @@ docker-compose.override.yml
 *.db
 *.sqlite
 *.sqlite3
-
-# Neo4j data (Docker volume mount)
-platform-core/graph-db/data/
-platform-core/graph-db/plugins/
-neo4j/data/
-neo4j/logs/
 
 # ─────────────────────────────────────────────────────
 # Build artifacts
@@ -125,7 +115,6 @@ neo4j/logs/
 # ─────────────────────────────────────────────────────
 # Miscellaneous
 # ─────────────────────────────────────────────────────
-.agent-booster/
 tmp/
 temp/
 *.tmp
