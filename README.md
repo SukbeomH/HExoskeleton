@@ -164,20 +164,29 @@ make help                   # 전체 명령어 목록
 
 Tree-sitter + SQLite 기반 AST 코드 분석. `@er77/code-graph-rag-mcp` npm 패키지를 npx로 실행합니다.
 
-주요 MCP 도구:
+주요 MCP 도구 (19개):
 
 | MCP Tool | 용도 |
 |----------|------|
-| `list_projects` | 인덱싱된 프로젝트 목록 |
-| `query_code_graph` | 코드 그래프 쿼리 |
-| `get_code_snippet` | 코드 스니펫 조회 |
-| `read_file` | 파일 읽기 |
-| `write_file` | 파일 쓰기 |
-| `surgical_replace_code` | 코드 정밀 교체 |
-| `index_repository` | 코드베이스 인덱싱 |
-| `list_directory` | 디렉토리 목록 |
-
-> 전체 26개 도구 제공 (semantic search, clone detection, hotspot analysis 등)
+| `query` | 자연어 코드 그래프 쿼리 |
+| `semantic_search` | 의미 기반 코드 검색 |
+| `analyze_code_impact` | 변경 영향 분석 |
+| `analyze_hotspots` | 복잡도/커플링 핫스팟 탐지 |
+| `detect_code_clones` | 중복 코드 탐지 |
+| `find_similar_code` | 유사 코드 검색 |
+| `list_file_entities` | 파일 내 엔티티 목록 |
+| `list_entity_relationships` | 엔티티 의존성 조회 |
+| `suggest_refactoring` | 리팩토링 제안 |
+| `cross_language_search` | 다국어 코드 검색 |
+| `find_related_concepts` | 관련 개념 탐색 |
+| `index` | 코드베이스 인덱싱 |
+| `clean_index` | 그래프 초기화 후 재인덱싱 |
+| `get_graph` | 코드 그래프 조회 |
+| `get_graph_stats` | 그래프 통계 |
+| `get_graph_health` | 그래프 헬스 체크 |
+| `reset_graph` | 그래프 데이터 초기화 |
+| `get_metrics` | 시스템 메트릭 |
+| `get_version` | 서버 버전 확인 |
 
 ### memory-graph (에이전트 기억)
 
@@ -188,7 +197,10 @@ Tree-sitter + SQLite 기반 AST 코드 분석. `@er77/code-graph-rag-mcp` npm �
 | `store_memory` | 패턴, 결정, 학습 내용 저장 |
 | `recall_memories` | 자연어 기반 기억 검색 |
 | `search_memories` | 필터 기반 고급 검색 |
-| `create_domain` / `select_domain` | 프로젝트별 메모리 도메인 관리 |
+| `get_memory` / `update_memory` / `delete_memory` | 개별 기억 CRUD |
+| `create_relationship` / `get_related_memories` | 기억 간 관계 관리 |
+| `get_memory_statistics` / `get_recent_activity` | 통계 및 최근 활동 |
+| `search_relationships_by_context` / `contextual_search` | 컨텍스트 기반 검색 |
 
 ---
 

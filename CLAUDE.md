@@ -42,8 +42,8 @@ make patch-clean              # Patch workspace 삭제
 
 ## Architecture
 
-- **code-graph-rag** (MCP stdio, `@er77/code-graph-rag-mcp`): Tree-sitter + SQLite 기반 AST 코드 분석 — 26개 MCP 도구 (semantic search, clone detection, hotspot analysis 등). 코드 탐색 시 파일 직접 읽기보다 우선 사용
-- **memory-graph** (MCP stdio): `store_memory`, `recall_memories`, `search_memories`, `create_domain`, `select_domain`
+- **code-graph-rag** (MCP stdio, `@er77/code-graph-rag-mcp`): Tree-sitter + SQLite 기반 AST 코드 분석 — 19개 MCP 도구 (`query`, `semantic_search`, `analyze_code_impact`, `analyze_hotspots`, `detect_code_clones`, `find_similar_code`, `list_file_entities`, `list_entity_relationships`, `suggest_refactoring`, `cross_language_search`, `find_related_concepts`, `index`, `clean_index`, `get_graph`, `get_graph_stats`, `get_graph_health`, `reset_graph`, `get_metrics`, `get_version`). 코드 탐색 시 파일 직접 읽기보다 우선 사용
+- **memory-graph** (MCP stdio, 12개 도구): `store_memory`, `recall_memories`, `search_memories`, `get_memory`, `update_memory`, `delete_memory`, `create_relationship`, `get_related_memories`, `get_memory_statistics`, `get_recent_activity`, `search_relationships_by_context`, `contextual_search`
 - **MCP Config**: `.mcp.json` — 도구 상세는 `.github/agents/agent.md` Section 4-5 참조
 - **GSD Workflow**: SPEC.md → PLAN.md → EXECUTE → VERIFY. Working docs in `.gsd/`
 
@@ -68,7 +68,7 @@ See `pyproject.toml` for full Ruff/Mypy configuration. Key constraints:
 ## Agent Boundaries
 
 ### Always
-- `query_code_graph` for impact analysis before refactoring or deleting code
+- `analyze_code_impact` for impact analysis before refactoring or deleting code
 - Read `.gsd/SPEC.md` before implementation
 - Verify empirically — 명령 실행 결과로 증명
 - Atomic commits per task

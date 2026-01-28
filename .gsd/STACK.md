@@ -41,9 +41,9 @@ Docker/Memgraph 의존성 없음. code-graph-rag는 SQLite 기반으로 로컬�
 
 | Server | Transport | Tools | Purpose |
 |---|---|---|---|
-| graph-code | stdio (`npx @er77/code-graph-rag-mcp`) | 26개 도구 (`query_code_graph`, `index_repository`, `get_code_snippet`, `surgical_replace_code`, `list_projects` 등) | AST 기반 코드 분석 (Tree-sitter + SQLite) |
-| memorygraph | stdio | `store_memory`, `recall_memories`, `search_memories`, `create_domain`, `select_domain` | 에이전트 영구 기억 |
-| Context7 | HTTP | library docs lookup | 라이브러리 문서 조회 |
+| graph-code | stdio (`npx @er77/code-graph-rag-mcp`) | 19개 도구 (`query`, `semantic_search`, `analyze_code_impact`, `analyze_hotspots`, `detect_code_clones`, `find_similar_code`, `list_file_entities`, `list_entity_relationships`, `suggest_refactoring`, `cross_language_search`, `find_related_concepts`, `index`, `clean_index`, `get_graph`, `get_graph_stats`, `get_graph_health`, `reset_graph`, `get_metrics`, `get_version`) | AST 기반 코드 분석 (Tree-sitter + SQLite) |
+| memorygraph | stdio | 12개 도구 (`store_memory`, `recall_memories`, `search_memories`, `get_memory`, `update_memory`, `delete_memory`, `create_relationship`, `get_related_memories`, `get_memory_statistics`, `get_recent_activity`, `search_relationships_by_context`, `contextual_search`) | 에이전트 영구 기억 |
+| Context7 | HTTP | 2개 도구 (`resolve-library-id`, `query-docs`) | 라이브러리 문서 조회 |
 
 **Feature:** `enable_tool_search: true` (도구 탐색 활성화)
 

@@ -92,10 +92,12 @@ AI 에이전트 기반 개발을 위한 경량 프로젝트 보일러플레이�
 - **Purpose:** AST 기반 코드 분석 및 에이전트 영구 기억 제공
 - **Location:** `.mcp.json`
 - **Components:**
-  - code-graph-rag (stdio MCP 서버, `@er77/code-graph-rag-mcp`, Tree-sitter + SQLite, 26개 도구)
-  - memory-graph (stdio MCP 서버, 그래프 기반 영구 기억)
-  - Context7 (HTTP MCP 서버, 라이브러리 문서 조회)
-  - Key Tools: `query_code_graph`, `index_repository`, `get_code_snippet`, `surgical_replace_code`, `list_projects`, `store_memory`, `recall_memories`, `search_memories`, `create_domain`, `select_domain`
+  - code-graph-rag (stdio MCP 서버, `@er77/code-graph-rag-mcp`, Tree-sitter + SQLite, 19개 도구)
+  - memory-graph (stdio MCP 서버, 그래프 기반 영구 기억, 12개 도구)
+  - Context7 (HTTP MCP 서버, 라이브러리 문서 조회, 2개 도구)
+  - Key Tools (graph-code): `query`, `semantic_search`, `analyze_code_impact`, `analyze_hotspots`, `detect_code_clones`, `list_file_entities`, `list_entity_relationships`, `index`, `clean_index`
+  - Key Tools (memorygraph): `store_memory`, `recall_memories`, `search_memories`, `get_memory`, `create_relationship`, `get_memory_statistics`
+  - Key Tools (context7): `resolve-library-id`, `query-docs`
 
 ### 4. Infrastructure
 - **Purpose:** 개발 환경 자동화
@@ -169,9 +171,9 @@ User Intent
 
 | External Service | Type | Purpose | Config |
 |---|---|---|---|
-| code-graph-rag | AST Analyzer (stdio, `@er77/code-graph-rag-mcp`) | 코드 분석 MCP 서버 (Tree-sitter + SQLite) | `.mcp.json` |
-| memory-graph | Memory Store (stdio) | 에이전트 영구 기억 MCP 서버 | `.mcp.json` |
-| Context7 | Docs API (HTTP) | 라이브러리 문서 조회 | `.mcp.json` |
+| code-graph-rag | AST Analyzer (stdio, `@er77/code-graph-rag-mcp`, 19 tools) | 코드 분석 MCP 서버 (Tree-sitter + SQLite) | `.mcp.json` |
+| memory-graph | Memory Store (stdio, 12 tools) | 에이전트 영구 기억 MCP 서버 | `.mcp.json` |
+| Context7 | Docs API (HTTP, 2 tools) | 라이브러리 문서 조회 | `.mcp.json` |
 | GitHub | VCS + CI | 코드 호스팅, 이슈, PR, Actions | `.github/` |
 
 ## Conventions
