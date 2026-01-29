@@ -4,14 +4,37 @@
 set -euo pipefail
 
 PROJECT_DIR="${CLAUDE_PROJECT_DIR:-.}"
-STATE_FILE="$PROJECT_DIR/.gsd/STATE.md"
+GSD_DIR="$PROJECT_DIR/.gsd"
 CONTEXT_PARTS=()
 
-# 1. GSD STATE.md 로드 (상위 80줄)
+# 1. PATTERNS.md 로드 (핵심 패턴, 2KB 제한)
+PATTERNS_FILE="$GSD_DIR/PATTERNS.md"
+if [ -f "$PATTERNS_FILE" ]; then
+    PATTERNS_CONTENT=$(head -60 "$PATTERNS_FILE" 2>/dev/null || true)
+    if [ -n "$PATTERNS_CONTENT" ]; then
+        CONTEXT_PARTS+=("## Codebase Patterns (from .gsd/PATTERNS.md)")
+        CONTEXT_PARTS+=("$PATTERNS_CONTENT")
+    fi
+fi
+
+# 2. CURRENT.md 로드 (현재 세션 컨텍스트)
+CURRENT_FILE="$GSD_DIR/CURRENT.md"
+if [ -f "$CURRENT_FILE" ]; then
+    CURRENT_CONTENT=$(cat "$CURRENT_FILE" 2>/dev/null || true)
+    if [ -n "$CURRENT_CONTENT" ] && ! grep -q "^<!-- Current task ID" "$CURRENT_FILE"; then
+        CONTEXT_PARTS+=("")
+        CONTEXT_PARTS+=("## Current Session Context (from .gsd/CURRENT.md)")
+        CONTEXT_PARTS+=("$CURRENT_CONTENT")
+    fi
+fi
+
+# 3. STATE.md 로드 (상위 80줄)
+STATE_FILE="$GSD_DIR/STATE.md"
 if [ -f "$STATE_FILE" ]; then
     STATE_CONTENT=$(head -80 "$STATE_FILE" 2>/dev/null || true)
     if [ -n "$STATE_CONTENT" ]; then
-        CONTEXT_PARTS+=("## GSD State (auto-loaded from .gsd/STATE.md)")
+        CONTEXT_PARTS+=("")
+        CONTEXT_PARTS+=("## GSD State (from .gsd/STATE.md)")
         CONTEXT_PARTS+=("$STATE_CONTENT")
     fi
 fi

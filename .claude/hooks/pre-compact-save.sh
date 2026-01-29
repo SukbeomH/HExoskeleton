@@ -4,9 +4,11 @@
 set -uo pipefail
 
 PROJECT_DIR="${CLAUDE_PROJECT_DIR:-.}"
-STATE_FILE="$PROJECT_DIR/.gsd/STATE.md"
-JOURNAL_FILE="$PROJECT_DIR/.gsd/JOURNAL.md"
-PATTERNS_FILE="$PROJECT_DIR/.gsd/PATTERNS.md"
+GSD_DIR="$PROJECT_DIR/.gsd"
+STATE_FILE="$GSD_DIR/STATE.md"
+JOURNAL_FILE="$GSD_DIR/JOURNAL.md"
+PATTERNS_FILE="$GSD_DIR/PATTERNS.md"
+CURRENT_FILE="$GSD_DIR/CURRENT.md"
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 
 # STATE.md 백업
@@ -22,6 +24,17 @@ fi
 # PATTERNS.md 백업 (핵심 패턴 보존)
 if [ -f "$PATTERNS_FILE" ]; then
     cp "$PATTERNS_FILE" "${PATTERNS_FILE}.pre-compact.bak"
+fi
+
+# CURRENT.md 백업 (현재 세션 컨텍스트)
+if [ -f "$CURRENT_FILE" ]; then
+    cp "$CURRENT_FILE" "${CURRENT_FILE}.pre-compact.bak"
+fi
+
+# compact-context.sh 실행 (자동 아카이빙)
+COMPACT_SCRIPT="$PROJECT_DIR/scripts/compact-context.sh"
+if [ -f "$COMPACT_SCRIPT" ]; then
+    bash "$COMPACT_SCRIPT" 2>/dev/null || true
 fi
 
 # 백업이 하나라도 수행되었으면 additionalContext로 상태 요약 주입

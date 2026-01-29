@@ -89,7 +89,7 @@
           },
           {
             "type": "prompt",
-            "prompt": "Session is ending. Perform these tasks:\n\n## 1. Memory Graph 요약 저장\nCall `store_memory` with:\n- type: \"session-summary\"\n- title: \"Session: [brief description]\"\n- content: What was built/changed, key decisions, patterns. Keep under 500 chars.\n- tags: [\"session-learnings\", \"auto\"]\n\n## 2. CHANGELOG 요약 추가 (변경사항이 있는 경우)\nRead `.gsd/CHANGELOG.md`, find the most recent entry (marked with today's date and session ID), and add a '#### 요약' section with 1-2 sentences describing the changes.\n\nSkip both if the session was trivial (only reading/exploring, no code or doc changes)."
+            "prompt": "Session is ending. Perform these tasks:\n\n## 1. Memory Graph 요약 저장\nCall `store_memory` with:\n- type: \"session-summary\"\n- title: \"Session: [brief description]\"\n- content: What was built/changed, key decisions, patterns. Keep under 500 chars.\n- tags: [\"session-learnings\", \"auto\"]\n\n## 2. CURRENT.md 리셋\nReset `.gsd/CURRENT.md` to empty template (clear Active Task, Working Files, Decisions, Blockers sections). Keep the header structure.\n\n## 3. PATTERNS.md 업데이트 (새로운 패턴 발견 시)\nIf you learned reusable patterns this session, add 1-2 bullet points to `.gsd/PATTERNS.md`. Keep under 2KB, max 20 items.\n\n## 4. CHANGELOG 요약 추가 (변경사항이 있는 경우)\nRead `.gsd/CHANGELOG.md`, find the most recent entry (marked with today's date and session ID), and add a '#### 요약' section with 1-2 sentences describing the changes.\n\nSkip all if the session was trivial (only reading/exploring, no code or doc changes)."
           }
         ]
       }

@@ -74,8 +74,36 @@ if [[ -f "$JOURNAL_FILE" ]]; then
         echo "  [ACTION] Would archive $(($SESSION_COUNT - 5)) old sessions to $ARCHIVE_FILE"
 
         if [[ "$DRY_RUN" == false ]]; then
-            # TODO: Implement actual archiving logic
-            echo "  [NOTE] Automatic archiving not yet implemented - manual action required"
+            # Archive old sessions
+            # Get line numbers of session headers
+            SESSION_LINES=$(grep -n "^##.* Session" "$JOURNAL_FILE" | cut -d: -f1)
+            SESSION_ARRAY=($SESSION_LINES)
+            KEEP_FROM_IDX=$((${#SESSION_ARRAY[@]} - 5))
+
+            if [[ $KEEP_FROM_IDX -gt 0 ]]; then
+                KEEP_FROM_LINE=${SESSION_ARRAY[$KEEP_FROM_IDX]}
+
+                # Extract header (before first session)
+                HEADER_END=$((${SESSION_ARRAY[0]} - 1))
+                if [[ $HEADER_END -gt 0 ]]; then
+                    head -n "$HEADER_END" "$JOURNAL_FILE" > "$JOURNAL_FILE.tmp"
+                else
+                    echo "" > "$JOURNAL_FILE.tmp"
+                fi
+
+                # Archive old sessions (append to archive file)
+                if [[ ! -f "$ARCHIVE_FILE" ]]; then
+                    echo "# Journal Archive - ${YEAR_MONTH}" > "$ARCHIVE_FILE"
+                    echo "" >> "$ARCHIVE_FILE"
+                fi
+                sed -n "${SESSION_ARRAY[0]},$((KEEP_FROM_LINE - 1))p" "$JOURNAL_FILE" >> "$ARCHIVE_FILE"
+
+                # Keep recent sessions
+                tail -n "+$KEEP_FROM_LINE" "$JOURNAL_FILE" >> "$JOURNAL_FILE.tmp"
+                mv "$JOURNAL_FILE.tmp" "$JOURNAL_FILE"
+
+                echo "  [DONE] Archived $(($SESSION_COUNT - 5)) sessions to $ARCHIVE_FILE"
+            fi
         fi
     else
         echo "  [OK] Within limits"
@@ -101,6 +129,39 @@ if [[ -f "$CHANGELOG_FILE" ]]; then
     if [[ "$ENTRY_COUNT" -gt 20 ]]; then
         ARCHIVE_FILE="$ARCHIVE_DIR/changelog-${YEAR_MONTH}.md"
         echo "  [ACTION] Would archive $(($ENTRY_COUNT - 20)) old entries to $ARCHIVE_FILE"
+
+        if [[ "$DRY_RUN" == false ]]; then
+            # Archive old entries
+            ENTRY_LINES=$(grep -n "^## \[" "$CHANGELOG_FILE" | cut -d: -f1)
+            ENTRY_ARRAY=($ENTRY_LINES)
+            KEEP_FROM_IDX=$((${#ENTRY_ARRAY[@]} - 20))
+
+            if [[ $KEEP_FROM_IDX -gt 0 ]]; then
+                KEEP_FROM_LINE=${ENTRY_ARRAY[$KEEP_FROM_IDX]}
+
+                # Extract header (before first entry)
+                HEADER_END=$((${ENTRY_ARRAY[0]} - 1))
+                if [[ $HEADER_END -gt 0 ]]; then
+                    head -n "$HEADER_END" "$CHANGELOG_FILE" > "$CHANGELOG_FILE.tmp"
+                else
+                    echo "# Changelog" > "$CHANGELOG_FILE.tmp"
+                    echo "" >> "$CHANGELOG_FILE.tmp"
+                fi
+
+                # Archive old entries
+                if [[ ! -f "$ARCHIVE_FILE" ]]; then
+                    echo "# Changelog Archive - ${YEAR_MONTH}" > "$ARCHIVE_FILE"
+                    echo "" >> "$ARCHIVE_FILE"
+                fi
+                sed -n "${ENTRY_ARRAY[0]},$((KEEP_FROM_LINE - 1))p" "$CHANGELOG_FILE" >> "$ARCHIVE_FILE"
+
+                # Keep recent entries
+                tail -n "+$KEEP_FROM_LINE" "$CHANGELOG_FILE" >> "$CHANGELOG_FILE.tmp"
+                mv "$CHANGELOG_FILE.tmp" "$CHANGELOG_FILE"
+
+                echo "  [DONE] Archived $(($ENTRY_COUNT - 20)) entries to $ARCHIVE_FILE"
+            fi
+        fi
     else
         echo "  [OK] Within limits"
     fi
