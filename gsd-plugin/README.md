@@ -29,6 +29,29 @@ npm install -g @er77/code-graph-rag-mcp
 pip install memorygraph
 ```
 
+### Environment Variables
+
+플러그인의 MCP 서버가 정상 작동하려면 다음 환경변수가 필요합니다:
+
+| 변수 | 용도 | 필수 |
+|------|------|------|
+| `CONTEXT7_API_KEY` | Context7 MCP (라이브러리 문서 조회) | 선택* |
+
+> *context7을 사용하려면 프로젝트 `.mcp.json`에 직접 추가해야 합니다 (플러그인 빌드에서 제외됨)
+
+**설정 방법:**
+
+```bash
+# ~/.zshrc 또는 ~/.bashrc
+export CONTEXT7_API_KEY="your-api-key"
+
+# 또는 direnv 사용
+echo 'export CONTEXT7_API_KEY="your-api-key"' >> .envrc
+direnv allow
+```
+
+**API 키 발급:** https://context7.com
+
 ## Quick Start
 
 ```bash
