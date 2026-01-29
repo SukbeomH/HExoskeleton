@@ -434,6 +434,75 @@ git commit -m "feat({phase}-{plan}): {task description}"
 
 ---
 
+## PRD Update Protocol
+
+작업 완료 후 PRD 상태를 업데이트하여 진행 상황을 추적합니다.
+
+### When to Update PRD
+
+1. **Task 커밋 직후** — 각 task가 커밋되면 즉시 PRD 업데이트
+2. **Plan 완료 시** — SUMMARY.md 작성 후 해당 plan의 모든 task 완료 확인
+
+### PRD Update Commands
+
+**Task ID로 완료 처리:**
+```bash
+python .claude/skills/executor/scripts/update_prd.py complete TASK-001 --commit abc1234
+```
+
+**Plan 참조로 완료 처리 (phase.plan.task 형식):**
+```bash
+python .claude/skills/executor/scripts/update_prd.py complete-plan 1.2.1 --commit abc1234 --summary "인증 모듈 구현 완료"
+```
+
+**Task 시작 표시:**
+```bash
+python .claude/skills/executor/scripts/update_prd.py start TASK-001
+```
+
+**현재 상태 확인:**
+```bash
+python .claude/skills/executor/scripts/update_prd.py status
+```
+
+### Integration with Task Commit
+
+Task 완료 시 통합 프로세스:
+
+```bash
+# 1. Task 커밋
+git add -A
+git commit -m "feat(1-2): implement user authentication"
+
+# 2. 커밋 해시 획득
+COMMIT_HASH=$(git rev-parse --short HEAD)
+
+# 3. PRD 업데이트
+python .claude/skills/executor/scripts/update_prd.py complete-plan 1.2.1 --commit $COMMIT_HASH
+```
+
+### PRD File Structure
+
+- `.gsd/prd-active.json` — 진행 중인 tasks (pending, in_progress, blocked)
+- `.gsd/prd-done.json` — 완료된 tasks (done)
+
+완료 시 task가 active에서 done으로 자동 이동됩니다.
+
+### Output Format
+
+모든 명령은 JSON 형식으로 결과를 출력합니다:
+
+```json
+{
+  "success": true,
+  "action": "completed",
+  "task": {"id": "TASK-001", "title": "...", "status": "done"},
+  "remaining": 5
+}
+```
+
+---
+
 ## Need-to-Know Context
 
 Load ONLY what's necessary for current task:
@@ -519,3 +588,4 @@ Run verify step. Confirm done criteria. Then commit.
 ## Scripts
 
 - `scripts/parse_plan.py`: Parse PLAN.md and extract tasks into machine-readable JSON format
+- `scripts/update_prd.py`: PRD task state manager — complete, start, add, status commands
