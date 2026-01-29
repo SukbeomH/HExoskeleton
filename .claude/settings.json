@@ -78,6 +78,11 @@
       {
         "hooks": [
           {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/save-transcript.sh",
+            "timeout": 10
+          },
+          {
             "type": "prompt",
             "prompt": "Session is ending. Store a concise session summary in memory-graph:\n\n1. Call `store_memory` with:\n   - type: \"session-summary\"\n   - title: \"Session: [brief description of main activity]\"\n   - content: Summarize what was built/changed, key decisions made, patterns discovered, and any unresolved issues. Keep under 500 chars.\n   - tags: [\"session-learnings\", \"auto\"]\n\n2. If significant new conventions or patterns were established, store each separately with type: \"pattern\".\n\nDo NOT store if the session was trivial (only reading/exploring, no meaningful changes)."
           }

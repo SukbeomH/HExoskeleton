@@ -80,7 +80,11 @@ secrets/
 
 # Local logs
 .logs/
+logs_llm/
 *.log
+
+# Session transcripts (saved by SessionEnd hook)
+.sessions/*.jsonl
 
 # GSD state management (project-specific, not versioned)
 # Note: .gsd/SPEC.md may be versioned for team projects
