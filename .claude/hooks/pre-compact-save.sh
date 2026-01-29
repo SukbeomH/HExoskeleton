@@ -6,6 +6,7 @@ set -uo pipefail
 PROJECT_DIR="${CLAUDE_PROJECT_DIR:-.}"
 STATE_FILE="$PROJECT_DIR/.gsd/STATE.md"
 JOURNAL_FILE="$PROJECT_DIR/.gsd/JOURNAL.md"
+PATTERNS_FILE="$PROJECT_DIR/.gsd/PATTERNS.md"
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 
 # STATE.md 백업
@@ -16,6 +17,11 @@ fi
 # JOURNAL.md 백업
 if [ -f "$JOURNAL_FILE" ]; then
     cp "$JOURNAL_FILE" "${JOURNAL_FILE}.pre-compact.bak"
+fi
+
+# PATTERNS.md 백업 (핵심 패턴 보존)
+if [ -f "$PATTERNS_FILE" ]; then
+    cp "$PATTERNS_FILE" "${PATTERNS_FILE}.pre-compact.bak"
 fi
 
 # 백업이 하나라도 수행되었으면 additionalContext로 상태 요약 주입

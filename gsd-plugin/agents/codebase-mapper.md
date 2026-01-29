@@ -1,6 +1,7 @@
 ---
 description: Analyzes existing codebases to understand structure, patterns, and technical debt. Use at project onboarding or before major refactoring.
-capabilities: ["Read", "Bash", "Grep", "Glob"]
+model: sonnet
+tools: ["Read", "Bash", "Grep", "Glob"]
 ---
 
 # Codebase Mapper Agent

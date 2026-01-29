@@ -1,6 +1,7 @@
 ---
 description: Monitors context complexity and triggers state dumps before quality degrades. Use proactively during long sessions.
-capabilities: ["Read", "Grep", "Glob"]
+model: haiku
+tools: ["Read", "Grep", "Glob"]
 ---
 
 # Context Health Monitor Agent

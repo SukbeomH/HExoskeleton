@@ -4,28 +4,12 @@
 
 ## Installation
 
-### Option 1: From GitHub Release (Recommended)
-
-```bash
-# Download latest release
-curl -L https://github.com/SukbeomH/LLM_Bolierplate_Pack/releases/latest/download/gsd-plugin-*.zip -o gsd-plugin.zip
-
-# Extract to plugins directory
-unzip gsd-plugin.zip -d ~/.claude/plugins/gsd
-```
-
-### Option 2: Clone Repository
-
 ```bash
 # Clone or copy gsd-plugin to your plugins directory
-git clone https://github.com/SukbeomH/LLM_Bolierplate_Pack.git
-cp -r LLM_Bolierplate_Pack/gsd-plugin ~/.claude/plugins/gsd
-```
-
-### Option 3: Direct Plugin Load
-
-```bash
 claude --plugin-dir /path/to/gsd-plugin
+
+# Or install globally
+cp -r gsd-plugin ~/.claude/plugins/gsd
 ```
 
 ## Prerequisites

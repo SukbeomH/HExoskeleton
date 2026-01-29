@@ -1,6 +1,7 @@
 ---
 description: Validates implemented work against spec requirements with empirical evidence. Use after execution to confirm phase goals are met.
-capabilities: ["Read", "Bash", "Grep", "Glob"]
+model: sonnet
+tools: ["Read", "Bash", "Grep", "Glob"]
 ---
 
 # Verifier Agent

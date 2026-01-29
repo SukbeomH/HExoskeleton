@@ -1,6 +1,7 @@
 ---
 description: Validates plans before execution to catch issues early. Quality gate between planning and execution phases.
-capabilities: ["Read", "Grep", "Glob"]
+model: sonnet
+tools: ["Read", "Grep", "Glob"]
 ---
 
 # Plan Checker Agent

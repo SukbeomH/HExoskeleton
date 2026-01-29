@@ -168,6 +168,64 @@ When triggered, write to `.gsd/STATE.md`:
 - [file2.ext] — [what state it's in]
 ```
 
+## Pattern Extraction
+
+When valuable patterns are discovered during a session, extract to `.gsd/PATTERNS.md`:
+
+### What to Extract
+
+| Category | Examples |
+|----------|----------|
+| Architecture | "jose > jsonwebtoken for Edge runtime" |
+| Conventions | "API routes: src/app/api/{resource}/route.ts" |
+| Gotchas | "httpOnly cookies require HTTPS even on localhost" |
+| Integrations | "Stripe webhooks need raw body parser disabled" |
+
+### Extraction Protocol
+
+1. **During task completion**, identify reusable learnings
+2. **Check current count**: `grep -c "^-" .gsd/PATTERNS.md`
+3. **If < 20 items**: Append new pattern
+4. **If >= 20 items**: Replace oldest (least referenced) pattern
+5. **Size check**: Keep under 2KB
+
+```bash
+# Check PATTERNS.md size
+wc -c .gsd/PATTERNS.md  # Should be < 2048
+```
+
+### Pattern Format
+
+```markdown
+## {Category}
+- {Concise pattern description} — {file:line if applicable}
+```
+
+---
+
+## Context File Management
+
+### Active Layer (Read Every Session)
+
+| File | Size Limit | Purpose |
+|------|------------|---------|
+| PATTERNS.md | 2KB | Core learnings |
+| CURRENT.md | 1KB | Session context |
+| prd-active.json | 3KB | Pending tasks |
+
+### Archive Layer (Don't Read Routinely)
+
+| File/Folder | Purpose |
+|-------------|---------|
+| JOURNAL.md | Session history |
+| CHANGELOG.md | Change history |
+| prd-done.json | Completed tasks |
+| reports/ | Analysis reports |
+| research/ | Research docs |
+| archive/ | Monthly archives |
+
+---
+
 ## Integration
 
 This skill integrates with:
@@ -175,8 +233,10 @@ This skill integrates with:
 - `/handoff` — Lightweight session transfer when context is beyond recovery
 - `/pause` — Full GSD session handoff with state archival
 - `/resume` — Loads the state dump context
+- `PATTERNS.md` — Pattern extraction on session end
 - `.gemini/GEMINI.md` Rule 3 (Context Hygiene) — After 3 failed debug attempts: STOP, summarize to STATE.md, document blocker in DECISIONS.md, recommend fresh session
 
 ## Scripts
 
 - `scripts/dump_state.sh`: Dump current context state to .gsd/STATE.md with git info, task status, and recommendations
+- `scripts/compact-context.sh`: Archive old entries, prune PATTERNS.md to 2KB limit

@@ -124,7 +124,31 @@ test -d .patch-workspace && echo "PASS" || echo "FAIL"
 
 ---
 
-### Step 5: MCP Server Verification
+### Step 5: Context Structure Initialization
+
+The bootstrap script automatically creates the context management structure:
+
+```
+.gsd/
+├── reports/           # Analysis reports (REPORT-*.md)
+├── research/          # Research documents (RESEARCH-*.md)
+├── archive/           # Monthly archives
+├── PATTERNS.md        # Core patterns (2KB limit)
+└── context-config.yaml # Cleanup rules
+```
+
+**Verification:**
+```bash
+test -d .gsd/reports && test -d .gsd/research && test -d .gsd/archive && echo "PASS" || echo "FAIL"
+test -f .gsd/PATTERNS.md && echo "PASS" || echo "FAIL"
+```
+
+**If folders missing:** bootstrap.sh creates them automatically.
+**If PATTERNS.md missing:** Copied from templates/patterns.md.
+
+---
+
+### Step 6: MCP Server Verification
 
 Test connectivity to each configured MCP server:
 
@@ -140,7 +164,7 @@ Test connectivity to each configured MCP server:
 
 ---
 
-### Step 6: Code Index
+### Step 7: Code Index
 
 Index the codebase using code-graph-rag:
 
@@ -156,22 +180,22 @@ get_graph_stats()
 
 Record the entity count and file count from the stats response.
 
-**If indexing fails:** Mark FAIL. Continue to Step 7. Suggest running `/map` later to retry.
+**If indexing fails:** Mark FAIL. Continue to Step 8. Suggest running `/map` later to retry.
 
 ---
 
-### Step 7: Codebase Analysis
+### Step 8: Codebase Analysis
 
 Delegate to the `codebase-mapper` skill to analyze the project and generate documentation:
 
 - `.gsd/ARCHITECTURE.md`
 - `.gsd/STACK.md`
 
-**If codebase-mapper fails:** Mark FAIL. Continue to Step 8.
+**If codebase-mapper fails:** Mark FAIL. Continue to Step 9.
 
 ---
 
-### Step 8: Initial Memory
+### Step 9: Initial Memory
 
 Store the bootstrap record in memory graph:
 
@@ -184,11 +208,11 @@ store_memory(
 )
 ```
 
-**If memory store fails:** Mark WARN. Continue to Step 9.
+**If memory store fails:** Mark WARN. Continue to Step 10.
 
 ---
 
-### Step 9: Status Report
+### Step 10: Status Report
 
 Output the structured bootstrap status report:
 
@@ -199,6 +223,7 @@ Output the structured bootstrap status report:
 System Prerequisites:  {PASS|FAIL} ({tool versions})
 Python Environment:    {PASS|FAIL} (uv synced, .venv ready)
 Environment:           {PASS|FAIL} (.env configured)
+Context Structure:     {PASS|FAIL} (reports/, research/, archive/, PATTERNS.md)
 Prompt Patch:          {PASS|WARN|SKIP} (.patch-workspace ready)
 MCP Servers:           graph-code {PASS|FAIL} / memorygraph {PASS|FAIL} / context7 {PASS|WARN}
 Code Index:            {PASS|FAIL} ({N} entities, {M} files)

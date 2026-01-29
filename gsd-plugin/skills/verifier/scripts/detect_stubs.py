@@ -25,15 +25,57 @@ STUB_PATTERNS = [
     (re.compile(r"^\s+\.\.\.\s*$"), "ellipsis-body"),
 ]
 
+SKIP_DIRS = frozenset(
+    (
+        ".venv",
+        "__pycache__",
+        ".git",
+        "node_modules",
+        ".mypy_cache",
+        ".ruff_cache",
+        ".pytest_cache",
+    )
+)
 
-def scan_file(filepath: Path) -> list[dict]:
-    findings = []
+
+class DocstringTracker:
+    """Tracks whether current line is inside a docstring."""
+
+    def __init__(self) -> None:
+        self.in_docstring = False
+        self.quote_char: str | None = None
+
+    def update(self, line: str) -> bool:
+        """Update state and return True if line is inside docstring."""
+        for quote in ('"""', "'''"):
+            count = line.count(quote)
+            if count == 0:
+                continue
+            if not self.in_docstring:
+                self.in_docstring = True
+                self.quote_char = quote
+                if count >= 2 or (count == 1 and line.endswith(quote) and len(line) > 3):
+                    self.in_docstring = False
+                    self.quote_char = None
+            elif self.quote_char == quote:
+                self.in_docstring = False
+                self.quote_char = None
+            break
+        return self.in_docstring
+
+
+def scan_file(filepath: Path) -> list[dict[str, str | int]]:
+    findings: list[dict[str, str | int]] = []
     try:
         lines = filepath.read_text(encoding="utf-8").splitlines()
     except (UnicodeDecodeError, PermissionError):
         return findings
 
+    tracker = DocstringTracker()
     for line_no, line in enumerate(lines, 1):
+        stripped = line.strip()
+        if tracker.update(stripped):
+            continue
         for pattern, stub_type in STUB_PATTERNS:
             if pattern.search(line):
                 findings.append(
@@ -41,29 +83,16 @@ def scan_file(filepath: Path) -> list[dict]:
                         "file": str(filepath),
                         "line": line_no,
                         "type": stub_type,
-                        "content": line.strip(),
+                        "content": stripped,
                     }
                 )
     return findings
 
 
-def scan_directory(root: Path) -> list[dict]:
-    findings = []
+def scan_directory(root: Path) -> list[dict[str, str | int]]:
+    findings: list[dict[str, str | int]] = []
     for py_file in sorted(root.rglob("*.py")):
-        # Skip common non-source directories
-        parts = py_file.parts
-        if any(
-            skip in parts
-            for skip in (
-                ".venv",
-                "__pycache__",
-                ".git",
-                "node_modules",
-                ".mypy_cache",
-                ".ruff_cache",
-                ".pytest_cache",
-            )
-        ):
+        if SKIP_DIRS & set(py_file.parts):
             continue
         findings.extend(scan_file(py_file))
     return findings

@@ -1,6 +1,7 @@
 ---
 description: Creates executable phase plans with task breakdown, dependency analysis, and goal-backward verification. Use when decomposing work into structured GSD plans.
-capabilities: ["Read", "Grep", "Glob"]
+model: opus
+tools: ["Read", "Grep", "Glob"]
 ---
 
 # Planner Agent

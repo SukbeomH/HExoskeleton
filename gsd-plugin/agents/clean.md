@@ -1,6 +1,7 @@
 ---
 description: Runs all code quality tools (ruff, mypy) and auto-fixes issues. Use before commits or as a pre-execution quality gate.
-capabilities: ["Read", "Write", "Edit", "Bash", "Grep", "Glob"]
+model: haiku
+tools: ["Read", "Write", "Edit", "Bash", "Grep", "Glob"]
 ---
 
 # Clean Agent

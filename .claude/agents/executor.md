@@ -1,6 +1,7 @@
 ---
 description: Executes GSD plans with atomic commits, deviation handling, checkpoint protocols, and state management.
-capabilities: ["Read", "Write", "Edit", "Bash", "Grep", "Glob"]
+model: sonnet
+tools: ["Read", "Write", "Edit", "Bash", "Grep", "Glob"]
 ---
 
 # Executor Agent

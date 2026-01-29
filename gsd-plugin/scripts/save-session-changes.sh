@@ -10,34 +10,8 @@
 #
 set -euo pipefail
 
-# 플러그인 환경에서는 CLAUDE_PROJECT_DIR 사용 (CLAUDE_PLUGIN_ROOT는 플러그인 경로)
 PROJECT_DIR="${CLAUDE_PROJECT_DIR:-.}"
 CHANGELOG="$PROJECT_DIR/.gsd/CHANGELOG.md"
-
-# .gsd 디렉토리가 없으면 생성
-mkdir -p "$PROJECT_DIR/.gsd"
-
-# CHANGELOG.md가 없으면 템플릿에서 생성
-if [ ! -f "$CHANGELOG" ]; then
-    PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:-}"
-    TEMPLATE="$PLUGIN_ROOT/templates/gsd/templates/changelog.md"
-    if [ -n "$PLUGIN_ROOT" ] && [ -f "$TEMPLATE" ]; then
-        cp "$TEMPLATE" "$CHANGELOG"
-    else
-        # 템플릿이 없으면 기본 헤더만 생성
-        cat > "$CHANGELOG" << 'HEADER'
-# CHANGELOG
-
-> 세션별 코드 및 문서 변경사항 기록
-
----
-
-## 변경 기록
-
-<!-- 아래에 세션별 변경사항이 자동으로 추가됩니다 -->
-HEADER
-    fi
-fi
 
 # stdin에서 JSON 입력 읽기
 INPUT=$(cat)

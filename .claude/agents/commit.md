@@ -1,6 +1,7 @@
 ---
 description: Analyzes diffs, splits logical changes, creates conventional emoji commits aligned with GSD atomic commit protocol.
-capabilities: ["Read", "Bash", "Grep", "Glob"]
+model: haiku
+tools: ["Read", "Bash", "Grep", "Glob"]
 ---
 
 # Commit Agent

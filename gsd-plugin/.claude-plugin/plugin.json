@@ -1,11 +1,5 @@
 {
   "name": "gsd",
-  "version": "1.1.0",
-  "description": "Get Shit Done - AI agent development methodology with code-graph-rag and memory-graph integration",
-  "author": {
-    "name": "SukbeomH",
-    "email": "brent93.dev@gmail.com",
-    "url": "https://github.com/SukbeomH"
-  },
-  "repository": "https://github.com/SukbeomH/LLM_Bolierplate_Pack/tree/main/gsd-plugin"
+  "version": "1.0.0",
+  "description": "Get Shit Done - AI agent development methodology with code-graph-rag and memory-graph integration"
 }

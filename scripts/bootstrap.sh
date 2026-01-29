@@ -141,6 +141,47 @@ else
 fi
 
 # ─────────────────────────────────────────────────────
+# Context Structure (Auto-create)
+# ─────────────────────────────────────────────────────
+
+echo ""
+echo "--- Context Structure ---"
+
+# Required .gsd folders
+for dir in reports research archive; do
+    if [[ -d ".gsd/$dir" ]]; then
+        report_pass ".gsd/$dir/" "exists"
+    else
+        mkdir -p ".gsd/$dir"
+        report_pass ".gsd/$dir/" "created"
+    fi
+done
+
+# Context management files
+if [[ -f ".gsd/PATTERNS.md" ]]; then
+    PATTERNS_SIZE=$(wc -c < ".gsd/PATTERNS.md" | tr -d ' ')
+    report_pass "PATTERNS.md" "${PATTERNS_SIZE}B"
+else
+    if [[ -f ".gsd/templates/patterns.md" ]]; then
+        cp ".gsd/templates/patterns.md" ".gsd/PATTERNS.md"
+        report_pass "PATTERNS.md" "initialized from template"
+    else
+        report_warn "PATTERNS.md" "missing — no template found"
+    fi
+fi
+
+if [[ -f ".gsd/context-config.yaml" ]]; then
+    report_pass "context-config.yaml" "exists"
+else
+    if [[ -f ".gsd/templates/context-config.yaml" ]]; then
+        cp ".gsd/templates/context-config.yaml" ".gsd/context-config.yaml"
+        report_pass "context-config.yaml" "initialized from template"
+    else
+        report_warn "context-config.yaml" "missing — no template found"
+    fi
+fi
+
+# ─────────────────────────────────────────────────────
 # Prompt Patch (Optional)
 # ─────────────────────────────────────────────────────
 

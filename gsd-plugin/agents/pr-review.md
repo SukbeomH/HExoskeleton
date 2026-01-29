@@ -1,6 +1,7 @@
 ---
 description: Multi-persona code review (Dev, QA, Security, Arch, DevOps, UX) with severity triage and actionable feedback.
-capabilities: ["Read", "Bash", "Grep", "Glob"]
+model: opus
+tools: ["Read", "Bash", "Grep", "Glob"]
 ---
 
 # PR Review Agent

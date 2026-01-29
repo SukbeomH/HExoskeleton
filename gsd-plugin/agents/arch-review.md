@@ -1,6 +1,7 @@
 ---
 description: Validates architectural rules and ensures design quality. Use before merging significant structural changes.
-capabilities: ["Read", "Grep", "Glob"]
+model: opus
+tools: ["Read", "Grep", "Glob"]
 ---
 
 # Architecture Review Agent

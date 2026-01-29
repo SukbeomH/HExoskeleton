@@ -1,6 +1,7 @@
 ---
 description: Analyzes change impact before code modifications to prevent regression. MANDATORY before any file modification.
-capabilities: ["Read", "Grep", "Glob"]
+model: opus
+tools: ["Read", "Grep", "Glob"]
 ---
 
 # Impact Analysis Agent

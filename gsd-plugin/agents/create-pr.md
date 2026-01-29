@@ -1,6 +1,7 @@
 ---
 description: Analyzes changes, creates branch, splits commits logically, pushes and creates pull request via gh CLI.
-capabilities: ["Read", "Bash", "Grep", "Glob"]
+model: haiku
+tools: ["Read", "Bash", "Grep", "Glob"]
 ---
 
 # Create PR Agent

@@ -80,14 +80,26 @@ secrets/
 
 # Local logs
 .logs/
+logs_llm/
 *.log
 
+# Session transcripts (saved by SessionEnd hook)
+.sessions/*.jsonl
+
 # GSD state management (project-specific, not versioned)
-# Note: .gsd/SPEC.md may be versioned for team projects
+# Note: .gsd/SPEC.md, PATTERNS.md, reports/, research/ may be versioned for team projects
 .gsd/STATE.md
 .gsd/JOURNAL.md
 .gsd/TODO.md
+.gsd/CURRENT.md
+.gsd/prd-active.json
+.gsd/prd-done.json
+.gsd/archive/
 *.pre-compact.bak
+
+# GSD reports and research (version if sharing is desired)
+# Uncomment to ignore: .gsd/reports/
+# Uncomment to ignore: .gsd/research/
 
 # Agent memory (ephemeral)
 .agent/memory.jsonl

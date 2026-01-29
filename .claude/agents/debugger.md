@@ -1,6 +1,7 @@
 ---
 description: Systematic debugging with persistent state and fresh context advantages. Use when investigating bugs or unexpected behavior.
-capabilities: ["Read", "Write", "Edit", "Bash", "Grep", "Glob"]
+model: opus
+tools: ["Read", "Write", "Edit", "Bash", "Grep", "Glob"]
 ---
 
 # Debugger Agent

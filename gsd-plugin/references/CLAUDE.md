@@ -13,7 +13,13 @@ Primary language is Python 3.11+. Documentation is bilingual (Korean/English).
 - **.agent/** — GSD workflows (29 commands)
 - **.claude/skills/** — Modular skill definitions (14 skills)
 - **.github/agents/** — GitHub Agent specification
-- **.gsd/** — GSD documents: templates, examples, state (SPEC, PLAN, DECISIONS, STATE, JOURNAL)
+- **.gsd/** — GSD documents and context management:
+  - `SPEC.md`, `PLAN.md`, `DECISIONS.md`, `STATE.md` — Core working docs
+  - `PATTERNS.md` — Distilled learnings for fresh sessions (2KB limit)
+  - `reports/` — Analysis reports (REPORT-*.md)
+  - `research/` — Research documents (RESEARCH-*.md)
+  - `archive/` — Monthly archives (journal, changelog, prd)
+  - `templates/` — Document templates
 - **.mcp.json** — MCP server config (graph-code, memorygraph, context7)
 - **scripts/** — Utility scripts
 
