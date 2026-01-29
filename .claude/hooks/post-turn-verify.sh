@@ -55,11 +55,12 @@ fi
 RUFF_OUTPUT=$(cd "$PROJECT_DIR" && uv run ruff check --no-fix $PY_CHANGES 2>/dev/null || true)
 
 if [[ -n "$RUFF_OUTPUT" ]]; then
-    ISSUE_COUNT=$(echo "$RUFF_OUTPUT" | grep -cE '^.+:\d+:\d+:' || true)
+    # ruff 출력에서 "Found X errors" 패턴으로 이슈 개수 추출
+    ISSUE_COUNT=$(echo "$RUFF_OUTPUT" | grep -oE 'Found [0-9]+ errors?' | grep -oE '[0-9]+' || echo "0")
     if [[ "$ISSUE_COUNT" -gt 0 ]]; then
-        # JSON 출력 (issues를 escaped string으로)
-        ISSUES_PREVIEW=$(echo "$RUFF_OUTPUT" | head -5 | tr '\n' ' ' | sed 's/"/\\"/g')
-        echo "{\"status\":\"warning\",\"lint_issues\":${ISSUE_COUNT},\"preview\":\"${ISSUES_PREVIEW}\"}"
+        # JSON 출력 (python json.dumps로 안전하게 이스케이프)
+        ISSUES_PREVIEW=$(echo "$RUFF_OUTPUT" | head -10 | python3 -c "import json,sys; print(json.dumps(sys.stdin.read().strip()))")
+        echo "{\"status\":\"warning\",\"lint_issues\":${ISSUE_COUNT},\"preview\":${ISSUES_PREVIEW}}"
         exit 0
     fi
 fi

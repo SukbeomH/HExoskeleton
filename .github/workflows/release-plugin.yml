@@ -4,8 +4,11 @@ on:
   push:
     branches: [master]
     paths:
-      - 'gsd-plugin/**'
-      - 'antigravity-boilerplate/**'
+      # Source files (build outputs generated in CI)
+      - '.claude/**'
+      - '.agent/**'
+      - 'scripts/build-*.sh'
+      - 'CLAUDE.md'
       - 'release-please-config.json'
       - '.release-please-manifest.json'
   release:
@@ -63,6 +66,9 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ steps.release-info.outputs.tag }}
+
+      - name: Build artifacts
+        run: make build
 
       - name: Create Plugin ZIP
         run: |
