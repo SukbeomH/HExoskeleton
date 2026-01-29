@@ -7,6 +7,7 @@ Exit code 0 = 허용
 """
 
 import json
+import os
 import sys
 
 BLOCKED_PATTERNS = [
@@ -38,9 +39,6 @@ file_path = tool_input.get("file_path", "")
 
 if not file_path:
     sys.exit(0)
-
-# 정규화: 절대경로에서 파일명 추출
-import os
 
 # 보안: 경로 순회 공격 차단
 if ".." in file_path:

@@ -18,7 +18,7 @@ from pathlib import Path
 
 
 def run(cmd: list[str]) -> str:
-    result = subprocess.run(cmd, capture_output=True, text=True)
+    result = subprocess.run(cmd, capture_output=True, text=True, check=False)
     return result.stdout.strip()
 
 
@@ -72,7 +72,6 @@ def get_module(path: str) -> str:
 
 
 def analyze(staged: bool = True) -> dict:
-    diff_flag = "--cached" if staged else ""
     cmd = ["git", "diff", "--name-only"]
     if staged:
         cmd.append("--cached")

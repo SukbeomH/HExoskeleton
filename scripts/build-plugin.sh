@@ -239,18 +239,23 @@ echo "  [+] Created .mcp.json with adjusted paths"
 # --- Phase 5b: GSD Templates ---
 echo ""
 echo "[Phase 5b] Copying GSD templates..."
-# Templates
+# Templates (md files)
 cp "$BOILERPLATE"/.gsd/templates/*.md "$PLUGIN/templates/gsd/templates/"
 TEMPLATES_COUNT=$(ls "$PLUGIN/templates/gsd/templates/"*.md 2>/dev/null | wc -l | tr -d ' ')
 echo "  [+] Copied ${TEMPLATES_COUNT} templates"
+
+# Templates (yaml files)
+cp "$BOILERPLATE"/.gsd/templates/*.yaml "$PLUGIN/templates/gsd/templates/" 2>/dev/null || true
+YAML_COUNT=$(ls "$PLUGIN/templates/gsd/templates/"*.yaml 2>/dev/null | wc -l | tr -d ' ')
+[ "$YAML_COUNT" -gt 0 ] && echo "  [+] Copied ${YAML_COUNT} yaml configs"
 
 # Examples
 cp "$BOILERPLATE"/.gsd/examples/*.md "$PLUGIN/templates/gsd/examples/"
 EXAMPLES_COUNT=$(ls "$PLUGIN/templates/gsd/examples/"*.md 2>/dev/null | wc -l | tr -d ' ')
 echo "  [+] Copied ${EXAMPLES_COUNT} examples"
 
-# Working document shells (SPEC, DECISIONS, JOURNAL, ROADMAP)
-for doc in SPEC DECISIONS JOURNAL ROADMAP; do
+# Working document shells (complete set)
+for doc in SPEC DECISIONS JOURNAL ROADMAP PATTERNS STATE TODO STACK CHANGELOG; do
     # Create empty shell files for scaffolding
     cat > "$PLUGIN/templates/gsd/${doc}.md" << EOF
 # ${doc}
@@ -259,7 +264,7 @@ for doc in SPEC DECISIONS JOURNAL ROADMAP; do
 <!-- See templates/${doc,,}.md for the full template -->
 EOF
 done
-echo "  [+] Created 4 working document shells"
+echo "  [+] Created 9 working document shells"
 
 # --- Phase 5c: Infrastructure References ---
 echo ""
@@ -286,6 +291,17 @@ done
 REFS_COUNT=$(find "$PLUGIN/references" -type f | wc -l | tr -d ' ')
 echo "  [+] Copied ${REFS_COUNT} reference files"
 
+# --- Phase 5d: Utility Scripts ---
+echo ""
+echo "[Phase 5d] Copying utility scripts..."
+for util in compact-context.sh organize-docs.sh; do
+    if [ -f "$BOILERPLATE/scripts/$util" ]; then
+        cp "$BOILERPLATE/scripts/$util" "$PLUGIN/scripts/"
+        chmod +x "$PLUGIN/scripts/$util"
+        echo "  [+] Copied $util"
+    fi
+done
+
 # --- Phase 6a: Scaffold GSD Script ---
 echo ""
 echo "[Phase 6a] Creating scaffold-gsd.sh..."
@@ -306,10 +322,22 @@ echo "  Target: ${TARGET}"
 echo ""
 
 # Create directories
-mkdir -p "$TARGET" "$TARGET/templates" "$TARGET/examples"
+mkdir -p "$TARGET" "$TARGET/templates" "$TARGET/examples" "$TARGET/archive" "$TARGET/reports" "$TARGET/research"
 
-# Copy working documents (SPEC, DECISIONS, JOURNAL, ROADMAP)
+# Copy working documents (all shell files)
 for f in "$PLUGIN_ROOT"/templates/gsd/*.md; do
+    [ -f "$f" ] || continue
+    dst="$TARGET/$(basename "$f")"
+    if [ -f "$dst" ]; then
+        echo "[SKIP] $(basename "$f") - already exists"
+    else
+        cp "$f" "$dst"
+        echo "[CREATED] $(basename "$f")"
+    fi
+done
+
+# Copy yaml configs
+for f in "$PLUGIN_ROOT"/templates/gsd/templates/*.yaml; do
     [ -f "$f" ] || continue
     dst="$TARGET/$(basename "$f")"
     if [ -f "$dst" ]; then
@@ -346,9 +374,11 @@ done
 
 echo ""
 echo "GSD scaffolding complete!"
-echo "  Working docs: .gsd/{SPEC,DECISIONS,JOURNAL,ROADMAP}.md"
+echo "  Working docs: .gsd/{SPEC,DECISIONS,JOURNAL,ROADMAP,PATTERNS,STATE,TODO,STACK,CHANGELOG}.md"
+echo "  Config:       .gsd/context-config.yaml"
 echo "  Templates:    .gsd/templates/"
 echo "  Examples:     .gsd/examples/"
+echo "  Directories:  .gsd/{archive,reports,research}/"
 SCAFFOLDEOF
 chmod +x "$PLUGIN/scripts/scaffold-gsd.sh"
 echo "  [+] Created scaffold-gsd.sh"

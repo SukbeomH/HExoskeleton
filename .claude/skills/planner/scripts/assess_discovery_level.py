@@ -103,6 +103,7 @@ def check_existing_patterns(root: Path) -> dict:
             capture_output=True,
             text=True,
             timeout=5,
+            check=False,
         )
         patterns["has_auth"] = bool(result.stdout.strip())
     except (subprocess.TimeoutExpired, FileNotFoundError):

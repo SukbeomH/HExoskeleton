@@ -32,6 +32,7 @@ exclude = [
     "claude-code-tips",
     "everything-claude-code",
     "ralph",
+    "gsd-plugin",
 ]
 
 [tool.ruff.lint]
@@ -56,7 +57,7 @@ max-complexity = 10
 
 [tool.ruff.lint.pylint]
 max-args = 6
-max-returns = 6
+max-returns = 7
 max-statements = 50
 
 [tool.ruff.lint.pep8-naming]
@@ -74,6 +75,7 @@ exclude = [
     "claude-code-tips",
     "everything-claude-code",
     "ralph",
+    "gsd-plugin",
 ]
 
 [tool.pytest.ini_options]

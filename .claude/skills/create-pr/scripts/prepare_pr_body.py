@@ -16,7 +16,7 @@ import sys
 
 
 def run(cmd: list[str]) -> str:
-    result = subprocess.run(cmd, capture_output=True, text=True)
+    result = subprocess.run(cmd, capture_output=True, text=True, check=False)
     return result.stdout.strip()
 
 
@@ -33,7 +33,7 @@ def detect_base_branch() -> str:
 
 def main() -> None:
     base = sys.argv[1] if len(sys.argv) > 1 else detect_base_branch()
-    current = run(["git", "branch", "--show-current"])
+    _current = run(["git", "branch", "--show-current"])  # noqa: F841
 
     # Commits
     commits = run(["git", "log", f"{base}..HEAD", "--oneline"]).splitlines()

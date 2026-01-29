@@ -14,10 +14,22 @@ echo "  Target: ${TARGET}"
 echo ""
 
 # Create directories
-mkdir -p "$TARGET" "$TARGET/templates" "$TARGET/examples"
+mkdir -p "$TARGET" "$TARGET/templates" "$TARGET/examples" "$TARGET/archive" "$TARGET/reports" "$TARGET/research"
 
-# Copy working documents (SPEC, DECISIONS, JOURNAL, ROADMAP)
+# Copy working documents (all shell files)
 for f in "$PLUGIN_ROOT"/templates/gsd/*.md; do
+    [ -f "$f" ] || continue
+    dst="$TARGET/$(basename "$f")"
+    if [ -f "$dst" ]; then
+        echo "[SKIP] $(basename "$f") - already exists"
+    else
+        cp "$f" "$dst"
+        echo "[CREATED] $(basename "$f")"
+    fi
+done
+
+# Copy yaml configs
+for f in "$PLUGIN_ROOT"/templates/gsd/templates/*.yaml; do
     [ -f "$f" ] || continue
     dst="$TARGET/$(basename "$f")"
     if [ -f "$dst" ]; then
@@ -54,6 +66,8 @@ done
 
 echo ""
 echo "GSD scaffolding complete!"
-echo "  Working docs: .gsd/{SPEC,DECISIONS,JOURNAL,ROADMAP}.md"
+echo "  Working docs: .gsd/{SPEC,DECISIONS,JOURNAL,ROADMAP,PATTERNS,STATE,TODO,STACK,CHANGELOG}.md"
+echo "  Config:       .gsd/context-config.yaml"
 echo "  Templates:    .gsd/templates/"
 echo "  Examples:     .gsd/examples/"
+echo "  Directories:  .gsd/{archive,reports,research}/"

@@ -41,8 +41,8 @@ def parse_frontmatter(content: str) -> tuple[dict, list[str]]:
         return fields, ["No YAML frontmatter found (missing --- delimiters)"]
 
     fm_text = fm_match.group(1)
-    for line in fm_text.splitlines():
-        line = line.strip()
+    for raw_line in fm_text.splitlines():
+        line = raw_line.strip()
         if not line or line.startswith("#"):
             continue
         if ":" in line:
