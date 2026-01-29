@@ -5,6 +5,7 @@
 Exit code 2 = 차단 (stderr가 Claude에게 전달됨)
 Exit code 0 = 허용
 """
+
 import json
 import sys
 
@@ -40,6 +41,14 @@ if not file_path:
 
 # 정규화: 절대경로에서 파일명 추출
 import os
+
+# 보안: 경로 순회 공격 차단
+if ".." in file_path:
+    print(
+        "Blocked: path traversal detected ('..') — potential security risk.",
+        file=sys.stderr,
+    )
+    sys.exit(2)
 
 basename = os.path.basename(file_path)
 rel_path = file_path
