@@ -10,7 +10,7 @@ Claude Code의 **Hooks**는 특정 이벤트에 자동으로 응답하는 스크
 |------|------|
 | **설정 파일** | `.claude/settings.json` |
 | **스크립트 위치** | `.claude/hooks/` |
-| **개수** | 7개 스크립트 |
+| **개수** | 8개 스크립트 |
 | **이벤트 종류** | SessionStart, PreToolUse, PostToolUse, PreCompact, Stop, SessionEnd |
 
 ---
@@ -42,6 +42,7 @@ Claude Code의 **Hooks**는 특정 이벤트에 자동으로 응답하는 스크
 | **PreCompact** | `pre-compact-save.sh` | command | 컴팩트 전 상태 저장 | 10s |
 | **Stop** | `post-turn-index.sh` | command | 변경된 코드 인덱싱 | 10s |
 | **Stop** | `post-turn-verify.sh` | command | 작업 검증 | 15s |
+| **SessionEnd** | `save-transcript.sh` | command | 대화 내역 .sessions/에 저장 | 10s |
 | **SessionEnd** | (prompt) | prompt | memory-graph에 세션 요약 저장 | - |
 
 ---
@@ -365,6 +366,46 @@ mypy . --quiet || true
 
 ---
 
+### 8. save-transcript.sh
+
+**이벤트**: SessionEnd
+**역할**: 대화 내역을 프로젝트에 저장
+
+```bash
+#!/bin/bash
+# SessionEnd: 대화 내역 저장
+
+PROJECT_DIR="${CLAUDE_PROJECT_DIR:-.}"
+SESSION_DIR="$PROJECT_DIR/.sessions"
+
+mkdir -p "$SESSION_DIR"
+
+# Claude 프로젝트 경로에서 최신 transcript 복사
+CLAUDE_PROJECTS_DIR="$HOME/.claude/projects"
+PROJECT_PATH_ESCAPED=$(echo "$PROJECT_DIR" | sed 's|/|-|g')
+CLAUDE_PROJECT_PATH="$CLAUDE_PROJECTS_DIR/$PROJECT_PATH_ESCAPED"
+
+LATEST_TRANSCRIPT=$(ls -t "$CLAUDE_PROJECT_PATH"/*.jsonl 2>/dev/null | head -1)
+
+if [ -f "$LATEST_TRANSCRIPT" ]; then
+    SESSION_ID=$(basename "$LATEST_TRANSCRIPT" .jsonl)
+    TIMESTAMP=$(date +%Y%m%d-%H%M%S)
+    cp "$LATEST_TRANSCRIPT" "$SESSION_DIR/${SESSION_ID}-${TIMESTAMP}.jsonl"
+fi
+```
+
+**저장 위치**: `.sessions/{session-id}-{timestamp}.jsonl`
+
+**파일 형식** (JSONL):
+```json
+{"type":"user","content":"안녕하세요"}
+{"type":"assistant","content":"안녕하세요!"}
+{"type":"tool_use","name":"Bash","input":{...}}
+{"type":"tool_result","content":"..."}
+```
+
+---
+
 ## 훅 작동 예시
 
 ### file-protect.py — 민감 파일 보호
@@ -401,6 +442,18 @@ PreToolUse(Bash) → bash-guard.py 실행
      │
      ▼
 차단됨: "Use --force-with-lease instead"
+```
+
+### save-transcript.sh — 대화 내역 저장
+
+```
+세션 종료 (/exit 또는 창 닫기)
+     │
+     ▼
+SessionEnd → save-transcript.sh 실행
+     │
+     ▼
+.sessions/49d4a1ae-20260129-110300.jsonl 저장됨
 ```
 
 ---
