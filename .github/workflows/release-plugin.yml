@@ -7,6 +7,8 @@ on:
       - 'gsd-plugin/**'
       - 'release-please-config.json'
       - '.release-please-manifest.json'
+  release:
+    types: [published]
   workflow_dispatch:
 
 permissions:
@@ -38,17 +40,33 @@ jobs:
 
   build-and-upload:
     needs: release-please
-    if: ${{ needs.release-please.outputs.release_created == 'true' }}
+    if: |
+      needs.release-please.outputs.release_created == 'true' ||
+      github.event_name == 'release'
     runs-on: ubuntu-latest
     steps:
+      - name: Get release info
+        id: release-info
+        run: |
+          if [ "${{ github.event_name }}" = "release" ]; then
+            TAG="${{ github.event.release.tag_name }}"
+            # Extract version from tag (gsd-plugin-v1.3.0 -> 1.3.0)
+            VERSION=$(echo "$TAG" | sed 's/gsd-plugin-v//')
+            echo "tag=$TAG" >> $GITHUB_OUTPUT
+            echo "version=$VERSION" >> $GITHUB_OUTPUT
+          else
+            echo "tag=${{ needs.release-please.outputs.tag_name }}" >> $GITHUB_OUTPUT
+            echo "version=${{ needs.release-please.outputs.version }}" >> $GITHUB_OUTPUT
+          fi
+
       - uses: actions/checkout@v4
         with:
-          ref: ${{ needs.release-please.outputs.tag_name }}
+          ref: ${{ steps.release-info.outputs.tag }}
 
       - name: Create Plugin ZIP
         run: |
           cd gsd-plugin
-          zip -r ../gsd-plugin-${{ needs.release-please.outputs.version }}.zip . \
+          zip -r ../gsd-plugin-${{ steps.release-info.outputs.version }}.zip . \
             -x ".git/*" \
             -x "__pycache__/*" \
             -x "*.pyc" \
@@ -62,8 +80,8 @@ jobs:
       - name: Upload Release Asset
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ needs.release-please.outputs.tag_name }}
-          files: gsd-plugin-${{ needs.release-please.outputs.version }}.zip
+          tag_name: ${{ steps.release-info.outputs.tag }}
+          files: gsd-plugin-${{ steps.release-info.outputs.version }}.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -71,6 +89,6 @@ jobs:
         run: |
           echo "## Release Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "- **Version**: ${{ needs.release-please.outputs.version }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Tag**: ${{ needs.release-please.outputs.tag_name }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Asset**: gsd-plugin-${{ needs.release-please.outputs.version }}.zip" >> $GITHUB_STEP_SUMMARY
+          echo "- **Version**: ${{ steps.release-info.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Tag**: ${{ steps.release-info.outputs.tag }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Asset**: gsd-plugin-${{ steps.release-info.outputs.version }}.zip" >> $GITHUB_STEP_SUMMARY
