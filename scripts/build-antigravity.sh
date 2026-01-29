@@ -192,6 +192,7 @@ echo ""
 echo "[Phase 5] Creating MCP configuration..."
 
 # Transform MCP config for Antigravity
+# Antigravity uses mcp-settings.json (can be copied to ~/.gemini/antigravity/)
 python3 - "$BOILERPLATE" "$ANTIGRAVITY" << 'PYEOF'
 import json
 import sys
@@ -221,12 +222,12 @@ if 'mcpServers' in mcp:
 # Remove non-standard fields
 mcp.pop('enable_tool_search', None)
 
-# Write config
-output_path = f"{antigravity}/mcp_config.json"
+# Write config (Antigravity standard name)
+output_path = f"{antigravity}/mcp-settings.json"
 with open(output_path, 'w') as f:
     json.dump(mcp, f, indent=2)
 
-print(f"  [+] mcp_config.json")
+print(f"  [+] mcp-settings.json")
 PYEOF
 
 # --- Phase 6: GSD Templates ---
@@ -352,7 +353,8 @@ AI agent development boilerplate for **Google Antigravity IDE**.
 
 2. **Configure MCP Servers**
    - Go to Agent panel "..." → MCP Servers → Manage MCP Servers → View raw config
-   - Copy contents from `mcp_config.json` to your config
+   - Copy contents from `mcp-settings.json` to your config
+   - Or copy to global config: `~/.gemini/antigravity/mcp-settings.json`
 
 3. **Initialize GSD Documents**
    ```bash
@@ -363,25 +365,27 @@ AI agent development boilerplate for **Google Antigravity IDE**.
 
 ```
 .agent/
-├── skills/          # 15 AI skills (Antigravity format)
+├── skills/          # 15 AI skills (SKILL.md format)
 │   ├── planner/     # Planning skill
 │   ├── executor/    # Execution skill
 │   └── ...
-├── workflows/       # 30 workflow commands
+├── workflows/       # 30 workflow commands (// turbo supported)
 │   ├── plan.md      # /plan command
 │   ├── execute.md   # /execute command
 │   └── ...
-└── rules/           # Always-on rules
+└── rules/           # Always-on passive rules
     ├── code-style.md
     ├── safety.md
     └── gsd-workflow.md
 
 templates/gsd/       # GSD document templates
 scripts/             # Utility scripts
-mcp_config.json      # MCP server configuration
+mcp-settings.json    # MCP server configuration
 ```
 
 ## Skills
+
+Skills are specialized agent capabilities in `.agent/skills/[name]/SKILL.md`.
 
 | Skill | Description |
 |-------|-------------|
@@ -403,25 +407,61 @@ mcp_config.json      # MCP server configuration
 
 ## Workflows
 
-Key workflows available via `/` commands:
+Workflows are standardized recipes in `.agent/workflows/*.md`. Trigger via `/` commands or natural language.
 
-- `/plan` - Create implementation plan
-- `/execute` - Execute planned work
-- `/verify` - Verify completed work
-- `/debug` - Systematic debugging
-- `/map` - Map codebase structure
-- `/new-project` - Initialize new project
-- `/help` - List all commands
+### Turbo Mode
+
+Add `// turbo` comment to auto-execute commands:
+```markdown
+1. Run tests
+// turbo
+2. `npm run test`
+```
+
+Or `// turbo-all` at the top for all commands.
+
+### Key Workflows
+
+| Command | Description |
+|---------|-------------|
+| `/plan` | Create implementation plan |
+| `/execute` | Execute planned work |
+| `/verify` | Verify completed work |
+| `/debug` | Systematic debugging |
+| `/map` | Map codebase structure |
+| `/new-project` | Initialize new project |
+| `/help` | List all commands |
+
+## Rules
+
+Rules in `.agent/rules/*.md` are always-on passive guidelines that govern agent behavior.
+
+| Rule | Purpose |
+|------|---------|
+| `code-style.md` | Python standards, formatting |
+| `safety.md` | Dangerous action prevention |
+| `gsd-workflow.md` | GSD methodology rules |
 
 ## MCP Servers
 
-Pre-configured servers (add to your mcp_config.json):
+Pre-configured in `mcp-settings.json`:
 
 | Server | Purpose |
 |--------|---------|
 | `graph-code` | AST-based code analysis (19 tools) |
 | `memorygraph` | Persistent agent memory (12 tools) |
 | `context7` | Library documentation lookup |
+
+### Setup Options
+
+**Option 1: Project-level** (recommended)
+- Copy `mcp-settings.json` content via Agent panel → MCP Servers
+
+**Option 2: Global**
+```bash
+mkdir -p ~/.gemini/antigravity
+cp mcp-settings.json ~/.gemini/antigravity/
+```
 
 ### Environment Variables
 
@@ -448,6 +488,15 @@ Get Shit Done workflow:
 2. **PLAN.md** - Create implementation plans
 3. **EXECUTE** - Execute with atomic commits
 4. **VERIFY** - Verify with empirical evidence
+
+## Migration from Claude Code
+
+| Claude Code | Antigravity |
+|-------------|-------------|
+| `CLAUDE.md` | `.agent/rules/*.md` |
+| `.claude/skills/` | `.agent/skills/` |
+| Claude Hooks | `.agent/workflows/` (use `// turbo`) |
+| `.mcp.json` | `mcp-settings.json` |
 
 ## License
 
@@ -509,10 +558,10 @@ fi
 # JSON validity
 echo ""
 echo "[JSON Validity]"
-if python3 -c "import json; json.load(open('$ANTIGRAVITY/mcp_config.json'))" 2>/dev/null; then
-    echo "  [OK] mcp_config.json"
+if python3 -c "import json; json.load(open('$ANTIGRAVITY/mcp-settings.json'))" 2>/dev/null; then
+    echo "  [OK] mcp-settings.json"
 else
-    echo "  [FAIL] mcp_config.json invalid"
+    echo "  [FAIL] mcp-settings.json invalid"
     errors=$((errors + 1))
 fi
 
@@ -526,12 +575,14 @@ if [ $errors -eq 0 ]; then
     echo ""
     echo "To use:"
     echo "  1. Open $ANTIGRAVITY in Antigravity IDE"
-    echo "  2. Configure MCP servers from mcp_config.json"
+    echo "  2. Configure MCP servers from mcp-settings.json"
+    echo "     - Agent panel → ... → MCP Servers → Manage → View raw config"
+    echo "     - Or: cp mcp-settings.json ~/.gemini/antigravity/"
     echo "  3. Run: zsh scripts/scaffold-gsd.sh"
     echo ""
     echo "Or copy to an existing project:"
     echo "  cp -r $ANTIGRAVITY/.agent /path/to/project/"
-    echo "  cp $ANTIGRAVITY/mcp_config.json /path/to/project/"
+    echo "  cp $ANTIGRAVITY/mcp-settings.json /path/to/project/"
 else
     echo "BUILD COMPLETED WITH $errors ERROR(S)"
     exit 1
