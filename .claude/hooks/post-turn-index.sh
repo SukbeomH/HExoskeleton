@@ -23,6 +23,7 @@ except:
 " 2>/dev/null)
 
 if [[ "$IS_ACTIVE" == "True" ]]; then
+    echo '{"status":"skipped","reason":"stop_hook_active"}'
     exit 0
 fi
 
@@ -58,6 +59,7 @@ has_changes() {
 }
 
 if ! has_changes; then
+    echo '{"status":"skipped","reason":"no_code_changes"}'
     exit 0
 fi
 
@@ -69,6 +71,7 @@ if [[ -f "$LOCK_FILE" ]]; then
     # 5분 이상 된 lock은 stale로 간주
     lock_age=$(( $(date +%s) - $(stat -f %m "$LOCK_FILE" 2>/dev/null || echo 0) ))
     if [[ "$lock_age" -lt 300 ]]; then
+        echo '{"status":"skipped","reason":"indexing_in_progress"}'
         exit 0
     fi
     rm -f "$LOCK_FILE"
@@ -87,4 +90,5 @@ echo $$ > "$LOCK_FILE"
     rm -f "$LOCK_FILE"
 ) &
 
+echo '{"status":"success","action":"indexing_started"}'
 exit 0
