@@ -4,7 +4,8 @@ export
 
 .PHONY: status index setup install-deps \
         install-memorygraph init-env check-deps lint lint-fix test typecheck \
-        clean patch-prompt patch-restore patch-clean help
+        clean patch-prompt patch-restore patch-clean \
+        build-plugin build-antigravity help
 
 # ─────────────────────────────────────────────────────
 # Prerequisites Check
@@ -131,6 +132,16 @@ patch-restore: ## Restore original Claude Code CLI (undo patch)
 patch-clean: ## Remove patched Claude Code workspace
 	rm -rf .patch-workspace/
 	@echo "Removed .patch-workspace/"
+
+# ─────────────────────────────────────────────────────
+# Build Targets
+# ─────────────────────────────────────────────────────
+
+build-plugin: ## Build Claude Code plugin (gsd-plugin/)
+	@bash scripts/build-plugin.sh
+
+build-antigravity: ## Build Antigravity workspace (antigravity-boilerplate/)
+	@zsh scripts/build-antigravity.sh
 
 # ─────────────────────────────────────────────────────
 # Cleanup
