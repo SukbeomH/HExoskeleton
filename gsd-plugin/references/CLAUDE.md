@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 AI 에이전트 기반 개발을 위한 경량 프로젝트 보일러플레이트. code-graph-rag(AST 인덱싱) + memory-graph(에이전트 기억)와 GSD(Get Shit Done) 문서 기반 방법론을 결합.
 
-Primary language is Python 3.11+. Documentation is bilingual (Korean/English).
+Primary language is Python 3.12. Documentation is bilingual (Korean/English).
 
 ## Repository Layout
 

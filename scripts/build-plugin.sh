@@ -21,15 +21,22 @@ mkdir -p "$PLUGIN"/{.claude-plugin,commands,skills,agents,hooks,scripts}
 mkdir -p "$PLUGIN"/templates/gsd/{templates,examples}
 mkdir -p "$PLUGIN"/references/issue-templates
 
+# Get version from release-please manifest or default to 1.0.0
+VERSION="1.0.0"
+MANIFEST="${BOILERPLATE}/.release-please-manifest.json"
+if [ -f "$MANIFEST" ]; then
+    VERSION=$(python3 -c "import json; print(json.load(open('$MANIFEST')).get('gsd-plugin', '1.0.0'))")
+fi
+
 # Create plugin.json manifest (minimal - default directories auto-discovered)
-cat > "$PLUGIN/.claude-plugin/plugin.json" << 'EOF'
+cat > "$PLUGIN/.claude-plugin/plugin.json" << EOF
 {
   "name": "gsd",
-  "version": "1.0.0",
+  "version": "${VERSION}",
   "description": "Get Shit Done - AI agent development methodology with code-graph-rag and memory-graph integration"
 }
 EOF
-echo "  [+] plugin.json created"
+echo "  [+] plugin.json created (version: ${VERSION})"
 
 # --- Phase 2: Commands (Workflows) ---
 echo ""
