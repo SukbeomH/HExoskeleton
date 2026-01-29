@@ -41,9 +41,9 @@ GSD Boilerplate 프로젝트의 문서(research/, reports/, ARCHITECTURE.md)와 
 | /gsd:init 커맨드 | 초기화 | `gsd-plugin/commands/init.md` | ✅ 구현됨 |
 | archive/ 폴더 | 월별 아카이브 | `.gsd/archive/` (빈 디렉토리) | ✅ 구현됨 |
 | context-config.yaml | 정리 규칙 | `.gsd/context-config.yaml` (41줄) | ✅ 구현됨 |
-| CURRENT.md | 현재 세션 컨텍스트 | - | ❌ 미구현 |
-| prd-active.json | pending 작업 | - | ❌ 미구현 |
-| prd-done.json | completed 작업 | - | ❌ 미구현 |
+| CURRENT.md | 현재 세션 컨텍스트 | `.gsd/CURRENT.md` | ✅ 구현됨 |
+| prd-active.json | pending 작업 | `.gsd/prd-active.json` | ✅ 구현됨 |
+| prd-done.json | completed 작업 | `.gsd/prd-done.json` | ✅ 구현됨 |
 
 ### 2.3 자율 루프 시스템 (미구현)
 
@@ -88,21 +88,22 @@ GSD Boilerplate 프로젝트의 문서(research/, reports/, ARCHITECTURE.md)와 
 
 ## 4. 미구현 항목 우선순위 정리
 
-### 4.1 높은 우선순위 (컨텍스트 관리 완성)
+### 4.1 높은 우선순위 (컨텍스트 관리 완성) ✅ 완료
 
-| 순위 | 항목 | 설명 | 난이도 |
+| 순위 | 항목 | 설명 | 상태 |
 |------|------|------|--------|
-| 1 | `.gsd/CURRENT.md` 생성 | 현재 세션 컨텍스트 (~1KB) | 낮음 |
-| 2 | compact-context.sh 완성 | 실제 아카이빙 로직 (현재 TODO) | 중간 |
+| 1 | `.gsd/CURRENT.md` 생성 | 현재 세션 컨텍스트 (~1KB) | ✅ 완료 |
+| 2 | compact-context.sh 완성 | 실제 아카이빙 로직 | ✅ 완료 |
+| 3 | prd-active.json 스키마 | pending 작업 JSON 구조 | ✅ 완료 |
+| 4 | prd-done.json 스키마 | completed 작업 JSON 구조 | ✅ 완료 |
+| 5 | prd-schema.json 템플릿 | JSON Schema 정의 | ✅ 완료 |
 
 ### 4.2 중간 우선순위 (자동화 기반)
 
 | 순위 | 항목 | 설명 | 난이도 |
 |------|------|------|--------|
-| 3 | prd-active.json 스키마 | pending 작업 JSON 구조 | 중간 |
-| 4 | prd-done.json 스키마 | completed 작업 JSON 구조 | 중간 |
-| 5 | planner --json 옵션 | JSON 형식 계획 출력 | 중간 |
-| 6 | executor prd 업데이트 | 작업 완료 시 상태 변경 | 중간 |
+| 1 | planner --json 옵션 | JSON 형식 계획 출력 | 중간 |
+| 2 | executor prd 업데이트 | 작업 완료 시 상태 변경 | 중간 |
 
 ### 4.3 낮은 우선순위 (자율 루프 - Phase 3)
 
@@ -186,12 +187,12 @@ GSD Boilerplate 프로젝트의 문서(research/, reports/, ARCHITECTURE.md)와 
 ├── templates/              # 문서 템플릿
 ├── archive/                # ✅ 월별 아카이브 (빈 디렉토리)
 │
-├── CURRENT.md              # ❌ 미구현
-├── prd-active.json         # ❌ 미구현
-└── prd-done.json           # ❌ 미구현
+├── CURRENT.md              # ✅ 구현됨
+├── prd-active.json         # ✅ 구현됨
+└── prd-done.json           # ✅ 구현됨
 
 scripts/
-├── compact-context.sh      # ✅ 구현됨 (일부 TODO)
+├── compact-context.sh      # ✅ 구현됨 (아카이빙 로직 완성)
 ├── organize-docs.sh        # ✅ 구현됨
 ├── bootstrap.sh            # ✅ 구현됨
 ├── build-plugin.sh         # ✅ 구현됨

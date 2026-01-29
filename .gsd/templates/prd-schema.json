@@ -1,0 +1,86 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "PRD Task Schema",
+  "description": "Schema for GSD PRD task tracking",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "const": "prd-schema"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "updated": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Last update timestamp"
+    },
+    "tasks": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/task"
+      }
+    }
+  },
+  "required": ["$schema", "version", "tasks"],
+  "definitions": {
+    "task": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[A-Z]+-\\d+$",
+          "description": "Task ID (e.g., TASK-001)"
+        },
+        "title": {
+          "type": "string",
+          "maxLength": 100
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 500
+        },
+        "status": {
+          "type": "string",
+          "enum": ["pending", "in_progress", "blocked", "done", "cancelled"]
+        },
+        "priority": {
+          "type": "string",
+          "enum": ["low", "medium", "high", "critical"]
+        },
+        "phase": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "wave": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "dependencies": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "IDs of tasks this depends on"
+        },
+        "created": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "completed": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": ["id", "title", "status"]
+    }
+  }
+}
