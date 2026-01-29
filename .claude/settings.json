@@ -88,7 +88,7 @@
           },
           {
             "type": "prompt",
-            "prompt": "Check if `.gsd/.modified-this-session` exists. If NOT, skip all updates.\n\nIf the flag file EXISTS, update context:\n\n## CURRENT.md\nUpdate `.gsd/CURRENT.md`:\n- **Active Task**: Current task\n- **Working Files**: Modified files (paths)\n- **Decisions Made**: Key decisions\n- **Blockers**: Any blockers\n- Timestamp at bottom\n\n## PATTERNS.md (optional)\nAdd reusable pattern if discovered.\n\nThen DELETE `.gsd/.modified-this-session` after updating."
+            "prompt": "Check if `.gsd/.modified-this-session` exists. If NOT, skip all updates.\n\nIf the flag file EXISTS, update context:\n\n## 1. CURRENT.md\nUpdate `.gsd/CURRENT.md`:\n- **Active Task**: Current task\n- **Working Files**: Modified files (paths)\n- **Decisions Made**: Key decisions\n- **Blockers**: Any blockers\n- Timestamp at bottom\n\n## 2. Memory Graph 저장 (중요 변경 시)\nIf significant changes made, call `store_memory`:\n- type: \"session-summary\"\n- title: \"Session: [brief task description]\"\n- content: What was built/changed, key decisions. Under 500 chars.\n- tags: [\"session-learnings\", \"auto\"]\n\n## 3. PATTERNS.md (optional)\nAdd reusable pattern if discovered.\n\nThen DELETE `.gsd/.modified-this-session` after updating."
           }
         ]
       }
@@ -125,10 +125,6 @@
             "type": "command",
             "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/save-session-changes.sh",
             "timeout": 10
-          },
-          {
-            "type": "prompt",
-            "prompt": "Session is ending. Perform these tasks:\n\n## 1. Memory Graph 요약 저장\nCall `store_memory` with:\n- type: \"session-summary\"\n- title: \"Session: [brief description]\"\n- content: What was built/changed, key decisions, patterns. Keep under 500 chars.\n- tags: [\"session-learnings\", \"auto\"]\n\n## 2. CHANGELOG 요약 추가 (변경사항이 있는 경우)\nRead `.gsd/CHANGELOG.md`, find the most recent entry (marked with today's date and session ID), and add a '#### 요약' section with 1-2 sentences describing the changes.\n\nNote: CURRENT.md is updated during Stop hooks. It will be reviewed at next session start.\n\nSkip all if the session was trivial (only reading/exploring, no code or doc changes)."
           }
         ]
       }
