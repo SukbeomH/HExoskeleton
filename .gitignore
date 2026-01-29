@@ -109,6 +109,10 @@ logs_llm/
 # System prompt patching workspace (make patch-prompt)
 .patch-workspace/
 
+# Build outputs (make build-plugin, make build-antigravity)
+gsd-plugin/
+antigravity-boilerplate/
+
 # External reference repos (not part of boilerplate core)
 awesome-claude-code/
 claude-code-tips/
@@ -139,3 +143,4 @@ temp/
 *.tmp
 *.bak
 settings.local.json
+.gsd/.modified-this-session

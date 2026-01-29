@@ -42,6 +42,21 @@
             "type": "command",
             "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/auto-format-py.sh",
             "timeout": 30
+          },
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/track-modifications.sh",
+            "timeout": 2
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/track-modifications.sh",
+            "timeout": 2
           }
         ]
       }
@@ -73,7 +88,27 @@
           },
           {
             "type": "prompt",
-            "prompt": "After completing this turn, update context IF you used Edit/Write/Bash tools to modify files:\n\n## CURRENT.md 업데이트\nUpdate `.gsd/CURRENT.md` with:\n- **Active Task**: Current task description\n- **Working Files**: Files you edited/created (list paths)\n- **Decisions Made**: Key decisions (1-2 lines)\n- **Blockers**: Any blockers\n- Update timestamp at bottom\n\n## PATTERNS.md (선택)\nIf you discovered a reusable codebase pattern, add 1 bullet to `.gsd/PATTERNS.md`.\n\n**SKIP ALL if you only used Read/Glob/Grep tools (no modifications).**"
+            "prompt": "Check if `.gsd/.modified-this-session` exists. If NOT, skip all updates.\n\nIf the flag file EXISTS, update context:\n\n## CURRENT.md\nUpdate `.gsd/CURRENT.md`:\n- **Active Task**: Current task\n- **Working Files**: Modified files (paths)\n- **Decisions Made**: Key decisions\n- **Blockers**: Any blockers\n- Timestamp at bottom\n\n## PATTERNS.md (optional)\nAdd reusable pattern if discovered.\n\nThen DELETE `.gsd/.modified-this-session` after updating."
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "hooks": [
+          {
+            "type": "prompt",
+            "prompt": "Subagent task completed. If significant findings:\n1. Summarize key results in 2-3 sentences\n2. If code changes made by subagent, mark `.gsd/.modified-this-session`\n3. Consider adding to PATTERNS.md if reusable pattern discovered"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "prompt",
+            "prompt": "Before responding, quickly check:\n- Is `.gsd/CURRENT.md` populated? → Continue previous task context\n- Are there uncommitted changes? → Consider committing first\n- Is the request related to active PRD tasks? → Check `.gsd/prd-active.json`"
           }
         ]
       }
