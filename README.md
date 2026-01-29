@@ -10,10 +10,10 @@ AI 에이전트 기반 개발을 위한 프로젝트 보일러플레이트.
 
 | 구성요소 | 개수 | 설명 |
 |----------|------|------|
-| **Commands** | 30 | GSD 워크플로우 슬래시 명령어 |
+| **Commands** | 31 | GSD 워크플로우 슬래시 명령어 |
 | **Skills** | 15 | Claude가 자율적으로 호출하는 전문 기능 |
 | **Agents** | 13 | 특정 작업을 위한 서브에이전트 |
-| **Hooks** | 9 | 이벤트 기반 자동화 스크립트 |
+| **Hooks** | 10 | 이벤트 기반 자동화 스크립트 |
 | **MCP Servers** | 2 | 코드 분석 + 에이전트 기억 |
 
 ### 상세 문서
@@ -24,8 +24,8 @@ AI 에이전트 기반 개발을 위한 프로젝트 보일러플레이트.
 |------|------|
 | [Agents](docs/AGENTS.md) | 13개 서브에이전트 상세 (역할, capabilities, 실행 흐름) |
 | [Skills](docs/SKILLS.md) | 15개 스킬 상세 (트리거 조건, MCP 도구 연동) |
-| [Hooks](docs/HOOKS.md) | 9개 훅 스크립트 상세 (이벤트, 코드, 작동 예시) |
-| [Workflows](docs/WORKFLOWS.md) | 30개 명령어 상세 (GSD 사이클, 인자, 출력 형식) |
+| [Hooks](docs/HOOKS.md) | 10개 훅 이벤트 상세 (이벤트, 코드, 작동 예시) |
+| [Workflows](docs/WORKFLOWS.md) | 31개 명령어 상세 (GSD 사이클, 인자, 출력 형식) |
 | [MCP](docs/MCP.md) | MCP 서버 상세 (graph-code 19도구, memorygraph 12도구) |
 | [Linting](docs/LINTING.md) | Ruff/Mypy 설정 상세 (규칙, 제한, 자동 포맷) |
 | [GitHub Workflow](docs/GITHUB-WORKFLOW.md) | CI/CD 파이프라인 상세 (jobs, 캐싱, Issue 템플릿) |
@@ -36,12 +36,12 @@ AI 에이전트 기반 개발을 위한 프로젝트 보일러플레이트.
 
 ```
 .
-├── .agent/                    # GSD 워크플로우 (30 commands)
+├── .agent/                    # GSD 워크플로우 (31 commands)
 │   └── workflows/*.md
 ├── .claude/                   # Claude Code 설정
 │   ├── agents/                # 서브에이전트 정의 (13)
 │   ├── skills/                # 스킬 정의 (15)
-│   ├── hooks/                 # 훅 스크립트 (9)
+│   ├── hooks/                 # 훅 스크립트 (10 이벤트)
 │   └── settings.json          # 훅 설정
 ├── .gsd/                      # GSD 작업 문서
 │   ├── SPEC.md                # 프로젝트 명세
@@ -53,7 +53,7 @@ AI 에이전트 기반 개발을 위한 프로젝트 보일러플레이트.
 │   ├── PATTERNS.md            # 컨텍스트 패턴 (2KB 제한)
 │   ├── STACK.md               # 기술 스택 문서
 │   ├── context-config.yaml    # 컨텍스트 관리 설정
-│   ├── templates/             # 문서 템플릿 (25)
+│   ├── templates/             # 문서 템플릿 (24)
 │   ├── examples/              # 예제 (3)
 │   ├── research/              # 연구 문서 (RESEARCH-*.md)
 │   ├── reports/               # 분석 보고서 (REPORT-*.md)
@@ -183,7 +183,7 @@ SPEC → PLAN → EXECUTE → VERIFY
 | **3. 실행** | `/execute [N]` | 웨이브 단위 구현 + atomic commits |
 | **4. 검증** | `/verify [N]` | must-haves 검증 + 증거 수집 |
 
-### 전체 명령어 (30)
+### 전체 명령어 (31)
 
 <details>
 <summary>Core Workflow</summary>
@@ -203,6 +203,7 @@ SPEC → PLAN → EXECUTE → VERIFY
 
 | 명령어 | 설명 |
 |--------|------|
+| `/init` | GSD 문서 시스템 초기화 + 인프라 비교 |
 | `/new-project` | 딥 질문 → SPEC.md |
 | `/new-milestone` | 마일스톤 생성 |
 | `/complete-milestone` | 마일스톤 완료 처리 |
@@ -337,7 +338,7 @@ SPEC → PLAN → EXECUTE → VERIFY
 
 ---
 
-## Hooks (9)
+## Hooks (10)
 
 **Hooks**는 Claude Code 이벤트에 자동으로 응답하는 스크립트입니다.
 
@@ -569,7 +570,7 @@ context7을 포함하려면 빌드 스크립트를 수정하거나, 플러그인
 ```
 gsd-plugin/
 ├── .claude-plugin/plugin.json   # 매니페스트 (최소 형식)
-├── commands/                    # 31 워크플로우
+├── commands/                    # 31 명령어
 ├── skills/                      # 15 스킬
 ├── agents/                      # 13 에이전트
 ├── hooks/hooks.json             # 훅 설정
