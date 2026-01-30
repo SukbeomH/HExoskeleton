@@ -87,8 +87,9 @@
             "timeout": 15
           },
           {
-            "type": "prompt",
-            "prompt": "Check if `.gsd/.modified-this-session` exists. If NOT, skip all updates.\n\nIf the flag file EXISTS, update context:\n\n## 1. CURRENT.md\nUpdate `.gsd/CURRENT.md`:\n- **Active Task**: Current task\n- **Working Files**: Modified files (paths)\n- **Decisions Made**: Key decisions\n- **Blockers**: Any blockers\n- Timestamp at bottom\n\n## 2. Memory Graph 저장 (중요 변경 시)\nIf significant changes made, call `store_memory`:\n- type: \"session-summary\"\n- title: \"Session: [brief task description]\"\n- content: What was built/changed, key decisions. Under 500 chars.\n- tags: [\"session-learnings\", \"auto\"]\n\n## 3. PATTERNS.md (optional)\nAdd reusable pattern if discovered.\n\nThen DELETE `.gsd/.modified-this-session` after updating."
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/stop-context-save.sh",
+            "timeout": 10
           }
         ]
       }

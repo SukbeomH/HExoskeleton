@@ -32,6 +32,230 @@
 ## 변경 기록
 
 <!-- 아래에 세션별 변경사항이 자동으로 추가됩니다 -->
+### [2026-01-30 11:37] Session: 6aafb1c9
+
+**변경 파일**: 8개
+**추가/삭제**: +299 / -217
+
+#### 수정된 파일
+- .claude/hooks/post-turn-index.sh
+- .claude/hooks/post-turn-verify.sh
+- .claude/settings.json
+- .gsd/CHANGELOG.md
+- vectors.db-shm
+- vectors.db-wal
+
+#### 새 파일
+- .claude/hooks/mcp-store-memory.sh
+- .claude/hooks/stop-context-save.sh
+
+---
+
+### [2026-01-30 11:35] Session: de461561
+
+**변경 파일**: 8개
+**추가/삭제**: +280 / -217
+
+#### 수정된 파일
+- .claude/hooks/post-turn-index.sh
+- .claude/hooks/post-turn-verify.sh
+- .claude/settings.json
+- .gsd/CHANGELOG.md
+- vectors.db-shm
+- vectors.db-wal
+
+#### 새 파일
+- .claude/hooks/mcp-store-memory.sh
+- .claude/hooks/stop-context-save.sh
+
+---
+
+### [2026-01-30 11:34] Session: ec18a751
+
+**변경 파일**: 8개
+**추가/삭제**: +261 / -217
+
+#### 수정된 파일
+- .claude/hooks/post-turn-index.sh
+- .claude/hooks/post-turn-verify.sh
+- .claude/settings.json
+- .gsd/CHANGELOG.md
+- vectors.db-shm
+- vectors.db-wal
+
+#### 새 파일
+- .claude/hooks/mcp-store-memory.sh
+- .claude/hooks/stop-context-save.sh
+
+---
+
+### [2026-01-30 11:34] Session: 11b9d802
+
+**변경 파일**: 8개
+**추가/삭제**: +242 / -217
+
+#### 수정된 파일
+- .claude/hooks/post-turn-index.sh
+- .claude/hooks/post-turn-verify.sh
+- .claude/settings.json
+- .gsd/CHANGELOG.md
+- vectors.db-shm
+- vectors.db-wal
+
+#### 새 파일
+- .claude/hooks/mcp-store-memory.sh
+- .claude/hooks/stop-context-save.sh
+
+---
+
+### [2026-01-30 11:34] Session: 62a8aa2c
+
+**변경 파일**: 8개
+**추가/삭제**: +223 / -217
+
+#### 수정된 파일
+- .claude/hooks/post-turn-index.sh
+- .claude/hooks/post-turn-verify.sh
+- .claude/settings.json
+- .gsd/CHANGELOG.md
+- vectors.db-shm
+- vectors.db-wal
+
+#### 새 파일
+- .claude/hooks/mcp-store-memory.sh
+- .claude/hooks/stop-context-save.sh
+
+---
+
+### [2026-01-30 11:33] Session: 8f8d193c
+
+**변경 파일**: 9개
+**추가/삭제**: +203 / -217
+
+#### 수정된 파일
+- .claude/hooks/post-turn-index.sh
+- .claude/hooks/post-turn-verify.sh
+- .claude/settings.json
+- .gsd/CHANGELOG.md
+- vectors.db-shm
+- vectors.db-wal
+
+#### 새 파일
+- .claude/hooks/mcp-store-memory.sh
+- .claude/hooks/stop-context-save.sh
+- .gsd/research/RESEARCH-bash-cli-tools-for-llm.md
+
+---
+
+### [2026-01-30 11:33] Session: ba8f430a
+
+**변경 파일**: 9개
+**추가/삭제**: +183 / -217
+
+#### 수정된 파일
+- .claude/hooks/post-turn-index.sh
+- .claude/hooks/post-turn-verify.sh
+- .claude/settings.json
+- .gsd/CHANGELOG.md
+- vectors.db-shm
+- vectors.db-wal
+
+#### 새 파일
+- .claude/hooks/mcp-store-memory.sh
+- .claude/hooks/stop-context-save.sh
+- .gsd/research/RESEARCH-bash-cli-tools-for-llm.md
+
+---
+
+### [2026-01-30 11:32] Session: 3d487a27
+
+**변경 파일**: 9개
+**추가/삭제**: +163 / -217
+
+#### 수정된 파일
+- .claude/hooks/post-turn-index.sh
+- .claude/hooks/post-turn-verify.sh
+- .claude/settings.json
+- .gsd/CHANGELOG.md
+- vectors.db-shm
+- vectors.db-wal
+
+#### 새 파일
+- .claude/hooks/mcp-store-memory.sh
+- .claude/hooks/stop-context-save.sh
+- .gsd/research/RESEARCH-bash-cli-tools-for-llm.md
+
+---
+
+### [2026-01-30 11:31] Session: d34dc603
+
+**변경 파일**: 9개
+**추가/삭제**: +143 / -217
+
+#### 수정된 파일
+- .claude/hooks/post-turn-index.sh
+- .claude/hooks/post-turn-verify.sh
+- .claude/settings.json
+- .gsd/CHANGELOG.md
+- vectors.db-shm
+- vectors.db-wal
+
+#### 새 파일
+- .claude/hooks/mcp-store-memory.sh
+- .claude/hooks/stop-context-save.sh
+- .gsd/research/RESEARCH-bash-cli-tools-for-llm.md
+
+---
+
+### [2026-01-30 11:25] Session: 9ab51acc
+
+**변경 파일**: 8개
+**추가/삭제**: +124 / -217
+
+#### 수정된 파일
+- .claude/hooks/post-turn-index.sh
+- .claude/hooks/post-turn-verify.sh
+- .claude/settings.json
+- .gsd/CHANGELOG.md
+- vectors.db-shm
+- vectors.db-wal
+
+#### 새 파일
+- .claude/hooks/stop-context-save.sh
+- .gsd/research/RESEARCH-bash-cli-tools-for-llm.md
+
+---
+
+### [2026-01-30 11:22] Session: 16ccd933
+
+**변경 파일**: 8개
+**추가/삭제**: +105 / -217
+
+#### 수정된 파일
+- .claude/hooks/post-turn-index.sh
+- .claude/hooks/post-turn-verify.sh
+- .claude/settings.json
+- .gsd/CHANGELOG.md
+- vectors.db-shm
+- vectors.db-wal
+
+#### 새 파일
+- .claude/hooks/stop-context-save.sh
+- .gsd/research/RESEARCH-bash-cli-tools-for-llm.md
+
+---
+
+### [2026-01-30 11:07] Session: 30c05f08
+
+**변경 파일**: 2개
+**추가/삭제**: +0 / -0
+
+#### 수정된 파일
+- vectors.db-shm
+- vectors.db-wal
+
+---
+
 ### [2026-01-30 10:51] Session: b23b54dd
 
 **변경 파일**: 8개
