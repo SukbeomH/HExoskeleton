@@ -112,6 +112,7 @@ logs_llm/
 # Build outputs (make build - generated in CI)
 gsd-plugin/
 antigravity-boilerplate/
+opencode-boilerplate/
 
 # External reference repos (not part of boilerplate core)
 awesome-claude-code/

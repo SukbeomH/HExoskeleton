@@ -5,7 +5,7 @@ export
 .PHONY: status index setup install-deps \
         install-memorygraph init-env check-deps lint lint-fix fmt test typecheck \
         clean patch-prompt patch-restore patch-clean \
-        build build-plugin build-antigravity help generate-claude-md
+        build build-plugin build-antigravity build-opencode help generate-claude-md
 
 # ─────────────────────────────────────────────────────
 # Prerequisites Check
@@ -168,19 +168,23 @@ patch-clean: ## Remove patched Claude Code workspace
 # Build Targets
 # ─────────────────────────────────────────────────────
 
-build: build-plugin build-antigravity ## Build all targets (plugin + antigravity)
+build: build-plugin build-antigravity build-opencode ## Build all targets
 	@echo ""
 	@echo "========================================="
 	@echo "  All builds complete!"
 	@echo "========================================="
 	@echo "  - gsd-plugin/              (Claude Code)"
 	@echo "  - antigravity-boilerplate/ (Antigravity IDE)"
+	@echo "  - opencode-boilerplate/    (OpenCode)"
 
 build-plugin: ## Build Claude Code plugin (gsd-plugin/)
 	@bash scripts/build-plugin.sh
 
 build-antigravity: ## Build Antigravity workspace (antigravity-boilerplate/)
 	@bash scripts/build-antigravity.sh
+
+build-opencode: ## Build OpenCode workspace (opencode-boilerplate/)
+	@bash scripts/build-opencode.sh
 
 # ─────────────────────────────────────────────────────
 # Cleanup

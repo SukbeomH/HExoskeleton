@@ -10,6 +10,7 @@
 |--------|------|------|
 | `make build-plugin` | `gsd-plugin/` | Claude Code 플러그인 |
 | `make build-antigravity` | `antigravity-boilerplate/` | Google Antigravity IDE 워크스페이스 |
+| `make build-opencode` | `opencode-boilerplate/` | OpenCode 워크스페이스 (모델 설정 지원) |
 
 ---
 
@@ -189,6 +190,107 @@ cp antigravity-boilerplate/mcp-settings.json /path/to/project/
 ```bash
 cd /path/to/project
 zsh antigravity-boilerplate/scripts/scaffold-gsd.sh
+```
+
+---
+
+## 3. OpenCode 빌드
+
+### 빌드 명령
+
+```bash
+make build-opencode
+```
+
+### 출력 구조
+
+```
+opencode-boilerplate/
+├── .opencode/
+│   ├── agents/              # 13개 에이전트 (모델 설정 포함)
+│   │   ├── planner.md       # model: anthropic/claude-opus-4-20250514
+│   │   ├── executor.md      # model: anthropic/claude-sonnet-4-20250514
+│   │   └── ...
+│   ├── commands/            # 30개 워크플로우 명령어
+│   ├── plugins/             # TypeScript 플러그인 (빈 디렉토리)
+│   └── skill/               # 15개 스킬
+├── templates/gsd/           # GSD 템플릿 + 예제
+├── scripts/
+│   ├── scaffold-gsd.sh      # GSD 문서 초기화
+│   └── *.py                 # 유틸리티 스크립트
+├── opencode.json            # 메인 설정 (에이전트별 모델 매핑)
+├── AGENTS.md                # 프로젝트 규칙 (CLAUDE.md에서 복사)
+├── .mcp.json                # MCP 서버 설정
+└── README.md
+```
+
+### 빌드 과정
+
+1. **디렉토리 생성**: `.opencode/agents/`, `.opencode/commands/`, `.opencode/skill/`
+2. **에이전트 마이그레이션** (핵심 기능):
+   - `.claude/agents/*.md` → `.opencode/agents/`
+   - **모델 필드 변환**: `opus` → `anthropic/claude-opus-4-20250514`
+   - **도구 필드 변환**: `["Read", "Write"]` → YAML map `read: true, write: true`
+   - CRLF 줄바꿈 자동 처리
+3. **스킬 복사**: `.claude/skills/` → `.opencode/skill/`
+4. **워크플로우 복사**: `.agent/workflows/` → `.opencode/commands/`
+5. **opencode.json 생성**: 에이전트별 모델 설정 포함
+6. **MCP 변환**: `.mcp.json` → `.mcp.json`
+7. **AGENTS.md 생성**: `CLAUDE.md`에서 복사
+8. **템플릿 복사**: `.gsd/templates/`, `.gsd/examples/`
+9. **유틸리티 스크립트**: `scaffold-gsd.sh`
+10. **검증**: 구조, 모델 설정, JSON 유효성
+
+### 모델 매핑
+
+| 원본 (Claude Code) | 변환 (OpenCode) |
+|-------------------|-----------------|
+| `haiku` | `anthropic/claude-haiku-4-20250514` |
+| `sonnet` | `anthropic/claude-sonnet-4-20250514` |
+| `opus` | `anthropic/claude-opus-4-20250514` |
+| `gemini` | `google/gemini-2.5-pro` |
+| `gpt-4o` | `openai/gpt-4o` |
+
+### 에이전트별 모델 분포
+
+| 모델 | 에이전트 |
+|------|----------|
+| **opus** (5) | planner, debugger, arch-review, impact-analysis, pr-review |
+| **sonnet** (4) | executor, codebase-mapper, plan-checker, verifier |
+| **haiku** (4) | clean, commit, context-health-monitor, create-pr |
+
+### 토큰 절약 설정
+
+`opencode.json`에 포함된 토큰 최적화 설정:
+
+```json
+{
+  "compaction": {
+    "auto": true,
+    "prune": true
+  },
+  "small_model": "anthropic/claude-haiku-4-20250514"
+}
+```
+
+- `auto`: 컨텍스트 초과 시 자동 압축
+- `prune`: 오래된 도구 출력 제거
+- `small_model`: 제목 생성 등 경량 작업에 사용
+
+### OpenCode 사용
+
+```bash
+# 프로젝트에 적용
+cp -r opencode-boilerplate/.opencode /path/to/project/
+cp opencode-boilerplate/opencode.json /path/to/project/
+cp opencode-boilerplate/AGENTS.md /path/to/project/
+cp opencode-boilerplate/.mcp.json /path/to/project/
+
+# GSD 문서 초기화
+bash opencode-boilerplate/scripts/scaffold-gsd.sh
+
+# OpenCode 실행
+cd /path/to/project && opencode
 ```
 
 ---
