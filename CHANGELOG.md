@@ -1,5 +1,27 @@
 # Changelog
 
+## [1.6.0](https://github.com/SukbeomH/LLM_Bolierplate_Pack/compare/gsd-plugin-v1.5.1...gsd-plugin-v1.6.0) (2026-01-30)
+
+
+### Features
+
+* **antigravity:** 스킬에 에이전트 모델 설정 주입 ([2ee2082](https://github.com/SukbeomH/LLM_Bolierplate_Pack/commit/2ee2082f6bcd540a0abbad86a3b00ec25465c764))
+* **hooks:** hook 자동화 경량화 및 MCP 메모리 저장 추가 ([c482d6d](https://github.com/SukbeomH/LLM_Bolierplate_Pack/commit/c482d6da72694db32bbd56a7e8efd049a5186190))
+* **multi-lang:** integrate Qlty CLI for multi-language bootstrap support ([7eb244a](https://github.com/SukbeomH/LLM_Bolierplate_Pack/commit/7eb244aa5f981ace83cf172678969cac68a24cfa))
+* **opencode:** OpenCode 빌드 스크립트 추가 ([c30f3c2](https://github.com/SukbeomH/LLM_Bolierplate_Pack/commit/c30f3c27ada990849c1470b72d8adfd4fa1f9dea))
+
+
+### Bug Fixes
+
+* **antigravity:** CRLF 줄바꿈 파일 frontmatter 파싱 수정 ([d9c4b40](https://github.com/SukbeomH/LLM_Bolierplate_Pack/commit/d9c4b40b3484c8653a0996cc95b47fd044a1b991))
+
+
+### Documentation
+
+* **gsd:** update SPEC.md and CHANGELOG.md for multi-language support ([9aae902](https://github.com/SukbeomH/LLM_Bolierplate_Pack/commit/9aae902191fc2312c911e252d3221ee8059b925f))
+* **research:** add multi-language support research documents ([5f4d983](https://github.com/SukbeomH/LLM_Bolierplate_Pack/commit/5f4d983fc31a89c7ffdd299a75aac7c92034ef84))
+* **research:** LLM 에이전트용 Bash CLI 도구 리서치 ([212c0c5](https://github.com/SukbeomH/LLM_Bolierplate_Pack/commit/212c0c58579837943ceb90c326d2961c71907f5f))
+
 ## [1.5.1](https://github.com/SukbeomH/LLM_Bolierplate_Pack/compare/gsd-plugin-v1.5.0...gsd-plugin-v1.5.1) (2026-01-30)
 
 
