@@ -42,7 +42,8 @@ for skill_dir in "$BOILERPLATE"/.claude/skills/*/; do
 
     # Verify description exists in frontmatter (required for Antigravity)
     if [ -f "$target_dir/SKILL.md" ]; then
-        if grep -q "^description:" "$target_dir/SKILL.md"; then
+        # Handle CRLF line endings
+        if tr -d '\r' < "$target_dir/SKILL.md" | grep -q "^description:"; then
             echo "  [+] ${skill_name}"
         else
             echo "  [WARN] ${skill_name} - missing description in frontmatter"
@@ -62,8 +63,8 @@ for workflow in "$BOILERPLATE"/.agent/workflows/*.md; do
     filename=$(basename "$workflow")
     target="$ANTIGRAVITY/.agent/workflows/${filename}"
 
-    # Check if workflow has description in frontmatter
-    if grep -q "^description:" "$workflow" 2>/dev/null; then
+    # Check if workflow has description in frontmatter (handle CRLF)
+    if tr -d '\r' < "$workflow" | grep -q "^description:"; then
         cp "$workflow" "$target"
         echo "  [+] ${filename}"
     else
@@ -71,8 +72,8 @@ for workflow in "$BOILERPLATE"/.agent/workflows/*.md; do
         workflow_name="${filename%.md}"
         desc="Workflow for ${workflow_name//-/ }"
 
-        # Check if file has frontmatter
-        if head -1 "$workflow" | grep -q "^---"; then
+        # Check if file has frontmatter (handle CRLF)
+        if head -1 "$workflow" | tr -d '\r' | grep -q "^---$"; then
             # Insert description after first ---
             awk 'NR==1{print; print "description: \"'"$desc"'\""; next}1' "$workflow" > "$target"
         else
