@@ -23,10 +23,10 @@ jobs:
   release-please:
     runs-on: ubuntu-latest
     outputs:
-      # Component-specific outputs (release-please v4 monorepo format)
-      release_created: ${{ steps.release.outputs['gsd-plugin--release_created'] }}
-      tag_name: ${{ steps.release.outputs['gsd-plugin--tag_name'] }}
-      version: ${{ steps.release.outputs['gsd-plugin--version'] }}
+      # Try both component-based and path-based output keys
+      release_created: ${{ steps.release.outputs['gsd-plugin--release_created'] || steps.release.outputs['.--release_created'] || steps.release.outputs.release_created }}
+      tag_name: ${{ steps.release.outputs['gsd-plugin--tag_name'] || steps.release.outputs['.--tag_name'] || steps.release.outputs.tag_name }}
+      version: ${{ steps.release.outputs['gsd-plugin--version'] || steps.release.outputs['.--version'] || steps.release.outputs.version }}
     steps:
       - name: Release Please
         uses: googleapis/release-please-action@v4
@@ -38,15 +38,19 @@ jobs:
 
       - name: Debug outputs
         run: |
-          echo "release_created: ${{ steps.release.outputs['gsd-plugin--release_created'] }}"
-          echo "tag_name: ${{ steps.release.outputs['gsd-plugin--tag_name'] }}"
-          echo "version: ${{ steps.release.outputs['gsd-plugin--version'] }}"
+          echo "=== All outputs ==="
+          echo '${{ toJSON(steps.release.outputs) }}'
+          echo "=== Resolved ==="
+          echo "release_created: ${{ steps.release.outputs['gsd-plugin--release_created'] || steps.release.outputs['.--release_created'] || steps.release.outputs.release_created }}"
+          echo "tag_name: ${{ steps.release.outputs['gsd-plugin--tag_name'] || steps.release.outputs['.--tag_name'] || steps.release.outputs.tag_name }}"
+          echo "version: ${{ steps.release.outputs['gsd-plugin--version'] || steps.release.outputs['.--version'] || steps.release.outputs.version }}"
 
   build-and-upload:
     needs: release-please
     if: |
       needs.release-please.outputs.release_created == 'true' ||
-      github.event_name == 'release'
+      github.event_name == 'release' ||
+      github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
       - name: Get release info
@@ -54,14 +58,20 @@ jobs:
         run: |
           if [ "${{ github.event_name }}" = "release" ]; then
             TAG="${{ github.event.release.tag_name }}"
-            # Extract version from tag (gsd-plugin-v1.3.0 -> 1.3.0)
             VERSION=$(echo "$TAG" | sed 's/gsd-plugin-v//')
-            echo "tag=$TAG" >> $GITHUB_OUTPUT
-            echo "version=$VERSION" >> $GITHUB_OUTPUT
+          elif [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            # Get latest release tag
+            TAG=$(gh release view --json tagName -q .tagName)
+            VERSION=$(echo "$TAG" | sed 's/gsd-plugin-v//')
           else
-            echo "tag=${{ needs.release-please.outputs.tag_name }}" >> $GITHUB_OUTPUT
-            echo "version=${{ needs.release-please.outputs.version }}" >> $GITHUB_OUTPUT
+            TAG="${{ needs.release-please.outputs.tag_name }}"
+            VERSION="${{ needs.release-please.outputs.version }}"
           fi
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Resolved: tag=$TAG version=$VERSION"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - uses: actions/checkout@v4
         with:
