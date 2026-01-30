@@ -373,7 +373,7 @@ npm test                         # Run tests
 ## Success Criteria
 
 - [x] `qlty init`이 Python 프로젝트에서 `ruff` 플러그인을 자동 감지한다 (mypy는 qlty 미지원 — 별도 처리 필요)
-- [x] `qlty init`이 Node.js 프로젝트에서 `eslint`, `prettier` 플러그인을 자동 감지한다 (marker file fallback 검증됨, qlty 미설치로 qlty init 미검증)
+- [x] `qlty init`이 Node.js 프로젝트에서 `eslint`, `prettier` 플러그인을 자동 감지한다 (qlty init 검증 완료 — eslint 자동 감지 확인, prettier는 설정 파일 부재 시 미감지로 정상)
 - [ ] 감지 결과가 사용자에게 표시되고, 확인/수정 선택이 가능하다 (부트스트랩 스킬의 AskUserQuestion 플로우 — 스크립트 단위 검증 범위 밖)
 - [x] `project-config.yaml`이 생성된다 (qlty 정보 + 패키지 관리자 + 테스트 러너)
 - [x] 훅(`auto-format.sh`)이 `qlty fmt`를 호출하여 모든 언어에서 동작한다
