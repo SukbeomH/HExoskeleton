@@ -372,14 +372,14 @@ npm test                         # Run tests
 
 ## Success Criteria
 
-- [ ] `qlty init`이 Python 프로젝트에서 `ruff`, `mypy` 플러그인을 자동 감지한다
-- [ ] `qlty init`이 Node.js 프로젝트에서 `eslint`, `prettier` 플러그인을 자동 감지한다
+- [x] `qlty init`이 Python 프로젝트에서 `ruff` 플러그인을 자동 감지한다 (mypy는 qlty 미지원 — 별도 처리 필요)
+- [ ] `qlty init`이 Node.js 프로젝트에서 `eslint`, `prettier` 플러그인을 자동 감지한다 (미검증 — Node.js 프로젝트 필요)
 - [ ] 감지 결과가 사용자에게 표시되고, 확인/수정 선택이 가능하다
 - [ ] `project-config.yaml`이 생성된다 (qlty 정보 + 패키지 관리자 + 테스트 러너)
-- [ ] 훅(`auto-format.sh`)이 `qlty fmt`를 호출하여 모든 언어에서 동작한다
-- [ ] 훅(`post-turn-verify.sh`)이 `qlty check`를 호출하여 모든 언어에서 동작한다
+- [x] 훅(`auto-format.sh`)이 `qlty fmt`를 호출하여 모든 언어에서 동작한다
+- [x] 훅(`post-turn-verify.sh`)이 `qlty check`를 호출하여 모든 언어에서 동작한다
 - [ ] `clean` 스킬이 `qlty check --fix` + `qlty fmt` + test 명령어를 실행한다
-- [ ] `qlty` 미설치 시 현재 Python 기본 동작을 유지한다 (하위 호환)
+- [x] `qlty` 미설치 시 현재 Python 기본 동작을 유지한다 (하위 호환)
 - [ ] CLAUDE.md에 `qlty` 명령어가 포함된다
 
 ## Implementation Phases
