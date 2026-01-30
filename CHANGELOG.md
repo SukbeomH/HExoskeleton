@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.5.1](https://github.com/SukbeomH/LLM_Bolierplate_Pack/compare/gsd-plugin-v1.5.0...gsd-plugin-v1.5.1) (2026-01-30)
+
+
+### Bug Fixes
+
+* **ci:** add --repo flag to gh release view for workflow_dispatch ([f38186b](https://github.com/SukbeomH/LLM_Bolierplate_Pack/commit/f38186babfe38b579399961b43234d573f1e1b7a))
+* **ci:** fix release outputs and add workflow_dispatch build ([f1a8d7d](https://github.com/SukbeomH/LLM_Bolierplate_Pack/commit/f1a8d7d4f7135395961db54e3090116f9e9de225))
+
 ## [1.5.0](https://github.com/SukbeomH/LLM_Bolierplate_Pack/compare/gsd-plugin-v1.4.0...gsd-plugin-v1.5.0) (2026-01-30)
 
 
