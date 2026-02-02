@@ -10,8 +10,12 @@ Primary language is Python 3.12. Documentation is bilingual (Korean/English).
 
 ## Repository Layout
 
-- **.agent/** — GSD workflows (29 commands)
-- **.claude/skills/** — Modular skill definitions (14 skills)
+- **.agent/** — Runtime data only (SQLite DB, MCP logs, agent.md symlink)
+- **.claude/** — Single source of truth for agent configuration:
+  - `agents/` — Agent definitions (14 agents, skill 래핑 구조)
+  - `skills/` — Modular skill definitions (16 skills)
+  - `hooks/` — Event hooks and utility scripts
+  - `settings.json` — Claude Code project settings
 - **.github/agents/** — GitHub Agent specification
 - **.gsd/** — GSD documents and context management:
   - `SPEC.md`, `PLAN.md`, `DECISIONS.md`, `STATE.md` — Core working docs
@@ -20,8 +24,16 @@ Primary language is Python 3.12. Documentation is bilingual (Korean/English).
   - `research/` — Research documents (RESEARCH-*.md)
   - `archive/` — Monthly archives (journal, changelog, prd)
   - `templates/` — Document templates
+- **.gemini/** — Gemini agent config (CLAUDE.md 참조로 축소)
 - **.mcp.json** — MCP server config (graph-code, memory, context7)
 - **scripts/** — Utility scripts
+
+### Agent-Skill 래핑 구조
+
+Skill은 "어떻게(How)"를 정의하고, Agent는 "언제/무엇과 함께(When/With What)"를 정의한다.
+
+- **Skill** (`.claude/skills/{name}/SKILL.md`): 재사용 가능한 최소 모듈. 실행 절차와 규칙을 상세히 기술.
+- **Agent** (`.claude/agents/{name}.md`): Skill을 탑재하고 오케스트레이션 흐름을 정의. model/tools 메타데이터 포함.
 
 ## Commands
 

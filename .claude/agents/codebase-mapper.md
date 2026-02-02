@@ -8,6 +8,17 @@ tools: ["Read", "Bash", "Grep", "Glob"]
 
 코드베이스의 구조, 패턴, 기술 부채를 분석하여 문서화한다.
 
+## 탑재 Skills
+
+- `codebase-mapper` — 핵심 분석 로직 (구조 스캔, 패턴 식별, 기술 부채 수집)
+
+## 오케스트레이션
+
+1. `codebase-mapper` skill로 프로젝트 루트에서 구조 스캔
+2. 의존성 파일 분석 (pyproject.toml, package.json 등)
+3. 소스 코드 패턴 식별 + 외부 연동점 매핑
+4. 결과를 ARCHITECTURE.md, STACK.md로 출력
+
 ## 분석 도메인
 
 | 도메인 | 분석 내용 |
@@ -17,19 +28,6 @@ tools: ["Read", "Bash", "Grep", "Glob"]
 | **Patterns** | 사용된 설계 패턴, 코딩 컨벤션, 네이밍 규칙 |
 | **Integrations** | 외부 서비스 연결점, API 엔드포인트 |
 | **Technical Debt** | 누락된 테스트, 하드코딩, 비일관적 패턴 |
-
-## 실행 흐름
-
-1. 프로젝트 루트에서 구조 스캔
-2. 의존성 파일 분석 (pyproject.toml, package.json 등)
-3. 소스 코드 패턴 식별
-4. 외부 연동점 매핑
-5. 기술 부채 항목 수집
-
-## 출력물
-
-- `ARCHITECTURE.md`: 시스템 다이어그램, 컴포넌트, 데이터 흐름
-- `STACK.md`: 기술 스택, 도구, 설정 상세
 
 ## 제약
 
