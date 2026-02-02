@@ -6,7 +6,7 @@
 # Actions:
 # 1. Prune PATTERNS.md to 20 items / 2KB
 # 2. Archive old JOURNAL.md entries (keep last 5 sessions)
-# 3. Archive old CHANGELOG.md entries (keep last 20)
+# 3. Archive old CHANGELOG.md entries (keep last 5)
 # 4. Move completed prd items to prd-done.json
 
 set -o errexit
@@ -130,21 +130,21 @@ fi
 
 CHANGELOG_FILE="$GSD_DIR/CHANGELOG.md"
 if [[ -f "$CHANGELOG_FILE" ]]; then
-    ENTRY_COUNT=$(grep -c "^## \[" "$CHANGELOG_FILE" 2>/dev/null | tr -d '[:space:]' || echo 0)
+    ENTRY_COUNT=$(grep -c "^### \[" "$CHANGELOG_FILE" 2>/dev/null | tr -d '[:space:]' || echo 0)
 
     echo ""
     echo "--- CHANGELOG.md ---"
-    echo "  Entries: ${ENTRY_COUNT} (keep: 20)"
+    echo "  Entries: ${ENTRY_COUNT} (keep: 5)"
 
-    if [[ "$ENTRY_COUNT" -gt 20 ]]; then
+    if [[ "$ENTRY_COUNT" -gt 5 ]]; then
         ARCHIVE_FILE="$ARCHIVE_DIR/changelog-${YEAR_MONTH}.md"
-        echo "  [ACTION] Would archive $(($ENTRY_COUNT - 20)) old entries to $ARCHIVE_FILE"
+        echo "  [ACTION] Would archive $(($ENTRY_COUNT - 5)) old entries to $ARCHIVE_FILE"
 
         if [[ "$DRY_RUN" == false ]]; then
             # Archive old entries
-            ENTRY_LINES=$(grep -n "^## \[" "$CHANGELOG_FILE" | cut -d: -f1)
+            ENTRY_LINES=$(grep -n "^### \[" "$CHANGELOG_FILE" | cut -d: -f1)
             ENTRY_ARRAY=($ENTRY_LINES)
-            KEEP_FROM_IDX=$((${#ENTRY_ARRAY[@]} - 20))
+            KEEP_FROM_IDX=$((${#ENTRY_ARRAY[@]} - 5))
 
             if [[ $KEEP_FROM_IDX -gt 0 ]]; then
                 KEEP_FROM_LINE=${ENTRY_ARRAY[$KEEP_FROM_IDX]}
@@ -169,7 +169,7 @@ if [[ -f "$CHANGELOG_FILE" ]]; then
                 tail -n "+$KEEP_FROM_LINE" "$CHANGELOG_FILE" >> "$CHANGELOG_FILE.tmp"
                 mv "$CHANGELOG_FILE.tmp" "$CHANGELOG_FILE"
 
-                echo "  [DONE] Archived $(($ENTRY_COUNT - 20)) entries to $ARCHIVE_FILE"
+                echo "  [DONE] Archived $(($ENTRY_COUNT - 5)) entries to $ARCHIVE_FILE"
             fi
         fi
     else

@@ -39,11 +39,19 @@ main() {
     UNSTAGED_FILES=$(git diff --name-only 2>/dev/null || echo "")
     UNTRACKED_FILES=$(git ls-files --others --exclude-standard 2>/dev/null || echo "")
 
-    # 모든 변경된 파일 병합 (중복 제거)
-    ALL_CHANGED=$(echo -e "$STAGED_FILES\n$UNSTAGED_FILES\n$UNTRACKED_FILES" | sort -u | grep -v '^$' || echo "")
+    # 모든 변경된 파일 병합 (중복 제거), .gsd/ 내부 파일 제외 (자기참조 방지)
+    ALL_CHANGED=$(echo -e "$STAGED_FILES\n$UNSTAGED_FILES\n$UNTRACKED_FILES" | sort -u | grep -v '^$' | grep -v '^\.gsd/' || echo "")
 
-    # 변경사항이 없으면 종료
+    # .gsd/ 외부에 의미있는 변경이 없으면 종료
     if [ -z "$ALL_CHANGED" ]; then
+        exit 0
+    fi
+
+    # 중복 방지: 마지막 엔트리의 파일 목록과 비교
+    LAST_ENTRY_FILES=$(sed -n '/^### \[/,/^---$/{ /^- /p; }' "$CHANGELOG" | head -30 | sort)
+    CURRENT_FILES=$(echo "$ALL_CHANGED" | sed 's/^/- /' | sort)
+    if [ -n "$LAST_ENTRY_FILES" ] && [ "$LAST_ENTRY_FILES" = "$CURRENT_FILES" ]; then
+        echo "[changelog] Skipped duplicate entry for session ${SESSION_ID:0:8}"
         exit 0
     fi
 
@@ -55,10 +63,10 @@ main() {
     INSERTIONS=$(echo "$DIFF_STAT" | grep -oE '[0-9]+ insertion' | grep -oE '[0-9]+' || echo "0")
     DELETIONS=$(echo "$DIFF_STAT" | grep -oE '[0-9]+ deletion' | grep -oE '[0-9]+' || echo "0")
 
-    # 파일 분류
-    MODIFIED_FILES=$(git diff --name-only 2>/dev/null || echo "")
-    NEW_FILES=$(git ls-files --others --exclude-standard 2>/dev/null || echo "")
-    DELETED_FILES=$(git diff --name-only --diff-filter=D 2>/dev/null || echo "")
+    # 파일 분류 (.gsd/ 내부 파일 제외)
+    MODIFIED_FILES=$(git diff --name-only 2>/dev/null | grep -v '^\.gsd/' || echo "")
+    NEW_FILES=$(git ls-files --others --exclude-standard 2>/dev/null | grep -v '^\.gsd/' || echo "")
+    DELETED_FILES=$(git diff --name-only --diff-filter=D 2>/dev/null | grep -v '^\.gsd/' || echo "")
 
     # 타임스탬프
     TIMESTAMP=$(date "+%Y-%m-%d %H:%M")
@@ -120,6 +128,11 @@ EOF
         echo "" >> "$CHANGELOG"
         echo "$ENTRY" >> "$CHANGELOG"
         echo "[changelog] Appended changes for session ${SESSION_ID:0:8}"
+    fi
+
+    # compact-context.sh 호출 (아카이빙 트리거)
+    if [ -f "$HOOK_DIR/compact-context.sh" ]; then
+        bash "$HOOK_DIR/compact-context.sh" 2>/dev/null || true
     fi
 }
 

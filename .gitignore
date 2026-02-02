@@ -78,6 +78,7 @@ secrets/
 # code-graph-rag index data (regenerated on demand)
 .code-graph-rag/
 .graph-index/
+vectors.db*
 
 # Integrated Agent Data & Logs
 .agent/data/

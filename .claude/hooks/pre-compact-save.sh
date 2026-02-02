@@ -42,7 +42,7 @@ main() {
     fi
 
     # compact-context.sh 실행 (자동 아카이빙)
-    COMPACT_SCRIPT="$PROJECT_DIR/scripts/compact-context.sh"
+    COMPACT_SCRIPT="$PROJECT_DIR/.claude/hooks/compact-context.sh"
     if [ -f "$COMPACT_SCRIPT" ]; then
         bash "$COMPACT_SCRIPT" 2>/dev/null || true
     fi
