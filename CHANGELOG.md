@@ -1,5 +1,36 @@
 # Changelog
 
+## [1.7.0](https://github.com/SukbeomH/LLM_Bolierplate_Pack/compare/gsd-plugin-v1.6.0...gsd-plugin-v1.7.0) (2026-02-02)
+
+
+### Features
+
+* Add MCP memory alternatives research, a hook-to-plugin conversion script, and an agent formatting workflow. ([06c1f2d](https://github.com/SukbeomH/LLM_Bolierplate_Pack/commit/06c1f2dbf29e0170febc8ce258c57b55ed81dbd5))
+* **bootstrap:** Detect-Ask-Confirm 플로우 구현 (SC[#3](https://github.com/SukbeomH/LLM_Bolierplate_Pack/issues/3)) ([b3962fd](https://github.com/SukbeomH/LLM_Bolierplate_Pack/commit/b3962fd43106cc1f9a9489b8a08235dc90ba5dab))
+* **memory:** memorygraph → mcp-memory-service 완전 마이그레이션 ([a12dd79](https://github.com/SukbeomH/LLM_Bolierplate_Pack/commit/a12dd7990bde6930e09c79ba20073acda9acd292))
+* **qlty:** Qlty CLI 통합 및 다국어 부트스트랩 기반 구축 ([bea3756](https://github.com/SukbeomH/LLM_Bolierplate_Pack/commit/bea37567dd65427d6e941a093323576fed83e3ed))
+
+
+### Bug Fixes
+
+* **hooks:** CHANGELOG 자동 정리/아카이빙 6개 버그 수정 및 런타임 잔재 정리 ([e4f6039](https://github.com/SukbeomH/LLM_Bolierplate_Pack/commit/e4f60393b32c72eafe85d0554043afe26485bf47))
+* **hooks:** remove UserPromptSubmit hook that intermittently blocks user input ([a7cace5](https://github.com/SukbeomH/LLM_Bolierplate_Pack/commit/a7cace51e469e34067ac9c45e9ecc20382e7b5b6))
+* **memory:** MCP_MEMORY_SQLITE_PATH 환경변수 수정 및 memorygraph 참조 전면 정리 ([d2683c8](https://github.com/SukbeomH/LLM_Bolierplate_Pack/commit/d2683c8898d7aed156166dda570295f997363222))
+
+
+### Refactoring
+
+* .gsd/ 에서 templates/와 examples/만 버전 관리 ([087d5bf](https://github.com/SukbeomH/LLM_Bolierplate_Pack/commit/087d5bfdb60312227060c11ee84c16de5d80909f))
+* Agent-Skill 래핑 구조 개편 및 디렉토리 통합 ([96a4d32](https://github.com/SukbeomH/LLM_Bolierplate_Pack/commit/96a4d326480333d5a6b15aafd5c67951784e4421))
+* remove legacy .agent/workflows/ and skills symlink ([60db650](https://github.com/SukbeomH/LLM_Bolierplate_Pack/commit/60db65009e0d3e507145f6de17b420a2e2cbf495))
+* 디렉토리 통합 및 CHANGELOG 아카이빙 버그 수정 ([5ac44d1](https://github.com/SukbeomH/LLM_Bolierplate_Pack/commit/5ac44d1ceca3582ec9511c2d79ab4fef4a78645b))
+
+
+### Documentation
+
+* **changelog:** 세션 로그 정리 — 중복 제거 및 커밋 단위 통합 ([b8ee3ae](https://github.com/SukbeomH/LLM_Bolierplate_Pack/commit/b8ee3ae5f771d5d6e43874b3188e552a61752da4))
+* **spec:** SC[#2](https://github.com/SukbeomH/LLM_Bolierplate_Pack/issues/2) qlty init Node.js 검증 완료 주석 업데이트 ([e1a2e3a](https://github.com/SukbeomH/LLM_Bolierplate_Pack/commit/e1a2e3ad2278257b51c9c2f265c49ce9716efd31))
+
 ## [1.6.0](https://github.com/SukbeomH/LLM_Bolierplate_Pack/compare/gsd-plugin-v1.5.1...gsd-plugin-v1.6.0) (2026-01-30)
 
 
