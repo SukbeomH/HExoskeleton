@@ -1,8 +1,11 @@
+# Use bash for all recipes
+SHELL := /opt/homebrew/bin/bash
+
 # Load .env if exists
 -include .env
 export
 
-.PHONY: status index setup install-deps \
+.PHONY: status index index-reset setup install-deps \
         install-memory init-env check-deps lint lint-fix fmt test typecheck \
         clean patch-prompt patch-restore patch-clean \
         build build-plugin build-antigravity build-opencode help generate-claude-md
@@ -59,10 +62,11 @@ status: ## Show tool status
 # code-graph-rag Indexing
 # ─────────────────────────────────────────────────────
 
-index: ## Index codebase with code-graph-rag
-	@command -v npx >/dev/null 2>&1 || { echo "ERROR: npx not found. Install Node.js: https://nodejs.org/"; exit 1; }
-	npx -y @er77/code-graph-rag-mcp index "$(CURDIR)"
-	@echo "Index complete."
+index: ## Index codebase with code-graph-rag (via MCP)
+	@bash scripts/index-codebase.sh "$(CURDIR)"
+
+index-reset: ## Re-index codebase from scratch (reset graph)
+	@bash scripts/index-codebase.sh "$(CURDIR)" true
 
 # ─────────────────────────────────────────────────────
 # Full Setup
