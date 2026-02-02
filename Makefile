@@ -3,7 +3,7 @@
 export
 
 .PHONY: status index setup install-deps \
-        install-memorygraph init-env check-deps lint lint-fix fmt test typecheck \
+        install-memory init-env check-deps lint lint-fix fmt test typecheck \
         clean patch-prompt patch-restore patch-clean \
         build build-plugin build-antigravity build-opencode help generate-claude-md
 
@@ -18,15 +18,15 @@ check-deps: ## Check required tools are installed
 # Installation
 # ─────────────────────────────────────────────────────
 
-install-memorygraph: ## Install memorygraph MCP server via pipx
-	@command -v memorygraph >/dev/null 2>&1 && echo "memorygraph already installed: $$(memorygraph --version)" || \
-		{ echo "Installing memorygraph (with FalkorDBLite backend)..."; pipx install "memorygraphMCP[falkordblite]"; }
+install-memory: ## Install mcp-memory-service via pipx
+	@command -v memory >/dev/null 2>&1 && echo "mcp-memory-service already installed: $$(memory --version)" || \
+		{ echo "Installing mcp-memory-service..."; pipx install mcp-memory-service; }
 
 install-qlty: ## Install Qlty CLI for code quality
 	@command -v qlty >/dev/null 2>&1 && echo "qlty already installed: $$(qlty --version 2>/dev/null)" || \
 		{ echo "Installing qlty..."; curl -fsSL https://qlty.sh | sh; }
 
-install-deps: check-deps install-memorygraph install-qlty ## Install all external dependencies
+install-deps: check-deps install-memory install-qlty ## Install all external dependencies
 	@echo ""
 	@echo "All dependencies installed."
 	@echo "Note: @er77/code-graph-rag-mcp is installed on-demand via npx."
@@ -49,7 +49,7 @@ init-env: ## Create .env from .env.example (if not exists)
 
 status: ## Show tool status
 	@echo "=== MCP Tools ==="
-	@command -v memorygraph >/dev/null 2>&1 && echo "  memorygraph: $$(memorygraph --version)" || echo "  memorygraph: not installed"
+	@command -v memory >/dev/null 2>&1 && echo "  mcp-memory-service: $$(memory --version)" || echo "  mcp-memory-service: not installed"
 	@echo "  code-graph-rag: @er77/code-graph-rag-mcp (npx, on-demand)"
 	@echo ""
 	@echo "=== Environment ==="

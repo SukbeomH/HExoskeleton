@@ -8,12 +8,15 @@ tools: ["Read", "Write", "Edit", "Bash", "Grep", "Glob"]
 
 코드 품질 도구를 실행하고 자동 수정 가능한 이슈를 해결한다.
 
-## 실행 순서
+## 탑재 Skills
 
-1. **Ruff Lint + Fix**: `uv run ruff check . --fix`
-2. **Ruff Format**: `uv run ruff format .`
-3. **Mypy**: `uv run mypy .`
-4. **Pytest**: `uv run pytest tests/ -x -q --tb=short`
+- `clean` — 핵심 코드 품질 로직 (ruff, mypy, pytest 실행 및 자동 수정)
+
+## 오케스트레이션
+
+1. `clean` skill로 순차 실행:
+   - Ruff Lint + Fix → Ruff Format → Mypy → Pytest
+2. 자동 수정 불가 항목은 file:line 참조와 함께 수정 제안 출력
 
 ## 출력 형식
 
@@ -32,7 +35,3 @@ Overall:      CLEAN|ISSUES_REMAIN
 - `--fix-only`: 자동 수정만, 잔여 이슈 보고 생략
 - `--no-test`: pytest 단계 건너뛰기
 - `--strict`: 경고를 에러로 처리
-
-## 수동 수정 필요 시
-
-자동 수정 불가 항목은 file:line 참조와 함께 수정 제안을 출력한다.

@@ -26,7 +26,7 @@ AI 에이전트 기반 개발을 위한 프로젝트 보일러플레이트.
 | [Skills](docs/SKILLS.md) | 15개 스킬 상세 (트리거 조건, MCP 도구 연동) |
 | [Hooks](docs/HOOKS.md) | 10개 훅 이벤트 상세 (이벤트, 코드, 작동 예시) |
 | [Workflows](docs/WORKFLOWS.md) | 31개 명령어 상세 (GSD 사이클, 인자, 출력 형식) |
-| [MCP](docs/MCP.md) | MCP 서버 상세 (graph-code 19도구, memorygraph 12도구) |
+| [MCP](docs/MCP.md) | MCP 서버 상세 (graph-code 19도구, mcp-memory-service 8도구) |
 | [Linting](docs/LINTING.md) | Ruff/Mypy 설정 상세 (규칙, 제한, 자동 포맷) |
 | [GitHub Workflow](docs/GITHUB-WORKFLOW.md) | CI/CD 파이프라인 상세 (jobs, 캐싱, Issue 템플릿) |
 | [Build](docs/BUILD.md) | 빌드 가이드 (Claude Code Plugin, Google Antigravity) |
@@ -108,7 +108,7 @@ make setup
 ```
 
 이 명령이 수행하는 작업:
-1. **memorygraph** 설치 (pipx)
+1. **mcp-memory-service** 설치 (pipx)
 2. `.env` 파일 생성
 3. 코드베이스 **인덱싱** (Tree-sitter → SQLite)
 
@@ -884,7 +884,7 @@ CONTEXT7_API_KEY=your-api-key-here
 | **graph-code** | `MCP_TIMEOUT` | 타임아웃 (기본: 80000ms) |
 | **graph-code** | `NODE_OPTIONS` | Node.js 옵션 (기본: `--max-old-space-size=4096`) |
 | **context7** | `CONTEXT7_API_KEY` | API 키 (필수) |
-| **memorygraph** | - | 환경변수 불필요 |
+| **mcp-memory-service** | `MCP_MEMORY_SQLITE_PATH` | 커스텀 DB 경로 (선택) |
 
 ### 플러그인 사용 시 주의사항
 
@@ -1138,9 +1138,9 @@ make help                   # 전체 명령어 목록
 # code-graph-rag
 npx -y @er77/code-graph-rag-mcp --version
 
-# memorygraph
-which memorygraph
-memorygraph --version
+# mcp-memory-service
+which memory
+memory --version
 ```
 
 ### 인덱싱 실패

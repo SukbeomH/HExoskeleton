@@ -42,9 +42,22 @@ main() {
     fi
 
     # compact-context.sh 실행 (자동 아카이빙)
-    COMPACT_SCRIPT="$PROJECT_DIR/scripts/compact-context.sh"
+    COMPACT_SCRIPT="$PROJECT_DIR/.claude/hooks/compact-context.sh"
     if [ -f "$COMPACT_SCRIPT" ]; then
         bash "$COMPACT_SCRIPT" 2>/dev/null || true
+    fi
+
+    # mcp-memory-service에 pre-compact 스냅샷 저장 (백그라운드, 실패 무시)
+    BRANCH=$(git -C "$PROJECT_DIR" branch --show-current 2>/dev/null || echo "unknown")
+    if [ -f "$STATE_FILE" ] && command -v memory &>/dev/null; then
+        STATE_SUMMARY=$(head -40 "$STATE_FILE" 2>/dev/null || true)
+        if [ -n "$STATE_SUMMARY" ]; then
+            HOOK_DIR="$(cd "$(dirname "$0")" && pwd)"
+            "$HOOK_DIR/mcp-store-memory.sh" \
+                "Pre-compact: $BRANCH [$TIMESTAMP]" \
+                "$STATE_SUMMARY" \
+                "session-snapshot,pre-compact,auto,branch:$BRANCH" 2>/dev/null &
+        fi
     fi
 
     # 백업이 하나라도 수행되었으면 additionalContext로 상태 요약 주입

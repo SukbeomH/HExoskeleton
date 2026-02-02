@@ -25,6 +25,19 @@ trigger: "Before merging PRs or completing major features"
 
 ---
 
+## Pre-Review: Memory Recall
+
+아키텍처 리뷰 전 과거 결정 사항을 recall하여 일관성을 검증한다:
+
+```
+memory_search(query: "architecture decision", mode: "semantic")
+```
+
+과거 `architecture-decision` 메모리와 현재 변경의 일관성을 확인.
+semantic 결과가 부족하면 `memory_search(query: "architecture", tags: ["arch", "decision"])` 로 보충.
+
+---
+
 ## Procedure
 
 ### Step 1: Run Local Architecture Check

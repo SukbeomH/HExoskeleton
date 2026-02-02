@@ -3,9 +3,9 @@ name: bootstrap
 description: Complete initial project setup -- deps verification, Qlty integration, multi-language detection, MCP connection, indexing, codebase analysis, and memory initialization
 version: 2.0.0
 allowed-tools:
-  - store_memory
-  - search_memories
-  - get_memory_statistics
+  - memory_store
+  - memory_search
+  - memory_stats
   - index
   - get_graph_health
   - get_graph_stats
@@ -38,7 +38,7 @@ You are a bootstrap orchestrator. You combine the rigor of arch-review (validati
 - This skill assumes a fresh clone or first-time setup
 - Node.js >= 18 must be installed
 - `uv` must be installed (Python package manager)
-- `pipx` must be installed (for memorygraph)
+- `pipx` must be installed (for mcp-memory-service)
 - `.mcp.json` must exist in project root
 
 ---
@@ -265,11 +265,11 @@ Test connectivity to each configured MCP server:
 | Server | Test | Required |
 |--------|------|----------|
 | graph-code | `get_graph_health()` | YES |
-| memorygraph | `get_memory_statistics()` | YES |
+| memory | `memory_stats()` | YES |
 | context7 | `resolve-library-id(libraryName: "langchain")` | NO (WARN only) |
 
 **If graph-code fails:** Mark FAIL. Skip Step 6 (indexing). Continue to Step 7.
-**If memorygraph fails:** Mark FAIL. Skip Step 8 (memory store). Continue.
+**If memory fails:** Mark FAIL. Skip Step 9 (memory store). Continue.
 **If context7 fails:** Mark WARN. Continue normally.
 
 ---
@@ -310,11 +310,12 @@ Delegate to the `codebase-mapper` skill to analyze the project and generate docu
 Store the bootstrap record in memory graph:
 
 ```
-store_memory(
-  type: "bootstrap",
-  title: "Project Bootstrap",
-  content: "Bootstrap completed. System prerequisites verified. MCP servers connected. Codebase indexed ({N} entities, {M} files). Documentation generated.",
-  tags: ["bootstrap", "init", "setup"]
+memory_store(
+  content: "## Project Bootstrap\n\nBootstrap completed. System prerequisites verified. MCP servers connected. Codebase indexed ({N} entities, {M} files). Documentation generated.",
+  metadata: {
+    tags: "bootstrap,init,setup",
+    type: "bootstrap"
+  }
 )
 ```
 
@@ -337,7 +338,7 @@ Qlty CLI:              {PASS|WARN|SKIP} ({version or reason})
 Project Config:        {PASS|FAIL} (project-config.yaml generated)
 Context Structure:     {PASS|FAIL} (reports/, research/, archive/, PATTERNS.md)
 Prompt Patch:          {PASS|WARN|SKIP} (.patch-workspace ready)
-MCP Servers:           graph-code {PASS|FAIL} / memorygraph {PASS|FAIL} / context7 {PASS|WARN}
+MCP Servers:           graph-code {PASS|FAIL} / memory {PASS|FAIL} / context7 {PASS|WARN}
 Code Index:            {PASS|FAIL} ({N} entities, {M} files)
 Documentation:         {PASS|FAIL} (ARCHITECTURE.md, STACK.md)
 Memory:                {PASS|WARN} (bootstrap record stored)
@@ -370,6 +371,6 @@ Next: /new-project | /plan 1 | /map
 
 ## Scripts
 
-- `scripts/bootstrap.sh`: System dependency verification script (Node.js, npm, uv, pipx, Python, memorygraph, npx)
+- `scripts/bootstrap.sh`: System dependency verification script (Node.js, npm, uv, pipx, Python, memory, npx)
 - `scripts/detect-language.sh`: Language, package manager, and test runner detection functions
 - `scripts/load-config.sh`: project-config.yaml loader (exports environment variables)

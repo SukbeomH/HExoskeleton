@@ -2,9 +2,8 @@
 name: executor
 description: Executes GSD plans with atomic commits, deviation handling, checkpoint protocols, and state management
 allowed-tools:
-  - store_memory
-  - search_memories
-  - search_relationships_by_context
+  - memory_store
+  - memory_search
 ---
 
 # GSD Executor Agent
@@ -212,7 +211,7 @@ Apply these rules automatically. Track all deviations for Summary documentation.
 
 ### Prerequisites
 
-- memory-graph MCP server must be configured in `.mcp.json`
+- mcp-memory-service MCP server must be configured in `.mcp.json`
 
 ### Purpose
 
@@ -223,7 +222,7 @@ Track deviation patterns across sessions. Before executing, check if similar tas
 Before starting task execution, check for historical deviation patterns:
 
 ```
-search_memories(tags: ["deviation", "{phase-plan}"])
+memory_search(query: "deviation {phase-plan}", tags: ["deviation"])
 ```
 
 If results found, review past deviations and anticipate similar issues in the current plan.
@@ -233,11 +232,12 @@ If results found, review past deviations and anticipate similar issues in the cu
 After applying any deviation rule (Rules 1-4), persist it:
 
 ```
-store_memory(
-  type: "deviation",
-  title: "Rule {N} - {description}",
-  content: "{details of what was found, what was fixed, and why}",
-  tags: ["deviation", "rule-{N}", "{phase-plan}"]
+memory_store(
+  content: "## Rule {N} - {description}\n\n{details of what was found, what was fixed, and why}",
+  metadata: {
+    tags: "deviation,rule-{N},{phase-plan}",
+    type: "deviation"
+  }
 )
 ```
 
@@ -246,11 +246,12 @@ store_memory(
 After writing SUMMARY.md, store an execution summary memory for cross-session learning:
 
 ```
-store_memory(
-  type: "execution-summary",
-  title: "Plan {phase-plan} Summary",
-  content: "{tasks completed, deviations applied, verification results}",
-  tags: ["execution", "{phase-plan}"]
+memory_store(
+  content: "## Plan {phase-plan} Summary\n\n{tasks completed, deviations applied, verification results}",
+  metadata: {
+    tags: "execution,{phase-plan}",
+    type: "execution-summary"
+  }
 )
 ```
 

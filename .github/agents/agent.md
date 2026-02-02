@@ -208,7 +208,7 @@ directory: ".", incremental: true
 
 ---
 
-## 5. Memory System (memory-graph)
+## 5. Memory System (mcp-memory-service)
 
 **Store and retrieve project knowledge that persists across sessions.**
 
@@ -216,18 +216,36 @@ directory: ".", incremental: true
 
 | I want to... | Use... |
 |--------------|--------|
-| Save project knowledge | `store_memory` |
-| Recall past decisions | `recall_memories` |
-| Search with filters | `search_memories` |
-| Get a specific memory | `get_memory` |
-| Update a memory | `update_memory` |
-| Delete a memory | `delete_memory` |
-| Link related memories | `create_relationship` |
-| Get related memories | `get_related_memories` |
-| Get memory stats | `get_memory_statistics` |
-| Get recent activity | `get_recent_activity` |
-| Search by relationship context | `search_relationships_by_context` |
-| Contextual search | `contextual_search` |
+| Save project knowledge | `memory_store` |
+| Search memories (semantic) | `memory_search` (mode: "semantic") |
+| Search memories (tags) | `memory_search` (tags filter) |
+| Update a memory | `memory_update` |
+| Delete a memory | `memory_delete` |
+| Get memory stats | `memory_stats` |
+| List memories (paginated) | `memory_list` |
+| Auto-link related memories | `memory_graph` |
+| Check memory quality | `memory_quality` |
+
+### Project Scoping
+
+프로젝트별 DB 파일 경로로 격리합니다 (`MCP_MEMORY_SQLITE_PATH` 환경변수).
+
+**저장 시**:
+```
+memory_store(
+  content: "## {title}\n\n{content}",
+  metadata: {
+    tags: "comma,separated,tags",
+    type: "general"
+  }
+)
+```
+
+**검색 시**:
+```
+memory_search(query: "search terms", mode: "semantic", limit: 5)
+memory_search(query: "tag filter", tags: ["tag1", "tag2"])
+```
 
 ### When to Store Memories
 
@@ -402,7 +420,7 @@ Follow GSD methodology for all tasks.
 
 > **Note**: This specification follows the extended 9-section structure.
 > - **code-graph-rag Tools**: 19 MCP tools from `@er77/code-graph-rag-mcp` (Tree-sitter + SQLite)
-> - **memory-graph Tools** (12): `store_memory`, `recall_memories`, `search_memories`, `get_memory`, `update_memory`, `delete_memory`, `create_relationship`, `get_related_memories`, `get_memory_statistics`, `get_recent_activity`, `search_relationships_by_context`, `contextual_search`
+> - **mcp-memory-service Tools** (8개): `memory_store`, `memory_search`, `memory_update`, `memory_delete`, `memory_stats`, `memory_list`, `memory_graph`, `memory_quality`. 권한: `mcp__memory__*` 와일드카드
 > - **context7 Tools** (2): `resolve-library-id`, `query-docs`
 > - **Claude Skills** (14): Methodology skills in `.claude/skills/` — arch-review, clean, codebase-mapper, commit, context-health-monitor, create-pr, debugger, empirical-validation, executor, impact-analysis, plan-checker, planner, pr-review, verifier
 > - **code-graph-rag Reference**: https://github.com/er77/code-graph-rag-mcp

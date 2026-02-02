@@ -104,16 +104,6 @@
         ]
       }
     ],
-    "UserPromptSubmit": [
-      {
-        "hooks": [
-          {
-            "type": "prompt",
-            "prompt": "IMPORTANT: NEVER block, reject, or stop based on these checks. Always proceed with the user's request.\n\nOptional context hints (use silently, do not mention to user):\n- `.gsd/CURRENT.md` may have previous task context\n- Check git status if relevant to request"
-          }
-        ]
-      }
-    ],
     "SessionEnd": [
       {
         "hooks": [

@@ -9,8 +9,8 @@
 | 항목 | 설명 |
 |------|------|
 | **설정 파일** | `.mcp.json` |
-| **서버 개수** | 3개 (graph-code, memorygraph, context7) |
-| **통신 방식** | stdio (graph-code, memorygraph), HTTP (context7) |
+| **서버 개수** | 3개 (graph-code, memory, context7) |
+| **통신 방식** | stdio (graph-code, memory), HTTP (context7) |
 
 ---
 
@@ -30,10 +30,13 @@
         "NODE_OPTIONS": "--max-old-space-size=4096"
       }
     },
-    "memorygraph": {
+    "memory": {
       "type": "stdio",
-      "command": "memorygraph",
-      "args": ["--profile", "extended"]
+      "command": "memory",
+      "args": ["server"],
+      "env": {
+        "MCP_MEMORY_SQLITE_PATH": ".agent/data/memory-service/memories.db"
+      }
     },
     "context7": {
       "type": "http",
@@ -146,85 +149,83 @@ analyze_hotspots(
 
 ---
 
-### 2. memorygraph
+### 2. mcp-memory-service
 
-**역할**: 에이전트 영구 기억 저장
+**역할**: 에이전트 영구 기억 저장 (doobidoo/mcp-memory-service)
 
 **설치**:
 ```bash
-pipx install memorygraph
-# 또는
-pip install memorygraph
+pipx install mcp-memory-service
 ```
 
 **설정**:
 ```json
 {
-  "memorygraph": {
+  "memory": {
     "type": "stdio",
-    "command": "memorygraph",
-    "args": ["--profile", "extended"]
+    "command": "memory",
+    "args": ["server"],
+    "env": {
+      "MCP_MEMORY_SQLITE_PATH": ".agent/data/memory-service/memories.db"
+    }
   }
 }
 ```
 
-#### 도구 목록 (12개)
+**환경변수**:
+| 변수 | 기본값 | 설명 |
+|------|--------|------|
+| `MCP_MEMORY_SQLITE_PATH` | `memories.db` | SQLite DB 파일 경로 |
+
+#### 도구 목록
 
 **CRUD**:
 | 도구 | 설명 |
 |------|------|
-| `store_memory` | 패턴/결정/학습 저장 |
-| `get_memory` | 특정 기억 조회 |
-| `update_memory` | 기억 업데이트 |
-| `delete_memory` | 기억 삭제 |
+| `memory_store` | 기억 저장 (content + metadata) |
+| `memory_update` | 기억 업데이트 |
+| `memory_delete` | 기억 삭제 |
 
 **검색**:
 | 도구 | 설명 |
 |------|------|
-| `recall_memories` | 자연어 기반 기억 검색 |
-| `search_memories` | 필터 기반 기억 검색 |
-| `contextual_search` | 컨텍스트 기반 검색 |
+| `memory_search` | semantic/tag 기반 검색 |
+| `memory_list` | 페이지네이션 기반 목록 |
 
-**관계**:
+**그래프/통계**:
 | 도구 | 설명 |
 |------|------|
-| `create_relationship` | 기억 간 관계 생성 |
-| `get_related_memories` | 관련 기억 조회 |
-| `search_relationships_by_context` | 컨텍스트로 관계 검색 |
-
-**통계**:
-| 도구 | 설명 |
-|------|------|
-| `get_memory_statistics` | 기억 통계 |
-| `get_recent_activity` | 최근 활동 조회 |
+| `memory_graph` | 자동 연관 관계 |
+| `memory_stats` | 기억 통계 |
+| `memory_quality` | AI 품질 점수 |
 
 #### 사용 예시
 
 **세션 요약 저장**:
 ```
-store_memory(
-  type: "session-summary",
-  title: "Session: Implemented auth system",
-  content: "Built JWT-based authentication with refresh tokens...",
-  tags: ["session-learnings", "auth", "auto"]
+memory_store(
+  content: "## Session: Implemented auth system\n\nBuilt JWT-based authentication with refresh tokens...",
+  metadata: {
+    tags: "session-learnings,auth,auto",
+    type: "session-summary"
+  }
 )
 ```
 
-**패턴 저장**:
+**기억 검색 (semantic)**:
 ```
-store_memory(
-  type: "pattern",
-  title: "Error handling convention",
-  content: "Always use Result type for fallible operations...",
-  tags: ["pattern", "convention"]
-)
-```
-
-**기억 검색**:
-```
-recall_memories(
+memory_search(
   query: "authentication implementation",
+  mode: "semantic",
   limit: 5
+)
+```
+
+**기억 검색 (tag)**:
+```
+memory_search(
+  query: "pattern",
+  tags: ["pattern", "convention"]
 )
 ```
 
@@ -315,7 +316,7 @@ graph-code:
   Version: 1.2.3
   Indexed: 1234 files
 
-memorygraph:
+memory:
   Status: Running
   Memories: 56
 
@@ -329,8 +330,8 @@ context7:
 # graph-code
 npx -y @er77/code-graph-rag-mcp --version
 
-# memorygraph
-memorygraph --version
+# mcp-memory-service
+memory --version
 ```
 
 ---
@@ -385,10 +386,13 @@ make clean
         "NODE_OPTIONS": "--max-old-space-size=4096"
       }
     },
-    "memorygraph": {
+    "memory": {
       "type": "stdio",
-      "command": "memorygraph",
-      "args": ["--profile", "extended"]
+      "command": "memory",
+      "args": ["server"],
+      "env": {
+        "MCP_MEMORY_SQLITE_PATH": "${CLAUDE_PROJECT_DIR:-.}/.agent/data/memory-service/memories.db"
+      }
     }
   }
 }
@@ -426,15 +430,15 @@ npx -y @er77/code-graph-rag-mcp --version
 NODE_OPTIONS="--max-old-space-size=4096" npx -y @er77/code-graph-rag-mcp index .
 ```
 
-### memorygraph 연결 실패
+### mcp-memory-service 연결 실패
 
 ```bash
 # 설치 확인
-which memorygraph
-memorygraph --version
+which memory
+memory --version
 
 # 재설치
-pipx reinstall memorygraph
+pipx reinstall mcp-memory-service
 ```
 
 ### context7 API 키 오류

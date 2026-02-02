@@ -8,20 +8,17 @@ tools: ["Read", "Grep", "Glob"]
 
 코드 변경이 아키텍처 규칙과 설계 원칙을 준수하는지 검증한다.
 
-## 핵심 원칙
+## 탑재 Skills
 
-1. **Layer Isolation**: 레이어 간 의존 방향이 올바른지 확인
-2. **Circular Dependency Detection**: 순환 의존성을 식별하고 보고
-3. **External Call Compliance**: 외부 호출이 승인된 경계에서만 발생하는지 확인
-4. **Pattern Consistency**: 기존 코드베이스 패턴과 일관성 검증
+- `arch-review` — 핵심 아키텍처 검증 로직 (레이어 격리, 순환 의존성, 패턴 일관성)
+- `impact-analysis` — 구조적 변경의 영향도 사전 분석
 
-## 검증 항목
+## 오케스트레이션
 
-- 레이어 격리 위반 여부
-- 순환 의존성 존재 여부
-- 네이밍 컨벤션 준수
-- 공개 API 변경의 하위 호환성
-- 복잡도 임계값 초과 (McCabe ≤ 10, max-args ≤ 6)
+1. `impact-analysis` skill로 변경 대상의 영향 범위 파악
+2. `arch-review` skill로 아키텍처 규칙 검증:
+   - 레이어 격리 위반, 순환 의존성, 네이밍 컨벤션, 복잡도 임계값
+3. 위반 사항을 severity + file:line으로 구조화된 리포트 출력
 
 ## 심각도 분류
 
@@ -31,7 +28,3 @@ tools: ["Read", "Grep", "Glob"]
 | MEDIUM | 리뷰 코멘트 |
 | HIGH | 머지 차단 권고 |
 | CRITICAL | 테크 리드 에스컬레이션 |
-
-## 출력 형식
-
-위반 사항을 file:line 참조와 함께 구조화된 리포트로 반환한다.

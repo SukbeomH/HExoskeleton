@@ -10,8 +10,12 @@ Primary language is Python 3.12. Documentation is bilingual (Korean/English).
 
 ## Repository Layout
 
-- **.agent/** — GSD workflows (29 commands)
-- **.claude/skills/** — Modular skill definitions (14 skills)
+- **.agent/** — Runtime data only (SQLite DB, MCP logs, agent.md symlink)
+- **.claude/** — Single source of truth for agent configuration:
+  - `agents/` — Agent definitions (14 agents, skill 래핑 구조)
+  - `skills/` — Modular skill definitions (16 skills)
+  - `hooks/` — Event hooks and utility scripts
+  - `settings.json` — Claude Code project settings
 - **.github/agents/** — GitHub Agent specification
 - **.gsd/** — GSD documents and context management:
   - `SPEC.md`, `PLAN.md`, `DECISIONS.md`, `STATE.md` — Core working docs
@@ -20,8 +24,16 @@ Primary language is Python 3.12. Documentation is bilingual (Korean/English).
   - `research/` — Research documents (RESEARCH-*.md)
   - `archive/` — Monthly archives (journal, changelog, prd)
   - `templates/` — Document templates
-- **.mcp.json** — MCP server config (graph-code, memorygraph, context7)
+- **.gemini/** — Gemini agent config (CLAUDE.md 참조로 축소)
+- **.mcp.json** — MCP server config (graph-code, memory, context7)
 - **scripts/** — Utility scripts
+
+### Agent-Skill 래핑 구조
+
+Skill은 "어떻게(How)"를 정의하고, Agent는 "언제/무엇과 함께(When/With What)"를 정의한다.
+
+- **Skill** (`.claude/skills/{name}/SKILL.md`): 재사용 가능한 최소 모듈. 실행 절차와 규칙을 상세히 기술.
+- **Agent** (`.claude/agents/{name}.md`): Skill을 탑재하고 오케스트레이션 흐름을 정의. model/tools 메타데이터 포함.
 
 ## Commands
 
@@ -49,9 +61,40 @@ make patch-clean              # Patch workspace 삭제
 ## Architecture
 
 - **code-graph-rag** (MCP stdio, `@er77/code-graph-rag-mcp`): Tree-sitter + SQLite 기반 AST 코드 분석 — 19개 MCP 도구 (`query`, `semantic_search`, `analyze_code_impact`, `analyze_hotspots`, `detect_code_clones`, `find_similar_code`, `list_file_entities`, `list_entity_relationships`, `suggest_refactoring`, `cross_language_search`, `find_related_concepts`, `index`, `clean_index`, `get_graph`, `get_graph_stats`, `get_graph_health`, `reset_graph`, `get_metrics`, `get_version`). 코드 탐색 시 파일 직접 읽기보다 우선 사용
-- **memory-graph** (MCP stdio, 12개 도구): `store_memory`, `recall_memories`, `search_memories`, `get_memory`, `update_memory`, `delete_memory`, `create_relationship`, `get_related_memories`, `get_memory_statistics`, `get_recent_activity`, `search_relationships_by_context`, `contextual_search`
+- **mcp-memory-service** (MCP stdio, `memory server`): doobidoo/mcp-memory-service 기반 에이전트 기억 저장. 핵심 도구 — `memory_store`, `memory_search`, `memory_update`, `memory_delete`, `memory_stats`, `memory_list`, `memory_graph`, `memory_quality`. 권한: `mcp__memory__*` 와일드카드 사용
 - **MCP Config**: `.mcp.json` — 도구 상세는 `.github/agents/agent.md` Section 4-5 참조
+- **Memory Isolation**: 프로젝트별 DB 파일 경로로 격리 (`MCP_MEMORY_SQLITE_PATH`). multi-tenant 미사용 (단일 사용자)
 - **GSD Workflow**: SPEC.md → PLAN.md → EXECUTE → VERIFY. Working docs in `.gsd/`
+
+## Memory Protocol
+
+mcp-memory-service 사용 시 아래 규칙을 따른다. 상세는 `.claude/skills/memory-protocol/SKILL.md` 참조.
+
+### Session Start
+- `memory_search(query: "{project context}", mode: "semantic")` 필수 실행
+- semantic 결과가 부족할 때만 tag 필터로 보충
+
+### Search Protocol
+| 방식 | 용도 | 순서 |
+|------|------|------|
+| `memory_search(mode: "semantic")` | Broad context (세션/태스크 시작) | **1st** |
+| `memory_search(tags: [...])` | Narrow filter (태그/타입 특정) | **2nd** |
+
+### Storage Triggers
+| Trigger | Type |
+|---------|------|
+| Architecture decision | `architecture-decision` |
+| Bug root cause | `root-cause` |
+| Pattern discovered | `pattern-discovery` |
+| Hypothesis eliminated | `debug-eliminated` |
+| Plan deviation | `deviation` |
+| Execution summary | `execution-summary` |
+| Session end (auto) | `session-summary` |
+
+### Required Fields (memory_store)
+- `content`: `## {title}\n\n{상세 내용}` (title을 markdown 헤더로 포함)
+- `metadata.tags`: 콤마 구분 태그 문자열 (최소 2개)
+- `metadata.type`: Type Registry에서 선택
 
 ## Code Style
 

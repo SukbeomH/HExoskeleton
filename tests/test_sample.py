@@ -31,9 +31,14 @@ class TestProjectStructure:
     def test_gsd_directory_exists(self, project_root: Path) -> None:
         assert (project_root / ".gsd").is_dir()
 
-    def test_workflows_present(self, project_root: Path) -> None:
-        workflows = list((project_root / ".agent" / "workflows").glob("*.md"))
-        assert len(workflows) >= 29
+    def test_agents_present(self, project_root: Path) -> None:
+        agents = list((project_root / ".claude" / "agents").glob("*.md"))
+        assert len(agents) >= 14
+
+    def test_skills_present(self, project_root: Path) -> None:
+        skills = list((project_root / ".claude" / "skills").iterdir())
+        skill_dirs = [s for s in skills if s.is_dir()]
+        assert len(skill_dirs) >= 16
 
 
 class TestDatabaseFixture:

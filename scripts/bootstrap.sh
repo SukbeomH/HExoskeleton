@@ -114,12 +114,12 @@ else
     report_fail "qlty" "not found — curl -fsSL https://qlty.sh | sh"
 fi
 
-# memorygraph binary
-if command -v memorygraph &>/dev/null; then
-    MG_VER=$(memorygraph --version 2>/dev/null || echo "installed")
-    report_pass "memorygraph" "${MG_VER}"
+# mcp-memory-service binary
+if command -v memory &>/dev/null; then
+    MG_VER=$(memory --version 2>/dev/null || echo "installed")
+    report_pass "mcp-memory-service" "${MG_VER}"
 else
-    report_fail "memorygraph" "not found — pipx install \"memorygraphMCP[falkordblite]\""
+    report_fail "mcp-memory-service" "not found — pipx install mcp-memory-service"
 fi
 
 # npx (for code-graph-rag)

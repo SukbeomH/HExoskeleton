@@ -511,8 +511,8 @@ cp -r gsd-plugin ~/.claude/plugins/gsd
 # code-graph-rag - AST-based code analysis
 npm install -g @er77/code-graph-rag-mcp
 
-# memorygraph - Agent memory persistence
-pip install memorygraph
+# mcp-memory-service - Agent memory persistence
+pipx install mcp-memory-service
 ```
 
 ### Environment Variables

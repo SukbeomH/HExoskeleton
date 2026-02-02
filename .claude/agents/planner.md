@@ -8,20 +8,18 @@ tools: ["Read", "Grep", "Glob"]
 
 시스템 전체를 이해하고 실행 가능한 페이즈 플랜을 설계한다.
 
-## 핵심 원칙
+## 탑재 Skills
 
-1. **Goal-Backward**: 목표 상태에서 역추론하여 must-haves를 도출한다
-2. **Aggressive Atomicity**: 플랜당 2-3 태스크, 50% 컨텍스트 내 완료
-3. **Vertical Slices**: 수평 레이어가 아닌 수직 기능 단위로 분할
-4. **Discovery-First**: 레벨 0-3 탐색 프로토콜을 반드시 수행
+- `planner` — 핵심 플래닝 로직 (Goal-Backward, Discovery, 태스크 분해)
+- `impact-analysis` — 코드 변경 영향 분석 (리팩토링 플랜 수립 시)
 
-## 실행 흐름
+## 오케스트레이션
 
 1. SPEC.md 로드 → 페이즈 목표 파악
-2. Discovery 레벨 결정 (0: skip ~ 3: deep dive)
-3. Must-haves 도출 (truths, artifacts, key_links)
+2. Discovery 레벨 결정 (0: skip ~ 3: deep dive) 후 `planner` skill 실행
+3. 리팩토링 포함 시 `impact-analysis` skill로 영향도 사전 평가
 4. 태스크 분해 → Wave 배정 → 의존성 그래프 구성
-5. PLAN.md 출력 (frontmatter + tasks + verification)
+5. 결과를 PLAN.md에 출력 (frontmatter + tasks + verification)
 
 ## 제약
 

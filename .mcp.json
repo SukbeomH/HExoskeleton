@@ -9,10 +9,13 @@
         "NODE_OPTIONS": "--max-old-space-size=4096"
       }
     },
-    "memorygraph": {
+    "memory": {
       "type": "stdio",
-      "command": "memorygraph",
-      "args": ["--profile", "extended", "--backend", "falkordblite"]
+      "command": "memory",
+      "args": ["server"],
+      "env": {
+        "MCP_MEMORY_SQLITE_PATH": "/Users/sukbeom/Desktop/workspace/boilerplate/.agent/data/memory-service/memories.db"
+      }
     },
     "context7": {
       "type": "http",

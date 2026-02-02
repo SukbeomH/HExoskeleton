@@ -2,7 +2,7 @@
 # Hook: Stop — 세션 컨텍스트 저장
 # .gsd/.modified-this-session 플래그가 있을 때만 실행
 # 1) claude -p (haiku)로 CURRENT.md 생성
-# 2) memorygraph JSON-RPC로 세션 메모리 저장
+# 2) mcp-memory-service JSON-RPC로 세션 메모리 저장
 # 백그라운드 실행으로 hook timeout 회피
 
 set -uo pipefail
@@ -75,14 +75,19 @@ EOF
         echo "[$TS] CURRENT.md saved (fallback)" >> "$LOG_FILE"
     fi
 
-    # ── 2. memorygraph 저장 (변경 파일이 3개 이상일 때만) ──
+    # ── 2. mcp-memory-service 저장 (변경 파일이 1개 이상일 때) ──
     FILE_COUNT=$(echo "$MODIFIED" | grep -c '.' 2>/dev/null || echo "0")
-    if [[ "$FILE_COUNT" -ge 3 ]] && command -v memorygraph &>/dev/null; then
-        SUMMARY="Branch: $BRANCH. Files changed: $FILE_COUNT. $(echo "$RECENT_COMMITS" | head -1)"
+    if [[ "$FILE_COUNT" -ge 1 ]] && command -v memory &>/dev/null; then
+        # CURRENT.md가 있으면 풍부한 content 사용, 없으면 fallback
+        if [[ -f "$CURRENT_MD" ]]; then
+            MEMORY_CONTENT=$(head -30 "$CURRENT_MD" 2>/dev/null || true)
+        else
+            MEMORY_CONTENT="Branch: $BRANCH. Files changed: $FILE_COUNT. $(echo "$RECENT_COMMITS" | head -1)"
+        fi
         "$HOOK_DIR/mcp-store-memory.sh" \
             "Session [$TS]: $BRANCH" \
-            "$SUMMARY" \
-            "session-learnings,auto" 2>/dev/null \
+            "$MEMORY_CONTENT" \
+            "session-summary,branch:$BRANCH,auto" 2>/dev/null \
             && echo "[$TS] Memory stored" >> "$LOG_FILE" \
             || echo "[$TS] Memory store failed" >> "$LOG_FILE"
     fi

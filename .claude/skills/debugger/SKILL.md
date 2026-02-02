@@ -2,10 +2,9 @@
 name: debugger
 description: Systematic debugging with persistent state and fresh context advantages
 allowed-tools:
-  - store_memory
-  - search_memories
-  - create_relationship
-  - recall_memories
+  - memory_store
+  - memory_search
+  - memory_graph
 ---
 
 # GSD Debugger Agent
@@ -56,19 +55,24 @@ When debugging code you wrote, you're fighting your own mental model.
 
 ### Prerequisites
 
-- memory-graph MCP server must be configured in `.mcp.json`
+- mcp-memory-service MCP server must be configured in `.mcp.json`
 
 ### Purpose
 
 Search past investigations before starting. Persist findings for future sessions so repeated bugs are resolved faster.
 
-### Phase 0: Search Before Investigating
+### Phase 0: Recall Before Investigating
 
-Before beginning any investigation, check if a similar bug was seen before:
+Before beginning any investigation, search past debugging context first, then narrow with tags:
 
 ```
-search_memories(tags: ["debug", "root-cause"])
-search_memories(query: "{symptom description}")
+memory_search(query: "{symptom description}", mode: "semantic")
+```
+
+Semantic 결과가 부족하면 태그 기반으로 보충:
+
+```
+memory_search(query: "{symptom description}", tags: ["debug", "root-cause"])
 ```
 
 If matches found, review past root causes and eliminated hypotheses to avoid repeating dead ends.
@@ -78,11 +82,12 @@ If matches found, review past root causes and eliminated hypotheses to avoid rep
 When a hypothesis is disproved, persist it to prevent future sessions from re-investigating:
 
 ```
-store_memory(
-  type: "debug-eliminated",
-  title: "Eliminated: {hypothesis}",
-  content: "{evidence that disproved this hypothesis}",
-  tags: ["debug", "eliminated", "{component}"]
+memory_store(
+  content: "## Eliminated: {hypothesis}\n\n{evidence that disproved this hypothesis}",
+  metadata: {
+    tags: "debug,eliminated,{component}",
+    type: "debug-eliminated"
+  }
 )
 ```
 
@@ -91,34 +96,28 @@ store_memory(
 When the root cause is identified, persist the full finding:
 
 ```
-store_memory(
-  type: "root-cause",
-  title: "Root Cause: {cause}",
-  content: "{evidence, fix applied, verification result}",
-  tags: ["debug", "root-cause", "{component}"]
+memory_store(
+  content: "## Root Cause: {cause}\n\n{evidence, fix applied, verification result}",
+  metadata: {
+    tags: "debug,root-cause,{component}",
+    type: "root-cause"
+  }
 )
 ```
 
-If related to a past bug, link them:
-
-```
-create_relationship(
-  sourceId: "{root-cause-memory-id}",
-  targetId: "{related-memory-id}",
-  type: "similar-to"
-)
-```
+If related to a past bug, use tag encoding to link them (`related:{content_hash_prefix}`), or rely on `memory_graph` for automatic association.
 
 ### On 3-Strike Trigger
 
 When the 3-strike rule activates, persist the blocked state for the next session:
 
 ```
-store_memory(
-  type: "debug-blocked",
-  title: "Blocked: {issue}",
-  content: "{approaches tried, errors seen, remaining hypotheses}",
-  tags: ["debug", "blocked", "3-strike"]
+memory_store(
+  content: "## Blocked: {issue}\n\n{approaches tried, errors seen, remaining hypotheses}",
+  metadata: {
+    tags: "debug,blocked,3-strike",
+    type: "debug-blocked"
+  }
 )
 ```
 

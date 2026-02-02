@@ -68,6 +68,23 @@ If it sounds like corporate PM theater, delete it.
 
 ---
 
+## Pre-Planning: Memory Recall
+
+계획 수립 전 과거 실행 결과와 이탈 패턴을 recall한다:
+
+```
+memory_search(query: "{phase/feature description}", mode: "semantic")
+```
+
+과거 `execution-summary`, `deviation`, `pattern-discovery` 메모리를 참고하여:
+- 이전 실행에서 발생한 이탈 패턴 회피
+- 검증된 접근 방식 재활용
+- 실패한 접근 방식 사전 배제
+
+semantic 결과가 부족하면 `memory_search(query: "execution deviation", tags: ["execution", "deviation"])` 로 보충.
+
+---
+
 ## Mandatory Discovery Protocol
 
 Discovery is MANDATORY unless you can prove current context exists.

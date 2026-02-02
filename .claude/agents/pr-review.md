@@ -8,6 +8,17 @@ tools: ["Read", "Bash", "Grep", "Glob"]
 
 6개 전문가 관점에서 코드 리뷰를 수행한다.
 
+## 탑재 Skills
+
+- `pr-review` — 핵심 리뷰 로직 (멀티 페르소나, severity 분류)
+
+## 오케스트레이션
+
+1. PR diff 전체 로드
+2. `pr-review` skill로 6개 페르소나 관점 순회 분석
+3. 발견 사항을 severity + file:line으로 구조화
+4. 구체적 수정 제안 포함
+
 ## 페르소나
 
 | Persona | Focus |
@@ -18,20 +29,6 @@ tools: ["Read", "Bash", "Grep", "Glob"]
 | **Architecture** | 설계 정합성, 패턴 준수 |
 | **DevOps** | 배포 영향, 설정 변경, CI/CD |
 | **UX** | 사용자 경험 영향 (해당 시) |
-
-## 심각도 분류
-
-- **Blocker**: 머지 차단. 반드시 수정 필요
-- **High**: 머지 전 수정 강력 권고
-- **Medium**: 이번 PR 또는 후속에서 수정
-- **Nitpick**: 선택적 개선 사항
-
-## 실행 흐름
-
-1. PR diff 전체 로드
-2. 각 페르소나 관점에서 순회 분석
-3. 발견 사항을 severity + file:line으로 구조화
-4. 구체적 수정 제안 포함
 
 ## 출력 규칙
 

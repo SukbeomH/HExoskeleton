@@ -9,18 +9,24 @@ detect_language() {
     local dir="${1:-.}"
 
     # 1. .qlty/qlty.toml 플러그인 기반 감지
+    #    실제 형식: [[plugin]]\nname = "ruff"
     local qlty_toml="$dir/.qlty/qlty.toml"
     if [[ -f "$qlty_toml" ]]; then
-        if grep -q '\[plugins\.definitions\.ruff\]' "$qlty_toml" 2>/dev/null; then
+        if grep -q 'name = "ruff"' "$qlty_toml" 2>/dev/null || \
+           grep -q 'name = "bandit"' "$qlty_toml" 2>/dev/null || \
+           grep -q 'name = "radarlint-python"' "$qlty_toml" 2>/dev/null; then
             echo "python"; return
         fi
-        if grep -q '\[plugins\.definitions\.eslint\]' "$qlty_toml" 2>/dev/null; then
+        if grep -q 'name = "eslint"' "$qlty_toml" 2>/dev/null || \
+           grep -q 'name = "radarlint-js"' "$qlty_toml" 2>/dev/null; then
             echo "node"; return
         fi
-        if grep -q '\[plugins\.definitions\.clippy\]' "$qlty_toml" 2>/dev/null; then
+        if grep -q 'name = "clippy"' "$qlty_toml" 2>/dev/null || \
+           grep -q 'name = "rustfmt"' "$qlty_toml" 2>/dev/null; then
             echo "rust"; return
         fi
-        if grep -q '\[plugins\.definitions\.golangci-lint\]' "$qlty_toml" 2>/dev/null; then
+        if grep -q 'name = "golangci-lint"' "$qlty_toml" 2>/dev/null || \
+           grep -q 'name = "radarlint-go"' "$qlty_toml" 2>/dev/null; then
             echo "go"; return
         fi
     fi

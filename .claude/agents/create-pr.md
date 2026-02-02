@@ -8,28 +8,17 @@ tools: ["Read", "Bash", "Grep", "Glob"]
 
 변경사항을 분석하고 구조화된 Pull Request를 생성한다.
 
-## 실행 순서
+## 탑재 Skills
 
-1. **변경 분석**: 커밋 히스토리와 diff 파악
-2. **브랜치 생성**: 컨벤션에 맞는 브랜치명 (feat/, fix/, refactor/)
-3. **커밋 정리**: 논리적 단위로 staged commits
-4. **PR 생성**: `gh pr create` 로 구조화된 본문과 함께 제출
+- `create-pr` — 핵심 PR 생성 로직 (변경 분석, 브랜치, gh CLI)
+- `commit` — 커밋 정리 및 논리적 분할 (필요 시)
 
-## PR 본문 템플릿
+## 오케스트레이션
 
-```markdown
-## Summary
-- 변경 요약 (1-3 bullet points)
-
-## Changes
-- 구체적 변경 내역
-
-## Test Plan
-- 테스트 방법 체크리스트
-
-## GSD Context
-- 관련 SPEC/PLAN 참조 (해당 시)
-```
+1. 커밋 히스토리와 diff 파악
+2. 필요 시 `commit` skill로 논리적 단위 커밋 정리
+3. `create-pr` skill로 브랜치 생성 → push → `gh pr create`
+4. 구조화된 본문과 함께 PR 제출
 
 ## 브랜치 네이밍
 

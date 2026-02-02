@@ -2,9 +2,9 @@
 name: context-health-monitor
 description: Monitors context complexity and triggers state dumps before quality degrades
 allowed-tools:
-  - store_memory
-  - search_memories
-  - get_recent_activity
+  - memory_store
+  - memory_search
+  - memory_list
 ---
 
 # Context Health Monitor
@@ -74,7 +74,7 @@ When context window usage exceeds ~60%:
 
 ### Prerequisites
 
-- memory-graph MCP server must be configured in `.mcp.json`
+- mcp-memory-service MCP server must be configured in `.mcp.json`
 
 ### Purpose
 
@@ -85,15 +85,16 @@ Detect recurring failure patterns across sessions. Store health events for trend
 Check if the same issue has recurred, then store the event:
 
 ```
-search_memories(tags: ["3-strike"])
+memory_search(query: "3-strike {issue}", tags: ["3-strike"])
 ```
 
 ```
-store_memory(
-  type: "health-event",
-  title: "3-Strike: {issue}",
-  content: "{approaches tried, errors seen, current hypothesis}",
-  tags: ["health", "3-strike", "{component}"]
+memory_store(
+  content: "## 3-Strike: {issue}\n\n{approaches tried, errors seen, current hypothesis}",
+  metadata: {
+    tags: "health,3-strike,{component}",
+    type: "health-event"
+  }
 )
 ```
 
@@ -104,15 +105,16 @@ If the search reveals the same issue appeared before, flag it as a recurring pro
 Check if the same loop pattern was seen before, then store:
 
 ```
-search_memories(tags: ["circular"])
+memory_search(query: "circular {approach}", tags: ["circular"])
 ```
 
 ```
-store_memory(
-  type: "health-event",
-  title: "Circular: {approach}",
-  content: "{what repeated, why it looped}",
-  tags: ["health", "circular", "{component}"]
+memory_store(
+  content: "## Circular: {approach}\n\n{what repeated, why it looped}",
+  metadata: {
+    tags: "health,circular,{component}",
+    type: "health-event"
+  }
 )
 ```
 
@@ -121,11 +123,12 @@ store_memory(
 Persist session context for the next session:
 
 ```
-store_memory(
-  type: "session-handoff",
-  title: "Handoff: {reason}",
-  content: "{current state, recommendations for next session}",
-  tags: ["health", "handoff"]
+memory_store(
+  content: "## Handoff: {reason}\n\n{current state, recommendations for next session}",
+  metadata: {
+    tags: "health,handoff",
+    type: "session-handoff"
+  }
 )
 ```
 
@@ -134,7 +137,7 @@ store_memory(
 When this skill activates, scan recent memory activity for failure trends:
 
 ```
-get_recent_activity(limit: 10)
+memory_list(page: 1, page_size: 10)
 ```
 
 Review the results for clusters of `3-strike`, `circular`, or `blocked` tags. If a trend is detected (2+ similar events), warn the user proactively before beginning work.
