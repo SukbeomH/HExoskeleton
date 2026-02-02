@@ -35,7 +35,7 @@
       "command": "memory",
       "args": ["server"],
       "env": {
-        "MCP_MEMORY_STORAGE_PATH": ".agent/data/memory-service/memories.db"
+        "MCP_MEMORY_SQLITE_PATH": ".agent/data/memory-service/memories.db"
       }
     },
     "context7": {
@@ -166,7 +166,7 @@ pipx install mcp-memory-service
     "command": "memory",
     "args": ["server"],
     "env": {
-      "MCP_MEMORY_STORAGE_PATH": ".agent/data/memory-service/memories.db"
+      "MCP_MEMORY_SQLITE_PATH": ".agent/data/memory-service/memories.db"
     }
   }
 }
@@ -175,7 +175,7 @@ pipx install mcp-memory-service
 **환경변수**:
 | 변수 | 기본값 | 설명 |
 |------|--------|------|
-| `MCP_MEMORY_STORAGE_PATH` | `memories.db` | SQLite DB 파일 경로 |
+| `MCP_MEMORY_SQLITE_PATH` | `memories.db` | SQLite DB 파일 경로 |
 
 #### 도구 목록
 
@@ -391,7 +391,7 @@ make clean
       "command": "memory",
       "args": ["server"],
       "env": {
-        "MCP_MEMORY_STORAGE_PATH": "${CLAUDE_PROJECT_DIR:-.}/.agent/data/memory-service/memories.db"
+        "MCP_MEMORY_SQLITE_PATH": "${CLAUDE_PROJECT_DIR:-.}/.agent/data/memory-service/memories.db"
       }
     }
   }

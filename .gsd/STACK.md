@@ -97,7 +97,7 @@ Docker/Memgraph 의존성 없음. code-graph-rag는 SQLite 기반으로 로컬�
 | PROJECT_ID | 프로젝트 식별자 | Yes | `my_project` |
 | MCP_TIMEOUT | code-graph-rag MCP 서버 타임아웃 (ms) | No | `80000` |
 | CONTEXT7_API_KEY | Context7 MCP 서버 인증 | No | -- |
-| MCP_MEMORY_STORAGE_PATH | mcp-memory-service DB 파일 경로 | No | `.agent/data/memory-service/memories.db` |
+| MCP_MEMORY_SQLITE_PATH | mcp-memory-service DB 파일 경로 | No | `.agent/data/memory-service/memories.db` |
 | DISABLE_AUTOUPDATER | Claude CLI 자동 업데이트 비활성화 | No | `0` |
 | SSL_CERT_FILE | TLS 인증서 (기업 프록시 환경) | No | -- |
 | PROJECT_LANGUAGE | 프로젝트 언어 (detect-language.sh 감지) | No | `python` |

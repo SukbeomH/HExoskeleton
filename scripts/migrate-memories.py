@@ -11,6 +11,7 @@ Usage:
 
 import argparse
 import json
+import os
 import sqlite3
 import subprocess
 import sys
@@ -60,6 +61,14 @@ def read_memorygraph_db(db_path: str) -> list[dict]:
         memory = {}
         for col in columns:
             memory[col] = row[col]
+        # memorygraph nodes 테이블: properties JSON에 실제 데이터 저장
+        if "properties" in memory and memory["properties"]:
+            try:
+                props = json.loads(memory["properties"])
+                if isinstance(props, dict):
+                    memory.update(props)
+            except (json.JSONDecodeError, TypeError):
+                pass
         memories.append(memory)
 
     conn.close()
@@ -137,13 +146,21 @@ def store_via_jsonrpc(arguments: dict, dry_run: bool = False) -> bool:
     input_data = f"{init_msg}\n{init_notify}\n{call_msg}\n"
 
     try:
+        env = os.environ.copy()
+        if not env.get("MCP_MEMORY_SQLITE_PATH"):
+            # 프로젝트 기본 경로 설정
+            project_dir = Path(__file__).resolve().parent.parent
+            env["MCP_MEMORY_SQLITE_PATH"] = str(
+                project_dir / ".agent" / "data" / "memory-service" / "memories.db"
+            )
         result = subprocess.run(
             ["memory", "server"],
             input=input_data,
             capture_output=True,
             text=True,
-            timeout=15,
+            timeout=30,
             check=False,
+            env=env,
         )
         for line in result.stdout.strip().split("\n"):
             if '"id":2' in line or '"id": 2' in line:
@@ -174,6 +191,11 @@ def main():
         help="Source memorygraph SQLite DB path",
     )
     parser.add_argument("--dry-run", action="store_true", help="Print without storing")
+    parser.add_argument(
+        "--target",
+        default=".agent/data/memory-service/memories.db",
+        help="Target mcp-memory-service DB path",
+    )
     args = parser.parse_args()
 
     db_path = Path(args.source)

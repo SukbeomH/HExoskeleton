@@ -34,7 +34,7 @@
 - **Qlty 설치 필수**: 부트스트랩에서 Qlty CLI 설치 여부 확인 후 없으면 설치 안내
 - **Qlty 라이선스**: Fair Source License — 상용 포함 무료 사용 가능하나 완전 오픈소스는 아님
 - **테스트 러너**: Qlty는 린터/포맷터 전문. 테스트 러너(`pytest`, `jest`, `go test`)는 `project-config.yaml`에 별도 기록하여 스킬에서 사용
-- **memorygraph 의존**: `pipx install memorygraphMCP`는 Python 필수. 비-Python 환경에서는 선택적 처리
+- **mcp-memory-service 의존**: `pipx install mcp-memory-service`는 Python 필수. 비-Python 환경에서는 선택적 처리
 
 ## Architecture
 
@@ -405,7 +405,7 @@ npm test                         # Run tests
 | `qlty init` 오감지 | 불필요한 플러그인 활성화 | Step 5 사용자 확인으로 방지. `qlty plugins disable` 가능 |
 | 테스트 러너 자체 감지 필요 | Qlty 미지원 영역 | R3에서 별도 감지 로직 구현 (config file 기반) |
 | Python 스킬 스크립트 11개 | Node-only 환경에서 실행 불가 | Phase 1-3에서는 미수정. 별도 검토 |
-| memorygraph Python 의존 | 비-Python 환경에서 설치 불가 | 부트스트랩에서 선택적 처리 |
+| mcp-memory-service Python 의존 | 비-Python 환경에서 설치 불가 | 부트스트랩에서 선택적 처리 |
 
 ## References
 

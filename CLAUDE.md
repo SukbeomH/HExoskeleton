@@ -51,7 +51,7 @@ make patch-clean              # Patch workspace 삭제
 - **code-graph-rag** (MCP stdio, `@er77/code-graph-rag-mcp`): Tree-sitter + SQLite 기반 AST 코드 분석 — 19개 MCP 도구 (`query`, `semantic_search`, `analyze_code_impact`, `analyze_hotspots`, `detect_code_clones`, `find_similar_code`, `list_file_entities`, `list_entity_relationships`, `suggest_refactoring`, `cross_language_search`, `find_related_concepts`, `index`, `clean_index`, `get_graph`, `get_graph_stats`, `get_graph_health`, `reset_graph`, `get_metrics`, `get_version`). 코드 탐색 시 파일 직접 읽기보다 우선 사용
 - **mcp-memory-service** (MCP stdio, `memory server`): doobidoo/mcp-memory-service 기반 에이전트 기억 저장. 핵심 도구 — `memory_store`, `memory_search`, `memory_update`, `memory_delete`, `memory_stats`, `memory_list`, `memory_graph`, `memory_quality`. 권한: `mcp__memory__*` 와일드카드 사용
 - **MCP Config**: `.mcp.json` — 도구 상세는 `.github/agents/agent.md` Section 4-5 참조
-- **Memory Isolation**: 프로젝트별 DB 파일 경로로 격리 (`MCP_MEMORY_STORAGE_PATH`). multi-tenant 미사용 (단일 사용자)
+- **Memory Isolation**: 프로젝트별 DB 파일 경로로 격리 (`MCP_MEMORY_SQLITE_PATH`). multi-tenant 미사용 (단일 사용자)
 - **GSD Workflow**: SPEC.md → PLAN.md → EXECUTE → VERIFY. Working docs in `.gsd/`
 
 ## Memory Protocol

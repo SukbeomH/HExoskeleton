@@ -36,7 +36,7 @@ This is the first command to run after cloning the boilerplate into a new projec
 - `.code-graph-rag/` — Code index data
 - `.gsd/ARCHITECTURE.md` — System architecture documentation
 - `.gsd/STACK.md` — Technology stack documentation
-- Bootstrap memory record in memorygraph
+- Bootstrap memory record in mcp-memory-service
 
 **After this command:** Run `/new-project` or `/plan 1` to begin development.
 </objective>
@@ -330,9 +330,9 @@ get_graph_health()
 ```
 Record: PASS or FAIL.
 
-### 6b. memorygraph
+### 6b. mcp-memory-service
 ```
-get_memory_statistics()
+memory_stats()
 ```
 Record: PASS or FAIL.
 
@@ -343,7 +343,7 @@ resolve-library-id(libraryName: "langchain")
 Record: PASS or WARN (failure is acceptable).
 
 **If graph-code FAIL:** Skip Step 7 (indexing).
-**If memorygraph FAIL:** Skip Step 9 (memory store).
+**If mcp-memory-service FAIL:** Skip Step 9 (memory store).
 
 ---
 
@@ -390,14 +390,15 @@ bash scripts/generate-claude-md.sh
 
 ## Step 10: Initial Memory
 
-**Skip if:** memorygraph failed in Step 6.
+**Skip if:** mcp-memory-service failed in Step 6.
 
 ```
-store_memory(
-  type: "bootstrap",
-  title: "Project Bootstrap",
-  content: "Bootstrap completed. System prerequisites verified. MCP servers connected. Codebase indexed. Documentation generated.",
-  tags: ["bootstrap", "init", "setup"]
+memory_store(
+  content: "## Project Bootstrap\n\nBootstrap completed. System prerequisites verified. MCP servers connected. Codebase indexed. Documentation generated.",
+  metadata: {
+    tags: "bootstrap,init,setup",
+    type: "bootstrap"
+  }
 )
 ```
 
@@ -420,7 +421,7 @@ User Confirmation:     {PASS} (project-config.yaml generated)
 Dependencies:          {PASS|FAIL} ({pkg_install_cmd} completed)
 Environment:           {PASS|FAIL} (.env configured)
 Prompt Patch:          {PASS|WARN|SKIP} (.patch-workspace ready)
-MCP Servers:           graph-code {PASS|FAIL} / memorygraph {PASS|FAIL} / context7 {PASS|WARN}
+MCP Servers:           graph-code {PASS|FAIL} / memory {PASS|FAIL} / context7 {PASS|WARN}
 Code Index:            {PASS|FAIL|SKIP} ({N} entities, {M} files)
 Documentation:         {PASS|FAIL} (ARCHITECTURE.md, STACK.md)
 CLAUDE.md:             {PASS|WARN} (dynamically generated)

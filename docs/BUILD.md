@@ -372,7 +372,7 @@ Phase 9: 검증
 |------|------|
 | **Claude Code CLI** | 플러그인 테스트 (`claude --plugin-dir`) |
 | **Node.js 18+** | code-graph-rag MCP |
-| **pipx** | memorygraph 설치 |
+| **pipx** | mcp-memory-service 설치 |
 
 ### Antigravity
 
@@ -380,7 +380,7 @@ Phase 9: 검증
 |------|------|
 | **Google Antigravity IDE** | 워크스페이스 열기 |
 | **Node.js 18+** | code-graph-rag MCP |
-| **pipx** | memorygraph 설치 |
+| **pipx** | mcp-memory-service 설치 |
 
 ---
 

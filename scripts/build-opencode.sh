@@ -389,13 +389,69 @@ SCAFFOLDEOF
 chmod +x "$OPENCODE/scripts/scaffold-gsd.sh"
 echo "  [+] scaffold-gsd.sh"
 
-# Copy Python hook scripts (useful for plugins)
-for script in "$BOILERPLATE"/.claude/hooks/*.py; do
+# Copy ALL hook scripts (Python and Shell)
+echo "  Copying hook scripts..."
+HOOK_COUNT=0
+for script in "$BOILERPLATE"/.claude/hooks/*.py "$BOILERPLATE"/.claude/hooks/*.sh; do
     [ -f "$script" ] || continue
+    basename_script=$(basename "$script")
+    [[ "$basename_script" == _* ]] && continue
     cp "$script" "$OPENCODE/scripts/"
-    chmod +x "$OPENCODE/scripts/$(basename "$script")"
+    chmod +x "$OPENCODE/scripts/$basename_script"
+    HOOK_COUNT=$((HOOK_COUNT + 1))
 done
-echo "  [+] Copied Python scripts"
+echo "  [+] Copied ${HOOK_COUNT} hook scripts"
+
+# Copy utility
+if [ -f "$BOILERPLATE/.claude/hooks/_json_parse.sh" ]; then
+    cp "$BOILERPLATE/.claude/hooks/_json_parse.sh" "$OPENCODE/scripts/"
+fi
+
+# Convert hooks to TypeScript plugins using converter script
+echo "  Converting hooks to TypeScript plugins..."
+if python3 "$BOILERPLATE/scripts/convert-hooks-to-plugins.py" "$BOILERPLATE/.claude/hooks" "$OPENCODE/.opencode/plugins" 2>&1 | grep -v "^$"; then
+    echo "  [+] Plugins converted successfully"
+else
+    echo "  [WARN] Plugin conversion had issues, creating minimal templates"
+    # Fallback: create minimal templates
+    cat > "$OPENCODE/.opencode/plugins/bash-guard.ts" << 'EOF'
+import type { Plugin } from "@opencode-ai/plugin"
+export const BashGuardPlugin: Plugin = async () => ({
+  "tool.execute.before": async (input, output) => {
+    if (input.tool !== "bash") return
+    const cmd = output.args?.command || ""
+    if (/git\s+push\s+.*--force/.test(cmd)) throw new Error("Blocked: Use --force-with-lease")
+  },
+})
+EOF
+fi
+
+# Ensure package.json exists
+cat > "$OPENCODE/.opencode/package.json" << 'PKGEOF'
+{"name":"opencode-plugins","type":"module","dependencies":{"@opencode-ai/plugin":"latest"}}
+PKGEOF
+
+# Create migration guide
+cat > "$OPENCODE/.opencode/plugins/MIGRATION-GUIDE.md" << 'GUIDEEOF'
+# Hooks → Plugins Migration Guide
+
+| Claude Hook | OpenCode Event |
+|-------------|----------------|
+| PreToolUse | tool.execute.before |
+| PostToolUse | tool.execute.after |
+| SessionStart | session.created |
+| AfterResponse | session.idle |
+
+## Plugin Structure
+```typescript
+export const MyPlugin: Plugin = async ({ $ }) => ({
+  "tool.execute.before": async (input, output) => {
+    // Check input.tool and output.args
+  },
+})
+```
+GUIDEEOF
+echo "  [+] Created MIGRATION-GUIDE.md"
 
 # --- Phase 10: README ---
 echo ""
@@ -511,7 +567,7 @@ Pre-configured in `.mcp.json`:
 | Server | Purpose |
 |--------|---------|
 | `graph-code` | AST-based code analysis |
-| `memorygraph` | Persistent agent memory |
+| `memory` | Persistent agent memory (8 tools) |
 | `context7` | Library documentation |
 
 ## Migration from Claude Code

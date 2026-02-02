@@ -312,7 +312,7 @@ GitHub Copilot Workspace 또는 GitHub-hosted agents를 위한 설정 파일입�
 
 **주요 내용**:
 - graph-code MCP 도구 (19개)
-- memorygraph MCP 도구 (12개)
+- mcp-memory-service MCP 도구 (8개)
 - context7 MCP 도구 (2개)
 - 코드 스타일 규칙
 - 커밋 규칙

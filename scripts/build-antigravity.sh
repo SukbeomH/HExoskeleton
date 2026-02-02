@@ -229,7 +229,7 @@ Rules for the Get Shit Done methodology.
 
 ## MCP Tools Priority
 * Use code-graph-rag tools (query, analyze_code_impact) before reading files directly
-* Use memorygraph for persistent agent memory
+* Use mcp-memory-service for persistent agent memory
 * Use context7 for library documentation lookup
 
 ## Commit Protocol
@@ -269,7 +269,7 @@ if 'mcpServers' in mcp:
         ]
 
     # context7: keep if present (user needs API key)
-    # memorygraph: keep as is
+    # memory: keep as is
 
 # Remove non-standard fields
 mcp.pop('enable_tool_search', None)
@@ -378,13 +378,90 @@ SCAFFOLDEOF
 chmod +x "$ANTIGRAVITY/scripts/scaffold-gsd.sh"
 echo "  [+] scaffold-gsd.sh"
 
-# Copy hook scripts (may be useful)
-for script in "$BOILERPLATE"/.claude/hooks/*.py; do
+# Copy ALL hook scripts (Python and Shell)
+echo "  Copying hook scripts..."
+HOOK_COUNT=0
+for script in "$BOILERPLATE"/.claude/hooks/*.py "$BOILERPLATE"/.claude/hooks/*.sh; do
     [ -f "$script" ] || continue
+    basename_script=$(basename "$script")
+    # Skip _json_parse.sh (internal utility)
+    [[ "$basename_script" == _* ]] && continue
     cp "$script" "$ANTIGRAVITY/scripts/"
-    chmod +x "$ANTIGRAVITY/scripts/$(basename "$script")"
+    chmod +x "$ANTIGRAVITY/scripts/$basename_script"
+    HOOK_COUNT=$((HOOK_COUNT + 1))
 done
-echo "  [+] Copied Python hook scripts"
+echo "  [+] Copied ${HOOK_COUNT} hook scripts"
+
+# Copy _json_parse.sh as utility (required by shell hooks)
+if [ -f "$BOILERPLATE/.claude/hooks/_json_parse.sh" ]; then
+    cp "$BOILERPLATE/.claude/hooks/_json_parse.sh" "$ANTIGRAVITY/scripts/"
+    echo "  [+] Copied _json_parse.sh utility"
+fi
+
+# Create hooks migration guide
+cat > "$ANTIGRAVITY/scripts/HOOKS-MIGRATION.md" << 'HOOKGUIDEEOF'
+# Hooks Migration Guide for Antigravity
+
+Antigravity doesn't have direct hook equivalents like Claude Code.
+Instead, hooks functionality is achieved through **Rules**, **Workflows**, and **Settings**.
+
+## Hook Mapping
+
+| Original Hook | Antigravity Approach | Location |
+|---------------|---------------------|----------|
+| `bash-guard.py` | **Rules** (안전 규칙) + **Terminal Deny List** | `.agent/rules/safety.md` + Settings |
+| `file-protect.py` | **Rules** (파일 보호 규칙) | `.agent/rules/safety.md` |
+| `auto-format.sh` | **Workflow** 또는 에디터 설정 | `.agent/workflows/format.md` |
+| `session-start.sh` | **Planning Mode** 자동 컨텍스트 로드 | Agent Mode: Planning |
+| `post-turn-index.sh` | **MCP 서버** (graph-code) 자동 인덱싱 | `mcp-settings.json` |
+| `post-turn-verify.sh` | **Workflow** (`/quick-check`) | `.agent/workflows/quick-check.md` |
+| `pre-compact-save.sh` | **Workflow** (`/pause`) | `.agent/workflows/pause.md` |
+| `save-session-changes.sh` | **Planning Mode Artifacts** | 자동 아티팩트 저장 |
+| `save-transcript.sh` | **내장 기능** | Antigravity 자동 저장 |
+| `mcp-store-memory.sh` | **MCP 서버** (mcp-memory-service) | `mcp-settings.json` |
+| `stop-context-save.sh` | **Workflow** (`/handoff`) | `.agent/workflows/handoff.md` |
+| `track-modifications.sh` | **Git Integration** | 내장 기능 |
+
+## Antigravity Settings 권장 설정
+
+### Terminal Command Policy
+Settings > Agent > Terminal Command Auto Execution:
+- **Always Proceed** (권장): Rules가 안전장치 역할
+- Allow List: `ls`, `cat`, `git status`, `git log`, `uv sync`, `npm test`
+- Deny List: `rm -rf`, `git push --force`, `pip install`
+
+### Agent Mode
+- **Planning Mode** (권장): session-start.sh 역할 대체
+  - 자동으로 프로젝트 컨텍스트 로드
+  - Task Groups로 작업 구성
+  - Artifacts 생성 및 검토
+
+## 스크립트 직접 실행 (선택)
+
+일부 hooks는 스크립트로 유지하여 수동 실행 가능:
+
+```bash
+# 코드 인덱싱 (post-turn-index.sh 대체)
+# MCP graph-code 서버가 자동 처리
+
+# 포맷팅 (auto-format.sh)
+python scripts/auto-format.sh <file>
+
+# 안전 검사 (bash-guard.py)
+echo '{"tool_input":{"command":"git push --force"}}' | python scripts/bash-guard.py
+```
+
+## Rules에 반영된 Hook 기능
+
+### safety.md
+- bash-guard.py의 파괴적 명령 차단 규칙 반영
+- file-protect.py의 민감 파일 보호 규칙 반영
+
+### gsd-workflow.md
+- session-start.sh의 GSD 상태 로드 규칙 반영
+- post-turn-verify.sh의 검증 규칙 반영
+HOOKGUIDEEOF
+echo "  [+] Created HOOKS-MIGRATION.md guide"
 
 # --- Phase 8: README ---
 echo ""
@@ -501,7 +578,7 @@ Pre-configured in `mcp-settings.json`:
 | Server | Purpose |
 |--------|---------|
 | `graph-code` | AST-based code analysis (19 tools) |
-| `memorygraph` | Persistent agent memory (12 tools) |
+| `memory` | Persistent agent memory (8 tools) |
 | `context7` | Library documentation lookup |
 
 ### Setup Options

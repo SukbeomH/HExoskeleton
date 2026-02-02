@@ -12,6 +12,20 @@ LIMIT="${3:-5}"
 # memory 미설치 시 빈 출력
 command -v memory &>/dev/null || exit 0
 
+PROJECT_DIR="${CLAUDE_PROJECT_DIR:-.}"
+
+# .mcp.json에서 storage path 추출
+if [ -z "${MCP_MEMORY_SQLITE_PATH:-}" ] && [ -f "$PROJECT_DIR/.mcp.json" ]; then
+    MCP_MEMORY_SQLITE_PATH=$(python3 -c "
+import json
+with open('$PROJECT_DIR/.mcp.json') as f:
+    cfg = json.load(f)
+env = cfg.get('mcpServers',{}).get('memory',{}).get('env',{})
+print(env.get('MCP_MEMORY_SQLITE_PATH',''))
+" 2>/dev/null || true)
+    export MCP_MEMORY_SQLITE_PATH
+fi
+
 # CALL_MSG 생성 (mcp-memory-service: memory_search with semantic mode)
 CALL_MSG=$(python3 -c "
 import json, sys
@@ -35,7 +49,7 @@ INIT_MSG='{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersi
 INIT_NOTIFY='{"jsonrpc":"2.0","method":"notifications/initialized"}'
 
 RESPONSE=$(printf '%s\n%s\n%s\n' "$INIT_MSG" "$INIT_NOTIFY" "$CALL_MSG" \
-    | MCP_MEMORY_STORAGE_PATH="${MCP_MEMORY_STORAGE_PATH:-}" timeout 5 memory server 2>/dev/null \
+    | MCP_MEMORY_SQLITE_PATH="${MCP_MEMORY_SQLITE_PATH:-}" timeout 20 memory server 2>/dev/null \
     | grep -m1 '"id":2' || echo "")
 
 # 결과 파싱: mcp-memory-service 응답을 plain text로 출력
