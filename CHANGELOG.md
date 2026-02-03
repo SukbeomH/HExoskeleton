@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.7.1](https://github.com/SukbeomH/LLM_Bolierplate_Pack/compare/gsd-plugin-v1.7.0...gsd-plugin-v1.7.1) (2026-02-03)
+
+
+### Bug Fixes
+
+* **hooks:** 메모리 세션 락 race condition 수정 및 CI 빌드 호환성 확보 ([3f6bb5d](https://github.com/SukbeomH/LLM_Bolierplate_Pack/commit/3f6bb5d4e9ae836f95f6fc80f6d13ddaee34474d))
+* **hooks:** 메모리 세션 락 race condition 수정 및 CI 빌드 호환성 확보 ([31845c3](https://github.com/SukbeomH/LLM_Bolierplate_Pack/commit/31845c3d067657de92f08932cf730ea213440cc8))
+
 ## [1.7.0](https://github.com/SukbeomH/LLM_Bolierplate_Pack/compare/gsd-plugin-v1.6.0...gsd-plugin-v1.7.0) (2026-02-02)
 
 
