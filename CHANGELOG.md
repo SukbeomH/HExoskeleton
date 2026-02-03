@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.8.0](https://github.com/SukbeomH/LLM_Bolierplate_Pack/compare/gsd-plugin-v1.7.1...gsd-plugin-v1.8.0) (2026-02-03)
+
+
+### Features
+
+* Add E2E integration tests for the qlty CLI and introduce the Antigravity Agent guide. ([3559f51](https://github.com/SukbeomH/LLM_Bolierplate_Pack/commit/3559f518db5c78408eb1a594609286d5a795a5fd))
+* E2E 테스트 인프라 및 빌드 안정성 강화 ([4f0041b](https://github.com/SukbeomH/LLM_Bolierplate_Pack/commit/4f0041b34fb0d53e6bdbdb95947588be48cd0169))
+
+
+### Bug Fixes
+
+* **build:** Antigravity 워크플로우 생성 개선 및 CI 호환성 확보 ([0d2be67](https://github.com/SukbeomH/LLM_Bolierplate_Pack/commit/0d2be67c2d3fce31d06112f31fc371ae564ce9a8))
+* **build:** 삭제된 .agent/workflows/ 의존성 제거 및 manifest 키 수정 ([66675a6](https://github.com/SukbeomH/LLM_Bolierplate_Pack/commit/66675a6a0cf382d6083e236a3525b00700985f8c))
+
 ## [1.7.1](https://github.com/SukbeomH/LLM_Bolierplate_Pack/compare/gsd-plugin-v1.7.0...gsd-plugin-v1.7.1) (2026-02-03)
 
 
