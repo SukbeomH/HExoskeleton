@@ -7,6 +7,7 @@ on:
       # Source files (build outputs generated in CI)
       - '.claude/**'
       - '.agent/**'
+      - '.gsd/templates/**'
       - 'scripts/build-*.sh'
       - 'Makefile'
       - 'CLAUDE.md'
@@ -22,9 +23,9 @@ permissions:
 
 jobs:
   release-please:
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     outputs:
-      # Try both component-based and path-based output keys
       release_created: ${{ steps.release.outputs['gsd-plugin--release_created'] || steps.release.outputs['.--release_created'] || steps.release.outputs.release_created }}
       tag_name: ${{ steps.release.outputs['gsd-plugin--tag_name'] || steps.release.outputs['.--tag_name'] || steps.release.outputs.tag_name }}
       version: ${{ steps.release.outputs['gsd-plugin--version'] || steps.release.outputs['.--version'] || steps.release.outputs.version }}
@@ -44,103 +45,121 @@ jobs:
           echo "=== Resolved ==="
           echo "release_created: ${{ steps.release.outputs['gsd-plugin--release_created'] || steps.release.outputs['.--release_created'] || steps.release.outputs.release_created }}"
           echo "tag_name: ${{ steps.release.outputs['gsd-plugin--tag_name'] || steps.release.outputs['.--tag_name'] || steps.release.outputs.tag_name }}"
-          echo "version: ${{ steps.release.outputs['gsd-plugin--version'] || steps.release.outputs['.--version'] || steps.release.outputs.version }}"
 
-  build-and-upload:
+  # ── Build: 항상 실행 (master push, release, workflow_dispatch) ──
+  build:
+    if: always() && !cancelled()
     needs: release-please
-    if: |
-      needs.release-please.outputs.release_created == 'true' ||
-      github.event_name == 'release' ||
-      github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
     steps:
-      - name: Get release info
-        id: release-info
+      - uses: actions/checkout@v4
+
+      - name: Resolve version
+        id: version
         run: |
-          if [ "${{ github.event_name }}" = "release" ]; then
+          # release-please가 릴리즈를 만들었으면 해당 버전 사용
+          RP_VERSION="${{ needs.release-please.outputs.version }}"
+          if [ -n "$RP_VERSION" ]; then
+            echo "version=$RP_VERSION" >> $GITHUB_OUTPUT
+            echo "Resolved from release-please: $RP_VERSION"
+          elif [ "${{ github.event_name }}" = "release" ]; then
             TAG="${{ github.event.release.tag_name }}"
             VERSION=$(echo "$TAG" | sed 's/gsd-plugin-v//')
+            echo "version=$VERSION" >> $GITHUB_OUTPUT
+            echo "Resolved from release event: $VERSION"
           elif [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            # Get latest release tag
-            TAG=$(gh release view --repo "${{ github.repository }}" --json tagName -q .tagName)
+            TAG=$(gh release view --repo "${{ github.repository }}" --json tagName -q .tagName 2>/dev/null || echo "")
             VERSION=$(echo "$TAG" | sed 's/gsd-plugin-v//')
+            echo "version=${VERSION:-dev}" >> $GITHUB_OUTPUT
+            echo "Resolved from latest release: ${VERSION:-dev}"
           else
-            TAG="${{ needs.release-please.outputs.tag_name }}"
-            VERSION="${{ needs.release-please.outputs.version }}"
+            # manifest에서 현재 버전 읽기
+            VERSION=$(python3 -c "import json; print(json.load(open('.release-please-manifest.json'))['.']+'-dev')")
+            echo "version=$VERSION" >> $GITHUB_OUTPUT
+            echo "Resolved from manifest: $VERSION"
           fi
-          echo "tag=$TAG" >> $GITHUB_OUTPUT
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "Resolved: tag=$TAG version=$VERSION"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ steps.release-info.outputs.tag }}
 
       - name: Build artifacts
         run: make build
 
-      - name: Create Plugin ZIP
+      - name: Create ZIPs
         run: |
-          cd gsd-plugin
-          zip -r ../gsd-plugin-${{ steps.release-info.outputs.version }}.zip . \
-            -x ".git/*" \
-            -x "__pycache__/*" \
-            -x "*.pyc" \
-            -x ".pytest_cache/*" \
-            -x "node_modules/*" \
-            -x ".env" \
-            -x ".venv/*" \
-            -x "*.log" \
-            -x ".DS_Store"
+          VERSION="${{ steps.version.outputs.version }}"
+          for dir in gsd-plugin antigravity-boilerplate opencode-boilerplate; do
+            (cd "$dir" && zip -r "../${dir}-${VERSION}.zip" . \
+              -x ".git/*" "__pycache__/*" "*.pyc" ".pytest_cache/*" \
+                 "node_modules/*" ".env" ".venv/*" "*.log" ".DS_Store")
+          done
 
-      - name: Create Antigravity ZIP
-        run: |
-          cd antigravity-boilerplate
-          zip -r ../antigravity-boilerplate-${{ steps.release-info.outputs.version }}.zip . \
-            -x ".git/*" \
-            -x "__pycache__/*" \
-            -x "*.pyc" \
-            -x ".pytest_cache/*" \
-            -x "node_modules/*" \
-            -x ".env" \
-            -x ".venv/*" \
-            -x "*.log" \
-            -x ".DS_Store"
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-${{ steps.version.outputs.version }}
+          path: |
+            gsd-plugin-${{ steps.version.outputs.version }}.zip
+            antigravity-boilerplate-${{ steps.version.outputs.version }}.zip
+            opencode-boilerplate-${{ steps.version.outputs.version }}.zip
+          retention-days: 7
 
-      - name: Create OpenCode ZIP
+      - name: Build Summary
         run: |
-          cd opencode-boilerplate
-          zip -r ../opencode-boilerplate-${{ steps.release-info.outputs.version }}.zip . \
-            -x ".git/*" \
-            -x "__pycache__/*" \
-            -x "*.pyc" \
-            -x ".pytest_cache/*" \
-            -x "node_modules/*" \
-            -x ".env" \
-            -x ".venv/*" \
-            -x "*.log" \
-            -x ".DS_Store"
+          VERSION="${{ steps.version.outputs.version }}"
+          echo "## Build Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Version**: ${VERSION}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Trigger**: ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Artifacts**:" >> $GITHUB_STEP_SUMMARY
+          for dir in gsd-plugin antigravity-boilerplate opencode-boilerplate; do
+            echo "  - ${dir}-${VERSION}.zip" >> $GITHUB_STEP_SUMMARY
+          done
+
+  # ── Upload: 릴리즈가 존재할 때만 에셋 첨부 ──
+  upload:
+    needs: [release-please, build]
+    if: |
+      always() && !cancelled() &&
+      needs.build.result == 'success' &&
+      (
+        needs.release-please.outputs.release_created == 'true' ||
+        github.event_name == 'release' ||
+        github.event_name == 'workflow_dispatch'
+      )
+    runs-on: ubuntu-latest
+    steps:
+      - name: Resolve tag
+        id: tag
+        run: |
+          if [ "${{ github.event_name }}" = "release" ]; then
+            echo "tag=${{ github.event.release.tag_name }}" >> $GITHUB_OUTPUT
+          elif [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            TAG=$(gh release view --repo "${{ github.repository }}" --json tagName -q .tagName)
+            echo "tag=$TAG" >> $GITHUB_OUTPUT
+          else
+            echo "tag=${{ needs.release-please.outputs.tag_name }}" >> $GITHUB_OUTPUT
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-${{ needs.build.outputs.version }}
 
       - name: Upload Release Assets
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ steps.release-info.outputs.tag }}
-          files: |
-            gsd-plugin-${{ steps.release-info.outputs.version }}.zip
-            antigravity-boilerplate-${{ steps.release-info.outputs.version }}.zip
-            opencode-boilerplate-${{ steps.release-info.outputs.version }}.zip
+          tag_name: ${{ steps.tag.outputs.tag }}
+          files: "*.zip"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Summary
+      - name: Release Summary
         run: |
-          echo "## Release Summary" >> $GITHUB_STEP_SUMMARY
+          echo "## Release Upload Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "- **Version**: ${{ steps.release-info.outputs.version }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Tag**: ${{ steps.release-info.outputs.tag }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Assets**:" >> $GITHUB_STEP_SUMMARY
-          echo "  - gsd-plugin-${{ steps.release-info.outputs.version }}.zip" >> $GITHUB_STEP_SUMMARY
-          echo "  - antigravity-boilerplate-${{ steps.release-info.outputs.version }}.zip" >> $GITHUB_STEP_SUMMARY
-          echo "  - opencode-boilerplate-${{ steps.release-info.outputs.version }}.zip" >> $GITHUB_STEP_SUMMARY
+          echo "- **Tag**: ${{ steps.tag.outputs.tag }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Assets uploaded**: $(ls *.zip | wc -l) files" >> $GITHUB_STEP_SUMMARY

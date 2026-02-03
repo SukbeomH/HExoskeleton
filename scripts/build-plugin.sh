@@ -25,7 +25,7 @@ mkdir -p "$PLUGIN"/references/issue-templates
 VERSION="1.0.0"
 MANIFEST="${BOILERPLATE}/.release-please-manifest.json"
 if [ -f "$MANIFEST" ]; then
-    VERSION=$(python3 -c "import json; print(json.load(open('$MANIFEST')).get('gsd-plugin', '1.0.0'))")
+    VERSION=$(python3 -c "import json; m=json.load(open('$MANIFEST')); print(m.get('.', m.get('gsd-plugin', '1.0.0')))")
 fi
 
 # Create plugin.json manifest (minimal - default directories auto-discovered)
@@ -41,9 +41,44 @@ echo "  [+] plugin.json created (version: ${VERSION})"
 # --- Phase 2: Commands (Workflows) ---
 echo ""
 echo "[Phase 2] Copying commands (workflows)..."
-cp "$BOILERPLATE"/.agent/workflows/*.md "$PLUGIN/commands/"
-COMMANDS_COUNT=$(ls "$PLUGIN/commands/"*.md 2>/dev/null | wc -l | tr -d ' ')
-echo "  [+] Copied ${COMMANDS_COUNT} workflow commands"
+COMMANDS_COUNT=0
+if [ -d "$BOILERPLATE/.agent/workflows" ]; then
+    cp "$BOILERPLATE"/.agent/workflows/*.md "$PLUGIN/commands/" 2>/dev/null || true
+    COMMANDS_COUNT=$(ls "$PLUGIN/commands/"*.md 2>/dev/null | wc -l | tr -d ' ')
+    echo "  [+] Copied ${COMMANDS_COUNT} workflow commands"
+else
+    echo "  [SKIP] .agent/workflows/ not found — generating from skills"
+    # Generate command stubs from skills (each skill becomes a /gsd:command)
+    for skill_dir in "$BOILERPLATE"/.claude/skills/*/; do
+        skill_name=$(basename "$skill_dir")
+        skill_file="$skill_dir/SKILL.md"
+        [ -f "$skill_file" ] || continue
+
+        # Extract description from SKILL.md frontmatter
+        desc=$(sed -n '/^---/,/^---/p' "$skill_file" | tr -d '\r' | grep "^description:" | sed 's/description: *//' | tr -d '"')
+        [ -z "$desc" ] && desc="Run ${skill_name} skill"
+
+        cat > "$PLUGIN/commands/${skill_name}.md" << CMDEOF
+---
+description: ${desc}
+allowed-tools:
+  - Read
+  - Write
+  - Bash
+  - Glob
+  - Grep
+---
+
+# /gsd:${skill_name}
+
+${desc}
+
+Invoke the **${skill_name}** skill. See \`skills/${skill_name}/SKILL.md\` for detailed instructions.
+CMDEOF
+    done
+    COMMANDS_COUNT=$(ls "$PLUGIN/commands/"*.md 2>/dev/null | wc -l | tr -d ' ')
+    echo "  [+] Generated ${COMMANDS_COUNT} commands from skills"
+fi
 
 # Create init.md (new scaffolding command)
 cat > "$PLUGIN/commands/init.md" << 'INITEOF'
@@ -684,8 +719,8 @@ agent_count=$(ls "$PLUGIN/agents/"*.md 2>/dev/null | wc -l | tr -d ' ')
 script_count=$(find "$PLUGIN/scripts" -type f \( -name "*.sh" -o -name "*.py" \) | wc -l | tr -d ' ')
 template_count=$(ls "$PLUGIN/templates/gsd/templates/"*.md 2>/dev/null | wc -l | tr -d ' ')
 
-echo "  Commands:  ${cmd_count} (expected: 31)"
-[ "$cmd_count" -ge 31 ] || { echo "    [WARN] Expected 31 commands"; }
+echo "  Commands:  ${cmd_count}"
+[ "$cmd_count" -ge 1 ] || { echo "    [WARN] No commands found"; }
 
 echo "  Skills:    ${skill_count} (expected: 15)"
 [ "$skill_count" -ge 15 ] || { echo "    [WARN] Expected 15 skills"; }

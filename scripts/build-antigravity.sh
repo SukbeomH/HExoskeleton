@@ -73,16 +73,12 @@ for skill_dir in "$BOILERPLATE"/.claude/skills/*/; do
 
     # Inject model into SKILL.md frontmatter if not already present
     if [ -f "$target_dir/SKILL.md" ] && [ -n "$model_line" ]; then
-        # Check if model already exists in SKILL.md
         if ! tr -d '\r' < "$target_dir/SKILL.md" | grep -q "^model:"; then
-            # Insert model after description line
             if tr -d '\r' < "$target_dir/SKILL.md" | grep -q "^description:"; then
-                # Use sed to insert after description line
-                sed -i '' "/^description:/a\\
-$model_line
-" "$target_dir/SKILL.md" 2>/dev/null || \
-                # Fallback for GNU sed
-                sed -i "/^description:/a $model_line" "$target_dir/SKILL.md" 2>/dev/null || true
+                # Portable sed: write to temp file (works on both macOS and Linux)
+                tmp_file="${target_dir}/SKILL.md.tmp"
+                awk -v ml="$model_line" '/^description:/{print; print ml; next}1' "$target_dir/SKILL.md" > "$tmp_file"
+                mv "$tmp_file" "$target_dir/SKILL.md"
             fi
         fi
     fi
@@ -106,38 +102,150 @@ echo "  [=] Total skills: ${SKILLS_COUNT}"
 
 # --- Phase 3: Workflows ---
 echo ""
-echo "[Phase 3] Copying workflows..."
+echo "[Phase 3] Generating workflows..."
 
-# Workflows need description in frontmatter for Antigravity
-for workflow in "$BOILERPLATE"/.agent/workflows/*.md; do
-    [ -f "$workflow" ] || continue
-    filename=$(basename "$workflow")
-    target="$ANTIGRAVITY/.agent/workflows/${filename}"
+WORKFLOWS_COUNT=0
+if [ -d "$BOILERPLATE/.agent/workflows" ]; then
+    # Legacy workflows exist — copy with description enforcement
+    for workflow in "$BOILERPLATE"/.agent/workflows/*.md; do
+        [ -f "$workflow" ] || continue
+        filename=$(basename "$workflow")
+        target="$ANTIGRAVITY/.agent/workflows/${filename}"
 
-    # Check if workflow has description in frontmatter (handle CRLF)
-    if tr -d '\r' < "$workflow" | grep -q "^description:"; then
-        cp "$workflow" "$target"
-        echo "  [+] ${filename}"
-    else
-        # Add description frontmatter based on filename
-        workflow_name="${filename%.md}"
-        desc="Workflow for ${workflow_name//-/ }"
-
-        # Check if file has frontmatter (handle CRLF)
-        if head -1 "$workflow" | tr -d '\r' | grep -q "^---$"; then
-            # Insert description after first ---
-            awk 'NR==1{print; print "description: \"'"$desc"'\""; next}1' "$workflow" > "$target"
+        if tr -d '\r' < "$workflow" | grep -q "^description:"; then
+            cp "$workflow" "$target"
+            echo "  [+] ${filename}"
         else
-            # Add new frontmatter
-            echo "---" > "$target"
-            echo "description: \"${desc}\"" >> "$target"
-            echo "---" >> "$target"
-            echo "" >> "$target"
-            cat "$workflow" >> "$target"
+            workflow_name="${filename%.md}"
+            desc="Workflow for ${workflow_name//-/ }"
+            if head -1 "$workflow" | tr -d '\r' | grep -q "^---$"; then
+                awk 'NR==1{print; print "description: \"'"$desc"'\""; next}1' "$workflow" > "$target"
+            else
+                { echo "---"; echo "description: \"${desc}\""; echo "---"; echo ""; cat "$workflow"; } > "$target"
+            fi
+            echo "  [+] ${filename} (added description)"
         fi
-        echo "  [+] ${filename} (added description)"
-    fi
-done
+    done
+else
+    # Generate workflows from SKILL.md content
+    # Antigravity workflows: step-by-step procedures invoked via /workflow-name
+    python3 - "$BOILERPLATE" "$ANTIGRAVITY" << 'PYEOF'
+import sys, os, re, textwrap
+
+boilerplate = sys.argv[1]
+antigravity = sys.argv[2]
+skills_dir = os.path.join(boilerplate, '.claude', 'skills')
+wf_dir = os.path.join(antigravity, '.agent', 'workflows')
+
+def extract_frontmatter(content):
+    """Extract YAML frontmatter fields."""
+    fm = {}
+    m = re.match(r'^---\s*\n(.*?)\n---', content, re.DOTALL)
+    if m:
+        for line in m.group(1).splitlines():
+            if ':' in line:
+                key, val = line.split(':', 1)
+                fm[key.strip()] = val.strip().strip('"').strip("'")
+    return fm
+
+def extract_body(content):
+    """Extract body after frontmatter."""
+    m = re.match(r'^---\s*\n.*?\n---\s*\n', content, re.DOTALL)
+    return content[m.end():] if m else content
+
+def extract_steps(body):
+    """Extract step sections (## Step N or ### Step N patterns)."""
+    steps = []
+    # Find numbered step headers
+    pattern = r'(?:^#{2,3}\s+(?:Step\s+\d+|단계\s+\d+)[:\s]*(.*?)$)'
+    matches = list(re.finditer(pattern, body, re.MULTILINE | re.IGNORECASE))
+
+    if matches:
+        for i, match in enumerate(matches):
+            start = match.start()
+            end = matches[i+1].start() if i+1 < len(matches) else len(body)
+            section = body[start:end].strip()
+            # Truncate long sections
+            lines = section.splitlines()
+            if len(lines) > 25:
+                section = '\n'.join(lines[:25]) + '\n...'
+            steps.append(section)
+
+    return steps
+
+def extract_workflow_section(body):
+    """Extract ## Workflow or ## Execution Flow section."""
+    pattern = r'(^#{2}\s+(?:Workflow|Execution Flow|Verification Process|Search Protocol|Debug Flow|Review Process|Core Process).*?)(?=\n#{1,2}\s|\Z)'
+    m = re.search(pattern, body, re.MULTILINE | re.DOTALL | re.IGNORECASE)
+    if m:
+        section = m.group(1).strip()
+        lines = section.splitlines()
+        if len(lines) > 60:
+            section = '\n'.join(lines[:60]) + '\n...'
+        return section
+    return None
+
+for skill_name in sorted(os.listdir(skills_dir)):
+    skill_file = os.path.join(skills_dir, skill_name, 'SKILL.md')
+    if not os.path.isfile(skill_file):
+        continue
+
+    with open(skill_file, 'r') as f:
+        content = f.read()
+
+    fm = extract_frontmatter(content)
+    body = extract_body(content)
+    desc = fm.get('description', f'Workflow for {skill_name.replace("-", " ")}')
+
+    # Try to extract procedural content
+    workflow_section = extract_workflow_section(body)
+    steps = extract_steps(body)
+
+    # Build workflow content
+    wf_lines = [
+        '---',
+        f'description: "{desc}"',
+        '---',
+        '',
+        f'# /{skill_name}',
+        '',
+        desc,
+        '',
+    ]
+
+    if workflow_section:
+        wf_lines.append(workflow_section)
+        wf_lines.append('')
+    elif steps:
+        wf_lines.append('## Steps')
+        wf_lines.append('')
+        for step in steps:
+            wf_lines.append(step)
+            wf_lines.append('')
+    else:
+        # Fallback: extract all ## sections as workflow outline
+        sections = re.findall(r'^(#{2}\s+.+)$', body, re.MULTILINE)
+        if sections:
+            wf_lines.append('## Procedure')
+            wf_lines.append('')
+            for i, sec in enumerate(sections[:10], 1):
+                heading = sec.lstrip('#').strip()
+                wf_lines.append(f'{i}. {heading}')
+            wf_lines.append('')
+
+    # Enforce Antigravity 12,000 char limit
+    wf_content = '\n'.join(wf_lines)
+    if len(wf_content) > 11500:
+        wf_content = wf_content[:11500] + '\n\n> *Truncated for 12,000 char limit*\n'
+
+    wf_path = os.path.join(wf_dir, f'{skill_name}.md')
+    with open(wf_path, 'w') as f:
+        f.write(wf_content)
+
+    print(f'  [+] {skill_name}.md ({len(wf_content)} chars)')
+PYEOF
+fi
+
 WORKFLOWS_COUNT=$(ls "$ANTIGRAVITY/.agent/workflows/"*.md 2>/dev/null | wc -l | tr -d ' ')
 echo "  [=] Total workflows: ${WORKFLOWS_COUNT}"
 
@@ -663,11 +771,34 @@ rules_count=$(ls "$ANTIGRAVITY/.agent/rules/"*.md 2>/dev/null | wc -l | tr -d ' 
 echo "  Skills:    ${skill_count} (expected: 15)"
 [ "$skill_count" -ge 14 ] || echo "    [WARN] Low skill count"
 
-echo "  Workflows: ${workflow_count} (expected: 30)"
-[ "$workflow_count" -ge 29 ] || echo "    [WARN] Low workflow count"
+echo "  Workflows: ${workflow_count}"
+[ "$workflow_count" -ge 1 ] || echo "    [WARN] No workflows found"
 
 echo "  Rules:     ${rules_count} (expected: 3)"
 [ "$rules_count" -ge 3 ] || echo "    [WARN] Missing rules"
+
+# Workflow quality check
+echo ""
+echo "[Workflow Quality]"
+wf_too_short=0
+wf_no_desc=0
+for wf in "$ANTIGRAVITY/.agent/workflows/"*.md; do
+    [ -f "$wf" ] || continue
+    wf_name=$(basename "$wf")
+    char_count=$(wc -c < "$wf" | tr -d ' ')
+    if [ "$char_count" -gt 12000 ]; then
+        echo "  [WARN] ${wf_name}: exceeds 12,000 char limit (${char_count})"
+    fi
+    if [ "$char_count" -lt 100 ]; then
+        echo "  [WARN] ${wf_name}: too short (${char_count} chars)"
+        wf_too_short=$((wf_too_short + 1))
+    fi
+    if ! grep -q "^description:" "$wf" 2>/dev/null; then
+        echo "  [WARN] ${wf_name}: missing description"
+        wf_no_desc=$((wf_no_desc + 1))
+    fi
+done
+[ "$wf_too_short" -eq 0 ] && [ "$wf_no_desc" -eq 0 ] && echo "  [OK] All workflows have description and substantive content"
 
 # Skill description check
 echo ""

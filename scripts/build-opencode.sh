@@ -151,37 +151,57 @@ echo "  [=] Total skills: ${SKILLS_COUNT}"
 echo ""
 echo "[Phase 4] Copying commands (workflows)..."
 
-for workflow in "$BOILERPLATE"/.agent/workflows/*.md; do
-    [ -f "$workflow" ] || continue
-    filename=$(basename "$workflow")
-    target="$OPENCODE/.opencode/commands/${filename}"
+COMMANDS_COUNT=0
+if [ -d "$BOILERPLATE/.agent/workflows" ]; then
+    for workflow in "$BOILERPLATE"/.agent/workflows/*.md; do
+        [ -f "$workflow" ] || continue
+        filename=$(basename "$workflow")
+        target="$OPENCODE/.opencode/commands/${filename}"
 
-    # Check if workflow has description in frontmatter
-    if grep -q "^description:" "$workflow" 2>/dev/null; then
-        cp "$workflow" "$target"
-    else
-        # Add description frontmatter based on filename
-        workflow_name="${filename%.md}"
-        desc="Workflow for ${workflow_name//-/ }"
-
-        if head -1 "$workflow" | grep -q "^---"; then
-            # Insert description after first ---
-            awk 'NR==1{print; print "description: \"'"$desc"'\""; next}1' "$workflow" > "$target"
+        if grep -q "^description:" "$workflow" 2>/dev/null; then
+            cp "$workflow" "$target"
         else
-            # Add new frontmatter
-            {
-                echo "---"
-                echo "description: \"${desc}\""
-                echo "---"
-                echo ""
-                cat "$workflow"
-            } > "$target"
-        fi
-    fi
-done
+            workflow_name="${filename%.md}"
+            desc="Workflow for ${workflow_name//-/ }"
 
-COMMANDS_COUNT=$(ls "$OPENCODE/.opencode/commands/"*.md 2>/dev/null | wc -l | tr -d ' ')
-echo "  [+] Copied ${COMMANDS_COUNT} workflow commands"
+            if head -1 "$workflow" | grep -q "^---"; then
+                awk 'NR==1{print; print "description: \"'"$desc"'\""; next}1' "$workflow" > "$target"
+            else
+                {
+                    echo "---"
+                    echo "description: \"${desc}\""
+                    echo "---"
+                    echo ""
+                    cat "$workflow"
+                } > "$target"
+            fi
+        fi
+    done
+    COMMANDS_COUNT=$(ls "$OPENCODE/.opencode/commands/"*.md 2>/dev/null | wc -l | tr -d ' ')
+    echo "  [+] Copied ${COMMANDS_COUNT} workflow commands"
+else
+    echo "  [SKIP] .agent/workflows/ not found — generating from skills"
+    for skill_dir in "$BOILERPLATE"/.claude/skills/*/; do
+        skill_name=$(basename "$skill_dir")
+        skill_file="$skill_dir/SKILL.md"
+        [ -f "$skill_file" ] || continue
+        desc=$(sed -n '/^---/,/^---/p' "$skill_file" | tr -d '\r' | grep "^description:" | sed 's/description: *//' | tr -d '"')
+        [ -z "$desc" ] && desc="Command for ${skill_name//-/ }"
+        cat > "$OPENCODE/.opencode/commands/${skill_name}.md" << CMDEOF
+---
+description: "${desc}"
+---
+
+# ${skill_name}
+
+${desc}
+
+Invoke the **${skill_name}** skill.
+CMDEOF
+    done
+    COMMANDS_COUNT=$(ls "$OPENCODE/.opencode/commands/"*.md 2>/dev/null | wc -l | tr -d ' ')
+    echo "  [+] Generated ${COMMANDS_COUNT} commands from skills"
+fi
 
 # --- Phase 5: OpenCode Config (opencode.json) ---
 echo ""
@@ -621,8 +641,8 @@ skill_count=$(ls -d "$OPENCODE/.opencode/skill"/*/ 2>/dev/null | wc -l | tr -d '
 echo "  Agents:   ${agent_count} (expected: 13)"
 [ "$agent_count" -ge 12 ] || echo "    [WARN] Low agent count"
 
-echo "  Commands: ${command_count} (expected: 30)"
-[ "$command_count" -ge 29 ] || echo "    [WARN] Low command count"
+echo "  Commands: ${command_count}"
+[ "$command_count" -ge 1 ] || echo "    [WARN] No commands found"
 
 echo "  Skills:   ${skill_count} (expected: 15)"
 [ "$skill_count" -ge 14 ] || echo "    [WARN] Low skill count"
