@@ -518,182 +518,219 @@ echo "  [+] Created scaffold-infra.sh"
 # --- Phase 6c: README ---
 echo ""
 echo "[Phase 6c] Creating README.md..."
-cat > "$PLUGIN/README.md" << 'READMEEOF'
-# GSD Plugin for Claude Code
+# Generate README dynamically from actual build output
+python3 - "$PLUGIN" << 'READMEPY'
+import json, os, re, sys
 
-**Get Shit Done** - AI agent development methodology with code-graph-rag and memory-graph integration.
+plugin_dir = sys.argv[1]
+
+# Read version
+with open(os.path.join(plugin_dir, ".claude-plugin", "plugin.json")) as f:
+    version = json.load(f).get("version", "0.0.0")
+
+# Collect commands with descriptions
+commands = []
+cmd_dir = os.path.join(plugin_dir, "commands")
+if os.path.isdir(cmd_dir):
+    for f in sorted(os.listdir(cmd_dir)):
+        if not f.endswith(".md"):
+            continue
+        name = f[:-3]
+        desc = ""
+        with open(os.path.join(cmd_dir, f)) as fh:
+            in_front = False
+            for line in fh:
+                if line.strip() == "---":
+                    in_front = not in_front
+                    continue
+                if in_front and line.startswith("description:"):
+                    desc = line.split(":", 1)[1].strip().strip('"')
+                    break
+        commands.append((name, desc))
+
+# Collect skills
+skills = []
+skill_dir = os.path.join(plugin_dir, "skills")
+if os.path.isdir(skill_dir):
+    for d in sorted(os.listdir(skill_dir)):
+        skill_md = os.path.join(skill_dir, d, "SKILL.md")
+        if not os.path.isfile(skill_md):
+            continue
+        desc = ""
+        with open(skill_md) as fh:
+            in_front = False
+            for line in fh:
+                if line.strip() == "---":
+                    in_front = not in_front
+                    continue
+                if in_front and line.startswith("description:"):
+                    desc = line.split(":", 1)[1].strip().strip('"')
+                    break
+        skills.append((d, desc or f"Run {d} skill"))
+
+# Collect agents
+agents = []
+agent_dir = os.path.join(plugin_dir, "agents")
+if os.path.isdir(agent_dir):
+    for f in sorted(os.listdir(agent_dir)):
+        if not f.endswith(".md"):
+            continue
+        name = f[:-3]
+        desc = ""
+        with open(os.path.join(agent_dir, f)) as fh:
+            in_front = False
+            for line in fh:
+                if line.strip() == "---":
+                    in_front = not in_front
+                    continue
+                if in_front and line.startswith("description:"):
+                    desc = line.split(":", 1)[1].strip().strip('"')
+                    break
+        agents.append((name, desc or f"{name} agent"))
+
+# Build README
+readme = f"""# GSD Plugin for Claude Code
+
+**Get Shit Done** v{version} — AI agent development methodology with code-graph-rag and memory-graph integration.
 
 ## Installation
 
 ```bash
-# Clone or copy gsd-plugin to your plugins directory
+# Use with --plugin-dir flag
 claude --plugin-dir /path/to/gsd-plugin
 
-# Or install globally
-cp -r gsd-plugin ~/.claude/plugins/gsd
+# Or set a shell alias for convenience (~/.zshrc or ~/.bashrc)
+alias claude='claude --plugin-dir /path/to/gsd-plugin'
+```
+
+### Per-Project Memory Isolation
+
+The plugin uses `${{CLAUDE_PROJECT_DIR}}` for all paths, so each project gets its own:
+- Memory DB: `.agent/data/memory-service/memories.db`
+- Code index: per-project AST graph
+
+Create the memory directory in your project:
+```bash
+mkdir -p .agent/data/memory-service
 ```
 
 ## Prerequisites
 
-- **Claude Code** CLI installed
-- **Node.js** 18+ (for code-graph-rag MCP server)
-- **Python** 3.11+ (for hook scripts)
-- **uv** package manager (recommended)
+- **Claude Code** CLI
+- **Node.js** 18+ (code-graph-rag MCP server)
+- **Python** 3.11+ (hook scripts)
 
-### MCP Servers (Optional but Recommended)
+### MCP Servers
 
-```bash
-# code-graph-rag - AST-based code analysis
-npm install -g @er77/code-graph-rag-mcp
-
-# mcp-memory-service - Agent memory persistence
-pipx install mcp-memory-service
-```
-
-### Environment Variables
-
-플러그인의 MCP 서버가 정상 작동하려면 다음 환경변수가 필요합니다:
-
-| 변수 | 용도 | 필수 |
-|------|------|------|
-| `CONTEXT7_API_KEY` | Context7 MCP (라이브러리 문서 조회) | 선택* |
-
-> *context7을 사용하려면 프로젝트 `.mcp.json`에 직접 추가해야 합니다 (플러그인 빌드에서 제외됨)
-
-**설정 방법:**
-
-```bash
-# ~/.zshrc 또는 ~/.bashrc
-export CONTEXT7_API_KEY="your-api-key"
-
-# 또는 direnv 사용
-echo 'export CONTEXT7_API_KEY="your-api-key"' >> .envrc
-direnv allow
-```
-
-**API 키 발급:** https://context7.com
+| Server | Install | Role |
+|--------|---------|------|
+| code-graph-rag | `npm i -g @er77/code-graph-rag-mcp` | AST-based code analysis (19 tools) |
+| mcp-memory-service | `pipx install mcp-memory-service` | Agent memory persistence |
+| context7 *(optional)* | Project `.mcp.json`에 직접 추가 | Library documentation lookup |
 
 ## Quick Start
 
 ```bash
-# Initialize GSD in your project
-/gsd:init
-
-# View all available commands
-/gsd:help
-
-# Start planning
-/gsd:plan
+/gsd:init          # Initialize GSD documents
+/gsd:bootstrap     # Full project setup
+/gsd:planner       # Create implementation plan
+/gsd:executor      # Execute planned work
+/gsd:verifier      # Verify completed work
 ```
 
-## Commands
+## Commands ({len(commands)})
 
 | Command | Description |
 |---------|-------------|
-| `/gsd:init` | Initialize GSD documents and compare infrastructure |
-| `/gsd:help` | List all available commands |
-| `/gsd:plan` | Create implementation plan |
-| `/gsd:execute` | Execute planned work |
-| `/gsd:verify` | Verify completed work |
-| `/gsd:debug` | Systematic debugging workflow |
-| `/gsd:map` | Map codebase structure |
-| `/gsd:progress` | Show current progress |
-| `/gsd:resume` | Resume paused work |
-| `/gsd:pause` | Pause and save state |
-| `/gsd:handoff` | Create handoff document |
-| `/gsd:new-project` | Start new project |
-| `/gsd:new-milestone` | Create new milestone |
-| `/gsd:complete-milestone` | Mark milestone complete |
-| `/gsd:add-phase` | Add execution phase |
-| `/gsd:insert-phase` | Insert phase at position |
-| `/gsd:remove-phase` | Remove a phase |
-| `/gsd:add-todo` | Add TODO item |
-| `/gsd:check-todos` | Review TODO items |
-| `/gsd:feature-dev` | Feature development workflow |
-| `/gsd:bug-fix` | Bug fix workflow |
-| `/gsd:research-phase` | Research and discovery |
-| `/gsd:discuss-phase` | Discuss phase details |
-| `/gsd:list-phase-assumptions` | List phase assumptions |
-| `/gsd:audit-milestone` | Audit milestone progress |
-| `/gsd:plan-milestone-gaps` | Identify milestone gaps |
-| `/gsd:quick-check` | Quick status check |
-| `/gsd:update` | Update GSD documents |
-| `/gsd:web-search` | Web search for solutions |
-| `/gsd:whats-new` | Show recent changes |
-| `/gsd:bootstrap` | Full project bootstrap |
+"""
 
-## Skills
+for name, desc in commands:
+    readme += f"| `/gsd:{name}` | {desc} |\n"
+
+readme += f"""
+## Skills ({len(skills)})
 
 | Skill | Description |
 |-------|-------------|
-| `commit` | Atomic commits with conventional format |
-| `create-pr` | Create pull requests |
-| `pr-review` | Multi-persona code review |
-| `clean` | Run code quality tools |
-| `planner` | Create executable plans |
-| `plan-checker` | Validate plans |
-| `executor` | Execute plans |
-| `verifier` | Verify work against spec |
-| `debugger` | Systematic debugging |
-| `impact-analysis` | Analyze change impact |
-| `arch-review` | Architecture review |
-| `codebase-mapper` | Map codebase structure |
-| `context-health-monitor` | Monitor context complexity |
-| `empirical-validation` | Require proof for completion |
-| `bootstrap` | Initial project setup |
+"""
 
-## Agents
+for name, desc in skills:
+    readme += f"| `{name}` | {desc} |\n"
+
+readme += f"""
+## Agents ({len(agents)})
 
 | Agent | Description |
 |-------|-------------|
-| `planner` | Planning agent |
-| `plan-checker` | Plan validation agent |
-| `executor` | Execution agent |
-| `verifier` | Verification agent |
-| `debugger` | Debugging agent |
-| `clean` | Code quality agent |
-| `commit` | Commit creation agent |
-| `create-pr` | PR creation agent |
-| `pr-review` | PR review agent |
-| `impact-analysis` | Impact analysis agent |
-| `arch-review` | Architecture review agent |
-| `codebase-mapper` | Codebase mapping agent |
-| `context-health-monitor` | Context monitoring agent |
+"""
 
+for name, desc in agents:
+    readme += f"| `{name}` | {desc} |\n"
+
+readme += """
 ## GSD Document Structure
 
-After `/gsd:init`, your project will have:
+After `/gsd:init`:
 
 ```
 .gsd/
 ├── SPEC.md           # Project specification
-├── DECISIONS.md      # Architecture decisions
+├── DECISIONS.md      # Architecture decision records
 ├── JOURNAL.md        # Development journal
 ├── ROADMAP.md        # Project roadmap
-├── templates/        # 22 document templates
-└── examples/         # 3 usage examples
+├── PATTERNS.md       # Distilled learnings (2KB limit)
+├── STATE.md          # Current execution state
+├── TODO.md           # Task tracking
+├── STACK.md          # Technology stack
+├── CHANGELOG.md      # Change history
+├── templates/        # Document templates
+└── examples/         # Usage examples
 ```
 
 ## Hooks
 
-The plugin includes hooks for:
-- **SessionStart**: Environment setup and status check
-- **PreToolUse**: File protection and bash command guard
-- **PostToolUse**: Auto-format Python files
-- **PreCompact**: Save state before context compaction
-- **Stop**: Index code changes and verify work
-- **SessionEnd**: Store session summary in memory-graph
+| Event | Action |
+|-------|--------|
+| **SessionStart** | Environment setup, status check |
+| **PreToolUse** | File protection (`file-protect.py`), bash guard (`bash-guard.py`) |
+| **PostToolUse** | Auto-format, track modifications |
+| **PreCompact** | Save state before context compaction |
+| **Stop** | Index code changes, verify work, save context |
+| **SubagentStop** | Summarize findings, update PATTERNS.md |
+| **SessionEnd** | Save transcript, session changes |
+
+## MCP Server Paths
+
+Plugin uses dynamic paths — no hardcoded absolute paths:
+
+| Variable | Resolves To |
+|----------|-------------|
+| `${CLAUDE_PROJECT_DIR:-.}` | Current project directory |
+| `${CLAUDE_PLUGIN_ROOT}` | Plugin installation directory |
+
+Memory DB: `${CLAUDE_PROJECT_DIR}/.agent/data/memory-service/memories.db` (project-isolated)
 
 ## License
 
 MIT
-READMEEOF
-echo "  [+] Created README.md"
+"""
 
-# --- Phase 7: Verification ---
+with open(os.path.join(plugin_dir, "README.md"), "w") as f:
+    f.write(readme)
+
+print(f"  [+] Created README.md (v{version}, {len(commands)} commands, {len(skills)} skills, {len(agents)} agents)")
+READMEPY
+
+# --- Phase 7: Clean up (no install scripts needed) ---
+echo ""
+echo "[Phase 7] Plugin is used via --plugin-dir flag. No install scripts needed."
+# Remove marketplace.json if leftover from previous builds
+rm -f "$PLUGIN/.claude-plugin/marketplace.json"
+
+# --- Phase 8: Verification ---
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo "[Phase 7] Verification"
+echo "[Phase 8] Verification"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
 errors=0
@@ -791,9 +828,11 @@ if [ $errors -eq 0 ]; then
     echo ""
     echo "Plugin created at: $PLUGIN"
     echo ""
-    echo "To test:"
+    echo "To use:"
     echo "  claude --plugin-dir $PLUGIN"
-    echo "  # Then try: /gsd:help, /gsd:init"
+    echo ""
+    echo "To use permanently (shell alias):"
+    echo "  alias claude='claude --plugin-dir $PLUGIN'"
 else
     echo "BUILD COMPLETED WITH $errors ERROR(S)"
     exit 1

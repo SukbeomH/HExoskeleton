@@ -14,7 +14,7 @@
       "command": "memory",
       "args": ["server"],
       "env": {
-        "MCP_MEMORY_SQLITE_PATH": "/Users/sukbeom/Desktop/workspace/boilerplate/.agent/data/memory-service/memories.db",
+        "MCP_MEMORY_SQLITE_PATH": "${CLAUDE_PROJECT_DIR:-.}/.agent/data/memory-service/memories.db",
         "MCP_MEMORY_SQLITE_PRAGMAS": "busy_timeout=15000,cache_size=20000"
       }
     },
