@@ -92,10 +92,12 @@ logs_llm/
 # Session transcripts (saved by SessionEnd hook)
 .sessions/*.jsonl
 
-# GSD — templates/와 examples/만 버전 관리, 나머지 전부 무시
+# GSD — 핵심 문서와 templates/examples만 버전 관리
 .gsd/*
 !.gsd/templates/
 !.gsd/examples/
+!.gsd/STATE.md
+!.gsd/PATTERNS.md
 *.pre-compact.bak
 
 # Agent memory (ephemeral)
