@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.8.1](https://github.com/SukbeomH/LLM_Bolierplate_Pack/compare/gsd-plugin-v1.8.0...gsd-plugin-v1.8.1) (2026-02-05)
+
+
+### Refactoring
+
+* 순수 bash 기반 메모리 시스템으로 전환 ([#16](https://github.com/SukbeomH/LLM_Bolierplate_Pack/issues/16)) ([9299ec5](https://github.com/SukbeomH/LLM_Bolierplate_Pack/commit/9299ec50d25464215d8d4f1ab59d52214469addf))
+
 ## [1.8.0](https://github.com/SukbeomH/LLM_Bolierplate_Pack/compare/gsd-plugin-v1.7.1...gsd-plugin-v1.8.0) (2026-02-03)
 
 
