@@ -1,6 +1,10 @@
 # MCP (Model Context Protocol) 상세 문서
 
-**MCP (Model Context Protocol)**는 Claude Code와 외부 도구/서비스를 연결하는 프로토콜입니다. 이 프로젝트에서는 코드 분석과 에이전트 기억 저장을 위한 MCP 서버를 사용합니다.
+> **참고**: v1.8.1부터 이 프로젝트는 **순수 bash 기반 메모리 시스템**을 사용합니다.
+> MCP 서버는 **선택적**이며, 추가 기능이 필요한 경우에만 설정합니다.
+> 기본 메모리 기능은 `.claude/hooks/md-store-memory.sh`와 `md-recall-memory.sh`로 제공됩니다.
+
+**MCP (Model Context Protocol)**는 Claude Code와 외부 도구/서비스를 연결하는 프로토콜입니다.
 
 ---
 
@@ -8,9 +12,19 @@
 
 | 항목 | 설명 |
 |------|------|
-| **설정 파일** | `.mcp.json` |
-| **서버 개수** | 3개 (graph-code, memory, context7) |
-| **통신 방식** | stdio (graph-code, memory), HTTP (context7) |
+| **설정 파일** | `.mcp.json` (선택적) |
+| **기본 모드** | 순수 bash (외부 종속성 없음) |
+| **확장 모드** | MCP 서버 연동 (추가 설치 필요) |
+
+### 순수 Bash 모드 vs MCP 모드
+
+| 기능 | 순수 Bash 모드 | MCP 모드 |
+|------|---------------|----------|
+| **메모리 저장** | `md-store-memory.sh` | `mcp-memory-service` |
+| **메모리 검색** | `md-recall-memory.sh` + Grep/Glob | `memory_search` (semantic) |
+| **코드 분석** | 네이티브 Grep/Glob/Read | `code-graph-rag` (AST) |
+| **외부 종속성** | 없음 | Node.js, pipx |
+| **설치 복잡도** | 즉시 사용 | 추가 설치 필요 |
 
 ---
 

@@ -9,7 +9,7 @@ Claude Code의 **Agents**는 특정 작업에 특화된 서브프로세스입니
 | 항목 | 설명 |
 |------|------|
 | **위치** | `.claude/agents/*.md` |
-| **개수** | 13개 |
+| **개수** | 14개 |
 | **호출 방식** | Claude가 필요 시 자동 위임 또는 Task 도구로 명시적 호출 |
 | **컨텍스트** | 메인 대화와 분리된 별도 서브프로세스 |
 
@@ -26,6 +26,7 @@ Claude Code의 **Agents**는 특정 작업에 특화된 서브프로세스입니
 | `executor` | `executor.md` | 계획 실행 + atomic commits | Read, Write, Edit, Bash, Grep, Glob |
 | `verifier` | `verifier.md` | 구현 검증 + 증거 수집 | Read, Bash, Grep, Glob |
 | `debugger` | `debugger.md` | 체계적 디버깅 (3-strike rule) | Read, Write, Edit, Bash, Grep, Glob |
+| `bootstrap` | `bootstrap.md` | 프로젝트 초기 설정 | Read, Write, Edit, Bash, Grep, Glob |
 
 ### 분석 에이전트
 

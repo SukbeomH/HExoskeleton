@@ -9,7 +9,7 @@ Claude Code의 **Skills**는 Claude가 작업 컨텍스트를 기반으로 **자
 | 항목 | 설명 |
 |------|------|
 | **위치** | `.claude/skills/*/SKILL.md` |
-| **개수** | 15개 |
+| **개수** | 16개 |
 | **호출 방식** | Claude가 작업 컨텍스트 기반으로 자율적 결정 |
 | **컨텍스트** | 메인 대화에서 실행 (컨텍스트 공유) |
 
@@ -50,7 +50,8 @@ Claude Code의 **Skills**는 Claude가 작업 컨텍스트를 기반으로 **자
 
 | Skill | 디렉토리 | 역할 | 트리거 상황 |
 |-------|----------|------|-------------|
-| `clean` | `clean/` | 코드 품질 도구 실행 | 품질 체크 요청 시 |
+| `clean` | `clean/` | 코드 품질 도구 실행 (shellcheck) | 품질 체크 요청 시 |
+| `memory-protocol` | `memory-protocol/` | 메모리 검색/저장 프로토콜 | 메모리 작업 시 |
 
 ---
 
@@ -77,10 +78,6 @@ Claude Code의 **Skills**는 Claude가 작업 컨텍스트를 기반으로 **자
 ---
 name: executor
 description: Executes GSD plans with atomic commits, deviation handling, checkpoint protocols, and state management
-allowed-tools:
-  - store_memory
-  - search_memories
-  - search_relationships_by_context
 ---
 ```
 
@@ -88,7 +85,6 @@ allowed-tools:
 |------|------|------|
 | `name` | Yes | 스킬 식별자 |
 | `description` | Yes | 스킬 역할 설명 (Claude가 트리거 결정에 사용) |
-| `allowed-tools` | No | MCP 도구 중 허용할 도구 목록 |
 
 ---
 
@@ -114,18 +110,17 @@ Rule 3: 차단 이슈 → 자동 해결 시도
 Rule 4: 아키텍처 변경 → 사용자 승인 요청 (STOP)
 ```
 
-**Memory Integration**:
-```python
+**Memory Integration** (파일 기반):
+```bash
 # 실행 전 과거 deviation 검색
-search_memories(tags: ["deviation", "{phase-plan}"])
+bash .claude/hooks/md-recall-memory.sh "deviation" "." 5 compact
 
 # deviation 발생 시 저장
-store_memory(
-  type: "deviation",
-  title: "Rule {N} - {description}",
-  content: "{details}",
-  tags: ["deviation", "rule-{N}", "{phase-plan}"]
-)
+bash .claude/hooks/md-store-memory.sh \
+  "Rule {N} - {description}" \
+  "{details}" \
+  "deviation,rule-{N},{phase-plan}" \
+  "deviation"
 ```
 
 ---
@@ -198,9 +193,13 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 3. 테스트 커버리지
 4. API 계약 영향
 
-**code-graph-rag 활용**:
-```
-analyze_code_impact(file_path, change_type)
+**네이티브 도구 활용**:
+```bash
+# Grep으로 의존성 검색
+Grep(pattern: "import.*{file}", path: "src/")
+
+# Glob으로 관련 파일 찾기
+Glob(pattern: "**/*{module}*.py")
 ```
 
 ---
@@ -316,17 +315,7 @@ description: Creates executable phase plans with task breakdown, dependency anal
 description: Helps with planning
 ```
 
-### 2. MCP 도구 제한
-
-필요한 MCP 도구만 `allowed-tools`에 명시합니다.
-
-```yaml
-allowed-tools:
-  - store_memory
-  - search_memories
-```
-
-### 3. 역할 문서화
+### 2. 역할 문서화
 
 `<role>` 태그로 스킬의 역할을 명확히 정의합니다.
 

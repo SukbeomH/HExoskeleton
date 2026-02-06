@@ -10,8 +10,8 @@ Claude Code의 **Hooks**는 특정 이벤트에 자동으로 응답하는 스크
 |------|------|
 | **설정 파일** | `.claude/settings.json` |
 | **스크립트 위치** | `.claude/hooks/` |
-| **개수** | 8개 스크립트 |
-| **이벤트 종류** | SessionStart, PreToolUse, PostToolUse, PreCompact, Stop, SessionEnd |
+| **개수** | 15개 스크립트 |
+| **이벤트 종류** | SessionStart, PreToolUse, PostToolUse, PreCompact, Stop, SubagentStop, SessionEnd |
 
 ---
 
@@ -23,27 +23,44 @@ Claude Code의 **Hooks**는 특정 이벤트에 자동으로 응답하는 스크
 └─────────────┘     └─────────────┘     └─────────────┘
        │                   │                   │
        ▼                   ▼                   ▼
-  session-start.sh    PreToolUse         memory 저장
-  (상태 로드)         PostToolUse        (prompt hook)
+  session-start.sh    PreToolUse         save-transcript.sh
+  (상태 로드)         PostToolUse        save-session-changes.sh
                       Stop
                       PreCompact
+                      SubagentStop
 ```
 
 ---
 
 ## 훅 목록
 
+### 이벤트별 훅
+
 | 이벤트 | 스크립트 | 타입 | 기능 | 타임아웃 |
 |--------|----------|------|------|----------|
 | **SessionStart** | `session-start.sh` | command | GSD STATE.md 로드, git status 주입 | 10s |
 | **PreToolUse** (Edit/Write/Read) | `file-protect.py` | command | .env, 시크릿 파일 보호 | 5s |
 | **PreToolUse** (Bash) | `bash-guard.py` | command | 위험한 명령어 차단 | 5s |
-| **PostToolUse** (Edit/Write) | `auto-format-py.sh` | command | Python 파일 자동 포맷 (ruff) | 30s |
-| **PreCompact** | `pre-compact-save.sh` | command | 컴팩트 전 상태 저장 | 10s |
-| **Stop** | `post-turn-index.sh` | command | 변경된 코드 인덱싱 | 10s |
+| **PostToolUse** (Edit/Write) | `auto-format.sh` | command | Python 파일 자동 포맷 (ruff) | 30s |
+| **PostToolUse** (Edit/Write/Bash) | `track-modifications.sh` | command | 변경 파일 추적 | 2s |
+| **PreCompact** | `pre-compact-save.sh` | command | 컴팩트 전 세션 스냅샷 저장 | 10s |
 | **Stop** | `post-turn-verify.sh` | command | 작업 검증 | 15s |
+| **Stop** | `stop-context-save.sh` | command | 세션 컨텍스트 저장 | 10s |
+| **SubagentStop** | (prompt) | prompt | 서브에이전트 결과 요약 | - |
 | **SessionEnd** | `save-transcript.sh` | command | 대화 내역 .sessions/에 저장 | 10s |
-| **SessionEnd** | (prompt) | prompt | memory-graph에 세션 요약 저장 | - |
+| **SessionEnd** | `save-session-changes.sh` | command | 세션 변경사항 추적 | 10s |
+
+### 유틸리티 스크립트
+
+| 스크립트 | 기능 |
+|----------|------|
+| `md-store-memory.sh` | 파일 기반 메모리 저장 |
+| `md-recall-memory.sh` | 파일 기반 메모리 검색 |
+| `scaffold-gsd.sh` | GSD 문서 초기화 |
+| `compact-context.sh` | 컨텍스트 압축 |
+| `organize-docs.sh` | 문서 정리/아카이브 |
+| `scaffold-infra.sh` | 인프라 스캐폴딩 |
+| `_json_parse.sh` | JSON 파싱 유틸리티 |
 
 ---
 
@@ -94,8 +111,13 @@ Claude Code의 **Hooks**는 특정 이벤트에 자동으로 응답하는 스크
         "hooks": [
           {
             "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/auto-format-py.sh",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/auto-format.sh",
             "timeout": 30
+          },
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/track-modifications.sh",
+            "timeout": 2
           }
         ]
       }
@@ -117,13 +139,23 @@ Claude Code의 **Hooks**는 특정 이벤트에 자동으로 응답하는 스크
         "hooks": [
           {
             "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/post-turn-index.sh",
-            "timeout": 10
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/post-turn-verify.sh",
+            "timeout": 15
           },
           {
             "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/post-turn-verify.sh",
-            "timeout": 15
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/stop-context-save.sh",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "hooks": [
+          {
+            "type": "prompt",
+            "prompt": "Subagent task completed. If significant findings..."
           }
         ]
       }
@@ -132,8 +164,14 @@ Claude Code의 **Hooks**는 특정 이벤트에 자동으로 응답하는 스크
       {
         "hooks": [
           {
-            "type": "prompt",
-            "prompt": "Session is ending. Store a concise session summary in memory-graph..."
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/save-transcript.sh",
+            "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/save-session-changes.sh",
+            "timeout": 10
           }
         ]
       }
@@ -175,7 +213,88 @@ Claude에게 프롬프트를 주입합니다.
 
 ---
 
-## 스크립트 상세
+## 메모리 시스템 훅
+
+순수 bash 기반 메모리 시스템 스크립트입니다.
+
+### md-store-memory.sh
+
+**역할**: 파일 기반 메모리 저장
+
+```bash
+bash .claude/hooks/md-store-memory.sh \
+  "<title>" \
+  "<content>" \
+  "[tags]" \
+  "[type]" \
+  "[keywords]" \
+  "[contextual_description]" \
+  "[related]"
+```
+
+**매개변수**:
+| 매개변수 | 필수 | 설명 |
+|----------|------|------|
+| `title` | Yes | 메모리 제목 |
+| `content` | Yes | 메모리 내용 |
+| `tags` | No | 쉼표 구분 태그 |
+| `type` | No | 메모리 타입 (기본: general) |
+| `keywords` | No | A-Mem 검색 키워드 |
+| `contextual_description` | No | 1줄 요약 (검색 압축용) |
+| `related` | No | 관련 메모리 파일명 |
+
+**출력**:
+```
+./.gsd/memories/root-cause/2026-02-06_jwt.md
+```
+
+**중복 방지** (Nemori Predict-Calibrate):
+```
+[SKIP:DUPLICATE] ./.gsd/memories/root-cause/2026-02-06_jwt.md
+```
+
+---
+
+### md-recall-memory.sh
+
+**역할**: 파일 기반 메모리 검색
+
+```bash
+bash .claude/hooks/md-recall-memory.sh \
+  "<query>" \
+  "[project_path]" \
+  "[limit]" \
+  "[mode]" \
+  "[hop]"
+```
+
+**매개변수**:
+| 매개변수 | 기본값 | 설명 |
+|----------|--------|------|
+| `query` | - | 검색어 (필수) |
+| `project_path` | `.` | 프로젝트 경로 |
+| `limit` | `5` | 최대 결과 수 |
+| `mode` | `compact` | compact (요약) 또는 full (전체) |
+| `hop` | `2` | 1 (직접만) 또는 2 (related 포함) |
+
+**compact 모드 출력**:
+```
+- **JWT 토큰 만료 처리** [root-cause] 2026-02-06
+  JWT 토큰 만료 처리 누락으로 인한 401 오류
+```
+
+**full 모드 출력**:
+```markdown
+### JWT 토큰 만료 처리 [root-cause]
+📁 `./.gsd/memories/root-cause/2026-02-06_jwt.md`
+
+## JWT 토큰 만료 처리
+내용...
+```
+
+---
+
+## 주요 스크립트 상세
 
 ### 1. session-start.sh
 
@@ -184,7 +303,6 @@ Claude에게 프롬프트를 주입합니다.
 
 ```bash
 #!/bin/bash
-# Hook: SessionStart — GSD 상태 자동 로드
 set -euo pipefail
 
 PROJECT_DIR="${CLAUDE_PROJECT_DIR:-.}"
@@ -193,7 +311,6 @@ STATE_FILE="$PROJECT_DIR/.gsd/STATE.md"
 # 1. GSD STATE.md 로드 (상위 80줄)
 if [ -f "$STATE_FILE" ]; then
     STATE_CONTENT=$(head -80 "$STATE_FILE" 2>/dev/null || true)
-    # JSON으로 additionalContext 출력
 fi
 
 # 2. Git 미커밋 변경사항 요약
@@ -205,47 +322,12 @@ RECENT_COMMITS=$(git -C "$PROJECT_DIR" log --oneline -3 2>/dev/null || true)
 # JSON 출력 (hookSpecificOutput.additionalContext)
 ```
 
-**출력 형식**:
-```json
-{
-  "hookSpecificOutput": {
-    "hookEventName": "SessionStart",
-    "additionalContext": "## GSD State\n...\n## Uncommitted Changes\n..."
-  }
-}
-```
-
 ---
 
 ### 2. file-protect.py
 
 **이벤트**: PreToolUse (Edit/Write/Read)
 **역할**: 민감 파일 보호 (`.env`, 시크릿, 인증서)
-
-```python
-#!/usr/bin/env python3
-"""Hook: PreToolUse (Edit|Write) — 민감 파일 보호"""
-
-BLOCKED_PATTERNS = [
-    ".env", ".env.local", ".env.mcp",
-    ".pem", ".key", "secrets/", ".git/",
-    "id_rsa", "id_ed25519", "credentials",
-]
-
-BLOCKED_EXACT = [".env", ".env.local", ".env.mcp"]
-
-# stdin에서 tool_input 읽기
-data = json.load(sys.stdin)
-file_path = data.get("tool_input", {}).get("file_path", "")
-
-# 차단 체크
-for exact in BLOCKED_EXACT:
-    if basename == exact:
-        print(f"Blocked: '{basename}' is a protected file.", file=sys.stderr)
-        sys.exit(2)  # 차단
-
-sys.exit(0)  # 허용
-```
 
 **차단 패턴**:
 | 패턴 | 설명 |
@@ -264,27 +346,6 @@ sys.exit(0)  # 허용
 **이벤트**: PreToolUse (Bash)
 **역할**: 파괴적 git 명령 + pip/poetry 차단
 
-```python
-#!/usr/bin/env python3
-"""Hook: PreToolUse (Bash) — 파괴적 명령 + pip/poetry 차단"""
-
-# 파괴적 git 명령 패턴
-DESTRUCTIVE_GIT = [
-    (r"git\s+push\s+.*--force", "Use --force-with-lease instead"),
-    (r"git\s+reset\s+--hard", "This discards all local changes"),
-    (r"git\s+checkout\s+\.\s*$", "This discards uncommitted changes"),
-    (r"git\s+clean\s+-f", "This permanently deletes untracked files"),
-    (r"git\s+branch\s+-D\b", "Use -d (safe delete) instead"),
-]
-
-# pip/poetry 차단 (uv 강제)
-WRONG_PKG_MANAGER = [
-    (r"\bpip\s+install\b", "Use 'uv add <package>' instead"),
-    (r"\bpoetry\s+add\b", "Use 'uv add <package>' instead"),
-    (r"\bconda\s+install\b", "Use 'uv add <package>' instead"),
-]
-```
-
 **차단 명령**:
 
 | 명령 | 이유 | 대안 |
@@ -297,112 +358,30 @@ WRONG_PKG_MANAGER = [
 
 ---
 
-### 4. auto-format-py.sh
-
-**이벤트**: PostToolUse (Edit/Write)
-**역할**: Python 파일 자동 포맷 (ruff)
-
-```bash
-#!/bin/bash
-# PostToolUse: Python 파일 자동 포맷
-
-# .py 파일인 경우에만 실행
-if [[ "$FILE_PATH" == *.py ]]; then
-    ruff format "$FILE_PATH" 2>/dev/null || true
-    ruff check --fix "$FILE_PATH" 2>/dev/null || true
-fi
-```
-
----
-
-### 5. pre-compact-save.sh
+### 4. pre-compact-save.sh
 
 **이벤트**: PreCompact
-**역할**: 컨텍스트 압축 전 상태 저장
+**역할**: 컨텍스트 압축 전 세션 스냅샷 저장
 
-```bash
-#!/bin/bash
-# PreCompact: 상태 저장
-
-# STATE.md 업데이트
-echo "## Pre-Compact State Dump" >> .gsd/STATE.md
-echo "Timestamp: $(date -Iseconds)" >> .gsd/STATE.md
-```
+메모리에 `session-snapshot` 타입으로 자동 저장됩니다.
 
 ---
 
-### 6. post-turn-index.sh
+### 5. stop-context-save.sh
 
 **이벤트**: Stop
-**역할**: 변경된 코드 인덱싱 (code-graph-rag)
+**역할**: 세션 컨텍스트 저장
 
-```bash
-#!/bin/bash
-# Stop: 변경된 파일 인덱싱
-
-# 변경된 파일 목록
-CHANGED=$(git diff --name-only HEAD~1 2>/dev/null || true)
-
-# code-graph-rag 인덱싱 (MCP 도구로 호출)
-```
+메모리에 `session-summary` 타입으로 자동 저장됩니다.
 
 ---
 
-### 7. post-turn-verify.sh
-
-**이벤트**: Stop
-**역할**: 작업 검증
-
-```bash
-#!/bin/bash
-# Stop: 작업 검증
-
-# 린트 체크
-ruff check . --quiet || true
-
-# 타입 체크
-mypy . --quiet || true
-```
-
----
-
-### 8. save-transcript.sh
+### 6. save-transcript.sh
 
 **이벤트**: SessionEnd
 **역할**: 대화 내역을 프로젝트에 저장
 
-```bash
-#!/bin/bash
-# SessionEnd: 대화 내역 저장
-
-PROJECT_DIR="${CLAUDE_PROJECT_DIR:-.}"
-SESSION_DIR="$PROJECT_DIR/.sessions"
-
-mkdir -p "$SESSION_DIR"
-
-# Claude 프로젝트 경로에서 최신 transcript 복사
-CLAUDE_PROJECTS_DIR="$HOME/.claude/projects"
-PROJECT_PATH_ESCAPED=$(echo "$PROJECT_DIR" | sed 's|/|-|g')
-CLAUDE_PROJECT_PATH="$CLAUDE_PROJECTS_DIR/$PROJECT_PATH_ESCAPED"
-
-LATEST_TRANSCRIPT=$(ls -t "$CLAUDE_PROJECT_PATH"/*.jsonl 2>/dev/null | head -1)
-
-if [ -f "$LATEST_TRANSCRIPT" ]; then
-    SESSION_ID=$(basename "$LATEST_TRANSCRIPT" .jsonl)
-    TIMESTAMP=$(date +%Y%m%d-%H%M%S)
-    cp "$LATEST_TRANSCRIPT" "$SESSION_DIR/${SESSION_ID}-${TIMESTAMP}.jsonl"
-fi
-```
-
 **저장 위치**: `.sessions/{session-id}-{timestamp}.jsonl`
-
-**파일 형식** (JSONL):
-```json
-{"type":"user","content":"안녕하세요"}
-{"type":"assistant","content":"안녕하세요!"}
-{"type":"tool_use","name":"Bash","input":{...}}
-{"type":"tool_result","content":"..."}
-```
 
 ---
 
@@ -444,18 +423,6 @@ PreToolUse(Bash) → bash-guard.py 실행
 차단됨: "Use --force-with-lease instead"
 ```
 
-### save-transcript.sh — 대화 내역 저장
-
-```
-세션 종료 (/exit 또는 창 닫기)
-     │
-     ▼
-SessionEnd → save-transcript.sh 실행
-     │
-     ▼
-.sessions/49d4a1ae-20260129-110300.jsonl 저장됨
-```
-
 ---
 
 ## 환경변수
@@ -466,38 +433,6 @@ SessionEnd → save-transcript.sh 실행
 |------|------|
 | `CLAUDE_PROJECT_DIR` | 프로젝트 루트 디렉토리 |
 | `CLAUDE_PLUGIN_ROOT` | 플러그인 루트 (플러그인에서 사용 시) |
-
----
-
-## 플러그인에서의 훅
-
-플러그인에서 훅을 사용할 때는 `hooks/hooks.json` 파일에 정의합니다.
-
-### 경로 변환
-
-| 프로젝트 | 플러그인 |
-|----------|----------|
-| `"$CLAUDE_PROJECT_DIR"/.claude/hooks/X` | `${CLAUDE_PLUGIN_ROOT}/scripts/X` |
-
-### hooks.json 형식
-
-```json
-{
-  "hooks": {
-    "PreToolUse": [
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/scripts/bash-guard.py"
-          }
-        ]
-      }
-    ]
-  }
-}
-```
 
 ---
 
@@ -518,7 +453,7 @@ sys.exit(2)  # 차단 — stderr가 Claude에게 전달됨
 {
   "type": "command",
   "command": "...",
-  "timeout": 10  // 초 단위
+  "timeout": 10
 }
 ```
 
@@ -549,4 +484,4 @@ print(json.dumps({
 
 - [Agents 상세](./AGENTS.md) — 서브에이전트
 - [Skills 상세](./SKILLS.md) — 자율 호출 스킬
-- [Workflows 상세](./WORKFLOWS.md) — 슬래시 명령어
+- [Memory 상세](./MEMORY.md) — 파일 기반 메모리 시스템

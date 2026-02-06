@@ -28,13 +28,13 @@ make build-plugin
 gsd-plugin/
 ├── .claude-plugin/
 │   └── plugin.json          # 매니페스트 (name, version, description)
-├── commands/                 # 31개 워크플로우 명령어
-├── skills/                   # 15개 스킬
-├── agents/                   # 13개 에이전트
+├── commands/                 # 워크플로우 명령어
+├── skills/                   # 16개 스킬
+├── agents/                   # 14개 에이전트
 ├── hooks/
 │   └── hooks.json           # 훅 설정 (경로 변환됨)
 ├── scripts/                  # 훅 스크립트
-├── .mcp.json                # MCP 설정 (경로 변환됨)
+├── .mcp.json                # MCP 설정 (선택적 - 순수 bash 모드 지원)
 ├── templates/gsd/           # GSD 템플릿 + 예제
 ├── references/              # 인프라 레퍼런스 파일
 └── README.md
@@ -49,10 +49,10 @@ gsd-plugin/
 5. **훅 변환**:
    - `settings.json` → `hooks/hooks.json`
    - 경로 변환: `$CLAUDE_PROJECT_DIR/.claude/hooks/` → `${CLAUDE_PLUGIN_ROOT}/scripts/`
-6. **MCP 변환**:
-   - `.mcp.json` → `.mcp.json`
+6. **MCP 변환** (선택적):
+   - `.mcp.json` 존재 시만 처리
    - args `.` → `${CLAUDE_PROJECT_DIR:-.}`
-   - context7 제거 (API 키 필요)
+   - 순수 bash 모드에서는 `[SKIP]` 메시지 출력
 7. **템플릿 복사**: `.gsd/templates/`, `.gsd/examples/`
 8. **레퍼런스 복사**: `pyproject.toml`, `Makefile`, `.gitignore` 등
 9. **검증**: 구조, 카운트, JSON 유효성
@@ -101,15 +101,15 @@ make build-antigravity
 ```
 antigravity-boilerplate/
 ├── .agent/
-│   ├── skills/              # 15개 스킬 (SKILL.md format)
+│   ├── skills/              # 16개 스킬 (SKILL.md format)
 │   │   ├── planner/
 │   │   ├── executor/
 │   │   └── ...
-│   ├── workflows/           # 30개 워크플로우 (// turbo 지원)
+│   ├── workflows/           # 워크플로우 (// turbo 지원)
 │   │   ├── plan.md
 │   │   ├── execute.md
 │   │   └── ...
-│   └── rules/               # 3개 패시브 규칙 (항상 적용)
+│   └── rules/               # 패시브 규칙 (항상 적용)
 │       ├── code-style.md    # Python/코드 스타일 규칙
 │       ├── safety.md        # 안전 규칙 (금지/필수 사항)
 │       └── gsd-workflow.md  # GSD 워크플로우 규칙
@@ -118,7 +118,7 @@ antigravity-boilerplate/
 │   ├── scaffold-gsd.sh      # GSD 문서 초기화
 │   ├── bash-guard.py        # Bash 명령 가드
 │   └── file-protect.py      # 파일 보호
-├── mcp-settings.json        # MCP 서버 설정 (Antigravity 표준)
+├── mcp-settings.json        # MCP 서버 설정 (선택적)
 └── README.md
 ```
 
@@ -207,20 +207,20 @@ make build-opencode
 ```
 opencode-boilerplate/
 ├── .opencode/
-│   ├── agents/              # 13개 에이전트 (모델 설정 포함)
+│   ├── agents/              # 14개 에이전트 (모델 설정 포함)
 │   │   ├── planner.md       # model: anthropic/claude-opus-4-20250514
 │   │   ├── executor.md      # model: anthropic/claude-sonnet-4-20250514
 │   │   └── ...
-│   ├── commands/            # 30개 워크플로우 명령어
+│   ├── commands/            # 워크플로우 명령어
 │   ├── plugins/             # TypeScript 플러그인 (빈 디렉토리)
-│   └── skill/               # 15개 스킬
+│   └── skill/               # 16개 스킬
 ├── templates/gsd/           # GSD 템플릿 + 예제
 ├── scripts/
 │   ├── scaffold-gsd.sh      # GSD 문서 초기화
 │   └── *.py                 # 유틸리티 스크립트
 ├── opencode.json            # 메인 설정 (에이전트별 모델 매핑)
 ├── AGENTS.md                # 프로젝트 규칙 (CLAUDE.md에서 복사)
-├── .mcp.json                # MCP 서버 설정
+├── .mcp.json                # MCP 서버 설정 (선택적)
 └── README.md
 ```
 
@@ -371,16 +371,16 @@ Phase 9: 검증
 | 도구 | 용도 |
 |------|------|
 | **Claude Code CLI** | 플러그인 테스트 (`claude --plugin-dir`) |
-| **Node.js 18+** | code-graph-rag MCP |
-| **pipx** | mcp-memory-service 설치 |
+
+**순수 bash 모드**에서는 추가 의존성 없이 동작합니다.
 
 ### Antigravity
 
 | 도구 | 용도 |
 |------|------|
 | **Google Antigravity IDE** | 워크스페이스 열기 |
-| **Node.js 18+** | code-graph-rag MCP |
-| **pipx** | mcp-memory-service 설치 |
+
+**순수 bash 모드**에서는 추가 의존성 없이 동작합니다.
 
 ---
 
