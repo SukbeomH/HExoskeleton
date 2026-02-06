@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.8.2](https://github.com/SukbeomH/LLM_Bolierplate_Pack/compare/gsd-plugin-v1.8.1...gsd-plugin-v1.8.2) (2026-02-06)
+
+
+### Bug Fixes
+
+* **build:** .mcp.json 없이도 빌드 성공하도록 수정 ([#18](https://github.com/SukbeomH/LLM_Bolierplate_Pack/issues/18)) ([017cdab](https://github.com/SukbeomH/LLM_Bolierplate_Pack/commit/017cdabc53e70eef10900a694a74232f5603eb9e))
+
 ## [1.8.1](https://github.com/SukbeomH/LLM_Bolierplate_Pack/compare/gsd-plugin-v1.8.0...gsd-plugin-v1.8.1) (2026-02-05)
 
 
