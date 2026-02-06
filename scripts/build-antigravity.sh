@@ -347,13 +347,14 @@ Rules for the Get Shit Done methodology.
 GSDEOF
 echo "  [+] gsd-workflow.md"
 
-# --- Phase 5: MCP Configuration ---
+# --- Phase 5: MCP Configuration (optional) ---
 echo ""
 echo "[Phase 5] Creating MCP configuration..."
 
-# Transform MCP config for Antigravity
-# Antigravity uses mcp-settings.json (can be copied to ~/.gemini/antigravity/)
-python3 - "$BOILERPLATE" "$ANTIGRAVITY" << 'PYEOF'
+if [ -f "$BOILERPLATE/.mcp.json" ]; then
+    # Transform MCP config for Antigravity
+    # Antigravity uses mcp-settings.json (can be copied to ~/.gemini/antigravity/)
+    python3 - "$BOILERPLATE" "$ANTIGRAVITY" << 'PYEOF'
 import json
 import sys
 
@@ -389,6 +390,9 @@ with open(output_path, 'w') as f:
 
 print(f"  [+] mcp-settings.json")
 PYEOF
+else
+    echo "  [SKIP] .mcp.json not found (pure bash mode)"
+fi
 
 # --- Phase 6: GSD Templates ---
 echo ""
@@ -815,14 +819,18 @@ if [ $missing_desc -eq 0 ]; then
     echo "  [OK] All skills have descriptions"
 fi
 
-# JSON validity
+# JSON validity (optional mcp-settings.json)
 echo ""
 echo "[JSON Validity]"
-if python3 -c "import json; json.load(open('$ANTIGRAVITY/mcp-settings.json'))" 2>/dev/null; then
-    echo "  [OK] mcp-settings.json"
+if [ -f "$ANTIGRAVITY/mcp-settings.json" ]; then
+    if python3 -c "import json; json.load(open('$ANTIGRAVITY/mcp-settings.json'))" 2>/dev/null; then
+        echo "  [OK] mcp-settings.json"
+    else
+        echo "  [FAIL] mcp-settings.json invalid"
+        errors=$((errors + 1))
+    fi
 else
-    echo "  [FAIL] mcp-settings.json invalid"
-    errors=$((errors + 1))
+    echo "  [SKIP] mcp-settings.json not created (pure bash mode)"
 fi
 
 # Summary
@@ -835,14 +843,18 @@ if [ $errors -eq 0 ]; then
     echo ""
     echo "To use:"
     echo "  1. Open $ANTIGRAVITY in Antigravity IDE"
-    echo "  2. Configure MCP servers from mcp-settings.json"
-    echo "     - Agent panel → ... → MCP Servers → Manage → View raw config"
-    echo "     - Or: cp mcp-settings.json ~/.gemini/antigravity/"
+    if [ -f "$ANTIGRAVITY/mcp-settings.json" ]; then
+        echo "  2. Configure MCP servers from mcp-settings.json"
+        echo "     - Agent panel → ... → MCP Servers → Manage → View raw config"
+        echo "     - Or: cp mcp-settings.json ~/.gemini/antigravity/"
+    fi
     echo "  3. Run: zsh scripts/scaffold-gsd.sh"
     echo ""
     echo "Or copy to an existing project:"
     echo "  cp -r $ANTIGRAVITY/.agent /path/to/project/"
-    echo "  cp $ANTIGRAVITY/mcp-settings.json /path/to/project/"
+    if [ -f "$ANTIGRAVITY/mcp-settings.json" ]; then
+        echo "  cp $ANTIGRAVITY/mcp-settings.json /path/to/project/"
+    fi
 else
     echo "BUILD COMPLETED WITH $errors ERROR(S)"
     exit 1

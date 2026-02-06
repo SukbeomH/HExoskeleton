@@ -249,11 +249,12 @@ cat > "$OPENCODE/opencode.json" << EOF
 EOF
 echo "  [+] opencode.json created with ${AGENTS_COUNT} agent configs"
 
-# --- Phase 6: MCP Configuration ---
+# --- Phase 6: MCP Configuration (optional) ---
 echo ""
 echo "[Phase 6] Creating MCP configuration..."
 
-python3 - "$BOILERPLATE" "$OPENCODE" << 'PYEOF'
+if [ -f "$BOILERPLATE/.mcp.json" ]; then
+    python3 - "$BOILERPLATE" "$OPENCODE" << 'PYEOF'
 import json
 import sys
 
@@ -285,6 +286,9 @@ with open(output_path, 'w') as f:
 
 print("  [+] .mcp.json created")
 PYEOF
+else
+    echo "  [SKIP] .mcp.json not found (pure bash mode)"
+fi
 
 # --- Phase 7: AGENTS.md (from CLAUDE.md) ---
 echo ""
@@ -664,14 +668,20 @@ echo "  [OK] ${with_model}/${agent_count} agents have model configured"
 # JSON validity
 echo ""
 echo "[JSON Validity]"
-for json in "$OPENCODE/opencode.json" "$OPENCODE/.mcp.json"; do
-    if python3 -c "import json; json.load(open('$json'))" 2>/dev/null; then
-        echo "  [OK] $(basename "$json")"
+if python3 -c "import json; json.load(open('$OPENCODE/opencode.json'))" 2>/dev/null; then
+    echo "  [OK] opencode.json"
+else
+    echo "  [FAIL] opencode.json invalid"
+    errors=$((errors + 1))
+fi
+if [ -f "$OPENCODE/.mcp.json" ]; then
+    if python3 -c "import json; json.load(open('$OPENCODE/.mcp.json'))" 2>/dev/null; then
+        echo "  [OK] .mcp.json"
     else
-        echo "  [FAIL] $(basename "$json") invalid"
+        echo "  [FAIL] .mcp.json invalid"
         errors=$((errors + 1))
     fi
-done
+fi
 
 # Summary
 echo ""
@@ -686,7 +696,9 @@ if [ $errors -eq 0 ]; then
     echo "     cp -r $OPENCODE/.opencode /path/to/project/"
     echo "     cp $OPENCODE/opencode.json /path/to/project/"
     echo "     cp $OPENCODE/AGENTS.md /path/to/project/"
-    echo "     cp $OPENCODE/.mcp.json /path/to/project/"
+    if [ -f "$OPENCODE/.mcp.json" ]; then
+        echo "     cp $OPENCODE/.mcp.json /path/to/project/"
+    fi
     echo ""
     echo "  2. Or use directly:"
     echo "     cd $OPENCODE && opencode"

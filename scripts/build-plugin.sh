@@ -242,11 +242,12 @@ done
 HOOK_SCRIPTS_COUNT=$(ls "$PLUGIN/scripts/"*.{sh,py} 2>/dev/null | wc -l | tr -d ' ')
 echo "  [+] Copied ${HOOK_SCRIPTS_COUNT} hook scripts"
 
-# --- Phase 5a: MCP Config (with path adjustment) ---
+# --- Phase 5a: MCP Config (optional - skip if .mcp.json not present) ---
 echo ""
 echo "[Phase 5a] Creating MCP config..."
-# Transform graph-code args and remove servers requiring env vars
-python3 - "$BOILERPLATE" "$PLUGIN" << 'PYEOF'
+if [ -f "$BOILERPLATE/.mcp.json" ]; then
+    # Transform graph-code args and remove servers requiring env vars
+    python3 - "$BOILERPLATE" "$PLUGIN" << 'PYEOF'
 import json
 import sys
 
@@ -276,7 +277,10 @@ output_path = f"{plugin_dir}/.mcp.json"
 with open(output_path, 'w') as f:
     json.dump(mcp, f, indent=2)
 PYEOF
-echo "  [+] Created .mcp.json with adjusted paths"
+    echo "  [+] Created .mcp.json with adjusted paths"
+else
+    echo "  [SKIP] .mcp.json not found (pure bash mode)"
+fi
 
 # --- Phase 5b: GSD Templates ---
 echo ""
@@ -783,12 +787,16 @@ else
     echo "  [OK] hooks.json paths transformed"
 fi
 
-# .mcp.json should contain CLAUDE_PROJECT_DIR
-if grep -q 'CLAUDE_PROJECT_DIR' "$PLUGIN/.mcp.json" 2>/dev/null; then
-    echo "  [OK] .mcp.json contains CLAUDE_PROJECT_DIR"
+# .mcp.json should contain CLAUDE_PROJECT_DIR (optional)
+if [ -f "$PLUGIN/.mcp.json" ]; then
+    if grep -q 'CLAUDE_PROJECT_DIR' "$PLUGIN/.mcp.json" 2>/dev/null; then
+        echo "  [OK] .mcp.json contains CLAUDE_PROJECT_DIR"
+    else
+        echo "  [FAIL] .mcp.json missing CLAUDE_PROJECT_DIR"
+        errors=$((errors + 1))
+    fi
 else
-    echo "  [FAIL] .mcp.json missing CLAUDE_PROJECT_DIR"
-    errors=$((errors + 1))
+    echo "  [SKIP] .mcp.json not present (pure bash mode)"
 fi
 
 # Permission check
@@ -811,7 +819,7 @@ fi
 # JSON validity check
 echo ""
 echo "[JSON Validity]"
-for json in "$PLUGIN/.claude-plugin/plugin.json" "$PLUGIN/hooks/hooks.json" "$PLUGIN/.mcp.json"; do
+for json in "$PLUGIN/.claude-plugin/plugin.json" "$PLUGIN/hooks/hooks.json"; do
     if python3 -c "import json; json.load(open('$json'))" 2>/dev/null; then
         echo "  [OK] $(basename "$json")"
     else
@@ -819,6 +827,15 @@ for json in "$PLUGIN/.claude-plugin/plugin.json" "$PLUGIN/hooks/hooks.json" "$PL
         errors=$((errors + 1))
     fi
 done
+# Optional .mcp.json check
+if [ -f "$PLUGIN/.mcp.json" ]; then
+    if python3 -c "import json; json.load(open('$PLUGIN/.mcp.json'))" 2>/dev/null; then
+        echo "  [OK] .mcp.json"
+    else
+        echo "  [FAIL] .mcp.json invalid"
+        errors=$((errors + 1))
+    fi
+fi
 
 # Summary
 echo ""
