@@ -316,6 +316,96 @@ make help                   # 전체 명령어 목록
 
 ---
 
+## 설계 배경 (Design Rationale)
+
+현재 아키텍처는 최신 에이전트 메모리 및 추론 최적화 연구들을 분석하고 선택적으로 적용한 결과입니다. 상세 리서치 문서는 `.gsd/research/`에서 확인할 수 있습니다.
+
+### 왜 순수 bash + 마크다운인가?
+
+| 대안 | 장점 | 채택하지 않은 이유 |
+|------|------|-------------------|
+| 벡터 DB (Qdrant, Weaviate) | 의미적 유사도 검색 | 외부 서비스 의존, 설정 복잡도 증가 |
+| MCP 서버 | 표준화된 인터페이스 | 추가 프로세스 필요, 네트워크 오버헤드 |
+| SQLite/JSON | 구조화된 쿼리 | 파일 수준 가독성 저하, Git diff 불가 |
+
+**결론**: 순수 bash + 마크다운은 Claude Code 네이티브 도구(Grep, Glob, Read)와 직접 호환되며, Git 추적이 가능하고, 외부 종속성이 없습니다.
+
+### A-Mem에서 채택한 것
+
+> 출처: [A-Mem: Agentic Memory for LLM Agents](https://arxiv.org/html/2502.12110v11)
+
+| A-Mem 개념 | 본 시스템 적용 |
+|-----------|---------------|
+| 7-속성 노트 구조 | `contextual_description`, `keywords`, `related` frontmatter 필드 |
+| Link Generation | `related:` 필드로 메모리 간 명시적 연결 |
+| 그래프 탐색 검색 | `md-recall-memory.sh`의 2-hop 검색 (`hop` 파라미터) |
+| 토큰 절감 (85-93%) | compact 모드 — title + 1줄 요약만 반환 |
+
+**채택하지 않은 것**: Memory Evolution (기존 메모리 자동 갱신) — 마크다운 파일의 감사(audit) 추적성을 유지하기 위해 write-once 정책 유지.
+
+### Nemori에서 채택한 것
+
+> 출처: [Nemori: Self-Organizing Agent Memory](https://arxiv.org/html/2508.03341v3)
+
+| Nemori 개념 | 본 시스템 적용 |
+|-------------|---------------|
+| Episodic + Semantic 이중 메모리 | `session-summary` (에피소드) vs `architecture-decision`, `pattern-discovery` (의미) 타입 분리 |
+| 중복 제거 | `md-store-memory.sh`의 `[SKIP:DUPLICATE]` — 동일 title 저장 방지 |
+
+**채택하지 않은 것**: Predict-Calibrate 사이클 — LLM 추가 호출 비용 대비 효용이 불확실하여 보류.
+
+### 토큰 최적화 연구에서 채택한 것
+
+> 출처: [Awesome-Agentic-Reasoning](https://github.com/weitianxin/Awesome-Agentic-Reasoning)
+
+| 패턴 | 논문 | 본 시스템 적용 |
+|------|------|---------------|
+| 계획-실행 분리 | ReWOO (5x 효율) | GSD: `SPEC.md` → `PLAN.md` → `EXECUTE` 분리 |
+| 적응적 탐색 깊이 | System-1.x | planner의 Discovery Level (0-3) |
+| 가설 가지치기 | Tree of Thoughts | `debug-eliminated` 메모리 타입 |
+| 도구 문서 압축 | EASYTOOL | 스킬 2단계 로딩 (요약 → 상세) |
+
+### 온톨로지에서 채택한 것
+
+> 출처: [LLM 에이전트를 위한 온톨로지 연구 정리](RESEARCH-ontology-for-llm-agents.md)
+
+| 온톨로지 개념 | 본 시스템 적용 |
+|--------------|---------------|
+| 타입 분류 체계 | 14개 메모리 타입 디렉토리 |
+| 스키마 검증 | `.gsd/memories/_schema/` JSON Schema |
+| 타입 간 관계 | `type-relations.yaml` (Ontology) |
+
+**향후 확장**: OWL 기반 명시적 온톨로지 도입은 Cognee 같은 외부 프레임워크 통합 시 검토.
+
+### RLM에서 채택한 것
+
+> 출처: [Recursive Language Models](https://arxiv.org/html/2512.24601v2)
+
+| RLM 개념 | 본 시스템 적용 |
+|----------|---------------|
+| Root/Sub-LLM 분리 | Agent-Skill 래핑 구조 (Opus → Haiku 위임 가능) |
+| 재귀적 분할 | Phase → Plan → Task 3단계 분할 |
+
+**채택하지 않은 것**: Persistent REPL — 현재 사용 사례에서 필요성 낮음.
+
+### 설계 원칙 요약
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  최소 종속성 원칙                                             │
+│  ────────────────                                           │
+│  외부 서비스 = 0 │ MCP 서버 = 선택적 │ 순수 bash + 마크다운    │
+└─────────────────────────────────────────────────────────────┘
+                              │
+        ┌─────────────────────┼─────────────────────┐
+        ▼                     ▼                     ▼
+   A-Mem 스타일          Nemori 스타일         토큰 최적화
+   연결 그래프           이중 메모리 분류       계획-실행 분리
+   2-hop 검색            중복 제거             적응적 탐색
+```
+
+---
+
 ## 라이선스
 
 MIT
