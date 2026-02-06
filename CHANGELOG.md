@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.8.3](https://github.com/SukbeomH/LLM_Bolierplate_Pack/compare/gsd-plugin-v1.8.2...gsd-plugin-v1.8.3) (2026-02-06)
+
+
+### Documentation
+
+* **build:** 각 빌드 타겟 README 순수 bash 모드 반영 ([#21](https://github.com/SukbeomH/LLM_Bolierplate_Pack/issues/21)) ([9b62a47](https://github.com/SukbeomH/LLM_Bolierplate_Pack/commit/9b62a47f8866a1a087b466633e53d490307f1e72))
+* 순수 bash 메모리 시스템 반영 문서 최신화 ([#20](https://github.com/SukbeomH/LLM_Bolierplate_Pack/issues/20)) ([48134b5](https://github.com/SukbeomH/LLM_Bolierplate_Pack/commit/48134b5b0442a50f01f4441b5fc64c6d08e0e86d))
+
 ## [1.8.2](https://github.com/SukbeomH/LLM_Bolierplate_Pack/compare/gsd-plugin-v1.8.1...gsd-plugin-v1.8.2) (2026-02-06)
 
 
