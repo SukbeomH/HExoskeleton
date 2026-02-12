@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.8.4](https://github.com/SukbeomH/LLM_Bolierplate_Pack/compare/gsd-plugin-v1.8.3...gsd-plugin-v1.8.4) (2026-02-12)
+
+
+### Bug Fixes
+
+* **hooks:** hook 시스템 안정화 — .env allowlist, yaml 파싱 단순화, pipefail 안전성 ([#24](https://github.com/SukbeomH/LLM_Bolierplate_Pack/issues/24)) ([6008135](https://github.com/SukbeomH/LLM_Bolierplate_Pack/commit/60081357feff1e9a41ce50051e5f8b097be890b2))
+
+
+### Documentation
+
+* README에 설계 배경(Design Rationale) 섹션 추가 ([#23](https://github.com/SukbeomH/LLM_Bolierplate_Pack/issues/23)) ([5a6dfbc](https://github.com/SukbeomH/LLM_Bolierplate_Pack/commit/5a6dfbc4c4083334a27beebd75bef4978706a47c))
+
 ## [1.8.3](https://github.com/SukbeomH/LLM_Bolierplate_Pack/compare/gsd-plugin-v1.8.2...gsd-plugin-v1.8.3) (2026-02-06)
 
 
