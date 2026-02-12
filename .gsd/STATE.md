@@ -2,14 +2,14 @@
 
 ## Current Position
 
-**Milestone:** Pure Bash Memory System
-**Phase:** Post-refactor
+**Milestone:** Hook System Stabilization
+**Phase:** Complete
 **Status:** idle
-**Branch:** feature/pure-text
+**Branch:** docs/design-rationale
 
 ## Last Action
 
-순수 bash 기반 메모리 시스템으로 전환 완료. Python 환경, MCP, Qlty 등 외부 종속성 제거. A-Mem 확장 필드(keywords, contextual_description, related) 추가. 2-hop 검색 및 중복 방지(Nemori Predict-Calibrate) 구현.
+HOOK_ISSUE_REPORT.md 분석 후 hook 시스템 3개 스크립트 안정화. file-protect.py (.env allowlist), bash-guard.py (yaml 파싱 단순화), post-turn-verify.sh (pipefail 안전성).
 
 ## Next Steps
 
@@ -36,8 +36,8 @@ None
 
 ## Session Context
 
-Working tree clean. 순수 bash 기반 시스템 안정화 완료.
+Hook 시스템 안정화 완료. file-protect.py, bash-guard.py, post-turn-verify.sh 수정 및 테스트 통과.
 
 ---
 
-*Last updated: 2026-02-05*
+*Last updated: 2026-02-12*

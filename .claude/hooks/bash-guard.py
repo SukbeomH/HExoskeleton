@@ -79,36 +79,18 @@ def load_pkg_manager():
         return None
 
     try:
-        import yaml  # noqa: PLC0415
-
-        with open(config_path) as f:
-            data = yaml.safe_load(f)
-        return data.get("package_manager", {}).get("name")
-    except ImportError:
-        pass
-
-    # PyYAML 없으면 간단한 grep 파싱
-    try:
-        with open(config_path) as f:
-            for line in f:
-                stripped = line.strip()
-                if stripped.startswith("name:") and "package_manager" not in stripped:
-                    # package_manager 섹션 내의 name을 찾아야 하므로 다른 방법 사용
-                    pass
-
-        # 더 정확한 파싱: package_manager 섹션 찾기
         with open(config_path) as f:
             content = f.read()
-        match = re.search(
-            r"package_manager:\s*\n\s+name:\s*[\"']?(\w+)[\"']?",
-            content,
-        )
-        if match:
-            return match.group(1)
-    except Exception:
-        pass
+    except OSError:
+        return None
 
-    return None
+    # package_manager 섹션의 name 값을 regex로 추출
+    # 예: package_manager:\n  name: uv
+    match = re.search(
+        r"package_manager:\s*\n\s+name:\s*[\"']?(\w+)[\"']?",
+        content,
+    )
+    return match.group(1) if match else None
 
 
 try:

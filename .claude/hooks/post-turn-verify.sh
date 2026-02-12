@@ -3,7 +3,7 @@
 # Qlty 우선 → ruff fallback (하위 호환)
 # 수정된 소스 파일이 있으면 lint 결과를 경고로 출력
 
-set -uo pipefail
+set -o pipefail
 
 PROJECT_DIR="${CLAUDE_PROJECT_DIR:-.}"
 

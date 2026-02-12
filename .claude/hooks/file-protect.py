@@ -11,9 +11,6 @@ import os
 import sys
 
 BLOCKED_PATTERNS = [
-    ".env",
-    ".env.local",
-    ".env.mcp",
     ".pem",
     ".key",
     "secrets/",
@@ -28,6 +25,15 @@ BLOCKED_EXACT = [
     ".env.local",
     ".env.mcp",
 ]
+
+# .env 패턴 중 허용되는 안전한 파일 (비밀값 미포함 템플릿)
+ALLOWED_ENV_SUFFIXES = (
+    ".example",
+    ".sample",
+    ".template",
+    ".defaults",
+    ".test",
+)
 
 try:
     data = json.load(sys.stdin)
@@ -51,7 +57,19 @@ if ".." in file_path:
 basename = os.path.basename(file_path)
 rel_path = file_path
 
-# 정확한 파일명 매칭
+# .env 계열: 안전한 템플릿 파일은 허용, 실제 시크릿 파일만 차단
+if basename.startswith(".env"):
+    if not basename.endswith(ALLOWED_ENV_SUFFIXES):
+        print(
+            f"Blocked: '{basename}' is a protected file. "
+            "Never read/write .env or credential files.",
+            file=sys.stderr,
+        )
+        sys.exit(2)
+    # 허용된 .env 템플릿 → 나머지 검사 스킵
+    sys.exit(0)
+
+# 정확한 파일명 매칭 (비 .env 계열)
 for exact in BLOCKED_EXACT:
     if basename == exact:
         print(
