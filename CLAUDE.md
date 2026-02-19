@@ -125,6 +125,7 @@ related: [related_file_slug]
 - Read `.gsd/SPEC.md` before implementation
 - Verify empirically — 명령 실행 결과로 증명
 - Atomic commits per task
+- **WebFetch는 순차적으로 실행할 것 (병렬 fetch 금지)** — 병렬 호출 시 "Sibling tool call errored" 발생
 
 ### Ask First
 - Adding external dependencies
