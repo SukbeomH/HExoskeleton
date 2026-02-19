@@ -1,20 +1,145 @@
 #!/usr/bin/env bash
 #
-# Antigravity Build Script
+# Antigravity Build Script (v2)
 # Converts boilerplate to Google Antigravity IDE format
+#
+# Design principles:
+#   - Pure bash only (no external interpreter dependency)
+#   - Dynamic content extraction from CLAUDE.md
+#   - Non-standard frontmatter stripped from skills
+#   - Claude-specific references transformed
+#   - Agent files → Workflow files (meaningful content)
 #
 set -euo pipefail
 
 # --- Configuration ---
 BOILERPLATE="$(cd "$(dirname "$0")/.." && pwd)"
 ANTIGRAVITY="${BOILERPLATE}/antigravity-boilerplate"
+CLAUDE_MD="${BOILERPLATE}/CLAUDE.md"
 
-echo "=== Antigravity Builder ==="
+echo "=== Antigravity Builder v2 ==="
 echo "Source: ${BOILERPLATE}"
 echo "Target: ${ANTIGRAVITY}"
 echo ""
 
-# --- Phase 1: Directory Structure ---
+# ================================================================
+# Utility Functions
+# ================================================================
+
+# Extract a ## section from a markdown file (content between ## Header and next ##)
+# Usage: extract_section "file" "Section Name"
+extract_section() {
+    local file="$1"
+    local section="$2"
+    awk -v sec="$section" '
+        BEGIN { found=0; printing=0 }
+        /^## / {
+            if (printing) exit
+            if ($0 ~ "^## " sec) { found=1; printing=1 }
+        }
+        printing { print }
+    ' "$file"
+}
+
+# Extract a ### subsection from stdin
+# Usage: echo "$content" | extract_subsection "Subsection Name"
+extract_subsection() {
+    local section="$1"
+    awk -v sec="$section" '
+        BEGIN { found=0; printing=0 }
+        /^### / {
+            if (printing) exit
+            if ($0 ~ "^### " sec) { found=1; printing=1 }
+        }
+        printing { print }
+    '
+}
+
+# Remove non-standard YAML frontmatter fields from a SKILL.md
+# Keeps only: name, description (Antigravity Agent Skills spec)
+# Removes: version, trigger, allowed-tools (+ sub-list), model
+sanitize_frontmatter() {
+    local file="$1"
+    awk '
+        BEGIN { in_fm=0; skip_list=0 }
+        NR==1 && /^---/ { in_fm=1; print; next }
+        in_fm && /^---/ { in_fm=0; skip_list=0; print; next }
+        in_fm {
+            # Skip YAML list items that belong to a stripped field
+            if (skip_list && /^  - /) { next }
+            skip_list=0
+
+            # Strip non-standard fields
+            if (/^(version|trigger|allowed-tools|model):/) {
+                if (/^allowed-tools:/) { skip_list=1 }
+                next
+            }
+            print
+        }
+        !in_fm { print }
+    ' "$file"
+}
+
+# Transform Claude-specific references in skill content
+# - Remove <role>...</role> tags (preserve content between them)
+# - Outside code blocks: Grep( → search(, Glob( → find_files(, Read( → read_file(
+transform_tool_refs() {
+    awk '
+        BEGIN { in_code=0 }
+        /^```/ { in_code = !in_code; print; next }
+        {
+            # Remove <role> and </role> tags (keep line content)
+            gsub(/<\/?role>/, "")
+
+            # Only transform tool refs outside code blocks
+            if (!in_code) {
+                gsub(/Grep\(/, "search(")
+                gsub(/Glob\(/, "find_files(")
+                gsub(/Read\(/, "read_file(")
+            }
+            print
+        }
+    '
+}
+
+# Split a large skill file into SKILL.md + references/full-guide.md
+# Usage: split_large_skill "target_dir" max_lines
+split_large_skill() {
+    local target_dir="$1"
+    local max_lines="${2:-500}"
+    local skill_file="${target_dir}/SKILL.md"
+
+    [ -f "$skill_file" ] || return 0
+
+    local line_count
+    line_count=$(wc -l < "$skill_file" | tr -d ' ')
+
+    if [ "$line_count" -le "$max_lines" ]; then
+        return 0
+    fi
+
+    mkdir -p "${target_dir}/references"
+
+    # Move full content to references/full-guide.md
+    cp "$skill_file" "${target_dir}/references/full-guide.md"
+
+    # Truncate SKILL.md: keep frontmatter + first sections up to max_lines
+    local truncated
+    truncated=$(head -n "$max_lines" "$skill_file")
+
+    # Append reference pointer
+    {
+        echo "$truncated"
+        echo ""
+        echo "> Full guide: [references/full-guide.md](references/full-guide.md)"
+    } > "$skill_file"
+
+    echo "    [split] $(basename "$target_dir"): ${line_count} → ${max_lines} lines + full-guide.md"
+}
+
+# ================================================================
+# Phase 1: Directory Structure
+# ================================================================
 echo "[Phase 1] Creating directory structure..."
 rm -rf "$ANTIGRAVITY"
 mkdir -p "$ANTIGRAVITY"/.agent/{skills,workflows,rules}
@@ -27,412 +152,255 @@ echo "  [+] .agent/rules/"
 echo "  [+] templates/gsd/"
 echo "  [+] scripts/"
 
-# --- Phase 2: Skills Migration (with model from agents) ---
+# ================================================================
+# Phase 2: Skills Migration (sanitized)
+# ================================================================
 echo ""
 echo "[Phase 2] Migrating skills to Antigravity format..."
 
-# Model mapping function
-map_model() {
-    local model_raw="$1"
-    local model_key
-    model_key=$(echo "$model_raw" | tr '[:upper:]' '[:lower:]')
-
-    case "$model_key" in
-        haiku) echo "anthropic/claude-haiku-4-20250514" ;;
-        sonnet) echo "anthropic/claude-sonnet-4-20250514" ;;
-        opus) echo "anthropic/claude-opus-4-20250514" ;;
-        gemini|gemini-pro) echo "google/gemini-2.5-pro" ;;
-        gpt-4|gpt-4o) echo "openai/gpt-4o" ;;
-        */*) echo "$model_raw" ;;  # Already in provider/model format
-        *) echo "" ;;  # Unknown, skip
-    esac
-}
-
-# Skills are already in compatible format (YAML frontmatter with name/description)
 for skill_dir in "$BOILERPLATE"/.claude/skills/*/; do
     skill_name=$(basename "$skill_dir")
     target_dir="$ANTIGRAVITY/.agent/skills/${skill_name}"
     mkdir -p "$target_dir"
 
-    # Copy SKILL.md and any subdirectories (scripts, examples, resources)
-    cp -r "$skill_dir"/* "$target_dir/" 2>/dev/null || true
-
-    # Check if corresponding agent file exists with model setting
-    agent_file="$BOILERPLATE/.claude/agents/${skill_name}.md"
-    model_line=""
-    if [ -f "$agent_file" ]; then
-        # Extract model from agent frontmatter (handle CRLF)
-        model_raw=$(tr -d '\r' < "$agent_file" | sed -n '/^---/,/^---/p' | grep "^model:" | sed 's/model: *//' | tr -d '"')
-        if [ -n "$model_raw" ]; then
-            model_mapped=$(map_model "$model_raw")
-            if [ -n "$model_mapped" ]; then
-                model_line="model: $model_mapped"
-            fi
-        fi
+    if [ -f "$skill_dir/SKILL.md" ]; then
+        # Pipeline: sanitize frontmatter → transform tool refs → write
+        sanitize_frontmatter "$skill_dir/SKILL.md" | transform_tool_refs > "$target_dir/SKILL.md"
+        echo "  [+] ${skill_name}"
     fi
 
-    # Inject model into SKILL.md frontmatter if not already present
-    if [ -f "$target_dir/SKILL.md" ] && [ -n "$model_line" ]; then
-        if ! tr -d '\r' < "$target_dir/SKILL.md" | grep -q "^model:"; then
-            if tr -d '\r' < "$target_dir/SKILL.md" | grep -q "^description:"; then
-                # Portable sed: write to temp file (works on both macOS and Linux)
-                tmp_file="${target_dir}/SKILL.md.tmp"
-                awk -v ml="$model_line" '/^description:/{print; print ml; next}1' "$target_dir/SKILL.md" > "$tmp_file"
-                mv "$tmp_file" "$target_dir/SKILL.md"
-            fi
-        fi
-    fi
+    # Copy subdirectories (scripts, examples, resources) — skip SKILL.md itself
+    for subdir in "$skill_dir"*/; do
+        [ -d "$subdir" ] || continue
+        subdir_name=$(basename "$subdir")
+        cp -r "$subdir" "$target_dir/"
+        echo "    [+] ${skill_name}/${subdir_name}/"
+    done
 
-    # Verify description exists in frontmatter (required for Antigravity)
-    if [ -f "$target_dir/SKILL.md" ]; then
-        # Handle CRLF line endings
-        if tr -d '\r' < "$target_dir/SKILL.md" | grep -q "^description:"; then
-            if [ -n "$model_line" ]; then
-                echo "  [+] ${skill_name} (${model_raw:-default})"
-            else
-                echo "  [+] ${skill_name}"
-            fi
-        else
-            echo "  [WARN] ${skill_name} - missing description in frontmatter"
-        fi
-    fi
+    # Split large skills (>500 lines)
+    split_large_skill "$target_dir" 500
 done
-SKILLS_COUNT=$(ls -d "$ANTIGRAVITY/.agent/skills"/*/ 2>/dev/null | wc -l | tr -d ' ')
+
+SKILLS_COUNT=$(find "$ANTIGRAVITY/.agent/skills" -mindepth 1 -maxdepth 1 -type d | wc -l | tr -d ' ')
 echo "  [=] Total skills: ${SKILLS_COUNT}"
 
-# --- Phase 3: Workflows ---
+# ================================================================
+# Phase 3: Workflows from Agent files (pure bash)
+# ================================================================
 echo ""
-echo "[Phase 3] Generating workflows..."
+echo "[Phase 3] Generating workflows from agent files..."
 
 WORKFLOWS_COUNT=0
-if [ -d "$BOILERPLATE/.agent/workflows" ]; then
-    # Legacy workflows exist — copy with description enforcement
-    for workflow in "$BOILERPLATE"/.agent/workflows/*.md; do
-        [ -f "$workflow" ] || continue
-        filename=$(basename "$workflow")
-        target="$ANTIGRAVITY/.agent/workflows/${filename}"
+for agent_file in "$BOILERPLATE"/.claude/agents/*.md; do
+    [ -f "$agent_file" ] || continue
+    agent_name=$(basename "$agent_file" .md)
 
-        if tr -d '\r' < "$workflow" | grep -q "^description:"; then
-            cp "$workflow" "$target"
-            echo "  [+] ${filename}"
-        else
-            workflow_name="${filename%.md}"
-            desc="Workflow for ${workflow_name//-/ }"
-            if head -1 "$workflow" | tr -d '\r' | grep -q "^---$"; then
-                awk 'NR==1{print; print "description: \"'"$desc"'\""; next}1' "$workflow" > "$target"
-            else
-                { echo "---"; echo "description: \"${desc}\""; echo "---"; echo ""; cat "$workflow"; } > "$target"
-            fi
-            echo "  [+] ${filename} (added description)"
-        fi
-    done
-else
-    # Generate workflows from SKILL.md content
-    # Antigravity workflows: step-by-step procedures invoked via /workflow-name
-    python3 - "$BOILERPLATE" "$ANTIGRAVITY" << 'PYEOF'
-import sys, os, re, textwrap
+    # Extract description from frontmatter
+    desc=$(awk '
+        BEGIN { in_fm=0 }
+        NR==1 && /^---/ { in_fm=1; next }
+        in_fm && /^---/ { exit }
+        in_fm && /^description:/ {
+            sub(/^description: */, "")
+            gsub(/"/, "")
+            print
+            exit
+        }
+    ' "$agent_file")
 
-boilerplate = sys.argv[1]
-antigravity = sys.argv[2]
-skills_dir = os.path.join(boilerplate, '.claude', 'skills')
-wf_dir = os.path.join(antigravity, '.agent', 'workflows')
+    if [ -z "$desc" ]; then
+        desc="Workflow for ${agent_name//-/ }"
+    fi
 
-def extract_frontmatter(content):
-    """Extract YAML frontmatter fields."""
-    fm = {}
-    m = re.match(r'^---\s*\n(.*?)\n---', content, re.DOTALL)
-    if m:
-        for line in m.group(1).splitlines():
-            if ':' in line:
-                key, val = line.split(':', 1)
-                fm[key.strip()] = val.strip().strip('"').strip("'")
-    return fm
+    # Extract body (everything after second ---)
+    body=$(awk '
+        BEGIN { fm_count=0 }
+        /^---/ { fm_count++; if (fm_count==2) { getline; } next }
+        fm_count >= 2 { print }
+    ' "$agent_file")
 
-def extract_body(content):
-    """Extract body after frontmatter."""
-    m = re.match(r'^---\s*\n.*?\n---\s*\n', content, re.DOTALL)
-    return content[m.end():] if m else content
+    # Transform Claude-specific tool references in body
+    body=$(echo "$body" | transform_tool_refs)
 
-def extract_steps(body):
-    """Extract step sections (## Step N or ### Step N patterns)."""
-    steps = []
-    # Find numbered step headers
-    pattern = r'(?:^#{2,3}\s+(?:Step\s+\d+|단계\s+\d+)[:\s]*(.*?)$)'
-    matches = list(re.finditer(pattern, body, re.MULTILINE | re.IGNORECASE))
+    # Build workflow file
+    wf_path="$ANTIGRAVITY/.agent/workflows/${agent_name}.md"
+    {
+        echo "---"
+        echo "description: \"${desc}\""
+        echo "---"
+        echo ""
+        echo "$body"
+    } > "$wf_path"
 
-    if matches:
-        for i, match in enumerate(matches):
-            start = match.start()
-            end = matches[i+1].start() if i+1 < len(matches) else len(body)
-            section = body[start:end].strip()
-            # Truncate long sections
-            lines = section.splitlines()
-            if len(lines) > 25:
-                section = '\n'.join(lines[:25]) + '\n...'
-            steps.append(section)
+    # Enforce 12,000 char limit
+    char_count=$(wc -c < "$wf_path" | tr -d ' ')
+    if [ "$char_count" -gt 12000 ]; then
+        head -c 11500 "$wf_path" > "${wf_path}.tmp"
+        {
+            cat "${wf_path}.tmp"
+            echo ""
+            echo "> *Truncated for 12,000 char limit*"
+        } > "$wf_path"
+        rm -f "${wf_path}.tmp"
+        echo "  [+] ${agent_name}.md (truncated: ${char_count} → 12000)"
+    else
+        echo "  [+] ${agent_name}.md (${char_count} chars)"
+    fi
 
-    return steps
+    WORKFLOWS_COUNT=$((WORKFLOWS_COUNT + 1))
+done
 
-def extract_workflow_section(body):
-    """Extract ## Workflow or ## Execution Flow section."""
-    pattern = r'(^#{2}\s+(?:Workflow|Execution Flow|Verification Process|Search Protocol|Debug Flow|Review Process|Core Process).*?)(?=\n#{1,2}\s|\Z)'
-    m = re.search(pattern, body, re.MULTILINE | re.DOTALL | re.IGNORECASE)
-    if m:
-        section = m.group(1).strip()
-        lines = section.splitlines()
-        if len(lines) > 60:
-            section = '\n'.join(lines[:60]) + '\n...'
-        return section
-    return None
-
-for skill_name in sorted(os.listdir(skills_dir)):
-    skill_file = os.path.join(skills_dir, skill_name, 'SKILL.md')
-    if not os.path.isfile(skill_file):
-        continue
-
-    with open(skill_file, 'r') as f:
-        content = f.read()
-
-    fm = extract_frontmatter(content)
-    body = extract_body(content)
-    desc = fm.get('description', f'Workflow for {skill_name.replace("-", " ")}')
-
-    # Try to extract procedural content
-    workflow_section = extract_workflow_section(body)
-    steps = extract_steps(body)
-
-    # Build workflow content
-    wf_lines = [
-        '---',
-        f'description: "{desc}"',
-        '---',
-        '',
-        f'# /{skill_name}',
-        '',
-        desc,
-        '',
-    ]
-
-    if workflow_section:
-        wf_lines.append(workflow_section)
-        wf_lines.append('')
-    elif steps:
-        wf_lines.append('## Steps')
-        wf_lines.append('')
-        for step in steps:
-            wf_lines.append(step)
-            wf_lines.append('')
-    else:
-        # Fallback: extract all ## sections as workflow outline
-        sections = re.findall(r'^(#{2}\s+.+)$', body, re.MULTILINE)
-        if sections:
-            wf_lines.append('## Procedure')
-            wf_lines.append('')
-            for i, sec in enumerate(sections[:10], 1):
-                heading = sec.lstrip('#').strip()
-                wf_lines.append(f'{i}. {heading}')
-            wf_lines.append('')
-
-    # Enforce Antigravity 12,000 char limit
-    wf_content = '\n'.join(wf_lines)
-    if len(wf_content) > 11500:
-        wf_content = wf_content[:11500] + '\n\n> *Truncated for 12,000 char limit*\n'
-
-    wf_path = os.path.join(wf_dir, f'{skill_name}.md')
-    with open(wf_path, 'w') as f:
-        f.write(wf_content)
-
-    print(f'  [+] {skill_name}.md ({len(wf_content)} chars)')
-PYEOF
-fi
-
-WORKFLOWS_COUNT=$(ls "$ANTIGRAVITY/.agent/workflows/"*.md 2>/dev/null | wc -l | tr -d ' ')
 echo "  [=] Total workflows: ${WORKFLOWS_COUNT}"
 
-# --- Phase 4: Rules from CLAUDE.md ---
+# ================================================================
+# Phase 4: Rules from CLAUDE.md (dynamic extraction)
+# ================================================================
 echo ""
 echo "[Phase 4] Creating rules from CLAUDE.md..."
 
-# Extract code style rules
-cat > "$ANTIGRAVITY/.agent/rules/code-style.md" << 'RULESEOF'
-# Code Style Rules
+# Rule 1: agent-boundaries.md — from ## Agent Boundaries
+{
+    echo "---"
+    echo 'description: "Agent behavioral boundaries — always do, ask first, never do"'
+    echo "---"
+    echo ""
+    extract_section "$CLAUDE_MD" "Agent Boundaries"
+} | transform_tool_refs > "$ANTIGRAVITY/.agent/rules/agent-boundaries.md"
+echo "  [+] agent-boundaries.md"
 
-These rules are always active and govern code generation behavior.
+# Rule 2: validation.md — from ## Validation
+{
+    echo "---"
+    echo 'description: "Empirical validation rules — evidence-based verification"'
+    echo "---"
+    echo ""
+    extract_section "$CLAUDE_MD" "Validation"
+} > "$ANTIGRAVITY/.agent/rules/validation.md"
+echo "  [+] validation.md"
 
-## Python Standards
-* Use Python 3.12 exclusively
-* Follow PEP 8 with line-length 100
-* Maximum McCabe complexity: 10
-* Maximum function arguments: 6
-* Use TypedDict for state definitions
-* Naming exceptions: `*Factory`, `Create*` patterns
-
-## Package Management
-* Package manager: uv only
-* Never use pip or poetry
-* Commands: `uv sync`, `uv add <package>`, `uv run <command>`
-
-## Code Quality
-* Run `uv run ruff check . --fix` for linting
-* Run `uv run mypy .` for type checking
-* Run `uv run pytest tests/` for testing
-
-## Formatting
-* Use ruff format for Python files
-* Prefer editing existing files over creating new ones
-* Keep solutions simple and focused
-RULESEOF
-echo "  [+] code-style.md"
-
-# Extract safety rules
-cat > "$ANTIGRAVITY/.agent/rules/safety.md" << 'SAFETYEOF'
-# Safety Rules
-
-These rules prevent dangerous actions and protect sensitive data.
-
-## Never Do
-* Read or print `.env` or credential files
-* Commit hardcoded secrets or API keys
-* Run destructive git commands without explicit user request
-* Skip failing tests to "fix later"
-* Print unconditional success messages without verification
-* Assume API signatures without verification
-
-## Always Do
-* Use `analyze_code_impact` before refactoring or deleting code
-* Read `.gsd/SPEC.md` before implementation
-* Verify empirically with command execution results
-* Create atomic commits per task
-
-## Ask First
-* Adding external dependencies (`uv add`)
-* Deleting files outside task scope
-* Changing public API signatures or database schema
-* Architectural decisions affecting 3+ modules
-
-## Terminal Safety
-* Review commands before execution in review mode
-* Use allow/deny lists for terminal auto-execution
-* Never run `rm -rf` on directories without explicit paths
-SAFETYEOF
-echo "  [+] safety.md"
-
-# Extract workflow rules
-cat > "$ANTIGRAVITY/.agent/rules/gsd-workflow.md" << 'GSDEOF'
-# GSD Workflow Rules
-
-Rules for the Get Shit Done methodology.
-
-## Validation Philosophy
-* Empirical evidence only - "it seems to work" is not evidence
-* Collect all failures before reporting (don't stop at first)
-* Mock only external APIs/network, prefer real objects
-* 3 consecutive failures = change approach
-
-## GSD Cycle
-1. SPEC.md (Planning Lock) - Project specification
-2. PLAN.md - Implementation plans with atomic tasks
-3. EXECUTE - Execute with atomic commits
-4. VERIFY - Verify with empirical evidence
-
-## MCP Tools Priority
-* Use code-graph-rag tools (query, analyze_code_impact) before reading files directly
-* Use mcp-memory-service for persistent agent memory
-* Use context7 for library documentation lookup
-
-## Commit Protocol
-* Atomic commits per completed task
-* Conventional commit format with emoji
-* Always include Co-Authored-By header
-GSDEOF
+# Rule 3: gsd-workflow.md — from ## Architecture + GSD cycle summary
+{
+    echo "---"
+    echo 'description: "GSD workflow rules — architecture principles and execution cycle"'
+    echo "---"
+    echo ""
+    extract_section "$CLAUDE_MD" "Architecture" | transform_tool_refs
+    echo ""
+    echo "## GSD Cycle"
+    echo ""
+    echo "1. **SPEC.md** (Planning Lock) — Project specification"
+    echo "2. **PLAN.md** — Implementation plans with atomic tasks"
+    echo "3. **EXECUTE** — Execute with atomic commits"
+    echo "4. **VERIFY** — Verify with empirical evidence"
+} > "$ANTIGRAVITY/.agent/rules/gsd-workflow.md"
 echo "  [+] gsd-workflow.md"
 
-# --- Phase 5: MCP Configuration (optional) ---
+# Rule 4: memory-protocol.md — from ## Memory Protocol
+{
+    echo "---"
+    echo 'description: "File-based memory protocol — search, store, and recall patterns"'
+    echo "---"
+    echo ""
+    extract_section "$CLAUDE_MD" "Memory Protocol" | transform_tool_refs
+} > "$ANTIGRAVITY/.agent/rules/memory-protocol.md"
+echo "  [+] memory-protocol.md"
+
+RULES_COUNT=$(find "$ANTIGRAVITY/.agent/rules" -name "*.md" | wc -l | tr -d ' ')
+echo "  [=] Total rules: ${RULES_COUNT}"
+
+# ================================================================
+# Phase 5: GEMINI.md Generation
+# ================================================================
 echo ""
-echo "[Phase 5] Creating MCP configuration..."
+echo "[Phase 5] Generating GEMINI.md..."
 
-if [ -f "$BOILERPLATE/.mcp.json" ]; then
-    # Transform MCP config for Antigravity
-    # Antigravity uses mcp-settings.json (can be copied to ~/.gemini/antigravity/)
-    python3 - "$BOILERPLATE" "$ANTIGRAVITY" << 'PYEOF'
-import json
-import sys
+{
+    cat << 'GEMINIHEADER'
+# GEMINI.md
 
-boilerplate = sys.argv[1]
-antigravity = sys.argv[2]
+This file provides guidance to Antigravity IDE agents when working with code in this repository.
 
-with open(f"{boilerplate}/.mcp.json", 'r') as f:
-    mcp = json.load(f)
+GEMINIHEADER
 
-# Transform for Antigravity
-# - Keep structure but adjust paths
-if 'mcpServers' in mcp:
-    servers = mcp['mcpServers']
+    # Project Overview (transformed)
+    extract_section "$CLAUDE_MD" "Project Overview" | sed \
+        -e 's/Claude Code/Antigravity/g' \
+        -e 's/네이티브 Claude Code 도구(Grep, Glob, Read)/에이전트 내장 도구/g'
 
-    # graph-code: use current directory as default
-    if 'graph-code' in servers:
-        args = servers['graph-code'].get('args', [])
-        servers['graph-code']['args'] = [
-            '.' if arg == '.' else arg
-            for arg in args
-        ]
+    echo ""
 
-    # context7: keep if present (user needs API key)
-    # memory: keep as is
+    # Architecture (transformed)
+    extract_section "$CLAUDE_MD" "Architecture" | sed \
+        -e 's/Claude Code/Antigravity/g' \
+        -e 's/네이티브 Antigravity 도구(Grep, Glob, Read)/에이전트 내장 검색 도구/g' \
+        -e 's/네이티브 Antigravity 도구만/에이전트 내장 도구만/g' \
+        -e 's/\.claude\/hooks\//scripts\//g'
 
-# Remove non-standard fields
-mcp.pop('enable_tool_search', None)
+    echo ""
 
-# Write config (Antigravity standard name)
-output_path = f"{antigravity}/mcp-settings.json"
-with open(output_path, 'w') as f:
-    json.dump(mcp, f, indent=2)
+    # Repository Layout (.agent/ structure)
+    cat << 'LAYOUT'
+## Repository Layout
 
-print(f"  [+] mcp-settings.json")
-PYEOF
-else
-    echo "  [SKIP] .mcp.json not found (pure bash mode)"
-fi
+- **.agent/** — Agent configuration (Antigravity format):
+  - `skills/` — Modular skill definitions (16 skills, SKILL.md format)
+  - `workflows/` — Workflow commands (triggered via `/` commands)
+  - `rules/` — Always-on passive rules (4 rule files)
+- **.gsd/** — GSD documents and context management:
+  - `SPEC.md`, `PLAN.md`, `DECISIONS.md`, `STATE.md` — Core working docs
+  - `PATTERNS.md` — Distilled learnings for fresh sessions (2KB limit)
+  - `memories/` — File-based agent memory (14 type directories)
+  - `reports/`, `research/`, `archive/` — Secondary documents
+  - `templates/` — Document templates
+- **scripts/** — Utility scripts (memory system, scaffolding)
 
-# --- Phase 6: GSD Templates ---
+LAYOUT
+
+    # Memory Protocol (transformed)
+    extract_section "$CLAUDE_MD" "Memory Protocol" | transform_tool_refs | sed \
+        -e 's/\.claude\/skills\//.agent\/skills\//g' \
+        -e 's/\.claude\/hooks\//scripts\//g'
+
+    echo ""
+
+    # Validation
+    extract_section "$CLAUDE_MD" "Validation"
+
+    echo ""
+
+    # Agent Boundaries (transformed)
+    extract_section "$CLAUDE_MD" "Agent Boundaries" | transform_tool_refs
+
+} > "$ANTIGRAVITY/GEMINI.md"
+echo "  [+] GEMINI.md ($(wc -c < "$ANTIGRAVITY/GEMINI.md" | tr -d ' ') chars)"
+
+# ================================================================
+# Phase 6: Selective Script Copy (4 scripts only)
+# ================================================================
 echo ""
-echo "[Phase 6] Copying GSD templates..."
+echo "[Phase 6] Copying utility scripts (selective)..."
 
-# Templates
-cp "$BOILERPLATE"/.gsd/templates/*.md "$ANTIGRAVITY/templates/gsd/templates/" 2>/dev/null || true
-cp "$BOILERPLATE"/.gsd/templates/*.yaml "$ANTIGRAVITY/templates/gsd/templates/" 2>/dev/null || true
-TEMPLATES_COUNT=$(find "$ANTIGRAVITY/templates/gsd/templates" -type f | wc -l | tr -d ' ')
-echo "  [+] ${TEMPLATES_COUNT} templates"
-
-# Examples
-cp "$BOILERPLATE"/.gsd/examples/*.md "$ANTIGRAVITY/templates/gsd/examples/" 2>/dev/null || true
-EXAMPLES_COUNT=$(find "$ANTIGRAVITY/templates/gsd/examples" -type f | wc -l | tr -d ' ')
-echo "  [+] ${EXAMPLES_COUNT} examples"
-
-# Working document shells
-for doc in SPEC DECISIONS JOURNAL ROADMAP PATTERNS STATE TODO STACK CHANGELOG; do
-    doc_lower=$(echo "$doc" | tr '[:upper:]' '[:lower:]')
-    cat > "$ANTIGRAVITY/templates/gsd/${doc}.md" << EOF
-# ${doc}
-
-<!-- Initialize with /init workflow -->
-<!-- See templates/${doc_lower}.md for full template -->
-EOF
+# Copy only standalone-capable scripts
+SCRIPT_COUNT=0
+for script in md-recall-memory.sh md-store-memory.sh _json_parse.sh; do
+    src="$BOILERPLATE/.claude/hooks/$script"
+    if [ -f "$src" ]; then
+        cp "$src" "$ANTIGRAVITY/scripts/"
+        chmod +x "$ANTIGRAVITY/scripts/$script"
+        echo "  [+] ${script}"
+        SCRIPT_COUNT=$((SCRIPT_COUNT + 1))
+    else
+        echo "  [WARN] ${script} not found"
+    fi
 done
-echo "  [+] 9 working document shells"
 
-# --- Phase 7: Utility Scripts ---
-echo ""
-echo "[Phase 7] Creating utility scripts..."
-
-# scaffold-gsd.sh
+# scaffold-gsd.sh — inline generation (same as before)
 cat > "$ANTIGRAVITY/scripts/scaffold-gsd.sh" << 'SCAFFOLDEOF'
-#!/bin/zsh
+#!/usr/bin/env bash
 #
 # scaffold-gsd.sh - Initialize GSD document structure
 #
-setopt ERR_EXIT
-setopt NO_UNSET
+set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 TEMPLATE_DIR="${SCRIPT_DIR}/../templates/gsd"
@@ -440,7 +408,7 @@ TARGET="${1:-.gsd}"
 
 echo "Scaffolding GSD documents to ${TARGET}..."
 
-mkdir -p "$TARGET"/{templates,examples,archive,reports,research}
+mkdir -p "$TARGET"/{templates,examples,archive,reports,research,memories}
 
 # Copy working documents
 for f in "$TEMPLATE_DIR"/*.md; do
@@ -488,94 +456,42 @@ echo ""
 echo "GSD scaffolding complete!"
 SCAFFOLDEOF
 chmod +x "$ANTIGRAVITY/scripts/scaffold-gsd.sh"
-echo "  [+] scaffold-gsd.sh"
+echo "  [+] scaffold-gsd.sh (generated)"
+SCRIPT_COUNT=$((SCRIPT_COUNT + 1))
+echo "  [=] Total scripts: ${SCRIPT_COUNT}"
 
-# Copy ALL hook scripts (Python and Shell)
-echo "  Copying hook scripts..."
-HOOK_COUNT=0
-for script in "$BOILERPLATE"/.claude/hooks/*.py "$BOILERPLATE"/.claude/hooks/*.sh; do
-    [ -f "$script" ] || continue
-    basename_script=$(basename "$script")
-    # Skip _json_parse.sh (internal utility)
-    [[ "$basename_script" == _* ]] && continue
-    cp "$script" "$ANTIGRAVITY/scripts/"
-    chmod +x "$ANTIGRAVITY/scripts/$basename_script"
-    HOOK_COUNT=$((HOOK_COUNT + 1))
+# ================================================================
+# Phase 7: GSD Templates
+# ================================================================
+echo ""
+echo "[Phase 7] Copying GSD templates..."
+
+# Templates
+cp "$BOILERPLATE"/.gsd/templates/*.md "$ANTIGRAVITY/templates/gsd/templates/" 2>/dev/null || true
+cp "$BOILERPLATE"/.gsd/templates/*.yaml "$ANTIGRAVITY/templates/gsd/templates/" 2>/dev/null || true
+TEMPLATES_COUNT=$(find "$ANTIGRAVITY/templates/gsd/templates" -type f 2>/dev/null | wc -l | tr -d ' ')
+echo "  [+] ${TEMPLATES_COUNT} templates"
+
+# Examples
+cp "$BOILERPLATE"/.gsd/examples/*.md "$ANTIGRAVITY/templates/gsd/examples/" 2>/dev/null || true
+EXAMPLES_COUNT=$(find "$ANTIGRAVITY/templates/gsd/examples" -type f 2>/dev/null | wc -l | tr -d ' ')
+echo "  [+] ${EXAMPLES_COUNT} examples"
+
+# Working document shells
+for doc in SPEC DECISIONS JOURNAL ROADMAP PATTERNS STATE TODO STACK CHANGELOG; do
+    doc_lower=$(echo "$doc" | tr '[:upper:]' '[:lower:]')
+    cat > "$ANTIGRAVITY/templates/gsd/${doc}.md" << EOF
+# ${doc}
+
+<!-- Initialize with /init workflow -->
+<!-- See templates/${doc_lower}.md for full template -->
+EOF
 done
-echo "  [+] Copied ${HOOK_COUNT} hook scripts"
+echo "  [+] 9 working document shells"
 
-# Copy _json_parse.sh as utility (required by shell hooks)
-if [ -f "$BOILERPLATE/.claude/hooks/_json_parse.sh" ]; then
-    cp "$BOILERPLATE/.claude/hooks/_json_parse.sh" "$ANTIGRAVITY/scripts/"
-    echo "  [+] Copied _json_parse.sh utility"
-fi
-
-# Create hooks migration guide
-cat > "$ANTIGRAVITY/scripts/HOOKS-MIGRATION.md" << 'HOOKGUIDEEOF'
-# Hooks Migration Guide for Antigravity
-
-Antigravity doesn't have direct hook equivalents like Claude Code.
-Instead, hooks functionality is achieved through **Rules**, **Workflows**, and **Settings**.
-
-## Hook Mapping
-
-| Original Hook | Antigravity Approach | Location |
-|---------------|---------------------|----------|
-| `bash-guard.py` | **Rules** (안전 규칙) + **Terminal Deny List** | `.agent/rules/safety.md` + Settings |
-| `file-protect.py` | **Rules** (파일 보호 규칙) | `.agent/rules/safety.md` |
-| `auto-format.sh` | **Workflow** 또는 에디터 설정 | `.agent/workflows/format.md` |
-| `session-start.sh` | **Planning Mode** 자동 컨텍스트 로드 | Agent Mode: Planning |
-| `post-turn-index.sh` | **MCP 서버** (graph-code) 자동 인덱싱 | `mcp-settings.json` |
-| `post-turn-verify.sh` | **Workflow** (`/quick-check`) | `.agent/workflows/quick-check.md` |
-| `pre-compact-save.sh` | **Workflow** (`/pause`) | `.agent/workflows/pause.md` |
-| `save-session-changes.sh` | **Planning Mode Artifacts** | 자동 아티팩트 저장 |
-| `save-transcript.sh` | **내장 기능** | Antigravity 자동 저장 |
-| `mcp-store-memory.sh` | **MCP 서버** (mcp-memory-service) | `mcp-settings.json` |
-| `stop-context-save.sh` | **Workflow** (`/handoff`) | `.agent/workflows/handoff.md` |
-| `track-modifications.sh` | **Git Integration** | 내장 기능 |
-
-## Antigravity Settings 권장 설정
-
-### Terminal Command Policy
-Settings > Agent > Terminal Command Auto Execution:
-- **Always Proceed** (권장): Rules가 안전장치 역할
-- Allow List: `ls`, `cat`, `git status`, `git log`, `uv sync`, `npm test`
-- Deny List: `rm -rf`, `git push --force`, `pip install`
-
-### Agent Mode
-- **Planning Mode** (권장): session-start.sh 역할 대체
-  - 자동으로 프로젝트 컨텍스트 로드
-  - Task Groups로 작업 구성
-  - Artifacts 생성 및 검토
-
-## 스크립트 직접 실행 (선택)
-
-일부 hooks는 스크립트로 유지하여 수동 실행 가능:
-
-```bash
-# 코드 인덱싱 (post-turn-index.sh 대체)
-# MCP graph-code 서버가 자동 처리
-
-# 포맷팅 (auto-format.sh)
-python scripts/auto-format.sh <file>
-
-# 안전 검사 (bash-guard.py)
-echo '{"tool_input":{"command":"git push --force"}}' | python scripts/bash-guard.py
-```
-
-## Rules에 반영된 Hook 기능
-
-### safety.md
-- bash-guard.py의 파괴적 명령 차단 규칙 반영
-- file-protect.py의 민감 파일 보호 규칙 반영
-
-### gsd-workflow.md
-- session-start.sh의 GSD 상태 로드 규칙 반영
-- post-turn-verify.sh의 검증 규칙 반영
-HOOKGUIDEEOF
-echo "  [+] Created HOOKS-MIGRATION.md guide"
-
-# --- Phase 8: README ---
+# ================================================================
+# Phase 8: README
+# ================================================================
 echo ""
 echo "[Phase 8] Creating README..."
 
@@ -584,24 +500,19 @@ cat > "$ANTIGRAVITY/README.md" << 'READMEEOF'
 
 AI agent development boilerplate for **Google Antigravity IDE**.
 
-**외부 종속성 없음** — 순수 bash 기반 메모리 시스템으로 바로 사용 가능합니다.
+**No external dependencies** — pure bash scripts + markdown files.
 
 ## Quick Start
 
 1. **Open in Antigravity**
    ```bash
-   # Open this directory as workspace in Antigravity
    antigravity .
    ```
 
 2. **Initialize GSD Documents**
    ```bash
-   zsh scripts/scaffold-gsd.sh
+   bash scripts/scaffold-gsd.sh
    ```
-
-3. **(선택) Configure MCP Servers**
-   - Go to Agent panel "..." → MCP Servers → Manage MCP Servers → View raw config
-   - Copy contents from `mcp-settings.json` to your config
 
 ## Directory Structure
 
@@ -611,33 +522,34 @@ AI agent development boilerplate for **Google Antigravity IDE**.
 │   ├── planner/     # Planning skill
 │   ├── executor/    # Execution skill
 │   └── ...
-├── workflows/       # Workflow commands (// turbo supported)
-│   ├── plan.md      # /plan command
-│   ├── execute.md   # /execute command
+├── workflows/       # 14 workflow commands (from agent orchestrations)
+│   ├── planner.md   # /planner command
+│   ├── executor.md  # /executor command
 │   └── ...
-└── rules/           # Always-on passive rules
-    ├── code-style.md
-    ├── safety.md
-    └── gsd-workflow.md
+└── rules/           # 4 always-on passive rules
+    ├── agent-boundaries.md
+    ├── validation.md
+    ├── gsd-workflow.md
+    └── memory-protocol.md
 
 templates/gsd/       # GSD document templates
-scripts/             # Utility scripts (메모리 포함)
-mcp-settings.json    # MCP server configuration (선택적)
+scripts/             # Utility scripts (memory system)
+GEMINI.md            # Project instructions for Antigravity agents
 ```
 
-## Memory System (순수 Bash)
+## Memory System (Pure Bash)
 
-외부 종속성 없는 파일 기반 메모리 시스템:
+File-based memory system with no external dependencies:
 
 ```bash
-# 메모리 저장
-bash scripts/md-store-memory.sh "제목" "내용" "태그" "타입"
+# Store memory
+bash scripts/md-store-memory.sh "Title" "Content" "tags" "type"
 
-# 메모리 검색
-bash scripts/md-recall-memory.sh "검색어" "." 5 compact
+# Recall memory
+bash scripts/md-recall-memory.sh "query" "." 5 compact
 ```
 
-14개 메모리 타입: `architecture-decision`, `root-cause`, `session-summary` 등
+14 memory types: `architecture-decision`, `root-cause`, `session-summary`, etc.
 
 ## Skills (16)
 
@@ -660,66 +572,47 @@ bash scripts/md-recall-memory.sh "검색어" "." 5 compact
 | `pr-review` | Multi-persona code review |
 | `clean` | Code quality tools (shellcheck) |
 
-## Workflows
+## Workflows (14)
 
-Workflows are standardized recipes in `.agent/workflows/*.md`. Trigger via `/` commands or natural language.
-
-### Turbo Mode
-
-Add `// turbo` comment to auto-execute commands:
-```markdown
-1. Run tests
-// turbo
-2. `npm run test`
-```
-
-### Key Workflows
+Workflows in `.agent/workflows/*.md` contain orchestration logic extracted from agent definitions.
 
 | Command | Description |
 |---------|-------------|
-| `/plan` | Create implementation plan |
-| `/execute` | Execute planned work |
-| `/verify` | Verify completed work |
-| `/debug` | Systematic debugging |
-| `/map` | Map codebase structure |
-| `/help` | List all commands |
+| `/planner` | Create implementation plan |
+| `/executor` | Execute planned work |
+| `/verifier` | Verify completed work |
+| `/debugger` | Systematic debugging |
+| `/codebase-mapper` | Map codebase structure |
+| `/commit` | Create conventional commit |
 
-## Rules
+## Rules (4)
 
-Rules in `.agent/rules/*.md` are always-on passive guidelines that govern agent behavior.
+Rules in `.agent/rules/*.md` are always-on passive guidelines.
 
 | Rule | Purpose |
 |------|---------|
-| `code-style.md` | Python standards, formatting |
-| `safety.md` | Dangerous action prevention |
-| `gsd-workflow.md` | GSD methodology rules |
-
-## MCP Servers (선택적)
-
-MCP 서버는 **선택적**입니다. 기본 기능은 순수 bash로 동작합니다.
-
-| Server | Purpose | Install |
-|--------|---------|---------|
-| `graph-code` | AST-based code analysis | `npm i -g @er77/code-graph-rag-mcp` |
-| `memory` | Semantic memory search | `pipx install mcp-memory-service` |
+| `agent-boundaries.md` | Always/Ask First/Never behavioral rules |
+| `validation.md` | Empirical evidence requirements |
+| `gsd-workflow.md` | Architecture + GSD cycle |
+| `memory-protocol.md` | Memory search/store protocol |
 
 ## GSD Methodology
 
 Get Shit Done workflow:
 
-1. **SPEC.md** - Define project specification
-2. **PLAN.md** - Create implementation plans
-3. **EXECUTE** - Execute with atomic commits
-4. **VERIFY** - Verify with empirical evidence
+1. **SPEC.md** — Define project specification
+2. **PLAN.md** — Create implementation plans
+3. **EXECUTE** — Execute with atomic commits
+4. **VERIFY** — Verify with empirical evidence
 
 ## Migration from Claude Code
 
 | Claude Code | Antigravity |
 |-------------|-------------|
-| `CLAUDE.md` | `.agent/rules/*.md` |
+| `CLAUDE.md` | `GEMINI.md` + `.agent/rules/*.md` |
 | `.claude/skills/` | `.agent/skills/` |
-| Claude Hooks | `.agent/workflows/` (use `// turbo`) |
-| `.mcp.json` | `mcp-settings.json` (선택적) |
+| `.claude/agents/` | `.agent/workflows/` |
+| Claude Hooks | Not needed (rules replace hooks) |
 
 ## License
 
@@ -727,15 +620,18 @@ MIT
 READMEEOF
 echo "  [+] README.md"
 
-# --- Phase 9: Verification ---
+# ================================================================
+# Phase 9: Verification
+# ================================================================
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo "[Phase 9] Verification"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
 errors=0
+warnings=0
 
-# Structure check
+# --- Structure check ---
 echo ""
 echo "[Structure]"
 for dir in .agent/skills .agent/workflows .agent/rules templates scripts; do
@@ -747,46 +643,98 @@ for dir in .agent/skills .agent/workflows .agent/rules templates scripts; do
     fi
 done
 
-# Counts
+# --- Counts ---
 echo ""
 echo "[Counts]"
-skill_count=$(ls -d "$ANTIGRAVITY/.agent/skills"/*/ 2>/dev/null | wc -l | tr -d ' ')
-workflow_count=$(ls "$ANTIGRAVITY/.agent/workflows/"*.md 2>/dev/null | wc -l | tr -d ' ')
-rules_count=$(ls "$ANTIGRAVITY/.agent/rules/"*.md 2>/dev/null | wc -l | tr -d ' ')
+skill_count=$(find "$ANTIGRAVITY/.agent/skills" -mindepth 1 -maxdepth 1 -type d | wc -l | tr -d ' ')
+workflow_count=$(find "$ANTIGRAVITY/.agent/workflows" -name "*.md" | wc -l | tr -d ' ')
+rules_count=$(find "$ANTIGRAVITY/.agent/rules" -name "*.md" | wc -l | tr -d ' ')
 
 echo "  Skills:    ${skill_count} (expected: 16)"
-[ "$skill_count" -ge 16 ] || echo "    [WARN] Low skill count"
+[ "$skill_count" -ge 16 ] || { echo "    [WARN] Low skill count"; warnings=$((warnings + 1)); }
 
-echo "  Workflows: ${workflow_count}"
-[ "$workflow_count" -ge 1 ] || echo "    [WARN] No workflows found"
+echo "  Workflows: ${workflow_count} (expected: 14)"
+[ "$workflow_count" -ge 14 ] || { echo "    [WARN] Low workflow count"; warnings=$((warnings + 1)); }
 
-echo "  Rules:     ${rules_count} (expected: 3)"
-[ "$rules_count" -ge 3 ] || echo "    [WARN] Missing rules"
+echo "  Rules:     ${rules_count} (expected: 4)"
+[ "$rules_count" -ge 4 ] || { echo "    [WARN] Missing rules"; warnings=$((warnings + 1)); }
 
-# Workflow quality check
+# --- Frontmatter compliance (check only within --- fences) ---
 echo ""
-echo "[Workflow Quality]"
-wf_too_short=0
-wf_no_desc=0
-for wf in "$ANTIGRAVITY/.agent/workflows/"*.md; do
-    [ -f "$wf" ] || continue
-    wf_name=$(basename "$wf")
-    char_count=$(wc -c < "$wf" | tr -d ' ')
-    if [ "$char_count" -gt 12000 ]; then
-        echo "  [WARN] ${wf_name}: exceeds 12,000 char limit (${char_count})"
+echo "[Frontmatter Compliance]"
+bad_fm=0
+while IFS= read -r f; do
+    # Extract only frontmatter lines (between first and second ---)
+    fm_content=$(awk 'NR==1 && /^---/{in_fm=1; next} in_fm && /^---/{exit} in_fm{print}' "$f")
+    for field in version trigger model allowed-tools; do
+        if echo "$fm_content" | grep -q "^${field}:"; then
+            echo "  [FAIL] $(echo "$f" | sed "s|$ANTIGRAVITY/||") contains '${field}:' in frontmatter"
+            bad_fm=$((bad_fm + 1))
+        fi
+    done
+done < <(find "$ANTIGRAVITY/.agent/skills" -name "SKILL.md")
+if [ "$bad_fm" -eq 0 ]; then
+    echo "  [OK] No non-standard frontmatter fields"
+else
+    errors=$((errors + bad_fm))
+fi
+
+# --- <role> tag check ---
+echo ""
+echo "[Claude-specific Tags]"
+role_tags=0
+while IFS= read -r f; do
+    if grep -q "<role>\|</role>" "$f" 2>/dev/null; then
+        echo "  [FAIL] $(echo "$f" | sed "s|$ANTIGRAVITY/||") contains <role> tag"
+        role_tags=$((role_tags + 1))
     fi
-    if [ "$char_count" -lt 100 ]; then
-        echo "  [WARN] ${wf_name}: too short (${char_count} chars)"
-        wf_too_short=$((wf_too_short + 1))
-    fi
-    if ! grep -q "^description:" "$wf" 2>/dev/null; then
-        echo "  [WARN] ${wf_name}: missing description"
-        wf_no_desc=$((wf_no_desc + 1))
+done < <(find "$ANTIGRAVITY/.agent/skills" -name "SKILL.md")
+if [ "$role_tags" -eq 0 ]; then
+    echo "  [OK] No <role> tags found"
+else
+    errors=$((errors + role_tags))
+fi
+
+# --- 12,000 char limit ---
+echo ""
+echo "[Character Limits]"
+over_limit=0
+for f in "$ANTIGRAVITY"/.agent/workflows/*.md "$ANTIGRAVITY"/.agent/rules/*.md; do
+    [ -f "$f" ] || continue
+    chars=$(wc -c < "$f" | tr -d ' ')
+    if [ "$chars" -gt 12000 ]; then
+        echo "  [FAIL] $(basename "$f"): ${chars} chars (limit: 12,000)"
+        over_limit=$((over_limit + 1))
     fi
 done
-[ "$wf_too_short" -eq 0 ] && [ "$wf_no_desc" -eq 0 ] && echo "  [OK] All workflows have description and substantive content"
+if [ "$over_limit" -eq 0 ]; then
+    echo "  [OK] All workflows/rules within 12,000 char limit"
+else
+    errors=$((errors + over_limit))
+fi
 
-# Skill description check
+# --- GEMINI.md existence ---
+echo ""
+echo "[GEMINI.md]"
+if [ -f "$ANTIGRAVITY/GEMINI.md" ]; then
+    echo "  [OK] GEMINI.md exists ($(wc -c < "$ANTIGRAVITY/GEMINI.md" | tr -d ' ') chars)"
+else
+    echo "  [FAIL] GEMINI.md missing"
+    errors=$((errors + 1))
+fi
+
+# --- No external interpreter calls in this script ---
+echo ""
+echo "[Pure Bash]"
+# Verify no external interpreter (py/ruby/node) invocations exist
+if grep -qE '^\s*(python3?|ruby|node) |[|&;]\s*(python3?|ruby|node) |\$\((python3?|ruby|node)' "$0" 2>/dev/null; then
+    echo "  [FAIL] Found external interpreter invocations in build script"
+    errors=$((errors + 1))
+else
+    echo "  [OK] Pure bash — no external interpreter calls"
+fi
+
+# --- Skill description check ---
 echo ""
 echo "[Skill Descriptions]"
 missing_desc=0
@@ -797,47 +745,53 @@ for skill in "$ANTIGRAVITY/.agent/skills"/*/SKILL.md; do
         missing_desc=$((missing_desc + 1))
     fi
 done
-if [ $missing_desc -eq 0 ]; then
+if [ "$missing_desc" -eq 0 ]; then
     echo "  [OK] All skills have descriptions"
-fi
-
-# JSON validity (optional mcp-settings.json)
-echo ""
-echo "[JSON Validity]"
-if [ -f "$ANTIGRAVITY/mcp-settings.json" ]; then
-    if python3 -c "import json; json.load(open('$ANTIGRAVITY/mcp-settings.json'))" 2>/dev/null; then
-        echo "  [OK] mcp-settings.json"
-    else
-        echo "  [FAIL] mcp-settings.json invalid"
-        errors=$((errors + 1))
-    fi
 else
-    echo "  [SKIP] mcp-settings.json not created (pure bash mode)"
+    warnings=$((warnings + missing_desc))
 fi
 
-# Summary
+# --- Workflow quality check ---
+echo ""
+echo "[Workflow Quality]"
+wf_too_short=0
+wf_no_desc=0
+for wf in "$ANTIGRAVITY/.agent/workflows/"*.md; do
+    [ -f "$wf" ] || continue
+    wf_name=$(basename "$wf")
+    char_count=$(wc -c < "$wf" | tr -d ' ')
+    if [ "$char_count" -lt 100 ]; then
+        echo "  [WARN] ${wf_name}: too short (${char_count} chars)"
+        wf_too_short=$((wf_too_short + 1))
+    fi
+    if ! grep -q "^description:" "$wf" 2>/dev/null; then
+        echo "  [WARN] ${wf_name}: missing description"
+        wf_no_desc=$((wf_no_desc + 1))
+    fi
+done
+if [ "$wf_too_short" -eq 0 ] && [ "$wf_no_desc" -eq 0 ]; then
+    echo "  [OK] All workflows have description and substantive content"
+else
+    warnings=$((warnings + wf_too_short + wf_no_desc))
+fi
+
+# --- Summary ---
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 if [ $errors -eq 0 ]; then
     echo "BUILD SUCCESSFUL"
+    [ $warnings -gt 0 ] && echo "  (${warnings} warning(s))"
     echo ""
     echo "Antigravity workspace created at: $ANTIGRAVITY"
     echo ""
     echo "To use:"
     echo "  1. Open $ANTIGRAVITY in Antigravity IDE"
-    if [ -f "$ANTIGRAVITY/mcp-settings.json" ]; then
-        echo "  2. Configure MCP servers from mcp-settings.json"
-        echo "     - Agent panel → ... → MCP Servers → Manage → View raw config"
-        echo "     - Or: cp mcp-settings.json ~/.gemini/antigravity/"
-    fi
-    echo "  3. Run: zsh scripts/scaffold-gsd.sh"
+    echo "  2. Run: bash scripts/scaffold-gsd.sh"
     echo ""
     echo "Or copy to an existing project:"
     echo "  cp -r $ANTIGRAVITY/.agent /path/to/project/"
-    if [ -f "$ANTIGRAVITY/mcp-settings.json" ]; then
-        echo "  cp $ANTIGRAVITY/mcp-settings.json /path/to/project/"
-    fi
+    echo "  cp $ANTIGRAVITY/GEMINI.md /path/to/project/"
 else
-    echo "BUILD COMPLETED WITH $errors ERROR(S)"
+    echo "BUILD COMPLETED WITH $errors ERROR(S), $warnings WARNING(S)"
     exit 1
 fi
