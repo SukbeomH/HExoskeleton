@@ -177,8 +177,16 @@ echo "  [+] Copied ${SKILLS_COUNT} skills"
 
 # Transform memory script refs in SKILL.md files:
 #   scripts/md-*.sh → ${CLAUDE_PLUGIN_ROOT}/scripts/md-*.sh
+# Use portable sed: macOS requires -i '', Linux requires -i
+_sed_inplace() {
+    if sed --version 2>/dev/null | grep -q GNU; then
+        sed -i "$@"
+    else
+        sed -i '' "$@"
+    fi
+}
 while IFS= read -r f; do
-    sed -i '' \
+    _sed_inplace \
         -e 's|bash scripts/md-store-memory\.sh|bash ${CLAUDE_PLUGIN_ROOT}/scripts/md-store-memory.sh|g' \
         -e 's|bash scripts/md-recall-memory\.sh|bash ${CLAUDE_PLUGIN_ROOT}/scripts/md-recall-memory.sh|g' \
         -e 's|\.claude/skills/\([^/]*\)/scripts/|${CLAUDE_PLUGIN_ROOT}/skills/\1/scripts/|g' \
