@@ -31,7 +31,7 @@ trigger: "Before merging PRs or completing major features"
 아키텍처 리뷰 전 과거 결정 사항을 recall하여 일관성을 검증한다:
 
 ```bash
-bash .claude/hooks/md-recall-memory.sh "architecture" "." 5 compact
+bash scripts/md-recall-memory.sh "architecture" "." 5 compact
 ```
 
 또는 네이티브 도구:
@@ -77,7 +77,7 @@ Compile findings into a structured report.
 중요한 아키텍처 결정은 메모리에 저장:
 
 ```bash
-bash .claude/hooks/md-store-memory.sh \
+bash scripts/md-store-memory.sh \
   "Architecture Decision: {title}" \
   "{context and decision}" \
   "architecture,decision" \

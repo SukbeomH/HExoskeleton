@@ -245,7 +245,7 @@ If results found, Read the matching files and review past deviations to anticipa
 After applying any deviation rule (Rules 1-4), persist it:
 
 ```bash
-bash .claude/hooks/md-store-memory.sh \
+bash scripts/md-store-memory.sh \
   "Rule {N} - {description}" \
   "{details of what was found, what was fixed, and why}" \
   "deviation,rule-{N},{phase-plan}" \
@@ -257,7 +257,7 @@ bash .claude/hooks/md-store-memory.sh \
 After writing SUMMARY.md, store an execution summary memory for cross-session learning:
 
 ```bash
-bash .claude/hooks/md-store-memory.sh \
+bash scripts/md-store-memory.sh \
   "Plan {phase-plan} Summary" \
   "{tasks completed, deviations applied, verification results}" \
   "execution,{phase-plan}" \
@@ -459,7 +459,7 @@ PRD 파일은 직접 편집하거나 메모리 시스템을 통해 기록:
 
 ```bash
 # 실행 결과 메모리에 저장
-bash .claude/hooks/md-store-memory.sh \
+bash scripts/md-store-memory.sh \
   "Execution: Plan 1.2" \
   "Task 완료. Commit: abc1234" \
   "execution,summary,phase-1" \
@@ -479,7 +479,7 @@ git commit -m "feat(1-2): implement user authentication"
 COMMIT_HASH=$(git rev-parse --short HEAD)
 
 # 3. 메모리에 실행 결과 저장
-bash .claude/hooks/md-store-memory.sh "Plan 1.2 Complete" "Commit: $COMMIT_HASH" "execution" "execution-summary"
+bash scripts/md-store-memory.sh "Plan 1.2 Complete" "Commit: $COMMIT_HASH" "execution" "execution-summary"
 ```
 
 ### PRD File Structure
@@ -598,5 +598,5 @@ Grep(pattern: "<task id=", path: ".gsd/phases/", output_mode: "content")
 Grep(pattern: "status:.*done|status:.*completed", path: ".gsd/", output_mode: "files_with_matches")
 
 # 실행 결과 메모리 저장
-bash .claude/hooks/md-store-memory.sh "Execution: {plan}" "{summary}" "execution,summary" "execution-summary"
+bash scripts/md-store-memory.sh "Execution: {plan}" "{summary}" "execution,summary" "execution-summary"
 ```

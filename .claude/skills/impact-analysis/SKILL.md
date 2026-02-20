@@ -53,7 +53,7 @@ Grep(pattern: "utils|models", path: "tests/", output_mode: "files_with_matches")
 ### Step 3: Memory Recall (과거 변경 이력)
 
 ```bash
-bash .claude/hooks/md-recall-memory.sh "utils" "." 5 compact
+bash scripts/md-recall-memory.sh "utils" "." 5 compact
 ```
 
 과거 deviation이나 root-cause가 있으면 주의 필요.

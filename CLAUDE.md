@@ -52,7 +52,7 @@ make patch-clean              # Patch workspace 삭제
 
 - **코드 분석**: 네이티브 Claude Code 도구(Grep, Glob, Read)
 - **에이전트 메모리**: `.gsd/memories/{type}/` 마크다운 파일 기반. 14개 타입 디렉토리 + `_schema/` 스키마 디렉토리
-- **메모리 도구**: `.claude/hooks/md-store-memory.sh` (저장, A-Mem 확장), `.claude/hooks/md-recall-memory.sh` (검색, 2-hop)
+- **메모리 도구**: `scripts/md-store-memory.sh` (저장, A-Mem 확장), `scripts/md-recall-memory.sh` (검색, 2-hop)
 - **GSD Workflow**: SPEC.md → PLAN.md → EXECUTE → VERIFY. Working docs in `.gsd/`
 
 ## Memory Protocol
@@ -125,6 +125,7 @@ related: [related_file_slug]
 - Read `.gsd/SPEC.md` before implementation
 - Verify empirically — 명령 실행 결과로 증명
 - Atomic commits per task
+- **WebFetch는 순차적으로 실행할 것 (병렬 fetch 금지)** — 병렬 호출 시 "Sibling tool call errored" 발생
 
 ### Ask First
 - Adding external dependencies

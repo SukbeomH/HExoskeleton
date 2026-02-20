@@ -93,7 +93,7 @@ If matches found, review past root causes and eliminated hypotheses to avoid rep
 When a hypothesis is disproved, persist it to prevent future sessions from re-investigating:
 
 ```bash
-bash .claude/hooks/md-store-memory.sh \
+bash scripts/md-store-memory.sh \
   "Eliminated: {hypothesis}" \
   "{evidence that disproved this hypothesis}" \
   "debug,eliminated,{component}" \
@@ -105,7 +105,7 @@ bash .claude/hooks/md-store-memory.sh \
 When the root cause is identified, persist the full finding:
 
 ```bash
-bash .claude/hooks/md-store-memory.sh \
+bash scripts/md-store-memory.sh \
   "Root Cause: {cause}" \
   "{evidence, fix applied, verification result}" \
   "debug,root-cause,{component}" \
@@ -119,7 +119,7 @@ If related to a past bug, use tag encoding to link them (`related:{slug}`).
 When the 3-strike rule activates, persist the blocked state for the next session:
 
 ```bash
-bash .claude/hooks/md-store-memory.sh \
+bash scripts/md-store-memory.sh \
   "Blocked: {issue}" \
   "{approaches tried, errors seen, remaining hypotheses}" \
   "debug,blocked,3-strike" \

@@ -1,0 +1,1 @@
+../.claude/hooks/md-recall-memory.sh
