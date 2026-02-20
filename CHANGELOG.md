@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.8.6](https://github.com/SukbeomH/LLM_Bolierplate_Pack/compare/gsd-plugin-v1.8.5...gsd-plugin-v1.8.6) (2026-02-20)
+
+
+### Bug Fixes
+
+* **build:** sed -i 크로스 플랫폼 호환 — macOS/Linux 모두 지원 ([#30](https://github.com/SukbeomH/LLM_Bolierplate_Pack/issues/30)) ([b8113d0](https://github.com/SukbeomH/LLM_Bolierplate_Pack/commit/b8113d04a5a7dfd1804e823960b835d13ef86486))
+
 ## [1.8.5](https://github.com/SukbeomH/LLM_Bolierplate_Pack/compare/gsd-plugin-v1.8.4...gsd-plugin-v1.8.5) (2026-02-20)
 
 
