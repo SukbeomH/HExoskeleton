@@ -98,7 +98,7 @@ make setup
 ### 저장
 
 ```bash
-bash .claude/hooks/md-store-memory.sh \
+bash scripts/md-store-memory.sh \
   "제목" \
   "내용" \
   "태그1,태그2" \
@@ -112,13 +112,13 @@ bash .claude/hooks/md-store-memory.sh \
 
 ```bash
 # compact 모드 (요약)
-bash .claude/hooks/md-recall-memory.sh "검색어" "." 5 compact
+bash scripts/md-recall-memory.sh "검색어" "." 5 compact
 
 # full 모드 (전체 내용)
-bash .claude/hooks/md-recall-memory.sh "검색어" "." 5 full
+bash scripts/md-recall-memory.sh "검색어" "." 5 full
 
 # 2-hop 검색 (related 필드 추적)
-bash .claude/hooks/md-recall-memory.sh "검색어" "." 5 compact 2
+bash scripts/md-recall-memory.sh "검색어" "." 5 compact 2
 ```
 
 ### 메모리 타입 (14개)
