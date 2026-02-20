@@ -20,7 +20,7 @@
 ### 사용법
 
 ```bash
-bash .claude/hooks/md-store-memory.sh \
+bash scripts/md-store-memory.sh \
   "<title>" \
   "<content>" \
   "[tags]" \
@@ -63,7 +63,7 @@ bash .claude/hooks/md-store-memory.sh \
 ### 사용법
 
 ```bash
-bash .claude/hooks/md-recall-memory.sh \
+bash scripts/md-recall-memory.sh \
   "<query>" \
   "[project_path]" \
   "[limit]" \
@@ -178,10 +178,10 @@ related:
 
 ```bash
 # hop=2 (기본값): related 필드 추적
-bash .claude/hooks/md-recall-memory.sh "인증" "." 5 compact 2
+bash scripts/md-recall-memory.sh "인증" "." 5 compact 2
 
 # hop=1: 직접 검색만
-bash .claude/hooks/md-recall-memory.sh "인증" "." 5 compact 1
+bash scripts/md-recall-memory.sh "인증" "." 5 compact 1
 ```
 
 ---
@@ -205,6 +205,20 @@ root-cause:
     prevents: [health-event]
     generates: [pattern-discovery]
 ```
+
+---
+
+## 스크립트 경로 전략
+
+메모리 스크립트는 `scripts/` 디렉토리를 **중립 경로**로 사용합니다.
+
+| 환경 | 실제 경로 | 방식 |
+|------|-----------|------|
+| 보일러플레이트 직접 사용 | `scripts/` → `../.claude/hooks/` | 심볼릭 링크 |
+| 플러그인(`gsd-plugin`) | `${CLAUDE_PLUGIN_ROOT}/scripts/` | `build-plugin.sh` 자동 치환 |
+
+> **이유**: SKILL.md 내 `.claude/hooks/` 하드코딩 경로가 플러그인 환경에서 exit 127을 유발.
+> `scripts/` 중립 경로로 통일하여 두 환경 모두 호환. ([DECISION-001](.gsd/DECISIONS.md) 참조)
 
 ---
 
