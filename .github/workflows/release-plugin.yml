@@ -26,9 +26,9 @@ jobs:
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
     outputs:
-      release_created: ${{ steps.release.outputs['gsd-plugin--release_created'] || steps.release.outputs['.--release_created'] || steps.release.outputs.release_created }}
-      tag_name: ${{ steps.release.outputs['gsd-plugin--tag_name'] || steps.release.outputs['.--tag_name'] || steps.release.outputs.tag_name }}
-      version: ${{ steps.release.outputs['gsd-plugin--version'] || steps.release.outputs['.--version'] || steps.release.outputs.version }}
+      release_created: ${{ steps.release.outputs['hxsk-plugin--release_created'] || steps.release.outputs['.--release_created'] || steps.release.outputs.release_created }}
+      tag_name: ${{ steps.release.outputs['hxsk-plugin--tag_name'] || steps.release.outputs['.--tag_name'] || steps.release.outputs.tag_name }}
+      version: ${{ steps.release.outputs['hxsk-plugin--version'] || steps.release.outputs['.--version'] || steps.release.outputs.version }}
     steps:
       - name: Release Please
         uses: googleapis/release-please-action@v4
@@ -43,8 +43,8 @@ jobs:
           echo "=== All outputs ==="
           echo '${{ toJSON(steps.release.outputs) }}'
           echo "=== Resolved ==="
-          echo "release_created: ${{ steps.release.outputs['gsd-plugin--release_created'] || steps.release.outputs['.--release_created'] || steps.release.outputs.release_created }}"
-          echo "tag_name: ${{ steps.release.outputs['gsd-plugin--tag_name'] || steps.release.outputs['.--tag_name'] || steps.release.outputs.tag_name }}"
+          echo "release_created: ${{ steps.release.outputs['hxsk-plugin--release_created'] || steps.release.outputs['.--release_created'] || steps.release.outputs.release_created }}"
+          echo "tag_name: ${{ steps.release.outputs['hxsk-plugin--tag_name'] || steps.release.outputs['.--tag_name'] || steps.release.outputs.tag_name }}"
 
   # ── Build: 항상 실행 (master push, release, workflow_dispatch) ──
   build:
@@ -66,12 +66,12 @@ jobs:
             echo "Resolved from release-please: $RP_VERSION"
           elif [ "${{ github.event_name }}" = "release" ]; then
             TAG="${{ github.event.release.tag_name }}"
-            VERSION=$(echo "$TAG" | sed 's/gsd-plugin-v//')
+            VERSION=$(echo "$TAG" | sed 's/hxsk-plugin-v//')
             echo "version=$VERSION" >> $GITHUB_OUTPUT
             echo "Resolved from release event: $VERSION"
           elif [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             TAG=$(gh release view --repo "${{ github.repository }}" --json tagName -q .tagName 2>/dev/null || echo "")
-            VERSION=$(echo "$TAG" | sed 's/gsd-plugin-v//')
+            VERSION=$(echo "$TAG" | sed 's/hxsk-plugin-v//')
             echo "version=${VERSION:-dev}" >> $GITHUB_OUTPUT
             echo "Resolved from latest release: ${VERSION:-dev}"
           else
@@ -89,7 +89,7 @@ jobs:
       - name: Create ZIPs
         run: |
           VERSION="${{ steps.version.outputs.version }}"
-          for dir in gsd-plugin antigravity-boilerplate opencode-boilerplate; do
+          for dir in hxsk-plugin antigravity-boilerplate opencode-boilerplate; do
             (cd "$dir" && zip -r "../${dir}-${VERSION}.zip" . \
               -x ".git/*" "__pycache__/*" "*.pyc" ".pytest_cache/*" \
                  "node_modules/*" ".env" ".venv/*" "*.log" ".DS_Store")
@@ -100,7 +100,7 @@ jobs:
         with:
           name: build-${{ steps.version.outputs.version }}
           path: |
-            gsd-plugin-${{ steps.version.outputs.version }}.zip
+            hxsk-plugin-${{ steps.version.outputs.version }}.zip
             antigravity-boilerplate-${{ steps.version.outputs.version }}.zip
             opencode-boilerplate-${{ steps.version.outputs.version }}.zip
           retention-days: 7
@@ -113,7 +113,7 @@ jobs:
           echo "- **Version**: ${VERSION}" >> $GITHUB_STEP_SUMMARY
           echo "- **Trigger**: ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Artifacts**:" >> $GITHUB_STEP_SUMMARY
-          for dir in gsd-plugin antigravity-boilerplate opencode-boilerplate; do
+          for dir in hxsk-plugin antigravity-boilerplate opencode-boilerplate; do
             echo "  - ${dir}-${VERSION}.zip" >> $GITHUB_STEP_SUMMARY
           done
 

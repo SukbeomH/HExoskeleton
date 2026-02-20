@@ -8,13 +8,13 @@
   "tag-separator": "-",
   "packages": {
     ".": {
-      "component": "gsd-plugin",
+      "component": "hxsk-plugin",
       "changelog-path": "CHANGELOG.md",
       "release-type": "simple",
       "extra-files": [
         {
           "type": "json",
-          "path": "gsd-plugin/.claude-plugin/plugin.json",
+          "path": "hxsk-plugin/.claude-plugin/plugin.json",
           "jsonpath": "$.version"
         }
       ]

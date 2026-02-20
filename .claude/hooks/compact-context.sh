@@ -26,7 +26,7 @@ YEAR_MONTH=$(date +%Y-%m)
 # Check if .gsd directory exists
 if [[ ! -d "$GSD_DIR" ]]; then
     echo "[SKIP] .gsd/ directory not found at $GSD_DIR"
-    echo "Run /gsd:init to initialize GSD documents."
+    echo "Run /hxsk:init to initialize HExoskeleton documents."
     exit 0
 fi
 
