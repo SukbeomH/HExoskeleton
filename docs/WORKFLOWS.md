@@ -10,7 +10,7 @@ Claude Code의 **Workflows**는 슬래시 명령어(`/command`)로 호출되는 
 |------|------|
 | **위치** | `.agent/workflows/*.md` |
 | **개수** | 30개 (+ init.md = 31개 in plugin) |
-| **호출 방식** | `/gsd:<command>` 또는 `/<command>` |
+| **호출 방식** | `/hxsk:<command>` 또는 `/<command>` |
 | **인자 전달** | `$ARGUMENTS` 변수로 전달 |
 
 ---

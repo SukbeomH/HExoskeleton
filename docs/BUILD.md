@@ -8,7 +8,7 @@
 
 | 명령어 | 출력 | 용도 |
 |--------|------|------|
-| `make build-plugin` | `gsd-plugin/` | Claude Code 플러그인 |
+| `make build-plugin` | `hxsk-plugin/` | Claude Code 플러그인 |
 | `make build-antigravity` | `antigravity-boilerplate/` | Google Antigravity IDE 워크스페이스 |
 | `make build-opencode` | `opencode-boilerplate/` | OpenCode 워크스페이스 (모델 설정 지원) |
 
@@ -25,7 +25,7 @@ make build-plugin
 ### 출력 구조
 
 ```
-gsd-plugin/
+hxsk-plugin/
 ├── .claude-plugin/
 │   └── plugin.json          # 매니페스트 (name, version, description)
 ├── commands/                 # 워크플로우 명령어
@@ -61,13 +61,13 @@ gsd-plugin/
 
 ```bash
 # 테스트
-claude --plugin-dir ./gsd-plugin
+claude --plugin-dir ./hxsk-plugin
 
 # 글로벌 설치
-cp -r gsd-plugin ~/.claude/plugins/gsd
+cp -r hxsk-plugin ~/.claude/plugins/hxsk
 
 # 명령어 확인
-/gsd:help
+/hxsk:help
 ```
 
 ### 자동 릴리즈
@@ -75,7 +75,7 @@ cp -r gsd-plugin ~/.claude/plugins/gsd
 플러그인은 **release-please** 기반 GitHub Actions로 자동 릴리즈됩니다.
 
 ```
-feat(gsd-plugin): 새 기능
+feat(hxsk-plugin): 새 기능
     ↓
 push to master
     ↓
@@ -83,7 +83,7 @@ Release PR 자동 생성
     ↓
 PR 머지 → 자동 릴리즈
     ↓
-gsd-plugin-v1.x.0 태그 + ZIP 첨부
+hxsk-plugin-v1.x.0 태그 + ZIP 첨부
 ```
 
 ---
@@ -316,7 +316,7 @@ cd /path/to/project && opencode
 | **Agents** | 서브에이전트 | Agent Manager 통합 |
 | **Hooks** | 이벤트 기반 | Rules로 대체 |
 | **MCP** | settings.json | UI 기반 MCP Store |
-| **워크플로우** | `/gsd:*` 명령어 | `/` 명령어 |
+| **워크플로우** | `/hxsk:*` 명령어 | `/` 명령어 |
 
 ---
 
@@ -433,7 +433,7 @@ cp mcp-settings.json ~/.gemini/antigravity/
 
 ## 관련 문서
 
-- [README - 플러그인 빌드](../README.md#gsd-plugin-빌드)
-- [README - 자동 릴리즈](../README.md#gsd-plugin-자동-릴리즈)
+- [README - 플러그인 빌드](../README.md#hxsk-plugin-빌드)
+- [README - 자동 릴리즈](../README.md#hxsk-plugin-자동-릴리즈)
 - [GITHUB-WORKFLOW.md](./GITHUB-WORKFLOW.md) - CI/CD 파이프라인
 - [.gsd/research/RESEARCH-google-antigravity-migration.md](../.gsd/research/RESEARCH-google-antigravity-migration.md) - Antigravity 리서치

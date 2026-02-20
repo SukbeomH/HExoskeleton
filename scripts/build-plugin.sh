@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
 #
-# GSD Plugin Build Script
+# HExoskeleton Plugin Build Script
 # Converts boilerplate to Claude Code plugin format
 #
 set -euo pipefail
 
 # --- Configuration ---
 BOILERPLATE="$(cd "$(dirname "$0")/.." && pwd)"
-PLUGIN="${BOILERPLATE}/gsd-plugin"
+PLUGIN="${BOILERPLATE}/hxsk-plugin"
 
-echo "=== GSD Plugin Builder ==="
+echo "=== HExoskeleton Plugin Builder ==="
 echo "Source: ${BOILERPLATE}"
 echo "Target: ${PLUGIN}"
 echo ""
@@ -25,15 +25,15 @@ mkdir -p "$PLUGIN"/references/issue-templates
 VERSION="1.0.0"
 MANIFEST="${BOILERPLATE}/.release-please-manifest.json"
 if [ -f "$MANIFEST" ]; then
-    VERSION=$(python3 -c "import json; m=json.load(open('$MANIFEST')); print(m.get('.', m.get('gsd-plugin', '1.0.0')))")
+    VERSION=$(python3 -c "import json; m=json.load(open('$MANIFEST')); print(m.get('.', m.get('hxsk-plugin', '1.0.0')))")
 fi
 
 # Create plugin.json manifest (minimal - default directories auto-discovered)
 cat > "$PLUGIN/.claude-plugin/plugin.json" << EOF
 {
-  "name": "gsd",
+  "name": "hxsk",
   "version": "${VERSION}",
-  "description": "Get Shit Done - AI agent development methodology with code-graph-rag and memory-graph integration"
+  "description": "HExoskeleton - AI agent development methodology with code-graph-rag and memory-graph integration"
 }
 EOF
 echo "  [+] plugin.json created (version: ${VERSION})"
@@ -69,7 +69,7 @@ allowed-tools:
   - Grep
 ---
 
-# /gsd:${skill_name}
+# /hxsk:${skill_name}
 
 ${desc}
 
@@ -83,7 +83,7 @@ fi
 # Create init.md (new scaffolding command)
 cat > "$PLUGIN/commands/init.md" << 'INITEOF'
 ---
-description: Initialize GSD document system and compare infrastructure files
+description: Initialize HExoskeleton document system and compare infrastructure files
 allowed-tools:
   - Read
   - Write
@@ -92,9 +92,9 @@ allowed-tools:
   - Grep
 ---
 
-# /gsd:init - GSD Initialization
+# /hxsk:init - HExoskeleton Initialization
 
-Initialize the GSD (Get Shit Done) document system in the current project.
+Initialize the HExoskeleton document system in the current project.
 
 ## What This Command Does
 
@@ -156,10 +156,10 @@ If `.gsd/SPEC.md` is empty or contains only placeholder content:
 ## After Initialization
 
 Once initialized, you can use GSD commands:
-- `/gsd:plan` - Create implementation plans
-- `/gsd:execute` - Execute planned work
-- `/gsd:verify` - Verify completed work
-- `/gsd:help` - List all available commands
+- `/hxsk:plan` - Create implementation plans
+- `/hxsk:execute` - Execute planned work
+- `/hxsk:verify` - Verify completed work
+- `/hxsk:help` - List all available commands
 INITEOF
 echo "  [+] Created init.md command"
 COMMANDS_COUNT=$((COMMANDS_COUNT + 1))
@@ -325,7 +325,7 @@ for doc in SPEC DECISIONS JOURNAL ROADMAP PATTERNS STATE TODO STACK CHANGELOG; d
     cat > "$PLUGIN/templates/gsd/${doc}.md" << EOF
 # ${doc}
 
-<!-- This file will be populated during /gsd:init -->
+<!-- This file will be populated during /hxsk:init -->
 <!-- See templates/${doc,,}.md for the full template -->
 EOF
 done
@@ -612,7 +612,7 @@ if os.path.isdir(agent_dir):
         agents.append((name, desc or f"{name} agent"))
 
 # Build README
-readme = f"""# GSD Plugin for Claude Code
+readme = f"""# HExoskeleton for Claude Code
 
 **Get Shit Done** v{version} — AI agent development methodology with pure bash-based memory system.
 
@@ -622,19 +622,19 @@ readme = f"""# GSD Plugin for Claude Code
 
 ```bash
 # Use with --plugin-dir flag
-claude --plugin-dir /path/to/gsd-plugin
+claude --plugin-dir /path/to/hxsk-plugin
 
 # Or set a shell alias for convenience (~/.zshrc or ~/.bashrc)
-alias claude='claude --plugin-dir /path/to/gsd-plugin'
+alias claude='claude --plugin-dir /path/to/hxsk-plugin'
 ```
 
 ### GitHub Release에서 설치
 
 ```bash
 # 최신 버전
-VERSION=$(gh release view --json tagName -q .tagName | sed 's/gsd-plugin-v//')
-curl -L "https://github.com/SukbeomH/LLM_Bolierplate_Pack/releases/latest/download/gsd-plugin-${{VERSION}}.zip" -o gsd-plugin.zip
-unzip gsd-plugin.zip -d ~/.claude/plugins/gsd
+VERSION=$(gh release view --json tagName -q .tagName | sed 's/hxsk-plugin-v//')
+curl -L "https://github.com/SukbeomH/LLM_Bolierplate_Pack/releases/latest/download/hxsk-plugin-${{VERSION}}.zip" -o hxsk-plugin.zip
+unzip hxsk-plugin.zip -d ~/.claude/plugins/hxsk
 ```
 
 ## Prerequisites
@@ -668,11 +668,11 @@ bash scripts/md-recall-memory.sh "검색어" "." 5 compact
 ## Quick Start
 
 ```bash
-/gsd:init          # Initialize GSD documents
-/gsd:bootstrap     # Full project setup
-/gsd:planner       # Create implementation plan
-/gsd:executor      # Execute planned work
-/gsd:verifier      # Verify completed work
+/hxsk:init          # Initialize GSD documents
+/hxsk:bootstrap     # Full project setup
+/hxsk:planner       # Create implementation plan
+/hxsk:executor      # Execute planned work
+/hxsk:verifier      # Verify completed work
 ```
 
 ## Commands ({len(commands)})
@@ -707,7 +707,7 @@ for name, desc in agents:
 readme += """
 ## GSD Document Structure
 
-After `/gsd:init`:
+After `/hxsk:init`:
 
 ```
 .gsd/

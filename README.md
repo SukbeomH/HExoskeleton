@@ -106,7 +106,7 @@ claude .
 
 # 또는 플러그인으로 배포 후 사용
 make build-plugin
-claude --plugin-dir ./gsd-plugin
+claude --plugin-dir ./hxsk-plugin
 ```
 
 ### 3. 워크플로우 시작
@@ -304,7 +304,7 @@ SPEC → PLAN → EXECUTE → VERIFY
 
 | 타겟 | 명령어 | 출력 |
 |------|--------|------|
-| Claude Code Plugin | `make build-plugin` | `gsd-plugin/` |
+| Claude Code Plugin | `make build-plugin` | `hxsk-plugin/` |
 | Google Antigravity | `make build-antigravity` | `antigravity-boilerplate/` |
 | OpenCode | `make build-opencode` | `opencode-boilerplate/` |
 
@@ -320,9 +320,9 @@ feat: 새 기능 추가 → push to master → Release PR 생성 → 머지 → 
 
 ```bash
 # 최신 버전
-VERSION=$(gh release view --json tagName -q .tagName | sed 's/gsd-plugin-v//')
-curl -L "https://github.com/SukbeomH/LLM_Bolierplate_Pack/releases/latest/download/gsd-plugin-${VERSION}.zip" -o gsd-plugin.zip
-unzip gsd-plugin.zip -d ~/.claude/plugins/gsd
+VERSION=$(gh release view --json tagName -q .tagName | sed 's/hxsk-plugin-v//')
+curl -L "https://github.com/SukbeomH/LLM_Bolierplate_Pack/releases/latest/download/hxsk-plugin-${VERSION}.zip" -o hxsk-plugin.zip
+unzip hxsk-plugin.zip -d ~/.claude/plugins/hxsk
 ```
 
 ---

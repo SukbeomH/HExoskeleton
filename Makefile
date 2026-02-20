@@ -112,11 +112,11 @@ build: build-plugin build-antigravity build-opencode ## Build all targets
 	@echo "========================================="
 	@echo "  All builds complete!"
 	@echo "========================================="
-	@echo "  - gsd-plugin/              (Claude Code)"
+	@echo "  - hxsk-plugin/             (Claude Code)"
 	@echo "  - antigravity-boilerplate/ (Antigravity IDE)"
 	@echo "  - opencode-boilerplate/    (OpenCode)"
 
-build-plugin: ## Build Claude Code plugin (gsd-plugin/)
+build-plugin: ## Build Claude Code plugin (hxsk-plugin/)
 	@bash scripts/build-plugin.sh
 
 build-antigravity: ## Build Antigravity workspace (antigravity-boilerplate/)
