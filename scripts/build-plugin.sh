@@ -175,6 +175,17 @@ done
 SKILLS_COUNT=$(ls -d "$PLUGIN/skills"/*/ 2>/dev/null | wc -l | tr -d ' ')
 echo "  [+] Copied ${SKILLS_COUNT} skills"
 
+# Transform memory script refs in SKILL.md files:
+#   scripts/md-*.sh → ${CLAUDE_PLUGIN_ROOT}/scripts/md-*.sh
+while IFS= read -r f; do
+    sed -i '' \
+        -e 's|bash scripts/md-store-memory\.sh|bash ${CLAUDE_PLUGIN_ROOT}/scripts/md-store-memory.sh|g' \
+        -e 's|bash scripts/md-recall-memory\.sh|bash ${CLAUDE_PLUGIN_ROOT}/scripts/md-recall-memory.sh|g' \
+        -e 's|\.claude/skills/\([^/]*\)/scripts/|${CLAUDE_PLUGIN_ROOT}/skills/\1/scripts/|g' \
+        "$f"
+done < <(find "$PLUGIN/skills" -name "SKILL.md")
+echo "  [+] Transformed memory + self-ref paths in SKILL.md files"
+
 # --- Phase 4a: Agents ---
 echo ""
 echo "[Phase 4a] Copying agents..."
@@ -799,6 +810,14 @@ if grep -q '\.claude/hooks/' "$PLUGIN/hooks/hooks.json" 2>/dev/null; then
     errors=$((errors + 1))
 else
     echo "  [OK] hooks.json paths transformed"
+fi
+
+# SKILL.md files should not contain .claude/hooks/ references
+if grep -rl '\.claude/hooks/' "$PLUGIN/skills/" 2>/dev/null | grep -q .; then
+    echo "  [FAIL] SKILL.md files still contain .claude/hooks/ references"
+    errors=$((errors + 1))
+else
+    echo "  [OK] SKILL.md paths transformed"
 fi
 
 # .mcp.json should contain CLAUDE_PROJECT_DIR (optional)

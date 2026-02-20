@@ -526,7 +526,7 @@ Grep(pattern: "auth|security|database|api", path: "src/", output_mode: "count")
 Glob(pattern: ".gsd/phases/*/*.md")
 
 # 과거 플랜 deviation 확인
-bash .claude/hooks/md-recall-memory.sh "deviation" "." 5 compact
+bash scripts/md-recall-memory.sh "deviation" "." 5 compact
 ```
 
 **Discovery Level 기준:**

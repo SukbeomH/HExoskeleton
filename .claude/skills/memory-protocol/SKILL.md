@@ -59,13 +59,13 @@ Grep(pattern: "tags:.*{tag}", path: ".gsd/memories/", output_mode: "files_with_m
 
 ```bash
 # 기본 검색 (compact 모드, 2-hop)
-bash .claude/hooks/md-recall-memory.sh "{query}" "$PROJECT_DIR" 5
+bash scripts/md-recall-memory.sh "{query}" "$PROJECT_DIR" 5
 
 # 상세 검색 (full 모드)
-bash .claude/hooks/md-recall-memory.sh "{query}" "$PROJECT_DIR" 5 full
+bash scripts/md-recall-memory.sh "{query}" "$PROJECT_DIR" 5 full
 
 # 1-hop만 (related 추적 안함)
-bash .claude/hooks/md-recall-memory.sh "{query}" "$PROJECT_DIR" 5 compact 1
+bash scripts/md-recall-memory.sh "{query}" "$PROJECT_DIR" 5 compact 1
 ```
 
 ### 4. 2-hop 이웃 검색 (A-Mem)
@@ -73,7 +73,7 @@ bash .claude/hooks/md-recall-memory.sh "{query}" "$PROJECT_DIR" 5 compact 1
 
 ```bash
 # hop=2 (기본값): related 필드의 메모리도 포함
-bash .claude/hooks/md-recall-memory.sh "auth" "." 5 compact 2
+bash scripts/md-recall-memory.sh "auth" "." 5 compact 2
 ```
 
 Output에서 `[→related]` 표시로 2-hop 결과 구분 가능.
@@ -111,10 +111,10 @@ Output에서 `[→related]` 표시로 2-hop 결과 구분 가능.
 **방법 1: 훅 사용 (권장, A-Mem 확장)**
 ```bash
 # 기본
-bash .claude/hooks/md-store-memory.sh "{title}" "{content}" "{tag1,tag2}" "{type}"
+bash scripts/md-store-memory.sh "{title}" "{content}" "{tag1,tag2}" "{type}"
 
 # A-Mem 확장 필드 포함
-bash .claude/hooks/md-store-memory.sh "{title}" "{content}" "{tags}" "{type}" "{keywords}" "{contextual_desc}" "{related}"
+bash scripts/md-store-memory.sh "{title}" "{content}" "{tags}" "{type}" "{keywords}" "{contextual_desc}" "{related}"
 ```
 
 **중복 방지 (Nemori Predict-Calibrate):**
@@ -188,7 +188,7 @@ related:
 `md-recall-memory.sh`가 자동으로 `related` 필드를 추적:
 ```bash
 # hop=2 (기본): 검색 결과 + related 메모리
-bash .claude/hooks/md-recall-memory.sh "auth" "." 5 compact 2
+bash scripts/md-recall-memory.sh "auth" "." 5 compact 2
 ```
 
 ### 태그 기반 연결 (레거시)

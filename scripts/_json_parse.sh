@@ -1,0 +1,1 @@
+../.claude/hooks/_json_parse.sh

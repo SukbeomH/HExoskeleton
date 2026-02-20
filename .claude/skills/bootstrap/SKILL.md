@@ -127,7 +127,7 @@ Delegate to the `codebase-mapper` skill to analyze the project:
 Store the bootstrap record:
 
 ```bash
-bash .claude/hooks/md-store-memory.sh \
+bash scripts/md-store-memory.sh \
   "Project Bootstrap" \
   "Bootstrap completed. System prerequisites verified. Memory initialized." \
   "bootstrap,init,setup" \

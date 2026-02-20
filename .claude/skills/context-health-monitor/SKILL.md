@@ -100,7 +100,7 @@ Grep(pattern: "3-strike|{issue}", path: ".gsd/memories/health-event/", output_mo
 ```
 
 ```bash
-bash .claude/hooks/md-store-memory.sh \
+bash scripts/md-store-memory.sh \
   "3-Strike: {issue}" \
   "{approaches tried, errors seen, current hypothesis}" \
   "health,3-strike,{component}" \
@@ -118,7 +118,7 @@ Grep(pattern: "circular|{approach}", path: ".gsd/memories/health-event/", output
 ```
 
 ```bash
-bash .claude/hooks/md-store-memory.sh \
+bash scripts/md-store-memory.sh \
   "Circular: {approach}" \
   "{what repeated, why it looped}" \
   "health,circular,{component}" \
@@ -130,7 +130,7 @@ bash .claude/hooks/md-store-memory.sh \
 Persist session context for the next session:
 
 ```bash
-bash .claude/hooks/md-store-memory.sh \
+bash scripts/md-store-memory.sh \
   "Handoff: {reason}" \
   "{current state, recommendations for next session}" \
   "health,handoff" \
