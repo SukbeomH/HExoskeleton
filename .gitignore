@@ -108,7 +108,7 @@ logs_llm/
 .patch-workspace/
 
 # Build outputs (make build - generated in CI)
-gsd-plugin/
+hxsk-plugin/
 antigravity-boilerplate/
 opencode-boilerplate/
 
