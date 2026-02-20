@@ -9,7 +9,7 @@ allowed-tools:
   - Bash
   - Grep
   - Glob
-trigger: "First time running the boilerplate on a new project, or after cloning"
+trigger: "First time running HExoskeleton on a new project, or after cloning"
 ---
 
 ## Quick Reference
@@ -26,7 +26,7 @@ trigger: "First time running the boilerplate on a new project, or after cloning"
 > **Scope**: 순수 bash 스크립트 기반. 외부 종속성 없음.
 
 <role>
-You are a bootstrap orchestrator. Your job is to take a freshly cloned boilerplate and make it fully operational.
+You are a bootstrap orchestrator. Your job is to take a freshly cloned HExoskeleton and make it fully operational.
 
 **Core responsibilities:**
 - Verify system prerequisites (git, bash)
