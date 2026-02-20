@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.9.2](https://github.com/SukbeomH/HExoskeleton/compare/hxsk-plugin-v1.9.1...hxsk-plugin-v1.9.2) (2026-02-20)
+
+
+### Documentation
+
+* **brand:** rename GSD Boilerplate → HExoskeleton + add logo assets ([e6a84e6](https://github.com/SukbeomH/HExoskeleton/commit/e6a84e62282f9b3627550d2877867e76580c88b1))
+
 ## [1.9.0](https://github.com/SukbeomH/HExoskeleton/compare/hxsk-plugin-v1.8.6...hxsk-plugin-v1.9.0) (2026-02-20)
 
 
