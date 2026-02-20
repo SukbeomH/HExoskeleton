@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.8.5](https://github.com/SukbeomH/LLM_Bolierplate_Pack/compare/gsd-plugin-v1.8.4...gsd-plugin-v1.8.5) (2026-02-20)
+
+
+### Bug Fixes
+
+* **paths:** 메모리 스크립트 경로 정규화 (.claude/hooks/ → scripts/) ([#26](https://github.com/SukbeomH/LLM_Bolierplate_Pack/issues/26)) ([8bd80d3](https://github.com/SukbeomH/LLM_Bolierplate_Pack/commit/8bd80d3c3fe9cb1354b20e2df3b286c9cb4c2b0f))
+
 ## [1.8.4](https://github.com/SukbeomH/LLM_Bolierplate_Pack/compare/gsd-plugin-v1.8.3...gsd-plugin-v1.8.4) (2026-02-12)
 
 
