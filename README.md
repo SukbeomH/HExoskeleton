@@ -1,4 +1,12 @@
-# GSD Boilerplate
+# HExoskeleton
+
+<p align="center">
+  <img src="logo.png" alt="HExoskeleton Logo" width="200" />
+</p>
+
+<p align="center">
+  <img src="logo.gif" alt="HExoskeleton Demo" width="480" />
+</p>
 
 > **Get Shit Done** — 추상화의 늪 없이, 실제 결과물을 내는 AI 에이전트 개발 프레임워크.
 
@@ -10,11 +18,11 @@ SPEC → PLAN → EXECUTE → VERIFY
 
 ---
 
-## 왜 GSD Boilerplate인가
+## 왜 HExoskeleton인가
 
-대부분의 AI 에이전트 프레임워크는 Python, Node.js, 벡터 DB, MCP 서버 등 복잡한 스택을 요구합니다. GSD Boilerplate는 반대 방향을 선택했습니다.
+대부분의 AI 에이전트 프레임워크는 Python, Node.js, 벡터 DB, MCP 서버 등 복잡한 스택을 요구합니다. HExoskeleton은 반대 방향을 선택했습니다.
 
-| 구분 | GSD Boilerplate | 일반 AI 프레임워크 |
+| 구분 | HExoskeleton | 일반 AI 프레임워크 |
 |------|-----------------|-------------------|
 | **의존성** | 없음 (Bash + Markdown) | 높음 (Python, Node.js, DB) |
 | **메모리** | 파일 기반 2-Hop 그래프 검색 | 벡터 DB 유사도 검색 |
