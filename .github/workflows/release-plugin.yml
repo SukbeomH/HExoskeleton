@@ -41,10 +41,12 @@ jobs:
       - name: Debug outputs
         run: |
           echo "=== All outputs ==="
-          echo '${{ toJSON(steps.release.outputs) }}'
+          cat << 'DEBUGEOF'
+          ${{ toJSON(steps.release.outputs) }}
+          DEBUGEOF
           echo "=== Resolved ==="
-          echo "release_created: ${{ steps.release.outputs['hxsk-plugin--release_created'] || steps.release.outputs['.--release_created'] || steps.release.outputs.release_created }}"
-          echo "tag_name: ${{ steps.release.outputs['hxsk-plugin--tag_name'] || steps.release.outputs['.--tag_name'] || steps.release.outputs.tag_name }}"
+          printf 'release_created: %s\n' "${{ steps.release.outputs['hxsk-plugin--release_created'] || steps.release.outputs['.--release_created'] || steps.release.outputs.release_created }}"
+          printf 'tag_name: %s\n' "${{ steps.release.outputs['hxsk-plugin--tag_name'] || steps.release.outputs['.--tag_name'] || steps.release.outputs.tag_name }}"
 
   # ── Build: 항상 실행 (master push, release, workflow_dispatch) ──
   build:
