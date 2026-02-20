@@ -1,8 +1,28 @@
 # GSD Boilerplate
 
-AI 에이전트 기반 개발을 위한 경량 프로젝트 보일러플레이트.
+> **Get Shit Done** — 추상화의 늪 없이, 실제 결과물을 내는 AI 에이전트 개발 프레임워크.
 
-**GSD (Get Shit Done)** 방법론 + **순수 bash 기반 메모리 시스템** + **네이티브 Claude Code 도구**를 결합하여 외부 종속성 없는 구조화된 개발 워크플로우를 제공합니다.
+Claude Code 네이티브 환경에 최적화된 **에이전틱 워크플로우(Agentic Workflow)** 보일러플레이트입니다. 순수 bash 스크립트와 마크다운 파일만으로 최신 AI 메모리 연구(A-Mem, Nemori, ReWOO)를 실무 수준으로 구현했습니다.
+
+```
+SPEC → PLAN → EXECUTE → VERIFY
+```
+
+---
+
+## 왜 GSD Boilerplate인가
+
+대부분의 AI 에이전트 프레임워크는 Python, Node.js, 벡터 DB, MCP 서버 등 복잡한 스택을 요구합니다. GSD Boilerplate는 반대 방향을 선택했습니다.
+
+| 구분 | GSD Boilerplate | 일반 AI 프레임워크 |
+|------|-----------------|-------------------|
+| **의존성** | 없음 (Bash + Markdown) | 높음 (Python, Node.js, DB) |
+| **메모리** | 파일 기반 2-Hop 그래프 검색 | 벡터 DB 유사도 검색 |
+| **감사(Audit)** | Git 추적 가능 (Markdown) | 블랙박스 |
+| **학습 곡선** | 낮음 (파일 수정 위주) | 높음 (SDK/API 학습 필요) |
+| **환경** | Claude Code 네이티브 최적화 | 범용, 별도 래퍼 필요 |
+
+**핵심 원칙:** Claude Code의 네이티브 도구(`Grep`, `Glob`, `Read`)가 이미 강력한 검색 엔진입니다. 파일 시스템이 곧 데이터베이스입니다.
 
 ---
 
@@ -10,23 +30,21 @@ AI 에이전트 기반 개발을 위한 경량 프로젝트 보일러플레이�
 
 | 구성요소 | 개수 | 설명 |
 |----------|------|------|
-| **Skills** | 16 | Claude가 자율적으로 호출하는 전문 기능 |
-| **Agents** | 14 | 특정 작업을 위한 서브에이전트 |
-| **Hooks** | 14 | 이벤트 기반 자동화 스크립트 |
-| **Memory System** | - | 순수 bash + 마크다운 파일 기반 |
+| **Skills** | 16 | Claude가 상황을 인식하여 자율 호출하는 기능 단위 (How) |
+| **Agents** | 14 | 스킬을 조합하고 오케스트레이션하는 서브에이전트 (When/With What) |
+| **Hooks** | 14 | 이벤트 기반 자동화 (가드레일, 상태 저장, 검증) |
+| **Memory System** | 14 types | A-Mem 확장 파일 기반 메모리 (2-hop 검색, 중복 방지) |
 
 ### 상세 문서
 
-각 구성요소의 상세 구현은 `docs/` 디렉토리에서 확인할 수 있습니다:
-
 | 문서 | 설명 |
 |------|------|
-| [Agents](docs/AGENTS.md) | 14개 서브에이전트 상세 (역할, capabilities, 실행 흐름) |
-| [Skills](docs/SKILLS.md) | 16개 스킬 상세 (트리거 조건, 도구 연동) |
-| [Hooks](docs/HOOKS.md) | 14개 훅 이벤트 상세 (이벤트, 코드, 작동 예시) |
+| [Agents](docs/AGENTS.md) | 14개 서브에이전트 (역할, capabilities, 실행 흐름) |
+| [Skills](docs/SKILLS.md) | 16개 스킬 (트리거 조건, 도구 연동) |
+| [Hooks](docs/HOOKS.md) | 14개 훅 이벤트 (이벤트, 코드, 작동 예시) |
 | [Memory](docs/MEMORY.md) | 파일 기반 메모리 시스템 상세 |
-| [Build](docs/BUILD.md) | 빌드 가이드 (Claude Code Plugin, Google Antigravity, OpenCode) |
-| [GitHub Workflow](docs/GITHUB-WORKFLOW.md) | CI/CD 파이프라인 상세 (release-please) |
+| [Build](docs/BUILD.md) | 빌드 가이드 (Claude Code Plugin, Antigravity, OpenCode) |
+| [GitHub Workflow](docs/GITHUB-WORKFLOW.md) | CI/CD 파이프라인 (release-please) |
 
 ---
 
@@ -73,27 +91,47 @@ AI 에이전트 기반 개발을 위한 경량 프로젝트 보일러플레이�
 ### 1. Clone & Setup
 
 ```bash
-git clone https://github.com/SukbeomH/LLM_Bolierplate_Pack.git
-cd LLM_Bolierplate_Pack
+git clone https://github.com/SukbeomH/HExoskeleton.git
+cd HExoskeleton
 
 # GSD 문서 초기화
 make setup
 ```
 
-### 2. 시작하기
+### 2. Claude Code에서 사용
 
 ```bash
-# Claude Code에서 바로 사용
-# 스킬이 자동으로 로드됨
+# 바로 사용 — 스킬이 자동 로드됨
+claude .
+
+# 또는 플러그인으로 배포 후 사용
+make build-plugin
+claude --plugin-dir ./gsd-plugin
 ```
 
-**외부 종속성 없음** - Node.js, Python 환경, MCP 서버 설치 불필요.
+### 3. 워크플로우 시작
+
+```
+/bootstrap    # 프로젝트 분석 및 메모리 초기화
+/planner      # SPEC 기반 실행 계획 수립
+/executor     # 계획 실행 (atomic commits)
+/verifier     # 경험적 증거 기반 결과 검증
+```
+
+**외부 종속성 없음** — Node.js, Python 환경, MCP 서버, 벡터 DB 불필요.
 
 ---
 
 ## 메모리 시스템
 
-순수 bash + 마크다운 파일 기반 에이전트 메모리.
+순수 bash + 마크다운 파일 기반 에이전트 메모리. A-Mem, Nemori, ReWOO 논문의 핵심 개념을 파일 시스템 위에 구현했습니다.
+
+### 설계 원칙
+
+- **2-Hop 그래프 검색**: `related` 필드로 메모리 간 연결 → 관련 메모리까지 자동 추적
+- **중복 방지 (Nemori)**: 동일 제목이 같은 날 저장되면 자동 스킵 (`[SKIP:DUPLICATE]`)
+- **토큰 최적화 (ReWOO)**: `compact` 모드로 제목 + 1줄 요약만 반환 — 컨텍스트 절감
+- **완전한 감사 추적**: 모든 메모리가 Markdown 파일 → Git 추적 가능, 블랙박스 없음
 
 ### 저장
 
@@ -156,6 +194,17 @@ related: [다른메모리.md]
 
 ---
 
+## Agent-Skill 아키텍처
+
+**Skill(How)**과 **Agent(When/With What)**를 분리하여 유지보수성과 자율성을 동시에 확보합니다.
+
+- **Skill**: 재사용 가능한 최소 기능 단위. 절차와 규칙을 상세히 정의.
+- **Agent**: 스킬을 탑재하고 오케스트레이션 흐름을 정의. 상황에 맞는 스킬을 자율 선택.
+
+Claude는 작업 성격을 인식하여 적절한 스킬을 **스스로 판단하고 호출**합니다.
+
+---
+
 ## Skills (16)
 
 **Skills**는 Claude가 작업 컨텍스트를 기반으로 **자율적으로 호출**하는 전문 기능입니다.
@@ -206,7 +255,7 @@ related: [다른메모리.md]
 
 ## Hooks (14)
 
-**Hooks**는 Claude Code 이벤트에 자동으로 응답하는 스크립트입니다.
+**Hooks**는 Claude Code 이벤트에 자동으로 응답하는 스크립트입니다. AI의 자율성을 유지하면서도 **위험 행동을 원천 차단**하는 가드레일 역할을 합니다.
 
 | 이벤트 | 스크립트 | 기능 |
 |--------|----------|------|
