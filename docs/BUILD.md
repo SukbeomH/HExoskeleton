@@ -43,19 +43,19 @@ gsd-plugin/
 ### 빌드 과정
 
 1. **디렉토리 생성**: 플러그인 구조 생성
-2. **명령어 복사**: `.agent/workflows/*.md` → `commands/`
-3. **스킬 복사**: `.claude/skills/` → `skills/`
+2. **명령어 복사**: `.agent/workflows/*.md` → `commands/` (없으면 skills에서 자동 생성)
+3. **스킬 복사**: `.claude/skills/` → `skills/` + SKILL.md 경로 치환 (`scripts/md-*.sh` → `${CLAUDE_PLUGIN_ROOT}/scripts/md-*.sh`)
 4. **에이전트 복사**: `.claude/agents/` → `agents/`
 5. **훅 변환**:
    - `settings.json` → `hooks/hooks.json`
    - 경로 변환: `$CLAUDE_PROJECT_DIR/.claude/hooks/` → `${CLAUDE_PLUGIN_ROOT}/scripts/`
 6. **MCP 변환** (선택적):
    - `.mcp.json` 존재 시만 처리
-   - args `.` → `${CLAUDE_PROJECT_DIR:-.}`
    - 순수 bash 모드에서는 `[SKIP]` 메시지 출력
 7. **템플릿 복사**: `.gsd/templates/`, `.gsd/examples/`
 8. **레퍼런스 복사**: `pyproject.toml`, `Makefile`, `.gitignore` 등
-9. **검증**: 구조, 카운트, JSON 유효성
+9. **스캐폴딩 스크립트 생성**: `scaffold-gsd.sh`, `scaffold-infra.sh`, `README.md`
+10. **검증**: 구조, 카운트, 경로 변환, 권한, JSON 유효성
 
 ### 플러그인 사용
 
@@ -325,19 +325,22 @@ cd /path/to/project && opencode
 ### scripts/build-plugin.sh
 
 ```bash
-# 7단계 빌드 프로세스
-Phase 1: 디렉토리 구조 + 매니페스트
-Phase 2: 명령어 (워크플로우)
-Phase 3: 스킬
+# 8단계 빌드 프로세스
+Phase 1:  디렉토리 구조 + 매니페스트
+Phase 2:  명령어 (워크플로우)
+Phase 3:  스킬 복사 + SKILL.md 경로 치환 (scripts/ → ${CLAUDE_PLUGIN_ROOT}/scripts/)
 Phase 4a: 에이전트
-Phase 4b: 훅 (경로 변환)
+Phase 4b: 훅 설정 (hooks.json 경로 변환)
 Phase 4c: 훅 스크립트
-Phase 5a: MCP 설정
+Phase 5a: MCP 설정 (선택적)
 Phase 5b: GSD 템플릿
 Phase 5c: 인프라 레퍼런스
-Phase 5d: 유틸리티 스크립트
-Phase 6: 스캐폴딩 스크립트
-Phase 7: 검증
+Phase 5d: 유틸리티 스크립트 (compact-context.sh, organize-docs.sh)
+Phase 6a: scaffold-gsd.sh 생성
+Phase 6b: scaffold-infra.sh 생성
+Phase 6c: README.md 생성
+Phase 7:  (설치 스크립트 불필요 — --plugin-dir 방식)
+Phase 8:  검증 (구조/카운트/경로 변환/권한/JSON)
 ```
 
 ### scripts/build-antigravity.sh
