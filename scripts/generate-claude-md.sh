@@ -116,7 +116,7 @@ $(generate_make_section)
 
 - **code-graph-rag** (MCP): Tree-sitter + SQLite based AST code analysis
 - **memory-graph** (MCP): Agent persistent memory
-- **GSD Workflow**: SPEC.md → PLAN.md → EXECUTE → VERIFY
+- **HXSK Workflow**: SPEC.md → PLAN.md → EXECUTE → VERIFY
 
 ## Code Style
 

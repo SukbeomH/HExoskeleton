@@ -40,7 +40,7 @@ SKIP_FILES = {
     "md-store-memory.sh",
     "md-recall-memory.sh",
     "_json_parse.sh",
-    "scaffold-gsd.sh",
+    "scaffold-hxsk.sh",
     "scaffold-hxsk.sh",
     "scaffold-infra.sh",
     "compact-context.sh",

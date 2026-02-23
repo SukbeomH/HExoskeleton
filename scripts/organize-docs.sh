@@ -17,9 +17,9 @@ if [[ "${1:-}" == "--dry-run" ]]; then
     echo "[DRY-RUN] No files will be moved"
 fi
 
-GSD_DIR="${CLAUDE_PROJECT_DIR:-.}/.hxsk"
-REPORTS_DIR="$GSD_DIR/reports"
-RESEARCH_DIR="$GSD_DIR/research"
+HXSK_DIR="${CLAUDE_PROJECT_DIR:-.}/.hxsk"
+REPORTS_DIR="$HXSK_DIR/reports"
+RESEARCH_DIR="$HXSK_DIR/research"
 
 # Ensure directories exist
 mkdir -p "$REPORTS_DIR" "$RESEARCH_DIR"
@@ -37,7 +37,7 @@ MOVED_COUNT=0
 echo ""
 echo "--- Reports ---"
 
-for file in "$GSD_DIR"/REPORT-*.md; do
+for file in "$HXSK_DIR"/REPORT-*.md; do
     if [[ -f "$file" ]]; then
         filename=$(basename "$file")
         if [[ "$DRY_RUN" == true ]]; then
@@ -62,7 +62,7 @@ echo ""
 echo "--- Research ---"
 
 RESEARCH_MOVED=0
-for file in "$GSD_DIR"/RESEARCH-*.md; do
+for file in "$HXSK_DIR"/RESEARCH-*.md; do
     if [[ -f "$file" ]]; then
         filename=$(basename "$file")
         if [[ "$DRY_RUN" == true ]]; then

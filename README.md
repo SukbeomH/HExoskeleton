@@ -65,7 +65,7 @@ SPEC → PLAN → EXECUTE → VERIFY
 │   ├── skills/                # 스킬 정의 (16)
 │   ├── hooks/                 # 훅 스크립트 (14 이벤트)
 │   └── settings.json          # 훅 설정
-├── .hxsk/                      # GSD 작업 문서
+├── .hxsk/                      # HXSK 작업 문서
 │   ├── STATE.md               # 현재 작업 상태 (git 추적)
 │   ├── PATTERNS.md            # 핵심 패턴/학습 (2KB, git 추적)
 │   ├── SPEC.md                # 프로젝트 명세
@@ -84,7 +84,7 @@ SPEC → PLAN → EXECUTE → VERIFY
 │   └── workflows/             # CI/CD (release-please)
 ├── docs/                      # 상세 문서
 ├── scripts/                   # 빌드 및 유틸리티 스크립트
-│   ├── build-plugin.sh        # GSD 플러그인 빌드
+│   ├── build-plugin.sh        # HXSK 플러그인 빌드
 │   ├── build-antigravity.sh   # Antigravity 워크스페이스 빌드
 │   ├── build-opencode.sh      # OpenCode 워크스페이스 빌드
 │   └── bootstrap.sh           # 프로젝트 부트스트랩
@@ -102,7 +102,7 @@ SPEC → PLAN → EXECUTE → VERIFY
 git clone https://github.com/SukbeomH/HExoskeleton.git
 cd HExoskeleton
 
-# GSD 문서 초기화
+# HXSK 문서 초기화
 make setup
 ```
 
@@ -283,13 +283,13 @@ Claude는 작업 성격을 인식하여 적절한 스킬을 **스스로 판단�
 |----------|------|
 | `md-store-memory.sh` | 파일 기반 메모리 저장 |
 | `md-recall-memory.sh` | 파일 기반 메모리 검색 |
-| `scaffold-gsd.sh` | GSD 문서 초기화 |
+| `scaffold-hxsk.sh` | HXSK 문서 초기화 |
 | `compact-context.sh` | 컨텍스트 압축 |
 | `organize-docs.sh` | 문서 정리/아카이브 |
 
 ---
 
-## GSD 워크플로우
+## HXSK 워크플로우
 
 ### 핵심 사이클
 
@@ -343,7 +343,7 @@ make help                   # 전체 명령어 목록
 
 | 명령어 | 설명 |
 |--------|------|
-| `make setup` | GSD 문서 초기화 |
+| `make setup` | HXSK 문서 초기화 |
 | `make status` | 환경 상태 확인 |
 | `make build` | 3개 빌드 아티팩트 생성 |
 | `make build-plugin` | Claude Code 플러그인 빌드 |
@@ -417,7 +417,7 @@ make help                   # 전체 명령어 목록
 
 | 패턴 | 논문 | 본 시스템 적용 |
 |------|------|---------------|
-| 계획-실행 분리 | ReWOO (5x 효율) | GSD: `SPEC.md` → `PLAN.md` → `EXECUTE` 분리 |
+| 계획-실행 분리 | ReWOO (5x 효율) | HXSK: `SPEC.md` → `PLAN.md` → `EXECUTE` 분리 |
 | 적응적 탐색 깊이 | System-1.x | planner의 Discovery Level (0-3) |
 | 가설 가지치기 | Tree of Thoughts | `debug-eliminated` 메모리 타입 |
 | 도구 문서 압축 | EASYTOOL | 스킬 2단계 로딩 (요약 → 상세) |

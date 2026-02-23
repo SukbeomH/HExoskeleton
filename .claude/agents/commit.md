@@ -1,5 +1,5 @@
 ---
-description: Analyzes diffs, splits logical changes, creates conventional emoji commits aligned with GSD atomic commit protocol.
+description: Analyzes diffs, splits logical changes, creates conventional emoji commits aligned with HXSK atomic commit protocol.
 model: haiku
 tools: ["Read", "Bash", "Grep", "Glob"]
 ---

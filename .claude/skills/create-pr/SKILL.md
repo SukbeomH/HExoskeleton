@@ -6,17 +6,17 @@ description: Analyzes changes, creates branch, splits commits logically, pushes 
 ## Quick Reference
 - **Branch naming**: `feat/<desc>`, `fix/<desc>`, `refactor/<desc>`, `docs/<desc>`
 - **PR 생성**: `gh pr create --title "..." --body "..."`
-- **PR Body**: Summary + Changes + Test Plan + GSD Context 섹션
+- **PR Body**: Summary + Changes + Test Plan + HXSK Context 섹션
 - **Push**: `git push -u origin $(git branch --show-current)`
 - **Output**: `PR_CREATED: #N`, `URL: <url>`, `BRANCH: <name>`, `COMMITS: N`
 
 ---
 
-# GSD Create PR Skill
+# HXSK Create PR Skill
 
 <role>
 You create pull requests by analyzing changes, organizing commits logically, and submitting via GitHub CLI.
-This is the shipping step of the GSD workflow — moving completed work from local to remote.
+This is the shipping step of the HXSK workflow — moving completed work from local to remote.
 </role>
 
 ---
@@ -49,7 +49,7 @@ git checkout -b feat/add-user-auth
 - `docs/<description>` — Documentation
 - `chore/<description>` — Maintenance
 
-For GSD phases:
+For HXSK phases:
 - `phase-1/implement-auth` — Phase-scoped work
 
 ### Step 3: Stage and Commit
@@ -80,7 +80,7 @@ gh pr create --title "<title>" --body "$(cat <<'EOF'
 - [ ] Manual verification completed
 - [ ] <specific manual verification steps>
 
-## GSD Context
+## HXSK Context
 - Phase: <N>
 - Plans: <list of completed plans>
 - SPEC reference: `.hxsk/SPEC.md`
@@ -108,16 +108,16 @@ Keep under 70 characters.
 - **Summary**: What changed and why (not how — the diff shows how)
 - **Changes**: Key files/modules affected
 - **Test Plan**: How to verify the changes work
-- **GSD Context**: Phase/plan reference for traceability
+- **HXSK Context**: Phase/plan reference for traceability
 
 ---
 
 ## Multi-Phase PRs
 
-When a PR spans multiple GSD plans:
+When a PR spans multiple HXSK plans:
 
 ```markdown
-## GSD Context
+## HXSK Context
 - Phase 1, Plans 1-3: User authentication
   - Plan 1.1: Database schema + User model
   - Plan 1.2: Login/register endpoints

@@ -1,4 +1,4 @@
-# GSD Methodology for Gemini
+# HXSK Methodology for Gemini
 
 > 상세 규칙은 프로젝트 루트의 CLAUDE.md를 참조하세요.
 

@@ -18,7 +18,7 @@ echo ""
 echo "[Phase 1] Creating directory structure..."
 rm -rf "$PLUGIN"
 mkdir -p "$PLUGIN"/{.claude-plugin,commands,skills,agents,hooks,scripts}
-mkdir -p "$PLUGIN"/templates/gsd/{templates,examples}
+mkdir -p "$PLUGIN"/templates/hxsk/{templates,examples}
 mkdir -p "$PLUGIN"/references/issue-templates
 
 # Get version from release-please manifest or default to 1.0.0
@@ -48,7 +48,7 @@ if [ -d "$BOILERPLATE/.agent/workflows" ]; then
     echo "  [+] Copied ${COMMANDS_COUNT} workflow commands"
 else
     echo "  [SKIP] .agent/workflows/ not found — generating from skills"
-    # Generate command stubs from skills (each skill becomes a /gsd:command)
+    # Generate command stubs from skills (each skill becomes a /hxsk:command)
     for skill_dir in "$BOILERPLATE"/.claude/skills/*/; do
         skill_name=$(basename "$skill_dir")
         skill_file="$skill_dir/SKILL.md"
@@ -98,18 +98,18 @@ Initialize the HExoskeleton document system in the current project.
 
 ## What This Command Does
 
-1. **Scaffold GSD Documents**: Creates `.hxsk/` directory with working documents and templates
+1. **Scaffold HXSK Documents**: Creates `.hxsk/` directory with working documents and templates
 2. **Compare Infrastructure**: Shows diff between plugin references and project files
 3. **Interactive Setup**: If SPEC.md is empty, guides you through project information collection
 
 ## Execution Steps
 
-### Step 1: Scaffold GSD Directory
+### Step 1: Scaffold HXSK Directory
 
-Run the scaffolding script to create the GSD document structure:
+Run the scaffolding script to create the HXSK document structure:
 
 ```bash
-bash "${CLAUDE_PLUGIN_ROOT}/scripts/scaffold-gsd.sh"
+bash "${CLAUDE_PLUGIN_ROOT}/scripts/scaffold-hxsk.sh"
 ```
 
 This creates:
@@ -128,7 +128,7 @@ Run the infrastructure comparison script:
 bash "${CLAUDE_PLUGIN_ROOT}/scripts/scaffold-infra.sh"
 ```
 
-This compares your project files against GSD reference configurations:
+This compares your project files against HXSK reference configurations:
 - `pyproject.toml` - Python project config
 - `Makefile` - Build automation
 - `.gitignore` - Git ignore patterns
@@ -155,7 +155,7 @@ If `.hxsk/SPEC.md` is empty or contains only placeholder content:
 
 ## After Initialization
 
-Once initialized, you can use GSD commands:
+Once initialized, you can use HXSK commands:
 - `/hxsk:plan` - Create implementation plans
 - `/hxsk:execute` - Execute planned work
 - `/hxsk:verify` - Verify completed work
@@ -301,28 +301,28 @@ else
     echo "  [SKIP] .mcp.json not found (pure bash mode)"
 fi
 
-# --- Phase 5b: GSD Templates ---
+# --- Phase 5b: HXSK Templates ---
 echo ""
-echo "[Phase 5b] Copying GSD templates..."
+echo "[Phase 5b] Copying HXSK templates..."
 # Templates (md files)
-cp "$BOILERPLATE"/.hxsk/templates/*.md "$PLUGIN/templates/gsd/templates/"
-TEMPLATES_COUNT=$(ls "$PLUGIN/templates/gsd/templates/"*.md 2>/dev/null | wc -l | tr -d ' ')
+cp "$BOILERPLATE"/.hxsk/templates/*.md "$PLUGIN/templates/hxsk/templates/"
+TEMPLATES_COUNT=$(ls "$PLUGIN/templates/hxsk/templates/"*.md 2>/dev/null | wc -l | tr -d ' ')
 echo "  [+] Copied ${TEMPLATES_COUNT} templates"
 
 # Templates (yaml files)
-cp "$BOILERPLATE"/.hxsk/templates/*.yaml "$PLUGIN/templates/gsd/templates/" 2>/dev/null || true
-YAML_COUNT=$(ls "$PLUGIN/templates/gsd/templates/"*.yaml 2>/dev/null | wc -l | tr -d ' ')
+cp "$BOILERPLATE"/.hxsk/templates/*.yaml "$PLUGIN/templates/hxsk/templates/" 2>/dev/null || true
+YAML_COUNT=$(ls "$PLUGIN/templates/hxsk/templates/"*.yaml 2>/dev/null | wc -l | tr -d ' ')
 [ "$YAML_COUNT" -gt 0 ] && echo "  [+] Copied ${YAML_COUNT} yaml configs"
 
 # Examples
-cp "$BOILERPLATE"/.hxsk/examples/*.md "$PLUGIN/templates/gsd/examples/"
-EXAMPLES_COUNT=$(ls "$PLUGIN/templates/gsd/examples/"*.md 2>/dev/null | wc -l | tr -d ' ')
+cp "$BOILERPLATE"/.hxsk/examples/*.md "$PLUGIN/templates/hxsk/examples/"
+EXAMPLES_COUNT=$(ls "$PLUGIN/templates/hxsk/examples/"*.md 2>/dev/null | wc -l | tr -d ' ')
 echo "  [+] Copied ${EXAMPLES_COUNT} examples"
 
 # Working document shells (complete set)
 for doc in SPEC DECISIONS JOURNAL ROADMAP PATTERNS STATE TODO STACK CHANGELOG; do
     # Create empty shell files for scaffolding
-    cat > "$PLUGIN/templates/gsd/${doc}.md" << EOF
+    cat > "$PLUGIN/templates/hxsk/${doc}.md" << EOF
 # ${doc}
 
 <!-- This file will be populated during /hxsk:init -->
@@ -367,13 +367,13 @@ for util in compact-context.sh organize-docs.sh; do
     fi
 done
 
-# --- Phase 6a: Scaffold GSD Script ---
+# --- Phase 6a: Scaffold HXSK Script ---
 echo ""
-echo "[Phase 6a] Creating scaffold-gsd.sh..."
-cat > "$PLUGIN/scripts/scaffold-gsd.sh" << 'SCAFFOLDEOF'
+echo "[Phase 6a] Creating scaffold-hxsk.sh..."
+cat > "$PLUGIN/scripts/scaffold-hxsk.sh" << 'SCAFFOLDEOF'
 #!/usr/bin/env bash
 #
-# scaffold-gsd.sh - Initialize GSD document structure in a project
+# scaffold-hxsk.sh - Initialize HXSK document structure in a project
 #
 set -euo pipefail
 
@@ -381,7 +381,7 @@ PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:-$(cd "$(dirname "$0")/.." && pwd)}"
 PROJECT_DIR="${CLAUDE_PROJECT_DIR:-.}"
 TARGET="$PROJECT_DIR/.hxsk"
 
-echo "Scaffolding GSD documents..."
+echo "Scaffolding HXSK documents..."
 echo "  Plugin: ${PLUGIN_ROOT}"
 echo "  Target: ${TARGET}"
 echo ""
@@ -390,7 +390,7 @@ echo ""
 mkdir -p "$TARGET" "$TARGET/templates" "$TARGET/examples" "$TARGET/archive" "$TARGET/reports" "$TARGET/research"
 
 # Copy working documents (all shell files)
-for f in "$PLUGIN_ROOT"/templates/gsd/*.md; do
+for f in "$PLUGIN_ROOT"/templates/hxsk/*.md; do
     [ -f "$f" ] || continue
     dst="$TARGET/$(basename "$f")"
     if [ -f "$dst" ]; then
@@ -402,7 +402,7 @@ for f in "$PLUGIN_ROOT"/templates/gsd/*.md; do
 done
 
 # Copy yaml configs
-for f in "$PLUGIN_ROOT"/templates/gsd/templates/*.yaml; do
+for f in "$PLUGIN_ROOT"/templates/hxsk/templates/*.yaml; do
     [ -f "$f" ] || continue
     dst="$TARGET/$(basename "$f")"
     if [ -f "$dst" ]; then
@@ -414,7 +414,7 @@ for f in "$PLUGIN_ROOT"/templates/gsd/templates/*.yaml; do
 done
 
 # Copy templates
-for f in "$PLUGIN_ROOT"/templates/gsd/templates/*.md; do
+for f in "$PLUGIN_ROOT"/templates/hxsk/templates/*.md; do
     [ -f "$f" ] || continue
     dst="$TARGET/templates/$(basename "$f")"
     if [ -f "$dst" ]; then
@@ -426,7 +426,7 @@ for f in "$PLUGIN_ROOT"/templates/gsd/templates/*.md; do
 done
 
 # Copy examples
-for f in "$PLUGIN_ROOT"/templates/gsd/examples/*.md; do
+for f in "$PLUGIN_ROOT"/templates/hxsk/examples/*.md; do
     [ -f "$f" ] || continue
     dst="$TARGET/examples/$(basename "$f")"
     if [ -f "$dst" ]; then
@@ -438,15 +438,15 @@ for f in "$PLUGIN_ROOT"/templates/gsd/examples/*.md; do
 done
 
 echo ""
-echo "GSD scaffolding complete!"
+echo "HXSK scaffolding complete!"
 echo "  Working docs: .hxsk/{SPEC,DECISIONS,JOURNAL,ROADMAP,PATTERNS,STATE,TODO,STACK,CHANGELOG}.md"
 echo "  Config:       .hxsk/context-config.yaml"
 echo "  Templates:    .hxsk/templates/"
 echo "  Examples:     .hxsk/examples/"
 echo "  Directories:  .hxsk/{archive,reports,research}/"
 SCAFFOLDEOF
-chmod +x "$PLUGIN/scripts/scaffold-gsd.sh"
-echo "  [+] Created scaffold-gsd.sh"
+chmod +x "$PLUGIN/scripts/scaffold-hxsk.sh"
+echo "  [+] Created scaffold-hxsk.sh"
 
 # --- Phase 6b: Scaffold Infra Script ---
 echo ""
@@ -454,7 +454,7 @@ echo "[Phase 6b] Creating scaffold-infra.sh..."
 cat > "$PLUGIN/scripts/scaffold-infra.sh" << 'INFRAEOF'
 #!/usr/bin/env bash
 #
-# scaffold-infra.sh - Compare project files against GSD references
+# scaffold-infra.sh - Compare project files against HXSK references
 #
 set -euo pipefail
 
@@ -668,7 +668,7 @@ bash scripts/md-recall-memory.sh "검색어" "." 5 compact
 ## Quick Start
 
 ```bash
-/hxsk:init          # Initialize GSD documents
+/hxsk:init          # Initialize HXSK documents
 /hxsk:bootstrap     # Full project setup
 /hxsk:planner       # Create implementation plan
 /hxsk:executor      # Execute planned work
@@ -682,7 +682,7 @@ bash scripts/md-recall-memory.sh "검색어" "." 5 compact
 """
 
 for name, desc in commands:
-    readme += f"| `/gsd:{name}` | {desc} |\n"
+    readme += f"| `/hxsk:{name}` | {desc} |\n"
 
 readme += f"""
 ## Skills ({len(skills)})
@@ -705,7 +705,7 @@ for name, desc in agents:
     readme += f"| `{name}` | {desc} |\n"
 
 readme += """
-## GSD Document Structure
+## HXSK Document Structure
 
 After `/hxsk:init`:
 
@@ -791,7 +791,7 @@ cmd_count=$(ls "$PLUGIN/commands/"*.md 2>/dev/null | wc -l | tr -d ' ')
 skill_count=$(ls -d "$PLUGIN/skills"/*/ 2>/dev/null | wc -l | tr -d ' ')
 agent_count=$(ls "$PLUGIN/agents/"*.md 2>/dev/null | wc -l | tr -d ' ')
 script_count=$(find "$PLUGIN/scripts" -type f \( -name "*.sh" -o -name "*.py" \) | wc -l | tr -d ' ')
-template_count=$(ls "$PLUGIN/templates/gsd/templates/"*.md 2>/dev/null | wc -l | tr -d ' ')
+template_count=$(ls "$PLUGIN/templates/hxsk/templates/"*.md 2>/dev/null | wc -l | tr -d ' ')
 
 echo "  Commands:  ${cmd_count}"
 [ "$cmd_count" -ge 1 ] || { echo "    [WARN] No commands found"; }

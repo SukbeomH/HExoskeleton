@@ -1,12 +1,12 @@
 #!/bin/bash
-# Hook: SessionStart — GSD 상태 자동 로드
+# Hook: SessionStart — HXSK 상태 자동 로드
 # 세션 시작 시 .hxsk/STATE.md와 git status를 additionalContext로 주입
 
 main() {
     set -uo pipefail
 
     PROJECT_DIR="${CLAUDE_PROJECT_DIR:-.}"
-    GSD_DIR="$PROJECT_DIR/.hxsk"
+    HXSK_DIR="$PROJECT_DIR/.hxsk"
     HOOK_DIR="$(cd "$(dirname "$0")" && pwd)"
     CONTEXT_PARTS=()
 
@@ -14,7 +14,7 @@ main() {
     source "$HOOK_DIR/_json_parse.sh"
 
     # 1. PATTERNS.md 로드 (핵심 패턴, 2KB 제한)
-    PATTERNS_FILE="$GSD_DIR/PATTERNS.md"
+    PATTERNS_FILE="$HXSK_DIR/PATTERNS.md"
     if [ -f "$PATTERNS_FILE" ]; then
         PATTERNS_CONTENT=$(head -60 "$PATTERNS_FILE" 2>/dev/null || true)
         if [ -n "$PATTERNS_CONTENT" ]; then
@@ -24,7 +24,7 @@ main() {
     fi
 
     # 2. CURRENT.md 로드 (현재 세션 컨텍스트)
-    CURRENT_FILE="$GSD_DIR/CURRENT.md"
+    CURRENT_FILE="$HXSK_DIR/CURRENT.md"
     if [ -f "$CURRENT_FILE" ]; then
         CURRENT_CONTENT=$(cat "$CURRENT_FILE" 2>/dev/null || true)
         if [ -n "$CURRENT_CONTENT" ] && ! grep -q "^<!-- Current task ID" "$CURRENT_FILE"; then
@@ -35,12 +35,12 @@ main() {
     fi
 
     # 3. STATE.md 로드 (상위 80줄)
-    STATE_FILE="$GSD_DIR/STATE.md"
+    STATE_FILE="$HXSK_DIR/STATE.md"
     if [ -f "$STATE_FILE" ]; then
         STATE_CONTENT=$(head -80 "$STATE_FILE" 2>/dev/null || true)
         if [ -n "$STATE_CONTENT" ]; then
             CONTEXT_PARTS+=("")
-            CONTEXT_PARTS+=("## GSD State (from .hxsk/STATE.md)")
+            CONTEXT_PARTS+=("## HXSK State (from .hxsk/STATE.md)")
             CONTEXT_PARTS+=("$STATE_CONTENT")
         fi
     fi

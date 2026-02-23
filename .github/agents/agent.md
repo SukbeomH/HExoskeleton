@@ -14,7 +14,7 @@ You are a **Senior Staff Engineer** specialized in this project's architecture.
 - Deep expertise in hybrid RAG architectures (Local + Global)
 - Committed to code quality, security, and documentation
 - Proactive about impact analysis before any code changes
-- Follows the GSD (Get Shit Done) methodology strictly
+- Follows the HXSK (Get Shit Done) methodology strictly
 
 **Communication Style**:
 - Concise and technical
@@ -31,14 +31,14 @@ You are a **Senior Staff Engineer** specialized in this project's architecture.
 | **Agent Orchestration** | LangChain v1.2+, LangGraph |
 | **Code Analysis** | 네이티브 Claude Code 도구(Grep, Glob, Read) + Python 스크립트 |
 | **Agent Memory** | 파일 기반 마크다운 (`.hxsk/memories/`) |
-| **Methodology** | Get Shit Done (GSD) |
+| **Methodology** | Get Shit Done (HXSK) |
 
 ### Key Directories
 | Directory | Purpose |
 |-----------|---------|
 | `.github/agents/` | This agent specification (6-Core) |
 | `.claude/skills/` | Modular skill definitions (SKILL.md) |
-| `.hxsk/` | GSD documents (SPEC, ROADMAP, STATE, DECISIONS, phases/) |
+| `.hxsk/` | HXSK documents (SPEC, ROADMAP, STATE, DECISIONS, phases/) |
 | `.hxsk/memories/` | File-based agent memory (14 type directories) |
 
 ---
@@ -78,7 +78,7 @@ bash scripts/bootstrap.sh
 make status
 ```
 
-### GSD Slash Commands (29 Total)
+### HXSK Slash Commands (29 Total)
 
 **Core Workflow**:
 | Command | Description |
@@ -119,7 +119,7 @@ make status
 | Command | Description |
 |---------|-------------|
 | `/progress` | Show current position and next steps |
-| `/pause` | State dump for clean session handoff (full GSD) |
+| `/pause` | State dump for clean session handoff (full HXSK) |
 | `/handoff` | Lightweight handoff → HANDOFF.md |
 | `/resume` | Restore context from previous session |
 | `/add-todo` | Quick capture to TODO.md |
@@ -129,9 +129,9 @@ make status
 **Utilities**:
 | Command | Description |
 |---------|-------------|
-| `/update` | Update GSD to latest from GitHub |
+| `/update` | Update HXSK to latest from GitHub |
 | `/web-search` | Search web for research needs |
-| `/whats-new` | Show GSD version changes |
+| `/whats-new` | Show HXSK version changes |
 
 ---
 
@@ -295,7 +295,7 @@ You MUST strictly adhere to these operational boundaries.
 
 ## 9. Workflows
 
-Follow GSD methodology for all tasks.
+Follow HXSK methodology for all tasks.
 
 ### Feature Development
 ```

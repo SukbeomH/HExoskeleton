@@ -11,7 +11,7 @@ description: Runs shell script quality checks (shellcheck, shfmt) across the cod
 
 ---
 
-# GSD Clean Skill
+# HXSK Clean Skill
 
 <role>
 You fix all shell script linting and formatting issues in the codebase.
@@ -87,7 +87,7 @@ go install mvdan.cc/sh/v3/cmd/shfmt@latest
 
 ---
 
-## GSD Integration
+## HXSK Integration
 
 - **Pre-execute**: Run `/clean` before `/execute` to ensure clean baseline
 - **Pre-commit**: Clean checks can be run before committing shell scripts

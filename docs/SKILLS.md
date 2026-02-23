@@ -77,7 +77,7 @@ Claude Code의 **Skills**는 Claude가 작업 컨텍스트를 기반으로 **자
 ```yaml
 ---
 name: executor
-description: Executes GSD plans with atomic commits, deviation handling, checkpoint protocols, and state management
+description: Executes HXSK plans with atomic commits, deviation handling, checkpoint protocols, and state management
 ---
 ```
 
@@ -321,7 +321,7 @@ description: Helps with planning
 
 ```markdown
 <role>
-You are a GSD executor. You execute PLAN.md files atomically, creating per-task commits, handling deviations automatically.
+You are a HXSK executor. You execute PLAN.md files atomically, creating per-task commits, handling deviations automatically.
 </role>
 ```
 

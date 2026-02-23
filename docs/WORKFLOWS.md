@@ -1,6 +1,6 @@
 # Workflows (Commands) 상세 문서
 
-Claude Code의 **Workflows**는 슬래시 명령어(`/command`)로 호출되는 구조화된 작업 흐름입니다. GSD(Get Shit Done) 방법론의 핵심 인터페이스를 제공합니다.
+Claude Code의 **Workflows**는 슬래시 명령어(`/command`)로 호출되는 구조화된 작업 흐름입니다. HXSK(Get Shit Done) 방법론의 핵심 인터페이스를 제공합니다.
 
 ---
 
@@ -54,7 +54,7 @@ Claude Code의 **Workflows**는 슬래시 명령어(`/command`)로 호출되는 
 | 명령어 | 파일 | 역할 | 인자 |
 |--------|------|------|------|
 | `/progress` | `progress.md` | 현재 진행 상황 | - |
-| `/pause` | `pause.md` | 상태 저장 (full GSD) | - |
+| `/pause` | `pause.md` | 상태 저장 (full HXSK) | - |
 | `/handoff` | `handoff.md` | 경량 핸드오프 문서 | - |
 | `/resume` | `resume.md` | 마지막 세션 복원 | - |
 | `/add-todo` | `add-todo.md` | TODO 추가 | `<description>` |
@@ -66,7 +66,7 @@ Claude Code의 **Workflows**는 슬래시 명령어(`/command`)로 호출되는 
 |--------|------|------|------|
 | `/help` | `help.md` | 도움말 | - |
 | `/quick-check` | `quick-check.md` | 빠른 상태 체크 | - |
-| `/update` | `update.md` | GSD 문서 업데이트 | - |
+| `/update` | `update.md` | HXSK 문서 업데이트 | - |
 | `/web-search` | `web-search.md` | 웹 검색 | `<query>` |
 | `/whats-new` | `whats-new.md` | 최근 변경사항 | - |
 | `/feature-dev` | `feature-dev.md` | 기능 개발 워크플로우 | `<description>` |
@@ -153,7 +153,7 @@ argument-hint: "[phase] [--research] [--skip-research] [--gaps]"
 **출력 예시**:
 ```
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
- GSD ► PHASE 1 PLANNED ✓
+ HXSK ► PHASE 1 PLANNED ✓
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 3 plans created across 2 waves
@@ -279,7 +279,7 @@ Phase Verification
 **출력 예시**:
 ```
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
- GSD ► PROGRESS
+ HXSK ► PROGRESS
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 Project: My App
@@ -306,11 +306,11 @@ Implementing user authentication
 
 ---
 
-## GSD 사이클
+## HXSK 사이클
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│                     GSD Cycle                           │
+│                     HXSK Cycle                           │
 ├─────────────────────────────────────────────────────────┤
 │                                                         │
 │   /new-project                                          │
@@ -403,7 +403,7 @@ Extract from $ARGUMENTS:
 
 ```
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
- GSD ► {COMMAND} {STATUS}
+ HXSK ► {COMMAND} {STATUS}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 

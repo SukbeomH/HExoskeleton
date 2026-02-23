@@ -143,13 +143,13 @@ split_large_skill() {
 echo "[Phase 1] Creating directory structure..."
 rm -rf "$ANTIGRAVITY"
 mkdir -p "$ANTIGRAVITY"/.agent/{skills,workflows,rules}
-mkdir -p "$ANTIGRAVITY"/templates/gsd/{templates,examples}
+mkdir -p "$ANTIGRAVITY"/templates/hxsk/{templates,examples}
 mkdir -p "$ANTIGRAVITY"/scripts
 
 echo "  [+] .agent/skills/"
 echo "  [+] .agent/workflows/"
 echo "  [+] .agent/rules/"
-echo "  [+] templates/gsd/"
+echo "  [+] templates/hxsk/"
 echo "  [+] scripts/"
 
 # ================================================================
@@ -278,10 +278,10 @@ echo "  [+] agent-boundaries.md"
 } > "$ANTIGRAVITY/.agent/rules/validation.md"
 echo "  [+] validation.md"
 
-# Rule 3: gsd-workflow.md — from ## Architecture + GSD cycle summary
+# Rule 3: hxsk-workflow.md — from ## Architecture + HXSK cycle summary
 {
     echo "---"
-    echo 'description: "GSD workflow rules — architecture principles and execution cycle"'
+    echo 'description: "HXSK workflow rules — architecture principles and execution cycle"'
     echo "---"
     echo ""
     extract_section "$CLAUDE_MD" "Architecture" | transform_tool_refs | sed \
@@ -290,14 +290,14 @@ echo "  [+] validation.md"
         -e 's/네이티브 Claude Code/에이전트 내장/g' \
         -e 's/Claude Code/Antigravity IDE/g'
     echo ""
-    echo "## GSD Cycle"
+    echo "## HXSK Cycle"
     echo ""
     echo "1. **SPEC.md** (Planning Lock) — Project specification"
     echo "2. **PLAN.md** — Implementation plans with atomic tasks"
     echo "3. **EXECUTE** — Execute with atomic commits"
     echo "4. **VERIFY** — Verify with empirical evidence"
-} > "$ANTIGRAVITY/.agent/rules/gsd-workflow.md"
-echo "  [+] gsd-workflow.md"
+} > "$ANTIGRAVITY/.agent/rules/hxsk-workflow.md"
+echo "  [+] hxsk-workflow.md"
 
 # Rule 4: memory-protocol.md — from ## Memory Protocol
 {
@@ -350,7 +350,7 @@ GEMINIHEADER
   - `skills/` — Modular skill definitions (16 skills, SKILL.md format)
   - `workflows/` — Workflow commands (triggered via `/` commands)
   - `rules/` — Always-on passive rules (4 rule files)
-- **.hxsk/** — GSD documents and context management:
+- **.hxsk/** — HXSK documents and context management:
   - `SPEC.md`, `PLAN.md`, `DECISIONS.md`, `STATE.md` — Core working docs
   - `PATTERNS.md` — Distilled learnings for fresh sessions (2KB limit)
   - `memories/` — File-based agent memory (14 type directories)
@@ -398,19 +398,19 @@ for script in md-recall-memory.sh md-store-memory.sh _json_parse.sh; do
     fi
 done
 
-# scaffold-gsd.sh — inline generation (same as before)
-cat > "$ANTIGRAVITY/scripts/scaffold-gsd.sh" << 'SCAFFOLDEOF'
+# scaffold-hxsk.sh — inline generation (same as before)
+cat > "$ANTIGRAVITY/scripts/scaffold-hxsk.sh" << 'SCAFFOLDEOF'
 #!/usr/bin/env bash
 #
-# scaffold-gsd.sh - Initialize GSD document structure
+# scaffold-hxsk.sh - Initialize HXSK document structure
 #
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-TEMPLATE_DIR="${SCRIPT_DIR}/../templates/gsd"
+TEMPLATE_DIR="${SCRIPT_DIR}/../templates/hxsk"
 TARGET="${1:-.hxsk}"
 
-echo "Scaffolding GSD documents to ${TARGET}..."
+echo "Scaffolding HXSK documents to ${TARGET}..."
 
 mkdir -p "$TARGET"/{templates,examples,archive,reports,research,memories}
 
@@ -457,34 +457,34 @@ for f in "$TEMPLATE_DIR"/examples/*.md; do
 done
 
 echo ""
-echo "GSD scaffolding complete!"
+echo "HXSK scaffolding complete!"
 SCAFFOLDEOF
-chmod +x "$ANTIGRAVITY/scripts/scaffold-gsd.sh"
-echo "  [+] scaffold-gsd.sh (generated)"
+chmod +x "$ANTIGRAVITY/scripts/scaffold-hxsk.sh"
+echo "  [+] scaffold-hxsk.sh (generated)"
 SCRIPT_COUNT=$((SCRIPT_COUNT + 1))
 echo "  [=] Total scripts: ${SCRIPT_COUNT}"
 
 # ================================================================
-# Phase 7: GSD Templates
+# Phase 7: HXSK Templates
 # ================================================================
 echo ""
-echo "[Phase 7] Copying GSD templates..."
+echo "[Phase 7] Copying HXSK templates..."
 
 # Templates
-cp "$BOILERPLATE"/.hxsk/templates/*.md "$ANTIGRAVITY/templates/gsd/templates/" 2>/dev/null || true
-cp "$BOILERPLATE"/.hxsk/templates/*.yaml "$ANTIGRAVITY/templates/gsd/templates/" 2>/dev/null || true
-TEMPLATES_COUNT=$(find "$ANTIGRAVITY/templates/gsd/templates" -type f 2>/dev/null | wc -l | tr -d ' ')
+cp "$BOILERPLATE"/.hxsk/templates/*.md "$ANTIGRAVITY/templates/hxsk/templates/" 2>/dev/null || true
+cp "$BOILERPLATE"/.hxsk/templates/*.yaml "$ANTIGRAVITY/templates/hxsk/templates/" 2>/dev/null || true
+TEMPLATES_COUNT=$(find "$ANTIGRAVITY/templates/hxsk/templates" -type f 2>/dev/null | wc -l | tr -d ' ')
 echo "  [+] ${TEMPLATES_COUNT} templates"
 
 # Examples
-cp "$BOILERPLATE"/.hxsk/examples/*.md "$ANTIGRAVITY/templates/gsd/examples/" 2>/dev/null || true
-EXAMPLES_COUNT=$(find "$ANTIGRAVITY/templates/gsd/examples" -type f 2>/dev/null | wc -l | tr -d ' ')
+cp "$BOILERPLATE"/.hxsk/examples/*.md "$ANTIGRAVITY/templates/hxsk/examples/" 2>/dev/null || true
+EXAMPLES_COUNT=$(find "$ANTIGRAVITY/templates/hxsk/examples" -type f 2>/dev/null | wc -l | tr -d ' ')
 echo "  [+] ${EXAMPLES_COUNT} examples"
 
 # Working document shells
 for doc in SPEC DECISIONS JOURNAL ROADMAP PATTERNS STATE TODO STACK CHANGELOG; do
     doc_lower=$(echo "$doc" | tr '[:upper:]' '[:lower:]')
-    cat > "$ANTIGRAVITY/templates/gsd/${doc}.md" << EOF
+    cat > "$ANTIGRAVITY/templates/hxsk/${doc}.md" << EOF
 # ${doc}
 
 <!-- Initialize with /init workflow -->
@@ -513,9 +513,9 @@ AI agent development boilerplate for **Google Antigravity IDE**.
    antigravity .
    ```
 
-2. **Initialize GSD Documents**
+2. **Initialize HXSK Documents**
    ```bash
-   bash scripts/scaffold-gsd.sh
+   bash scripts/scaffold-hxsk.sh
    ```
 
 ## Directory Structure
@@ -533,10 +533,10 @@ AI agent development boilerplate for **Google Antigravity IDE**.
 └── rules/           # 4 always-on passive rules
     ├── agent-boundaries.md
     ├── validation.md
-    ├── gsd-workflow.md
+    ├── hxsk-workflow.md
     └── memory-protocol.md
 
-templates/gsd/       # GSD document templates
+templates/hxsk/       # HXSK document templates
 scripts/             # Utility scripts (memory system)
 GEMINI.md            # Project instructions for Antigravity agents
 ```
@@ -597,10 +597,10 @@ Rules in `.agent/rules/*.md` are always-on passive guidelines.
 |------|---------|
 | `agent-boundaries.md` | Always/Ask First/Never behavioral rules |
 | `validation.md` | Empirical evidence requirements |
-| `gsd-workflow.md` | Architecture + GSD cycle |
+| `hxsk-workflow.md` | Architecture + HXSK cycle |
 | `memory-protocol.md` | Memory search/store protocol |
 
-## GSD Methodology
+## HXSK Methodology
 
 Get Shit Done workflow:
 
@@ -790,7 +790,7 @@ if [ $errors -eq 0 ]; then
     echo ""
     echo "To use:"
     echo "  1. Open $ANTIGRAVITY in Antigravity IDE"
-    echo "  2. Run: bash scripts/scaffold-gsd.sh"
+    echo "  2. Run: bash scripts/scaffold-hxsk.sh"
     echo ""
     echo "Or copy to an existing project:"
     echo "  cp -r $ANTIGRAVITY/.agent /path/to/project/"

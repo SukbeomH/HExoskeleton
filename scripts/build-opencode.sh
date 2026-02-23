@@ -18,14 +18,14 @@ echo ""
 echo "[Phase 1] Creating directory structure..."
 rm -rf "$OPENCODE"
 mkdir -p "$OPENCODE"/.opencode/{agents,plugins,commands,skill}
-mkdir -p "$OPENCODE"/templates/gsd/{templates,examples}
+mkdir -p "$OPENCODE"/templates/hxsk/{templates,examples}
 mkdir -p "$OPENCODE"/scripts
 
 echo "  [+] .opencode/agents/"
 echo "  [+] .opencode/plugins/"
 echo "  [+] .opencode/commands/"
 echo "  [+] .opencode/skill/"
-echo "  [+] templates/gsd/"
+echo "  [+] templates/hxsk/"
 echo "  [+] scripts/"
 
 # --- Phase 2: Agents Migration (with model field) ---
@@ -318,25 +318,25 @@ AGENTSEOF
     echo "  [+] AGENTS.md created (default template)"
 fi
 
-# --- Phase 8: GSD Templates ---
+# --- Phase 8: HXSK Templates ---
 echo ""
-echo "[Phase 8] Copying GSD templates..."
+echo "[Phase 8] Copying HXSK templates..."
 
 # Templates
-cp "$BOILERPLATE"/.hxsk/templates/*.md "$OPENCODE/templates/gsd/templates/" 2>/dev/null || true
-cp "$BOILERPLATE"/.hxsk/templates/*.yaml "$OPENCODE/templates/gsd/templates/" 2>/dev/null || true
-TEMPLATES_COUNT=$(find "$OPENCODE/templates/gsd/templates" -type f 2>/dev/null | wc -l | tr -d ' ')
+cp "$BOILERPLATE"/.hxsk/templates/*.md "$OPENCODE/templates/hxsk/templates/" 2>/dev/null || true
+cp "$BOILERPLATE"/.hxsk/templates/*.yaml "$OPENCODE/templates/hxsk/templates/" 2>/dev/null || true
+TEMPLATES_COUNT=$(find "$OPENCODE/templates/hxsk/templates" -type f 2>/dev/null | wc -l | tr -d ' ')
 echo "  [+] ${TEMPLATES_COUNT} templates"
 
 # Examples
-cp "$BOILERPLATE"/.hxsk/examples/*.md "$OPENCODE/templates/gsd/examples/" 2>/dev/null || true
-EXAMPLES_COUNT=$(find "$OPENCODE/templates/gsd/examples" -type f 2>/dev/null | wc -l | tr -d ' ')
+cp "$BOILERPLATE"/.hxsk/examples/*.md "$OPENCODE/templates/hxsk/examples/" 2>/dev/null || true
+EXAMPLES_COUNT=$(find "$OPENCODE/templates/hxsk/examples" -type f 2>/dev/null | wc -l | tr -d ' ')
 echo "  [+] ${EXAMPLES_COUNT} examples"
 
 # Working document shells
 for doc in SPEC DECISIONS JOURNAL ROADMAP PATTERNS STATE TODO STACK CHANGELOG; do
     doc_lower=$(echo "$doc" | tr '[:upper:]' '[:lower:]')
-    cat > "$OPENCODE/templates/gsd/${doc}.md" << EOF
+    cat > "$OPENCODE/templates/hxsk/${doc}.md" << EOF
 # ${doc}
 
 <!-- Initialize with /init command -->
@@ -349,19 +349,19 @@ echo "  [+] 9 working document shells"
 echo ""
 echo "[Phase 9] Creating utility scripts..."
 
-# scaffold-gsd.sh
-cat > "$OPENCODE/scripts/scaffold-gsd.sh" << 'SCAFFOLDEOF'
+# scaffold-hxsk.sh
+cat > "$OPENCODE/scripts/scaffold-hxsk.sh" << 'SCAFFOLDEOF'
 #!/usr/bin/env bash
 #
-# scaffold-gsd.sh - Initialize GSD document structure
+# scaffold-hxsk.sh - Initialize HXSK document structure
 #
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-TEMPLATE_DIR="${SCRIPT_DIR}/../templates/gsd"
+TEMPLATE_DIR="${SCRIPT_DIR}/../templates/hxsk"
 TARGET="${1:-.hxsk}"
 
-echo "Scaffolding GSD documents to ${TARGET}..."
+echo "Scaffolding HXSK documents to ${TARGET}..."
 
 mkdir -p "$TARGET"/{templates,examples,archive,reports,research}
 
@@ -408,10 +408,10 @@ for f in "$TEMPLATE_DIR"/examples/*.md; do
 done
 
 echo ""
-echo "GSD scaffolding complete!"
+echo "HXSK scaffolding complete!"
 SCAFFOLDEOF
-chmod +x "$OPENCODE/scripts/scaffold-gsd.sh"
-echo "  [+] scaffold-gsd.sh"
+chmod +x "$OPENCODE/scripts/scaffold-hxsk.sh"
+echo "  [+] scaffold-hxsk.sh"
 
 # Copy ALL hook scripts (Python and Shell)
 echo "  Copying hook scripts..."
@@ -505,9 +505,9 @@ AI agent development boilerplate for **OpenCode**.
    cp opencode-boilerplate/AGENTS.md /path/to/project/
    ```
 
-2. **Initialize GSD Documents**
+2. **Initialize HXSK Documents**
    ```bash
-   bash scripts/scaffold-gsd.sh
+   bash scripts/scaffold-hxsk.sh
    ```
 
 3. **Start OpenCode**
