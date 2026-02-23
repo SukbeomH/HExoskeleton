@@ -83,7 +83,7 @@ Each persona reviews independently, producing findings with severity classificat
 
 **Focus**: Design decisions, scalability, alignment
 
-- SPEC alignment — changes match `.gsd/SPEC.md` requirements
+- SPEC alignment — changes match `.hxsk/SPEC.md` requirements
 - Module boundaries and coupling
 - API contract consistency
 - Database schema impact
@@ -170,8 +170,8 @@ Each persona reviews independently, producing findings with severity classificat
 
 ## GSD Alignment
 
-- **SPEC 검증**: 변경 사항이 `.gsd/SPEC.md`의 must-haves를 충족하는지 확인
-- **DECISIONS 참조**: 아키텍처 변경이 `.gsd/DECISIONS.md`에 기록된 ADR과 일치하는지 확인
+- **SPEC 검증**: 변경 사항이 `.hxsk/SPEC.md`의 must-haves를 충족하는지 확인
+- **DECISIONS 참조**: 아키텍처 변경이 `.hxsk/DECISIONS.md`에 기록된 ADR과 일치하는지 확인
 - **Impact 분석**: `analyze_code_impact`를 사용하여 변경 영향 범위 사전 파악
 
 ---

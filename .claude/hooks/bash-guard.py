@@ -73,7 +73,7 @@ DEFAULT_BLOCKS = PKG_MANAGER_BLOCKS["uv"]
 def load_pkg_manager():
     """project-config.yaml에서 package_manager.name 읽기"""
     project_dir = os.environ.get("CLAUDE_PROJECT_DIR", ".")
-    config_path = os.path.join(project_dir, ".gsd", "project-config.yaml")
+    config_path = os.path.join(project_dir, ".hxsk", "project-config.yaml")
 
     if not os.path.isfile(config_path):
         return None

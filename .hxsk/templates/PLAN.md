@@ -17,8 +17,8 @@ gap_closure: false
 
 ## Context
 Load these files for context:
-- .gsd/SPEC.md
-- .gsd/ARCHITECTURE.md
+- .hxsk/SPEC.md
+- .hxsk/ARCHITECTURE.md
 - {relevant source files}
 
 ## Tasks

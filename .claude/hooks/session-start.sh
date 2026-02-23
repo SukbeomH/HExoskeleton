@@ -1,12 +1,12 @@
 #!/bin/bash
 # Hook: SessionStart — GSD 상태 자동 로드
-# 세션 시작 시 .gsd/STATE.md와 git status를 additionalContext로 주입
+# 세션 시작 시 .hxsk/STATE.md와 git status를 additionalContext로 주입
 
 main() {
     set -uo pipefail
 
     PROJECT_DIR="${CLAUDE_PROJECT_DIR:-.}"
-    GSD_DIR="$PROJECT_DIR/.gsd"
+    GSD_DIR="$PROJECT_DIR/.hxsk"
     HOOK_DIR="$(cd "$(dirname "$0")" && pwd)"
     CONTEXT_PARTS=()
 
@@ -18,7 +18,7 @@ main() {
     if [ -f "$PATTERNS_FILE" ]; then
         PATTERNS_CONTENT=$(head -60 "$PATTERNS_FILE" 2>/dev/null || true)
         if [ -n "$PATTERNS_CONTENT" ]; then
-            CONTEXT_PARTS+=("## Codebase Patterns (from .gsd/PATTERNS.md)")
+            CONTEXT_PARTS+=("## Codebase Patterns (from .hxsk/PATTERNS.md)")
             CONTEXT_PARTS+=("$PATTERNS_CONTENT")
         fi
     fi
@@ -29,7 +29,7 @@ main() {
         CURRENT_CONTENT=$(cat "$CURRENT_FILE" 2>/dev/null || true)
         if [ -n "$CURRENT_CONTENT" ] && ! grep -q "^<!-- Current task ID" "$CURRENT_FILE"; then
             CONTEXT_PARTS+=("")
-            CONTEXT_PARTS+=("## Current Session Context (from .gsd/CURRENT.md)")
+            CONTEXT_PARTS+=("## Current Session Context (from .hxsk/CURRENT.md)")
             CONTEXT_PARTS+=("$CURRENT_CONTENT")
         fi
     fi
@@ -40,7 +40,7 @@ main() {
         STATE_CONTENT=$(head -80 "$STATE_FILE" 2>/dev/null || true)
         if [ -n "$STATE_CONTENT" ]; then
             CONTEXT_PARTS+=("")
-            CONTEXT_PARTS+=("## GSD State (from .gsd/STATE.md)")
+            CONTEXT_PARTS+=("## GSD State (from .hxsk/STATE.md)")
             CONTEXT_PARTS+=("$STATE_CONTENT")
         fi
     fi

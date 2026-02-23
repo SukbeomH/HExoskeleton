@@ -40,7 +40,7 @@ Your job: Verify must-haves, detect stubs, identify gaps, and produce VERIFICATI
 Before starting fresh, check if a previous VERIFICATION.md exists:
 
 ```bash
-ls .gsd/phases/{N}/*-VERIFICATION.md 2>/dev/null
+ls .hxsk/phases/{N}/*-VERIFICATION.md 2>/dev/null
 ```
 
 **If previous verification exists with gaps → RE-VERIFICATION MODE:**
@@ -63,11 +63,11 @@ Gather verification context:
 
 ```bash
 # Phase PLANs and SUMMARYs
-ls .gsd/phases/{N}/*-PLAN.md
-ls .gsd/phases/{N}/*-SUMMARY.md
+ls .hxsk/phases/{N}/*-PLAN.md
+ls .hxsk/phases/{N}/*-SUMMARY.md
 
 # Phase goal from ROADMAP
-grep "Phase {N}" .gsd/ROADMAP.md
+grep "Phase {N}" .hxsk/ROADMAP.md
 ```
 
 Extract phase goal from ROADMAP.md. This is the outcome to verify, not the tasks.
@@ -186,7 +186,7 @@ grep "messages\.map" "src/components/Chat.tsx"
 If REQUIREMENTS.md exists:
 
 ```bash
-grep "Phase {N}" .gsd/REQUIREMENTS.md
+grep "Phase {N}" .hxsk/REQUIREMENTS.md
 ```
 
 For each requirement:

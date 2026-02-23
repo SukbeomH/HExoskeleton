@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # 파일 기반 메모리 검색 (ReWOO 압축 + A-Mem 2-hop)
 # Usage: md-recall-memory.sh <query> [project_path] [limit] [mode] [hop]
-# grep 기반 .gsd/memories/**/*.md 검색, 최신순 정렬, limit 적용
+# grep 기반 .hxsk/memories/**/*.md 검색, 최신순 정렬, limit 적용
 # mode: compact (기본, contextual_description만), full (전체 내용)
 # hop: 1 (직접 검색만), 2 (related 필드 추적 포함, 기본값)
 
@@ -13,7 +13,7 @@ LIMIT="${3:-5}"
 MODE="${4:-compact}"  # compact (ReWOO) 또는 full
 HOP="${5:-2}"         # A-Mem: 1=직접만, 2=related 포함
 
-MEMORIES_DIR="$PROJECT_PATH/.gsd/memories"
+MEMORIES_DIR="$PROJECT_PATH/.hxsk/memories"
 
 # memories 디렉토리 없으면 빈 출력
 [ -d "$MEMORIES_DIR" ] || exit 0

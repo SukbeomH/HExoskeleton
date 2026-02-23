@@ -22,7 +22,7 @@ HOOK_ISSUE_REPORT.md 분석 후 hook 시스템 3개 스크립트 안정화. file
 | Decision | Choice | Made | Affects |
 |----------|--------|------|---------|
 | GSD 버전 관리 | templates/ + examples/만 추적 | 2026-02-02 | .gitignore |
-| Memory 시스템 | 순수 bash + 마크다운 파일 기반 | 2026-02-05 | hooks, .gsd/memories/ |
+| Memory 시스템 | 순수 bash + 마크다운 파일 기반 | 2026-02-05 | hooks, .hxsk/memories/ |
 | Agent 구조 | Skill(How) + Agent(When/With What) 래핑 | 2026-02-02 | .claude/ 전체 |
 | 외부 종속성 | 없음 (MCP, Python 환경 제거) | 2026-02-05 | 전체 시스템 |
 

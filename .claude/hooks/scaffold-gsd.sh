@@ -6,7 +6,7 @@
 set -euo pipefail
 
 PROJECT_DIR="${CLAUDE_PROJECT_DIR:-.}"
-TARGET="$PROJECT_DIR/.gsd"
+TARGET="$PROJECT_DIR/.hxsk"
 TEMPLATES_SRC="$TARGET/templates"
 
 echo "Scaffolding GSD documents..."
@@ -115,7 +115,7 @@ if [ ! -f "$TARGET/CHANGELOG.md" ]; then
     cat > "$TARGET/CHANGELOG.md" <<'CLEOF'
 # Changelog
 
-> Auto-maintained by SessionEnd hook. `.gsd/` 내부 변경은 제외됨.
+> Auto-maintained by SessionEnd hook. `.hxsk/` 내부 변경은 제외됨.
 
 ---
 CLEOF
@@ -128,8 +128,8 @@ fi
 
 echo ""
 echo "GSD scaffolding complete! (created: $CREATED, skipped: $SKIPPED)"
-echo "  Working docs: .gsd/{SPEC,DECISIONS,JOURNAL,ROADMAP,PATTERNS,STATE,TODO,STACK,CHANGELOG}.md"
-echo "  Config:       .gsd/context-config.yaml"
-echo "  Templates:    .gsd/templates/"
-echo "  Examples:     .gsd/examples/"
-echo "  Directories:  .gsd/{archive,reports,research}/"
+echo "  Working docs: .hxsk/{SPEC,DECISIONS,JOURNAL,ROADMAP,PATTERNS,STATE,TODO,STACK,CHANGELOG}.md"
+echo "  Config:       .hxsk/context-config.yaml"
+echo "  Templates:    .hxsk/templates/"
+echo "  Examples:     .hxsk/examples/"
+echo "  Directories:  .hxsk/{archive,reports,research}/"

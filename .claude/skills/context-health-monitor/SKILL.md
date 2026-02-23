@@ -45,7 +45,7 @@ The agent should self-monitor for these warning signs:
 If debugging the same issue fails 3 times:
 
 1. **STOP** attempting fixes
-2. **Document** in `.gsd/STATE.md`:
+2. **Document** in `.hxsk/STATE.md`:
    - What was tried
    - What errors occurred
    - Current hypothesis
@@ -66,7 +66,7 @@ If the same approach is being tried again:
 When uncertain about an approach:
 
 1. **State** the uncertainty clearly
-2. **Document** in `.gsd/DECISIONS.md`:
+2. **Document** in `.hxsk/DECISIONS.md`:
    - The uncertain decision
    - Why it's uncertain
    - Alternatives considered
@@ -85,7 +85,7 @@ When context window usage exceeds ~60%:
 
 ### Prerequisites
 
-- `.gsd/memories/` directory structure must exist
+- `.hxsk/memories/` directory structure must exist
 
 ### Purpose
 
@@ -96,7 +96,7 @@ Detect recurring failure patterns across sessions. Store health events for trend
 Check if the same issue has recurred, then store the event:
 
 ```
-Grep(pattern: "3-strike|{issue}", path: ".gsd/memories/health-event/", output_mode: "files_with_matches")
+Grep(pattern: "3-strike|{issue}", path: ".hxsk/memories/health-event/", output_mode: "files_with_matches")
 ```
 
 ```bash
@@ -114,7 +114,7 @@ If the search reveals the same issue appeared before, flag it as a recurring pro
 Check if the same loop pattern was seen before, then store:
 
 ```
-Grep(pattern: "circular|{approach}", path: ".gsd/memories/health-event/", output_mode: "files_with_matches")
+Grep(pattern: "circular|{approach}", path: ".hxsk/memories/health-event/", output_mode: "files_with_matches")
 ```
 
 ```bash
@@ -142,7 +142,7 @@ bash scripts/md-store-memory.sh \
 When this skill activates, scan recent memory files for failure trends:
 
 ```
-Glob(pattern: ".gsd/memories/health-event/*.md")
+Glob(pattern: ".hxsk/memories/health-event/*.md")
 ```
 
 Read the most recent files and review for clusters of `3-strike`, `circular`, or `blocked` keywords. If a trend is detected (2+ similar events), warn the user proactively before beginning work.
@@ -151,7 +151,7 @@ Read the most recent files and review for clusters of `3-strike`, `circular`, or
 
 ## State Dump Format
 
-When triggered, write to `.gsd/STATE.md`:
+When triggered, write to `.hxsk/STATE.md`:
 
 ```markdown
 ## Context Health: State Dump
@@ -178,7 +178,7 @@ When triggered, write to `.gsd/STATE.md`:
 
 ## Pattern Extraction
 
-When valuable patterns are discovered during a session, extract to `.gsd/PATTERNS.md`:
+When valuable patterns are discovered during a session, extract to `.hxsk/PATTERNS.md`:
 
 ### What to Extract
 
@@ -192,14 +192,14 @@ When valuable patterns are discovered during a session, extract to `.gsd/PATTERN
 ### Extraction Protocol
 
 1. **During task completion**, identify reusable learnings
-2. **Check current count**: `grep -c "^-" .gsd/PATTERNS.md`
+2. **Check current count**: `grep -c "^-" .hxsk/PATTERNS.md`
 3. **If < 20 items**: Append new pattern
 4. **If >= 20 items**: Replace oldest (least referenced) pattern
 5. **Size check**: Keep under 2KB
 
 ```bash
 # Check PATTERNS.md size
-wc -c .gsd/PATTERNS.md  # Should be < 2048
+wc -c .hxsk/PATTERNS.md  # Should be < 2048
 ```
 
 ### Pattern Format
@@ -246,5 +246,5 @@ This skill integrates with:
 
 ## Scripts
 
-- `scripts/dump_state.sh`: Dump current context state to .gsd/STATE.md with git info, task status, and recommendations
+- `scripts/dump_state.sh`: Dump current context state to .hxsk/STATE.md with git info, task status, and recommendations
 - `scripts/compact-context.sh`: Archive old entries, prune PATTERNS.md to 2KB limit

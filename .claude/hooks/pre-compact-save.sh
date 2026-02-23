@@ -6,14 +6,14 @@ main() {
     set -uo pipefail
 
     PROJECT_DIR="${CLAUDE_PROJECT_DIR:-.}"
-    GSD_DIR="$PROJECT_DIR/.gsd"
+    GSD_DIR="$PROJECT_DIR/.hxsk"
     STATE_FILE="$GSD_DIR/STATE.md"
     JOURNAL_FILE="$GSD_DIR/JOURNAL.md"
     PATTERNS_FILE="$GSD_DIR/PATTERNS.md"
     CURRENT_FILE="$GSD_DIR/CURRENT.md"
     TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 
-    # Skip if .gsd/ doesn't exist
+    # Skip if .hxsk/ doesn't exist
     if [ ! -d "$GSD_DIR" ]; then
         exit 0
     fi

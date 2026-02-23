@@ -36,7 +36,7 @@ bash scripts/md-recall-memory.sh "architecture" "." 5 compact
 
 또는 네이티브 도구:
 ```
-Grep(pattern: "architecture|arch.*decision", path: ".gsd/memories/architecture-decision/", output_mode: "files_with_matches")
+Grep(pattern: "architecture|arch.*decision", path: ".hxsk/memories/architecture-decision/", output_mode: "files_with_matches")
 ```
 
 ---

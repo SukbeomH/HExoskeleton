@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # 파일 기반 메모리 저장 (A-Mem 확장)
 # Usage: md-store-memory.sh <title> <content> [tags] [type] [keywords] [contextual_desc] [related]
-# 출력: .gsd/memories/{type}/{YYYY-MM-DD}_{slug}.md (YAML frontmatter + markdown)
+# 출력: .hxsk/memories/{type}/{YYYY-MM-DD}_{slug}.md (YAML frontmatter + markdown)
 # A-Mem 연구 기반: keywords, contextual_description, related 필드 지원
 
 set -uo pipefail
@@ -15,7 +15,7 @@ CONTEXTUAL_DESC="${6:-}"   # 1줄 요약 (검색 결과 압축용)
 RELATED="${7:-}"           # 관련 메모리 파일명 배열 (쉼표 구분)
 
 PROJECT_DIR="${CLAUDE_PROJECT_DIR:-.}"
-MEMORIES_DIR="$PROJECT_DIR/.gsd/memories"
+MEMORIES_DIR="$PROJECT_DIR/.hxsk/memories"
 
 # Type 디렉토리 검증 (없으면 general 폴백)
 TYPE_DIR="$MEMORIES_DIR/$TYPE"

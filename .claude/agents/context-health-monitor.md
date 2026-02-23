@@ -11,7 +11,7 @@ tools: ["Read", "Grep", "Glob"]
 ## 탑재 Skills
 
 - `context-health-monitor` — 핵심 모니터링 로직 (3-Strike, 순환 감지, 상태 덤프)
-- `memory-protocol` — 상태 덤프 시 파일 기반 메모리 기록 (.gsd/memories/health-event/) 프로토콜
+- `memory-protocol` — 상태 덤프 시 파일 기반 메모리 기록 (.hxsk/memories/health-event/) 프로토콜
 
 ## 오케스트레이션
 

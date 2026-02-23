@@ -15,8 +15,8 @@
 | 파일 | 용도 |
 |------|------|
 | `CLAUDE.md` | 전체 프로젝트 규칙 (canonical source) |
-| `.gsd/SPEC.md` | 구현 명세 |
-| `.gsd/PLAN.md` | 실행 계획 |
-| `.gsd/STATE.md` | 진행 상태 |
+| `.hxsk/SPEC.md` | 구현 명세 |
+| `.hxsk/PLAN.md` | 실행 계획 |
+| `.hxsk/STATE.md` | 진행 상태 |
 | `.claude/agents/` | Agent 정의 (14개) |
 | `.claude/skills/` | Skill 정의 (16개) |

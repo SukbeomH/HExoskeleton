@@ -14,9 +14,9 @@ trigger: "First time running HExoskeleton on a new project, or after cloning"
 
 ## Quick Reference
 - **시작**: `bash scripts/bootstrap.sh` (필수 도구 검증: git, bash)
-- **메모리**: `.gsd/memories/` 14개 타입 디렉토리 + `_schema/` 확인
+- **메모리**: `.hxsk/memories/` 14개 타입 디렉토리 + `_schema/` 확인
 - **Output**: BOOTSTRAP STATUS REPORT (READY / NEEDS ATTENTION)
-- **메모리 저장**: `md-store-memory.sh` 로 `.gsd/memories/bootstrap/`에 기록
+- **메모리 저장**: `md-store-memory.sh` 로 `.hxsk/memories/bootstrap/`에 기록
 
 ---
 
@@ -32,7 +32,7 @@ You are a bootstrap orchestrator. Your job is to take a freshly cloned HExoskele
 - Verify system prerequisites (git, bash)
 - Initialize memory directory structure
 - Generate architecture documentation
-- Store bootstrap state in `.gsd/memories/`
+- Store bootstrap state in `.hxsk/memories/`
 - Report final status with actionable next steps
 </role>
 
@@ -71,20 +71,20 @@ fi
 
 ### Step 3: Memory Directory Verification
 
-Verify `.gsd/memories/` 디렉토리 구조:
+Verify `.hxsk/memories/` 디렉토리 구조:
 
 ```bash
-ls .gsd/memories/ | wc -l  # 14 directories + _schema expected
+ls .hxsk/memories/ | wc -l  # 14 directories + _schema expected
 ```
 
 **If missing:** Create directories:
 ```bash
-mkdir -p .gsd/memories/{architecture-decision,root-cause,debug-eliminated,debug-blocked,health-event,session-handoff,execution-summary,deviation,pattern-discovery,bootstrap,session-summary,session-snapshot,security-finding,general,_schema}
+mkdir -p .hxsk/memories/{architecture-decision,root-cause,debug-eliminated,debug-blocked,health-event,session-handoff,execution-summary,deviation,pattern-discovery,bootstrap,session-summary,session-snapshot,security-finding,general,_schema}
 ```
 
 Verify schema files:
 ```bash
-ls .gsd/memories/_schema/
+ls .hxsk/memories/_schema/
 # Expected: base.schema.json, type-relations.yaml, session-summary.schema.json, etc.
 ```
 
@@ -95,7 +95,7 @@ ls .gsd/memories/_schema/
 Verify context management structure:
 
 ```
-.gsd/
+.hxsk/
 ├── reports/           # Analysis reports (REPORT-*.md)
 ├── research/          # Research documents (RESEARCH-*.md)
 ├── archive/           # Monthly archives
@@ -105,8 +105,8 @@ Verify context management structure:
 
 **Verification:**
 ```bash
-test -d .gsd/reports && test -d .gsd/research && test -d .gsd/archive && echo "PASS" || echo "FAIL"
-test -f .gsd/PATTERNS.md && echo "PASS" || echo "FAIL"
+test -d .hxsk/reports && test -d .hxsk/research && test -d .hxsk/archive && echo "PASS" || echo "FAIL"
+test -f .hxsk/PATTERNS.md && echo "PASS" || echo "FAIL"
 ```
 
 ---
@@ -115,8 +115,8 @@ test -f .gsd/PATTERNS.md && echo "PASS" || echo "FAIL"
 
 Delegate to the `codebase-mapper` skill to analyze the project:
 
-- `.gsd/ARCHITECTURE.md`
-- `.gsd/STACK.md`
+- `.hxsk/ARCHITECTURE.md`
+- `.hxsk/STACK.md`
 
 **If codebase-mapper fails:** Mark FAIL. Continue to Step 6.
 
@@ -150,7 +150,7 @@ Output the structured bootstrap status report:
 ================================================================
 System Prerequisites:  {PASS|FAIL} (git, bash)
 Environment:           {PASS|FAIL} (.env configured)
-Memory Directory:      {PASS|FAIL} (.gsd/memories/ — 14 types + _schema)
+Memory Directory:      {PASS|FAIL} (.hxsk/memories/ — 14 types + _schema)
 Memory Schema:         {PASS|FAIL} (base.schema.json, type-relations.yaml)
 Context Structure:     {PASS|FAIL} (reports/, research/, archive/)
 Documentation:         {PASS|FAIL} (ARCHITECTURE.md, STACK.md)

@@ -245,12 +245,12 @@ bash .claude/hooks/md-store-memory.sh \
 
 **출력**:
 ```
-./.gsd/memories/root-cause/2026-02-06_jwt.md
+./.hxsk/memories/root-cause/2026-02-06_jwt.md
 ```
 
 **중복 방지** (Nemori Predict-Calibrate):
 ```
-[SKIP:DUPLICATE] ./.gsd/memories/root-cause/2026-02-06_jwt.md
+[SKIP:DUPLICATE] ./.hxsk/memories/root-cause/2026-02-06_jwt.md
 ```
 
 ---
@@ -286,7 +286,7 @@ bash .claude/hooks/md-recall-memory.sh \
 **full 모드 출력**:
 ```markdown
 ### JWT 토큰 만료 처리 [root-cause]
-📁 `./.gsd/memories/root-cause/2026-02-06_jwt.md`
+📁 `./.hxsk/memories/root-cause/2026-02-06_jwt.md`
 
 ## JWT 토큰 만료 처리
 내용...
@@ -306,7 +306,7 @@ bash .claude/hooks/md-recall-memory.sh \
 set -euo pipefail
 
 PROJECT_DIR="${CLAUDE_PROJECT_DIR:-.}"
-STATE_FILE="$PROJECT_DIR/.gsd/STATE.md"
+STATE_FILE="$PROJECT_DIR/.hxsk/STATE.md"
 
 # 1. GSD STATE.md 로드 (상위 80줄)
 if [ -f "$STATE_FILE" ]; then
@@ -408,7 +408,7 @@ Claude Code 시작
 SessionStart → session-start.sh 실행
      │
      ▼
-.gsd/STATE.md + git status가 컨텍스트에 주입됨
+.hxsk/STATE.md + git status가 컨텍스트에 주입됨
 ```
 
 ### bash-guard.py — 파괴적 명령 차단

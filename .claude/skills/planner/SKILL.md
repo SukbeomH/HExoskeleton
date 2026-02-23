@@ -82,7 +82,7 @@ If it sounds like corporate PM theater, delete it.
 계획 수립 전 과거 실행 결과와 이탈 패턴을 recall한다:
 
 ```
-Grep(pattern: "{phase/feature description}", path: ".gsd/memories/", output_mode: "files_with_matches")
+Grep(pattern: "{phase/feature description}", path: ".hxsk/memories/", output_mode: "files_with_matches")
 ```
 
 과거 `execution-summary`, `deviation`, `pattern-discovery` 메모리를 참고하여:
@@ -92,7 +92,7 @@ Grep(pattern: "{phase/feature description}", path: ".gsd/memories/", output_mode
 
 특정 타입의 메모리가 필요하면 디렉토리 기반으로 좁히기:
 ```
-Glob(pattern: ".gsd/memories/{execution-summary,deviation,pattern-discovery}/*.md")
+Glob(pattern: ".hxsk/memories/{execution-summary,deviation,pattern-discovery}/*.md")
 ```
 
 ---
@@ -261,8 +261,8 @@ Output: {What artifacts will be created}
 
 <context>
 Load for context:
-- .gsd/SPEC.md
-- .gsd/ARCHITECTURE.md (if exists)
+- .hxsk/SPEC.md
+- .hxsk/ARCHITECTURE.md (if exists)
 - {relevant source files}
 </context>
 
@@ -486,15 +486,15 @@ OPTIONS: [choices if applicable]
 ```yaml
 # Bad: Every plan refs previous
 context:
-  - .gsd/phases/1/01-SUMMARY.md  # Plan 2 refs 1
-  - .gsd/phases/1/02-SUMMARY.md  # Plan 3 refs 2
+  - .hxsk/phases/1/01-SUMMARY.md  # Plan 2 refs 1
+  - .hxsk/phases/1/02-SUMMARY.md  # Plan 3 refs 2
 ```
 
 ### ✅ Minimal Context
 ```yaml
 # Good: Only ref when truly needed
 context:
-  - .gsd/SPEC.md
+  - .hxsk/SPEC.md
   - src/types.ts  # Actually needed
 ```
 
@@ -523,7 +523,7 @@ PLAN.md 분석과 Discovery Level 평가는 네이티브 도구로 수행:
 Grep(pattern: "auth|security|database|api", path: "src/", output_mode: "count")
 
 # 기존 PLAN.md 검색
-Glob(pattern: ".gsd/phases/*/*.md")
+Glob(pattern: ".hxsk/phases/*/*.md")
 
 # 과거 플랜 deviation 확인
 bash scripts/md-recall-memory.sh "deviation" "." 5 compact

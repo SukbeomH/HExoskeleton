@@ -85,7 +85,7 @@ Check the following areas in the report:
 ### Step 6: Plan Mitigation
 
 If high impact is detected:
-1. Update `.gsd/STATE.md` to include verification steps
+1. Update `.hxsk/STATE.md` to include verification steps
 2. Add affected dependent modules to test scope
 3. Consider incremental rollout strategy
 

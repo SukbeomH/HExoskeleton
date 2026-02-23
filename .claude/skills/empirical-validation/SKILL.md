@@ -43,7 +43,7 @@ description: Requires proof before marking work complete — no "trust me, it wo
    - Capture the output/evidence
 
 3. **Document Evidence**
-   - Add to `.gsd/JOURNAL.md` under the task
+   - Add to `.hxsk/JOURNAL.md` under the task
    - Include actual output, not just "passed"
 
 4. **Confirm Against Criteria**
@@ -101,6 +101,6 @@ This skill integrates with:
 If verification fails:
 
 1. **Do NOT mark task complete**
-2. **Document** the failure in `.gsd/STATE.md`
+2. **Document** the failure in `.hxsk/STATE.md`
 3. **Create** fix task if cause is known
 4. **Trigger** Context Health Monitor if 3+ failures

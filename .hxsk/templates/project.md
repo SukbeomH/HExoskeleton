@@ -1,6 +1,6 @@
 # Project Template
 
-Template for `.gsd/SPEC.md` (or PROJECT.md) — project specification.
+Template for `.hxsk/SPEC.md` (or PROJECT.md) — project specification.
 
 ---
 

@@ -94,7 +94,7 @@
         "hooks": [
           {
             "type": "prompt",
-            "prompt": "Subagent task completed. If significant findings:\n1. Summarize key results in 2-3 sentences\n2. If code changes made by subagent, mark `.gsd/.modified-this-session`\n3. Consider adding to PATTERNS.md if reusable pattern discovered"
+            "prompt": "Subagent task completed. If significant findings:\n1. Summarize key results in 2-3 sentences\n2. If code changes made by subagent, mark `.hxsk/.modified-this-session`\n3. Consider adding to PATTERNS.md if reusable pattern discovered"
           }
         ]
       }

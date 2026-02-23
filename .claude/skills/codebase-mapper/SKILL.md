@@ -5,7 +5,7 @@ description: Analyzes existing codebases to understand structure, patterns, and 
 
 ## Quick Reference
 - **5 분석 영역**: Structure, Dependency, Pattern, Integration, Technical Debt
-- **Output**: `.gsd/ARCHITECTURE.md`, `.gsd/STACK.md` 생성
+- **Output**: `.hxsk/ARCHITECTURE.md`, `.hxsk/STACK.md` 생성
 - **스캔 순서**: Project Type → Structure → Dependencies → Patterns → Debt
 - **제외 경로**: node_modules, .git, __pycache__, dist, build, .next
 - **Grep 패턴**: `TODO|FIXME|HACK|XXX` (debt), `interface|type|schema` (types)

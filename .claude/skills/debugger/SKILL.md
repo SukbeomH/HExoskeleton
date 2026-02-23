@@ -11,7 +11,7 @@ allowed-tools:
 
 ## Quick Reference
 - **3-Strike Rule**: 3회 실패 시 STOP → STATE.md 기록 → fresh session 권장
-- **Memory recall**: `.gsd/memories/{root-cause,debug-eliminated}/` 검색
+- **Memory recall**: `.hxsk/memories/{root-cause,debug-eliminated}/` 검색
 - **Hypothesis**: 반증 가능해야 함 ("state wrong" ❌, "component remounts" ✓)
 - **Output types**: ROOT_CAUSE_FOUND, INVESTIGATION_INCONCLUSIVE, CHECKPOINT_REACHED
 - **Persist**: 발견 시 `root-cause`, 배제 시 `debug-eliminated` 메모리 저장
@@ -66,7 +66,7 @@ When debugging code you wrote, you're fighting your own mental model.
 
 ### Prerequisites
 
-- `.gsd/memories/` directory structure must exist
+- `.hxsk/memories/` directory structure must exist
 
 ### Purpose
 
@@ -77,13 +77,13 @@ Search past investigations before starting. Persist findings for future sessions
 Before beginning any investigation, search past debugging context first, then narrow with tags:
 
 ```
-Grep(pattern: "{symptom description}", path: ".gsd/memories/", output_mode: "files_with_matches")
+Grep(pattern: "{symptom description}", path: ".hxsk/memories/", output_mode: "files_with_matches")
 ```
 
 Semantic 결과가 부족하면 태그 기반으로 보충:
 
 ```
-Glob(pattern: ".gsd/memories/{root-cause,debug-eliminated}/*.md")
+Glob(pattern: ".hxsk/memories/{root-cause,debug-eliminated}/*.md")
 ```
 
 If matches found, review past root causes and eliminated hypotheses to avoid repeating dead ends.

@@ -15,13 +15,13 @@ allowed-tools:
 - **Store**: `md-store-memory.sh <title> <content> [tags] [type] [keywords] [contextual_desc] [related]`
 - **A-Mem 필드**: `contextual_description`, `keywords`, `related` (2-hop 검색용)
 - **중복 방지**: 동일 title/slug → 자동 스킵 (Nemori Predict-Calibrate)
-- **스키마**: `.gsd/memories/_schema/*.schema.json`, `type-relations.yaml`
+- **스키마**: `.hxsk/memories/_schema/*.schema.json`, `type-relations.yaml`
 
 ---
 
 # Memory Protocol
 
-> **Goal**: `.gsd/memories/` 파일 기반 메모리 시스템의 사용 규칙을 중앙 정의하여 모든 스킬과 훅이 일관된 메모리 패턴을 따르도록 한다.
+> **Goal**: `.hxsk/memories/` 파일 기반 메모리 시스템의 사용 규칙을 중앙 정의하여 모든 스킬과 훅이 일관된 메모리 패턴을 따르도록 한다.
 > **Scope**: search/store 순서, 필수 필드, type 레지스트리, A-Mem 확장 필드, 2-hop 검색. 모든 메모리는 마크다운 파일로 저장/검색.
 
 ---
@@ -34,24 +34,24 @@ allowed-tools:
 세션/태스크 시작 시 broad context를 먼저 가져온다:
 
 ```bash
-# .gsd/memories/ 전체에서 키워드 검색
-grep -rli "{keyword}" .gsd/memories/ | sort -r | head -5
+# .hxsk/memories/ 전체에서 키워드 검색
+grep -rli "{keyword}" .hxsk/memories/ | sort -r | head -5
 ```
 
 또는 Grep 도구 사용:
 ```
-Grep(pattern: "{keyword}", path: ".gsd/memories/", output_mode: "files_with_matches")
+Grep(pattern: "{keyword}", path: ".hxsk/memories/", output_mode: "files_with_matches")
 ```
 
 ### 2. 태그 기반 필터 (보충)
 특정 타입이나 태그로 좁혀야 할 때:
 
 ```
-Glob(pattern: ".gsd/memories/{type}/*.md")
+Glob(pattern: ".hxsk/memories/{type}/*.md")
 ```
 
 ```
-Grep(pattern: "tags:.*{tag}", path: ".gsd/memories/", output_mode: "files_with_matches")
+Grep(pattern: "tags:.*{tag}", path: ".hxsk/memories/", output_mode: "files_with_matches")
 ```
 
 ### 3. 훅 기반 검색 (자동화)
@@ -137,7 +137,7 @@ created: {ISO-8601}
 {content}
 ```
 
-파일 경로: `.gsd/memories/{type}/{YYYY-MM-DD}_{slug}.md`
+파일 경로: `.hxsk/memories/{type}/{YYYY-MM-DD}_{slug}.md`
 
 ### Storage Triggers
 
@@ -205,7 +205,7 @@ tags:
 
 ## Type Relations (Ontology)
 
-`.gsd/memories/_schema/type-relations.yaml`에서 14개 타입 간 관계 정의:
+`.hxsk/memories/_schema/type-relations.yaml`에서 14개 타입 간 관계 정의:
 
 | Relation | 의미 | 예시 |
 |----------|-----|------|
@@ -225,7 +225,7 @@ session_chain: [session-snapshot, session-summary, session-handoff]
 
 ## Schema Validation
 
-`.gsd/memories/_schema/` 디렉토리에 JSON Schema 정의:
+`.hxsk/memories/_schema/` 디렉토리에 JSON Schema 정의:
 
 - `base.schema.json`: 공통 필드 (A-Mem 확장 포함)
 - `root-cause.schema.json`: 근본 원인 전용 필드

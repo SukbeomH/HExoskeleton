@@ -98,7 +98,7 @@ Initialize the HExoskeleton document system in the current project.
 
 ## What This Command Does
 
-1. **Scaffold GSD Documents**: Creates `.gsd/` directory with working documents and templates
+1. **Scaffold GSD Documents**: Creates `.hxsk/` directory with working documents and templates
 2. **Compare Infrastructure**: Shows diff between plugin references and project files
 3. **Interactive Setup**: If SPEC.md is empty, guides you through project information collection
 
@@ -113,12 +113,12 @@ bash "${CLAUDE_PLUGIN_ROOT}/scripts/scaffold-gsd.sh"
 ```
 
 This creates:
-- `.gsd/SPEC.md` - Project specification
-- `.gsd/DECISIONS.md` - Architecture decision records
-- `.gsd/JOURNAL.md` - Development journal
-- `.gsd/ROADMAP.md` - Project roadmap
-- `.gsd/templates/` - Document templates (22 files)
-- `.gsd/examples/` - Usage examples (3 files)
+- `.hxsk/SPEC.md` - Project specification
+- `.hxsk/DECISIONS.md` - Architecture decision records
+- `.hxsk/JOURNAL.md` - Development journal
+- `.hxsk/ROADMAP.md` - Project roadmap
+- `.hxsk/templates/` - Document templates (22 files)
+- `.hxsk/examples/` - Usage examples (3 files)
 
 ### Step 2: Compare Infrastructure Files
 
@@ -137,9 +137,9 @@ This compares your project files against GSD reference configurations:
 
 ### Step 3: Interactive Setup (if needed)
 
-If `.gsd/SPEC.md` is empty or contains only placeholder content:
+If `.hxsk/SPEC.md` is empty or contains only placeholder content:
 
-1. **Read the template**: Read `.gsd/templates/spec.md` to understand the document structure
+1. **Read the template**: Read `.hxsk/templates/spec.md` to understand the document structure
 2. **Collect project information** via AskUserQuestion:
    - Project name and brief description (Vision)
    - Primary programming language(s) and frameworks
@@ -305,17 +305,17 @@ fi
 echo ""
 echo "[Phase 5b] Copying GSD templates..."
 # Templates (md files)
-cp "$BOILERPLATE"/.gsd/templates/*.md "$PLUGIN/templates/gsd/templates/"
+cp "$BOILERPLATE"/.hxsk/templates/*.md "$PLUGIN/templates/gsd/templates/"
 TEMPLATES_COUNT=$(ls "$PLUGIN/templates/gsd/templates/"*.md 2>/dev/null | wc -l | tr -d ' ')
 echo "  [+] Copied ${TEMPLATES_COUNT} templates"
 
 # Templates (yaml files)
-cp "$BOILERPLATE"/.gsd/templates/*.yaml "$PLUGIN/templates/gsd/templates/" 2>/dev/null || true
+cp "$BOILERPLATE"/.hxsk/templates/*.yaml "$PLUGIN/templates/gsd/templates/" 2>/dev/null || true
 YAML_COUNT=$(ls "$PLUGIN/templates/gsd/templates/"*.yaml 2>/dev/null | wc -l | tr -d ' ')
 [ "$YAML_COUNT" -gt 0 ] && echo "  [+] Copied ${YAML_COUNT} yaml configs"
 
 # Examples
-cp "$BOILERPLATE"/.gsd/examples/*.md "$PLUGIN/templates/gsd/examples/"
+cp "$BOILERPLATE"/.hxsk/examples/*.md "$PLUGIN/templates/gsd/examples/"
 EXAMPLES_COUNT=$(ls "$PLUGIN/templates/gsd/examples/"*.md 2>/dev/null | wc -l | tr -d ' ')
 echo "  [+] Copied ${EXAMPLES_COUNT} examples"
 
@@ -379,7 +379,7 @@ set -euo pipefail
 
 PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:-$(cd "$(dirname "$0")/.." && pwd)}"
 PROJECT_DIR="${CLAUDE_PROJECT_DIR:-.}"
-TARGET="$PROJECT_DIR/.gsd"
+TARGET="$PROJECT_DIR/.hxsk"
 
 echo "Scaffolding GSD documents..."
 echo "  Plugin: ${PLUGIN_ROOT}"
@@ -439,11 +439,11 @@ done
 
 echo ""
 echo "GSD scaffolding complete!"
-echo "  Working docs: .gsd/{SPEC,DECISIONS,JOURNAL,ROADMAP,PATTERNS,STATE,TODO,STACK,CHANGELOG}.md"
-echo "  Config:       .gsd/context-config.yaml"
-echo "  Templates:    .gsd/templates/"
-echo "  Examples:     .gsd/examples/"
-echo "  Directories:  .gsd/{archive,reports,research}/"
+echo "  Working docs: .hxsk/{SPEC,DECISIONS,JOURNAL,ROADMAP,PATTERNS,STATE,TODO,STACK,CHANGELOG}.md"
+echo "  Config:       .hxsk/context-config.yaml"
+echo "  Templates:    .hxsk/templates/"
+echo "  Examples:     .hxsk/examples/"
+echo "  Directories:  .hxsk/{archive,reports,research}/"
 SCAFFOLDEOF
 chmod +x "$PLUGIN/scripts/scaffold-gsd.sh"
 echo "  [+] Created scaffold-gsd.sh"
@@ -710,7 +710,7 @@ readme += """
 After `/hxsk:init`:
 
 ```
-.gsd/
+.hxsk/
 ├── SPEC.md           # Project specification
 ├── DECISIONS.md      # Architecture decision records
 ├── JOURNAL.md        # Development journal

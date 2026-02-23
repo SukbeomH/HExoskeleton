@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Organize .gsd documents into appropriate folders
+# Organize .hxsk documents into appropriate folders
 # Usage: bash scripts/organize-docs.sh [--dry-run]
 #
 # Actions:
@@ -17,7 +17,7 @@ if [[ "${1:-}" == "--dry-run" ]]; then
     echo "[DRY-RUN] No files will be moved"
 fi
 
-GSD_DIR="${CLAUDE_PROJECT_DIR:-.}/.gsd"
+GSD_DIR="${CLAUDE_PROJECT_DIR:-.}/.hxsk"
 REPORTS_DIR="$GSD_DIR/reports"
 RESEARCH_DIR="$GSD_DIR/research"
 
@@ -51,7 +51,7 @@ for file in "$GSD_DIR"/REPORT-*.md; do
 done
 
 if [[ "$MOVED_COUNT" -eq 0 ]]; then
-    echo "  No REPORT-*.md files in .gsd/ root"
+    echo "  No REPORT-*.md files in .hxsk/ root"
 fi
 
 # ─────────────────────────────────────────────────────
@@ -77,7 +77,7 @@ for file in "$GSD_DIR"/RESEARCH-*.md; do
 done
 
 if [[ "$RESEARCH_MOVED" -eq 0 ]]; then
-    echo "  No RESEARCH-*.md files in .gsd/ root"
+    echo "  No RESEARCH-*.md files in .hxsk/ root"
 fi
 
 # ─────────────────────────────────────────────────────

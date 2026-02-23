@@ -1,6 +1,6 @@
 # Debug Template
 
-Template for `.gsd/debug/[slug].md` — active debug session tracking.
+Template for `.hxsk/debug/[slug].md` — active debug session tracking.
 
 ---
 
@@ -106,7 +106,7 @@ files_changed: []
 
 **On resolution:**
 - status → "resolved"
-- Move file to .gsd/debug/resolved/
+- Move file to .hxsk/debug/resolved/
 
 ---
 
