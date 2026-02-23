@@ -8,7 +8,7 @@
 
 | 구성요소 | 설명 |
 |----------|------|
-| **저장소** | `.gsd/memories/{type}/` 디렉토리 |
+| **저장소** | `.hxsk/memories/{type}/` 디렉토리 |
 | **형식** | YAML frontmatter + Markdown |
 | **저장** | `md-store-memory.sh` |
 | **검색** | `md-recall-memory.sh` |
@@ -45,7 +45,7 @@ bash scripts/md-store-memory.sh \
 ### 출력
 
 ```
-./.gsd/memories/root-cause/2026-02-06_jwt.md
+./.hxsk/memories/root-cause/2026-02-06_jwt.md
 ```
 
 ### 중복 방지 (Nemori Predict-Calibrate)
@@ -53,7 +53,7 @@ bash scripts/md-store-memory.sh \
 동일 title이 같은 날짜에 이미 존재하면 스킵:
 
 ```
-[SKIP:DUPLICATE] ./.gsd/memories/root-cause/2026-02-06_jwt.md
+[SKIP:DUPLICATE] ./.hxsk/memories/root-cause/2026-02-06_jwt.md
 ```
 
 ---
@@ -94,7 +94,7 @@ bash scripts/md-recall-memory.sh \
 
 ```markdown
 ### JWT 토큰 만료 처리 [root-cause]
-📁 `./.gsd/memories/root-cause/2026-02-06_jwt.md`
+📁 `./.hxsk/memories/root-cause/2026-02-06_jwt.md`
 
 ## JWT 토큰 만료 처리
 
@@ -188,7 +188,7 @@ bash scripts/md-recall-memory.sh "인증" "." 5 compact 1
 
 ## 스키마
 
-`.gsd/memories/_schema/` 디렉토리에 JSON Schema 및 타입 관계 정의:
+`.hxsk/memories/_schema/` 디렉토리에 JSON Schema 및 타입 관계 정의:
 
 | 파일 | 내용 |
 |------|------|
@@ -218,7 +218,7 @@ root-cause:
 | 플러그인(`hxsk-plugin`) | `${CLAUDE_PLUGIN_ROOT}/scripts/` | `build-plugin.sh` 자동 치환 |
 
 > **이유**: SKILL.md 내 `.claude/hooks/` 하드코딩 경로가 플러그인 환경에서 exit 127을 유발.
-> `scripts/` 중립 경로로 통일하여 두 환경 모두 호환. ([DECISION-001](.gsd/DECISIONS.md) 참조)
+> `scripts/` 중립 경로로 통일하여 두 환경 모두 호환. ([DECISION-001](.hxsk/DECISIONS.md) 참조)
 
 ---
 
@@ -228,10 +228,10 @@ Claude Code의 네이티브 도구로 직접 검색 가능:
 
 ```
 # 넓은 검색 (Grep 우선)
-Grep(pattern: "인증", path: ".gsd/memories/")
+Grep(pattern: "인증", path: ".hxsk/memories/")
 
 # 좁은 검색 (타입 특정)
-Glob(pattern: ".gsd/memories/root-cause/*.md")
+Glob(pattern: ".hxsk/memories/root-cause/*.md")
 ```
 
 권장 순서: **Grep → Glob** (broad → narrow)

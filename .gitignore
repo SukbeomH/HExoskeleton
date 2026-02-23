@@ -93,11 +93,11 @@ logs_llm/
 .sessions/*.jsonl
 
 # GSD — 핵심 문서와 templates/examples만 버전 관리
-.gsd/*
-!.gsd/templates/
-!.gsd/examples/
-!.gsd/STATE.md
-!.gsd/PATTERNS.md
+.hxsk/*
+!.hxsk/templates/
+!.hxsk/examples/
+!.hxsk/STATE.md
+!.hxsk/PATTERNS.md
 *.pre-compact.bak
 
 # Agent memory (ephemeral)
@@ -145,4 +145,4 @@ temp/
 *.tmp
 *.bak
 settings.local.json
-.gsd/.modified-this-session
+.hxsk/.modified-this-session

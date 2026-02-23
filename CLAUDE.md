@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-AI 에이전트 기반 개발을 위한 경량 프로젝트 보일러플레이트. 네이티브 Claude Code 도구(Grep, Glob, Read)와 파일 기반 메모리 시스템(`.gsd/memories/`)을 활용하며 GSD(Get Shit Done) 문서 기반 방법론을 결합.
+AI 에이전트 기반 개발을 위한 경량 프로젝트 보일러플레이트. 네이티브 Claude Code 도구(Grep, Glob, Read)와 파일 기반 메모리 시스템(`.hxsk/memories/`)을 활용하며 GSD(Get Shit Done) 문서 기반 방법론을 결합.
 
 **외부 종속성 없음**: 순수 bash 스크립트 + 마크다운 파일 기반. Documentation is bilingual (Korean/English).
 
@@ -16,7 +16,7 @@ AI 에이전트 기반 개발을 위한 경량 프로젝트 보일러플레이�
   - `hooks/` — Event hooks and utility scripts
   - `settings.json` — Claude Code project settings
 - **.github/agents/** — GitHub Agent specification
-- **.gsd/** — GSD documents and context management:
+- **.hxsk/** — GSD documents and context management:
   - `SPEC.md`, `PLAN.md`, `DECISIONS.md`, `STATE.md` — Core working docs
   - `PATTERNS.md` — Distilled learnings for fresh sessions (2KB limit)
   - `memories/` — File-based agent memory (14 type directories)
@@ -51,24 +51,24 @@ make patch-clean              # Patch workspace 삭제
 **외부 종속성 없음**: 순수 bash 스크립트 + 네이티브 Claude Code 도구만 사용. MCP 서버, 외부 API 호출 불필요.
 
 - **코드 분석**: 네이티브 Claude Code 도구(Grep, Glob, Read)
-- **에이전트 메모리**: `.gsd/memories/{type}/` 마크다운 파일 기반. 14개 타입 디렉토리 + `_schema/` 스키마 디렉토리
+- **에이전트 메모리**: `.hxsk/memories/{type}/` 마크다운 파일 기반. 14개 타입 디렉토리 + `_schema/` 스키마 디렉토리
 - **메모리 도구**: `scripts/md-store-memory.sh` (저장, A-Mem 확장), `scripts/md-recall-memory.sh` (검색, 2-hop)
-- **GSD Workflow**: SPEC.md → PLAN.md → EXECUTE → VERIFY. Working docs in `.gsd/`
+- **GSD Workflow**: SPEC.md → PLAN.md → EXECUTE → VERIFY. Working docs in `.hxsk/`
 
 ## Memory Protocol
 
 파일 기반 메모리 시스템 (A-Mem 확장). 상세는 `.claude/skills/memory-protocol/SKILL.md` 참조.
 
 ### Session Start
-- `Grep(pattern: "{project context}", path: ".gsd/memories/")` 또는 `md-recall-memory.sh` 실행
-- 결과가 부족할 때 `Glob(pattern: ".gsd/memories/{type}/*.md")`로 타입별 탐색
+- `Grep(pattern: "{project context}", path: ".hxsk/memories/")` 또는 `md-recall-memory.sh` 실행
+- 결과가 부족할 때 `Glob(pattern: ".hxsk/memories/{type}/*.md")`로 타입별 탐색
 
 ### Search Protocol
 | 방식 | 용도 | 순서 |
 |------|------|------|
 | `md-recall-memory.sh <query> [path] [limit] [mode] [hop]` | 훅 기반 검색 (2-hop 지원) | **권장** |
-| `Grep(path: ".gsd/memories/")` | Broad context (세션/태스크 시작) | **1st** |
-| `Glob(pattern: ".gsd/memories/{type}/*.md")` | Narrow filter (타입 특정) | **2nd** |
+| `Grep(path: ".hxsk/memories/")` | Broad context (세션/태스크 시작) | **1st** |
+| `Glob(pattern: ".hxsk/memories/{type}/*.md")` | Narrow filter (타입 특정) | **2nd** |
 
 ### Storage (A-Mem 확장)
 ```bash
@@ -89,7 +89,7 @@ md-store-memory.sh <title> <content> [tags] [type] [keywords] [contextual_desc] 
 | Session end (auto) | `session-summary` |
 
 ### Memory File Format (A-Mem 확장)
-`.gsd/memories/{type}/{YYYY-MM-DD}_{slug}.md`:
+`.hxsk/memories/{type}/{YYYY-MM-DD}_{slug}.md`:
 ```markdown
 ---
 title: "{title}"
@@ -105,7 +105,7 @@ related: [related_file_slug]
 ```
 
 ### Schema Validation
-`.gsd/memories/_schema/`에서 타입별 JSON Schema와 관계 정의:
+`.hxsk/memories/_schema/`에서 타입별 JSON Schema와 관계 정의:
 - `base.schema.json`: 공통 필드 스키마
 - `type-relations.yaml`: 14개 타입 간 관계 (Ontology)
 
@@ -122,7 +122,7 @@ related: [related_file_slug]
 
 ### Always
 - Grep/Glob 기반 impact analysis before refactoring or deleting code
-- Read `.gsd/SPEC.md` before implementation
+- Read `.hxsk/SPEC.md` before implementation
 - Verify empirically — 명령 실행 결과로 증명
 - Atomic commits per task
 - **WebFetch는 순차적으로 실행할 것 (병렬 fetch 금지)** — 병렬 호출 시 "Sibling tool call errored" 발생

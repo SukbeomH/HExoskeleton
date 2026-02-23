@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Hook: Stop — 세션 컨텍스트 저장 (외부 종속성 없음)
-# .gsd/.modified-this-session 플래그가 있을 때만 실행
+# .hxsk/.modified-this-session 플래그가 있을 때만 실행
 # 1) 순수 bash 템플릿으로 CURRENT.md 생성 (Nemori 서사 형태)
 # 2) 파일 기반 메모리로 세션 메모리 저장 (A-Mem 확장)
 # 백그라운드 실행으로 hook timeout 회피
@@ -9,9 +9,9 @@ set -uo pipefail
 
 PROJECT_DIR="${CLAUDE_PROJECT_DIR:-.}"
 HOOK_DIR="$(cd "$(dirname "$0")" && pwd)"
-FLAG_FILE="$PROJECT_DIR/.gsd/.modified-this-session"
-CURRENT_MD="$PROJECT_DIR/.gsd/CURRENT.md"
-LOG_FILE="$PROJECT_DIR/.gsd/.context-save.log"
+FLAG_FILE="$PROJECT_DIR/.hxsk/.modified-this-session"
+CURRENT_MD="$PROJECT_DIR/.hxsk/CURRENT.md"
+LOG_FILE="$PROJECT_DIR/.hxsk/.context-save.log"
 
 # 플래그 파일 없으면 스킵
 [[ -f "$FLAG_FILE" ]] || exit 0

@@ -47,13 +47,13 @@ find . -type d ! -path "*/node_modules/*" ! -path "*/.git/*"
 
 **PowerShell:**
 ```powershell
-$spec = Get-Content ".gsd/SPEC.md" -Raw
+$spec = Get-Content ".hxsk/SPEC.md" -Raw
 if ($spec -match "FINALIZED") { "Ready" }
 ```
 
 **Bash:**
 ```bash
-if grep -q "FINALIZED" .gsd/SPEC.md; then echo "Ready"; fi
+if grep -q "FINALIZED" .hxsk/SPEC.md; then echo "Ready"; fi
 ```
 
 ---
@@ -62,12 +62,12 @@ if grep -q "FINALIZED" .gsd/SPEC.md; then echo "Ready"; fi
 
 **PowerShell:**
 ```powershell
-Get-ChildItem ".gsd/phases/1/*-PLAN.md"
+Get-ChildItem ".hxsk/phases/1/*-PLAN.md"
 ```
 
 **Bash:**
 ```bash
-ls .gsd/phases/1/*-PLAN.md 2>/dev/null
+ls .hxsk/phases/1/*-PLAN.md 2>/dev/null
 ```
 
 ---
@@ -91,7 +91,7 @@ grep -rn "TODO\|FIXME" src/
 Add this to workflows for cross-platform commands:
 
 ```markdown
-**Note:** Commands shown are PowerShell. For Bash equivalents, see `.gsd/examples/cross-platform.md`
+**Note:** Commands shown are PowerShell. For Bash equivalents, see `.hxsk/examples/cross-platform.md`
 ```
 
 ---

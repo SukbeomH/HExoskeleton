@@ -1,5 +1,5 @@
 # Context Management Configuration
-# Controls automatic cleanup and archiving of .gsd files
+# Controls automatic cleanup and archiving of .hxsk files
 
 # Active layer limits (files read every session)
 active:

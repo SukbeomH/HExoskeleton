@@ -1,6 +1,6 @@
 # Milestone Template
 
-Template for `.gsd/milestones/{name}/MILESTONE.md` — milestone definition and tracking.
+Template for `.hxsk/milestones/{name}/MILESTONE.md` — milestone definition and tracking.
 
 ---
 

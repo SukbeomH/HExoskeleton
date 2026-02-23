@@ -197,9 +197,9 @@ issue:
 ### Step 1: Load Context
 ```
 Read:
-- .gsd/ROADMAP.md (phase goals)
-- .gsd/REQUIREMENTS.md (if exists)
-- .gsd/phases/{N}/*-PLAN.md (all plans)
+- .hxsk/ROADMAP.md (phase goals)
+- .hxsk/REQUIREMENTS.md (if exists)
+- .hxsk/phases/{N}/*-PLAN.md (all plans)
 ```
 
 ### Step 2: Parse Plans
@@ -297,11 +297,11 @@ PLAN.md 검증은 네이티브 도구로 수행:
 
 ```
 # YAML frontmatter 확인
-Read(file_path: ".gsd/phases/{N}/{M}-PLAN.md") → frontmatter 파싱
+Read(file_path: ".hxsk/phases/{N}/{M}-PLAN.md") → frontmatter 파싱
 
 # 필수 섹션 존재 확인
-Grep(pattern: "^## (Objective|Tasks|Verification)", path: ".gsd/phases/", output_mode: "content")
+Grep(pattern: "^## (Objective|Tasks|Verification)", path: ".hxsk/phases/", output_mode: "content")
 
 # Task XML 구조 검증
-Grep(pattern: "<task id=.*>|<files>|<action>|<verify>|<done>", path: ".gsd/phases/", output_mode: "content")
+Grep(pattern: "<task id=.*>|<files>|<action>|<verify>|<done>", path: ".hxsk/phases/", output_mode: "content")
 ```

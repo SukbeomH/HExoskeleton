@@ -65,7 +65,7 @@ SPEC → PLAN → EXECUTE → VERIFY
 │   ├── skills/                # 스킬 정의 (16)
 │   ├── hooks/                 # 훅 스크립트 (14 이벤트)
 │   └── settings.json          # 훅 설정
-├── .gsd/                      # GSD 작업 문서
+├── .hxsk/                      # GSD 작업 문서
 │   ├── STATE.md               # 현재 작업 상태 (git 추적)
 │   ├── PATTERNS.md            # 핵심 패턴/학습 (2KB, git 추적)
 │   ├── SPEC.md                # 프로젝트 명세
@@ -375,7 +375,7 @@ make help                   # 전체 명령어 목록
 
 ## 설계 배경 (Design Rationale)
 
-현재 아키텍처는 최신 에이전트 메모리 및 추론 최적화 연구들을 분석하고 선택적으로 적용한 결과입니다. 상세 리서치 문서는 `.gsd/research/`에서 확인할 수 있습니다.
+현재 아키텍처는 최신 에이전트 메모리 및 추론 최적화 연구들을 분석하고 선택적으로 적용한 결과입니다. 상세 리서치 문서는 `.hxsk/research/`에서 확인할 수 있습니다.
 
 ### 왜 순수 bash + 마크다운인가?
 
@@ -429,7 +429,7 @@ make help                   # 전체 명령어 목록
 | 온톨로지 개념 | 본 시스템 적용 |
 |--------------|---------------|
 | 타입 분류 체계 | 14개 메모리 타입 디렉토리 |
-| 스키마 검증 | `.gsd/memories/_schema/` JSON Schema |
+| 스키마 검증 | `.hxsk/memories/_schema/` JSON Schema |
 | 타입 간 관계 | `type-relations.yaml` (Ontology) |
 
 **향후 확장**: OWL 기반 명시적 온톨로지 도입은 Cognee 같은 외부 프레임워크 통합 시 검토.

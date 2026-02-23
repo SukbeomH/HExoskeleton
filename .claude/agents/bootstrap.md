@@ -17,7 +17,7 @@ tools: ["Read", "Write", "Edit", "Bash", "Grep", "Glob"]
 ## 오케스트레이션
 
 1. `bootstrap` skill로 시스템 전제조건 검증 (git, bash)
-2. 메모리 디렉토리 검증 (.gsd/memories/ 14개 타입 + _schema/)
+2. 메모리 디렉토리 검증 (.hxsk/memories/ 14개 타입 + _schema/)
 3. `codebase-mapper` skill로 아키텍처 문서 생성
 4. **메모리 저장**: 부트스트랩 완료 상태를 `bootstrap` 타입으로 저장
 

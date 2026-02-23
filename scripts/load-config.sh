@@ -11,7 +11,7 @@
 
 _load_project_config() {
     local project_dir="${CLAUDE_PROJECT_DIR:-.}"
-    local config_file="$project_dir/.gsd/project-config.yaml"
+    local config_file="$project_dir/.hxsk/project-config.yaml"
 
     # config 파일 없으면 Python 기본값 설정
     if [[ ! -f "$config_file" ]]; then

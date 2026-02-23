@@ -106,12 +106,12 @@ else
     report_fail "qlty" "not found — curl -fsSL https://qlty.sh | sh"
 fi
 
-# .gsd/memories/ directory
-if [[ -d ".gsd/memories" ]]; then
-    MEM_COUNT=$(ls .gsd/memories/ 2>/dev/null | wc -l | tr -d ' ')
-    report_pass ".gsd/memories/" "${MEM_COUNT} type directories"
+# .hxsk/memories/ directory
+if [[ -d ".hxsk/memories" ]]; then
+    MEM_COUNT=$(ls .hxsk/memories/ 2>/dev/null | wc -l | tr -d ' ')
+    report_pass ".hxsk/memories/" "${MEM_COUNT} type directories"
 else
-    report_warn ".gsd/memories/" "missing — will be created by bootstrap"
+    report_warn ".hxsk/memories/" "missing — will be created by bootstrap"
 fi
 
 # ─────────────────────────────────────────────────────
@@ -140,34 +140,34 @@ fi
 echo ""
 echo "--- Context Structure ---"
 
-# Required .gsd folders
+# Required .hxsk folders
 for dir in reports research archive; do
-    if [[ -d ".gsd/$dir" ]]; then
-        report_pass ".gsd/$dir/" "exists"
+    if [[ -d ".hxsk/$dir" ]]; then
+        report_pass ".hxsk/$dir/" "exists"
     else
-        mkdir -p ".gsd/$dir"
-        report_pass ".gsd/$dir/" "created"
+        mkdir -p ".hxsk/$dir"
+        report_pass ".hxsk/$dir/" "created"
     fi
 done
 
 # Context management files
-if [[ -f ".gsd/PATTERNS.md" ]]; then
-    PATTERNS_SIZE=$(wc -c < ".gsd/PATTERNS.md" | tr -d ' ')
+if [[ -f ".hxsk/PATTERNS.md" ]]; then
+    PATTERNS_SIZE=$(wc -c < ".hxsk/PATTERNS.md" | tr -d ' ')
     report_pass "PATTERNS.md" "${PATTERNS_SIZE}B"
 else
-    if [[ -f ".gsd/templates/patterns.md" ]]; then
-        cp ".gsd/templates/patterns.md" ".gsd/PATTERNS.md"
+    if [[ -f ".hxsk/templates/patterns.md" ]]; then
+        cp ".hxsk/templates/patterns.md" ".hxsk/PATTERNS.md"
         report_pass "PATTERNS.md" "initialized from template"
     else
         report_warn "PATTERNS.md" "missing — no template found"
     fi
 fi
 
-if [[ -f ".gsd/context-config.yaml" ]]; then
+if [[ -f ".hxsk/context-config.yaml" ]]; then
     report_pass "context-config.yaml" "exists"
 else
-    if [[ -f ".gsd/templates/context-config.yaml" ]]; then
-        cp ".gsd/templates/context-config.yaml" ".gsd/context-config.yaml"
+    if [[ -f ".hxsk/templates/context-config.yaml" ]]; then
+        cp ".hxsk/templates/context-config.yaml" ".hxsk/context-config.yaml"
         report_pass "context-config.yaml" "initialized from template"
     else
         report_warn "context-config.yaml" "missing — no template found"

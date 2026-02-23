@@ -100,7 +100,7 @@ capabilities: ["Read", "Grep", "Glob"]
 1. **Atomic Execution**: 태스크 단위로 실행 → 검증 → 커밋
 2. **Deviation Handling**: 계획 이탈 시 4가지 규칙 적용
 3. **Checkpoint Protocol**: 인간 검증이 필요한 지점에서 일시 정지
-4. **State Persistence**: 진행 상태를 `.gsd/STATE.md`에 기록
+4. **State Persistence**: 진행 상태를 `.hxsk/STATE.md`에 기록
 
 **이탈 규칙**:
 

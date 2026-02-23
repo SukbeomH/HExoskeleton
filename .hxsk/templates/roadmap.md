@@ -1,6 +1,6 @@
 # Roadmap Template
 
-Template for `.gsd/ROADMAP.md` — phase structure and progress tracking.
+Template for `.hxsk/ROADMAP.md` — phase structure and progress tracking.
 
 ---
 

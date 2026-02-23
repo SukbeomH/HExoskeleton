@@ -19,13 +19,13 @@ if [[ "${1:-}" == "--dry-run" ]]; then
     echo "[DRY-RUN] No files will be modified"
 fi
 
-GSD_DIR="${CLAUDE_PROJECT_DIR:-.}/.gsd"
+GSD_DIR="${CLAUDE_PROJECT_DIR:-.}/.hxsk"
 ARCHIVE_DIR="$GSD_DIR/archive"
 YEAR_MONTH=$(date +%Y-%m)
 
-# Check if .gsd directory exists
+# Check if .hxsk directory exists
 if [[ ! -d "$GSD_DIR" ]]; then
-    echo "[SKIP] .gsd/ directory not found at $GSD_DIR"
+    echo "[SKIP] .hxsk/ directory not found at $GSD_DIR"
     echo "Run /hxsk:init to initialize HExoskeleton documents."
     exit 0
 fi

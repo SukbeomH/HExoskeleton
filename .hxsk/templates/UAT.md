@@ -1,6 +1,6 @@
 # UAT Template
 
-Template for `.gsd/phases/{N}/UAT.md` — User Acceptance Testing checklist.
+Template for `.hxsk/phases/{N}/UAT.md` — User Acceptance Testing checklist.
 
 **Purpose:** Structured manual testing protocol for human verification checkpoints.
 

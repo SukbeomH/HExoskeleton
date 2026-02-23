@@ -1,6 +1,6 @@
 # Discovery Template
 
-Template for `.gsd/phases/{N}/DISCOVERY.md` — shallow research for library/option decisions.
+Template for `.hxsk/phases/{N}/DISCOVERY.md` — shallow research for library/option decisions.
 
 **Purpose:** Answer "which library/option should we use" questions during planning.
 
@@ -63,7 +63,7 @@ Output: DISCOVERY.md with recommendation
 
 ## Output Structure
 
-Create `.gsd/phases/{N}/DISCOVERY.md`:
+Create `.hxsk/phases/{N}/DISCOVERY.md`:
 
 ```markdown
 # [Topic] Discovery

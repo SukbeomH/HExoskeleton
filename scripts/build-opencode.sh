@@ -242,7 +242,7 @@ cat > "$OPENCODE/opencode.json" << EOF
   "small_model": "anthropic/claude-haiku-4-20250514",
   "instructions": [
     "AGENTS.md",
-    ".gsd/SPEC.md"
+    ".hxsk/SPEC.md"
   ],
   "agent": ${agents_json}
 }
@@ -323,13 +323,13 @@ echo ""
 echo "[Phase 8] Copying GSD templates..."
 
 # Templates
-cp "$BOILERPLATE"/.gsd/templates/*.md "$OPENCODE/templates/gsd/templates/" 2>/dev/null || true
-cp "$BOILERPLATE"/.gsd/templates/*.yaml "$OPENCODE/templates/gsd/templates/" 2>/dev/null || true
+cp "$BOILERPLATE"/.hxsk/templates/*.md "$OPENCODE/templates/gsd/templates/" 2>/dev/null || true
+cp "$BOILERPLATE"/.hxsk/templates/*.yaml "$OPENCODE/templates/gsd/templates/" 2>/dev/null || true
 TEMPLATES_COUNT=$(find "$OPENCODE/templates/gsd/templates" -type f 2>/dev/null | wc -l | tr -d ' ')
 echo "  [+] ${TEMPLATES_COUNT} templates"
 
 # Examples
-cp "$BOILERPLATE"/.gsd/examples/*.md "$OPENCODE/templates/gsd/examples/" 2>/dev/null || true
+cp "$BOILERPLATE"/.hxsk/examples/*.md "$OPENCODE/templates/gsd/examples/" 2>/dev/null || true
 EXAMPLES_COUNT=$(find "$OPENCODE/templates/gsd/examples" -type f 2>/dev/null | wc -l | tr -d ' ')
 echo "  [+] ${EXAMPLES_COUNT} examples"
 
@@ -359,7 +359,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 TEMPLATE_DIR="${SCRIPT_DIR}/../templates/gsd"
-TARGET="${1:-.gsd}"
+TARGET="${1:-.hxsk}"
 
 echo "Scaffolding GSD documents to ${TARGET}..."
 

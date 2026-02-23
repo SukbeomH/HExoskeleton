@@ -1,7 +1,7 @@
 #!/bin/bash
 # Hook: SessionEnd — 세션 변경사항을 CHANGELOG.md에 기록
 #
-# Git 변경사항을 감지하여 .gsd/CHANGELOG.md에 추가합니다.
+# Git 변경사항을 감지하여 .hxsk/CHANGELOG.md에 추가합니다.
 # 변경사항이 없으면 기록하지 않습니다.
 #
 # stdin 입력 (JSON):
@@ -14,7 +14,7 @@ main() {
     set -uo pipefail
 
     PROJECT_DIR="${CLAUDE_PROJECT_DIR:-.}"
-    CHANGELOG="$PROJECT_DIR/.gsd/CHANGELOG.md"
+    CHANGELOG="$PROJECT_DIR/.hxsk/CHANGELOG.md"
     HOOK_DIR="$(cd "$(dirname "$0")" && pwd)"
 
     # JSON 파싱 추상화 로드
@@ -39,10 +39,10 @@ main() {
     UNSTAGED_FILES=$(git diff --name-only 2>/dev/null || echo "")
     UNTRACKED_FILES=$(git ls-files --others --exclude-standard 2>/dev/null || echo "")
 
-    # 모든 변경된 파일 병합 (중복 제거), .gsd/ 내부 파일 제외 (자기참조 방지)
-    ALL_CHANGED=$(echo -e "$STAGED_FILES\n$UNSTAGED_FILES\n$UNTRACKED_FILES" | sort -u | grep -v '^$' | grep -v '^\.gsd/' || echo "")
+    # 모든 변경된 파일 병합 (중복 제거), .hxsk/ 내부 파일 제외 (자기참조 방지)
+    ALL_CHANGED=$(echo -e "$STAGED_FILES\n$UNSTAGED_FILES\n$UNTRACKED_FILES" | sort -u | grep -v '^$' | grep -v '^\.hxsk/' || echo "")
 
-    # .gsd/ 외부에 의미있는 변경이 없으면 종료
+    # .hxsk/ 외부에 의미있는 변경이 없으면 종료
     if [ -z "$ALL_CHANGED" ]; then
         exit 0
     fi
@@ -63,10 +63,10 @@ main() {
     INSERTIONS=$(echo "$DIFF_STAT" | grep -oE '[0-9]+ insertion' | grep -oE '[0-9]+' || echo "0")
     DELETIONS=$(echo "$DIFF_STAT" | grep -oE '[0-9]+ deletion' | grep -oE '[0-9]+' || echo "0")
 
-    # 파일 분류 (.gsd/ 내부 파일 제외)
-    MODIFIED_FILES=$(git diff --name-only 2>/dev/null | grep -v '^\.gsd/' || echo "")
-    NEW_FILES=$(git ls-files --others --exclude-standard 2>/dev/null | grep -v '^\.gsd/' || echo "")
-    DELETED_FILES=$(git diff --name-only --diff-filter=D 2>/dev/null | grep -v '^\.gsd/' || echo "")
+    # 파일 분류 (.hxsk/ 내부 파일 제외)
+    MODIFIED_FILES=$(git diff --name-only 2>/dev/null | grep -v '^\.hxsk/' || echo "")
+    NEW_FILES=$(git ls-files --others --exclude-standard 2>/dev/null | grep -v '^\.hxsk/' || echo "")
+    DELETED_FILES=$(git diff --name-only --diff-filter=D 2>/dev/null | grep -v '^\.hxsk/' || echo "")
 
     # 타임스탬프
     TIMESTAMP=$(date "+%Y-%m-%d %H:%M")

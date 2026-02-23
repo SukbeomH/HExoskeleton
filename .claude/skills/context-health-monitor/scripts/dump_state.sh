@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 
-# Dump current context state to .gsd/STATE.md for recovery and session continuity.
+# Dump current context state to .hxsk/STATE.md for recovery and session continuity.
 # Usage: bash scripts/dump_state.sh [--task "description"] [--attempts "list"] [--hypothesis "text"]
 
 set -o errexit
 set -o nounset
 set -o pipefail
 
-STATE_FILE=".gsd/STATE.md"
+STATE_FILE=".hxsk/STATE.md"
 TASK="${TASK:-unknown}"
 ATTEMPTS="${ATTEMPTS:-none recorded}"
 HYPOTHESIS="${HYPOTHESIS:-none}"

@@ -11,7 +11,7 @@ PLAN.md를 원자적으로 실행하고 태스크별 커밋을 생성한다.
 ## 탑재 Skills
 
 - `executor` — 핵심 실행 로직 (Atomic Execution, Deviation Handling, Checkpoint)
-- `memory-protocol` — 실행 중 발견/결정 사항의 파일 기반 메모리 (.gsd/memories/) 저장 프로토콜
+- `memory-protocol` — 실행 중 발견/결정 사항의 파일 기반 메모리 (.hxsk/memories/) 저장 프로토콜
 
 ## 오케스트레이션
 

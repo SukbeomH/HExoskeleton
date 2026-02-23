@@ -6,7 +6,7 @@
 
 ### Step 1: Define the Spec
 
-First, fill out `.gsd/SPEC.md`:
+First, fill out `.hxsk/SPEC.md`:
 
 ```markdown
 # SPEC.md
@@ -36,8 +36,8 @@ A simple RESTful API for managing todo items.
 ```
 
 This creates:
-- `.gsd/ARCHITECTURE.md` — Current structure
-- `.gsd/STACK.md` — Technologies in use
+- `.hxsk/ARCHITECTURE.md` — Current structure
+- `.hxsk/STACK.md` — Technologies in use
 
 ---
 
@@ -47,7 +47,7 @@ This creates:
 /plan 1
 ```
 
-GSD analyzes the SPEC and creates `.gsd/phases/1/` with PLAN.md files:
+GSD analyzes the SPEC and creates `.hxsk/phases/1/` with PLAN.md files:
 
 ```markdown
 # Plan 1.1: Database Setup

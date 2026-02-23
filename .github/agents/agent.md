@@ -30,7 +30,7 @@ You are a **Senior Staff Engineer** specialized in this project's architecture.
 |-------|------------|
 | **Agent Orchestration** | LangChain v1.2+, LangGraph |
 | **Code Analysis** | 네이티브 Claude Code 도구(Grep, Glob, Read) + Python 스크립트 |
-| **Agent Memory** | 파일 기반 마크다운 (`.gsd/memories/`) |
+| **Agent Memory** | 파일 기반 마크다운 (`.hxsk/memories/`) |
 | **Methodology** | Get Shit Done (GSD) |
 
 ### Key Directories
@@ -38,8 +38,8 @@ You are a **Senior Staff Engineer** specialized in this project's architecture.
 |-----------|---------|
 | `.github/agents/` | This agent specification (6-Core) |
 | `.claude/skills/` | Modular skill definitions (SKILL.md) |
-| `.gsd/` | GSD documents (SPEC, ROADMAP, STATE, DECISIONS, phases/) |
-| `.gsd/memories/` | File-based agent memory (14 type directories) |
+| `.hxsk/` | GSD documents (SPEC, ROADMAP, STATE, DECISIONS, phases/) |
+| `.hxsk/memories/` | File-based agent memory (14 type directories) |
 
 ---
 
@@ -153,17 +153,17 @@ make status
 
 ## 5. Memory System (File-based)
 
-**`.gsd/memories/` 마크다운 파일로 프로젝트 지식을 세션 간 유지.**
+**`.hxsk/memories/` 마크다운 파일로 프로젝트 지식을 세션 간 유지.**
 
 ### Quick Reference
 
 | I want to... | Use... |
 |--------------|--------|
 | Save project knowledge | `bash .claude/hooks/md-store-memory.sh <title> <content> [tags] [type]` |
-| Search memories | `Grep(pattern: "query", path: ".gsd/memories/")` |
-| Search by type | `Glob(pattern: ".gsd/memories/{type}/*.md")` |
+| Search memories | `Grep(pattern: "query", path: ".hxsk/memories/")` |
+| Search by type | `Glob(pattern: ".hxsk/memories/{type}/*.md")` |
 | Recall memories | `bash .claude/hooks/md-recall-memory.sh <query>` |
-| List all memories | `Glob(pattern: ".gsd/memories/**/*.md")` |
+| List all memories | `Glob(pattern: ".hxsk/memories/**/*.md")` |
 
 ### Memory Types (14)
 
@@ -171,7 +171,7 @@ make status
 
 ### Memory File Format
 
-`.gsd/memories/{type}/{YYYY-MM-DD}_{slug}.md`:
+`.hxsk/memories/{type}/{YYYY-MM-DD}_{slug}.md`:
 ```markdown
 ---
 title: "{title}"
@@ -211,13 +211,13 @@ Before making changes:
 When adding new features:
 1. **Find patterns:** `Grep(pattern: "[similar feature]", path: "src/")`
 2. **Gather context:** `Read` 관련 소스 파일
-3. **Check conventions:** `Grep(pattern: "[convention]", path: ".gsd/memories/")`
+3. **Check conventions:** `Grep(pattern: "[convention]", path: ".hxsk/memories/")`
 
 ### Pattern 4: Debugging
 When tracking down issues:
 1. **Find the code:** `Grep(pattern: "[error/symptom]", path: "src/")`
 2. **Trace execution:** `Grep(pattern: "[function]")` 으로 호출 체인 추적
-3. **Check known issues:** `Grep(pattern: "[issue]", path: ".gsd/memories/root-cause/")`
+3. **Check known issues:** `Grep(pattern: "[issue]", path: ".hxsk/memories/root-cause/")`
 
 ---
 
@@ -254,8 +254,8 @@ You MUST strictly adhere to these operational boundaries.
 |--------|--------|
 | Grep/Glob 기반 impact analysis before refactoring | Understand impact |
 | Grep/Read for context before new features | Gather all context |
-| Read `.gsd/SPEC.md` before implementation | Ensure task context is clear |
-| Update `.gsd/STATE.md` after completing a task | Maintain state persistence |
+| Read `.hxsk/SPEC.md` before implementation | Ensure task context is clear |
+| Update `.hxsk/STATE.md` after completing a task | Maintain state persistence |
 
 ### Ask First (Confirmation Required)
 | Action | Risk Level |
@@ -269,7 +269,7 @@ You MUST strictly adhere to these operational boundaries.
 | Read or print `.env` files | Security breach |
 | Commit hardcoded secrets/passwords | Credential leak |
 | Assume API signatures without verification | Hallucination risk |
-| Write code without an active task in `.gsd/ROADMAP.md` | Undocumented changes |
+| Write code without an active task in `.hxsk/ROADMAP.md` | Undocumented changes |
 | Use `--dangerously-skip-permissions` outside containers | Host system risk |
 
 ### Permission Audit
@@ -300,7 +300,7 @@ Follow GSD methodology for all tasks.
 ### Feature Development
 ```
 1. /plan → Create execution plans
-2. Grep .gsd/memories/ → Check past decisions
+2. Grep .hxsk/memories/ → Check past decisions
 3. Grep/Read → Gather context
 4. /execute → Implement with STATE.md updates
 5. md-store-memory.sh → Save new patterns/decisions
@@ -310,7 +310,7 @@ Follow GSD methodology for all tasks.
 ### Bug Fix
 ```
 1. Reproduce issue
-2. Grep .gsd/memories/root-cause/ → Check known issues
+2. Grep .hxsk/memories/root-cause/ → Check known issues
 3. Grep → Trace execution flow
 4. scripts/find_dependents.py → Check impact
 5. Implement fix
@@ -320,8 +320,8 @@ Follow GSD methodology for all tasks.
 
 ### Before Any Session
 ```
-1. Read .gsd/SPEC.md
-2. Read .gsd/STATE.md
+1. Read .hxsk/SPEC.md
+2. Read .hxsk/STATE.md
 3. md-recall-memory.sh → Check stored knowledge
 4. Grep/Read → If unfamiliar area
 5. Resume from last checkpoint
@@ -337,5 +337,5 @@ Follow GSD methodology for all tasks.
 
 > **Note**: This specification follows the extended 9-section structure.
 > - **Code Analysis**: 네이티브 Claude Code 도구(Grep, Glob, Read) + Python 스크립트
-> - **Memory System**: 파일 기반 `.gsd/memories/` (14 type directories)
+> - **Memory System**: 파일 기반 `.hxsk/memories/` (14 type directories)
 > - **Claude Skills** (14): Methodology skills in `.claude/skills/` — arch-review, clean, codebase-mapper, commit, context-health-monitor, create-pr, debugger, empirical-validation, executor, impact-analysis, plan-checker, planner, pr-review, verifier

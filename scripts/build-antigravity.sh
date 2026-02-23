@@ -346,7 +346,7 @@ GEMINIHEADER
   - `skills/` — Modular skill definitions (16 skills, SKILL.md format)
   - `workflows/` — Workflow commands (triggered via `/` commands)
   - `rules/` — Always-on passive rules (4 rule files)
-- **.gsd/** — GSD documents and context management:
+- **.hxsk/** — GSD documents and context management:
   - `SPEC.md`, `PLAN.md`, `DECISIONS.md`, `STATE.md` — Core working docs
   - `PATTERNS.md` — Distilled learnings for fresh sessions (2KB limit)
   - `memories/` — File-based agent memory (14 type directories)
@@ -404,7 +404,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 TEMPLATE_DIR="${SCRIPT_DIR}/../templates/gsd"
-TARGET="${1:-.gsd}"
+TARGET="${1:-.hxsk}"
 
 echo "Scaffolding GSD documents to ${TARGET}..."
 
@@ -467,13 +467,13 @@ echo ""
 echo "[Phase 7] Copying GSD templates..."
 
 # Templates
-cp "$BOILERPLATE"/.gsd/templates/*.md "$ANTIGRAVITY/templates/gsd/templates/" 2>/dev/null || true
-cp "$BOILERPLATE"/.gsd/templates/*.yaml "$ANTIGRAVITY/templates/gsd/templates/" 2>/dev/null || true
+cp "$BOILERPLATE"/.hxsk/templates/*.md "$ANTIGRAVITY/templates/gsd/templates/" 2>/dev/null || true
+cp "$BOILERPLATE"/.hxsk/templates/*.yaml "$ANTIGRAVITY/templates/gsd/templates/" 2>/dev/null || true
 TEMPLATES_COUNT=$(find "$ANTIGRAVITY/templates/gsd/templates" -type f 2>/dev/null | wc -l | tr -d ' ')
 echo "  [+] ${TEMPLATES_COUNT} templates"
 
 # Examples
-cp "$BOILERPLATE"/.gsd/examples/*.md "$ANTIGRAVITY/templates/gsd/examples/" 2>/dev/null || true
+cp "$BOILERPLATE"/.hxsk/examples/*.md "$ANTIGRAVITY/templates/gsd/examples/" 2>/dev/null || true
 EXAMPLES_COUNT=$(find "$ANTIGRAVITY/templates/gsd/examples" -type f 2>/dev/null | wc -l | tr -d ' ')
 echo "  [+] ${EXAMPLES_COUNT} examples"
 

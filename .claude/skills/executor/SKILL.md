@@ -14,7 +14,7 @@ allowed-tools:
 - **Deviation Rules**: Rule 1 (버그), Rule 2 (필수 기능), Rule 3 (blocking) = auto-fix; Rule 4 (아키텍처) = checkpoint
 - **Commit**: `git commit -m "feat({phase}-{plan}): {task}"` — task당 1 commit
 - **Checkpoint types**: human-verify (90%), decision (9%), human-action (1%)
-- **Output**: SUMMARY.md (`.gsd/phases/{N}/{plan}-SUMMARY.md`)
+- **Output**: SUMMARY.md (`.hxsk/phases/{N}/{plan}-SUMMARY.md`)
 - **Memory 저장**: `md-store-memory.sh "Execution Summary: {plan}" "{content}" "execution,summary" "execution-summary"`
 
 ---
@@ -38,7 +38,7 @@ Your job: Execute the plan completely, commit each task, create SUMMARY.md, upda
 Before any operation, read project state:
 
 ```bash
-cat .gsd/STATE.md 2>/dev/null
+cat .hxsk/STATE.md 2>/dev/null
 ```
 
 **If file exists:** Parse and internalize:
@@ -46,9 +46,9 @@ cat .gsd/STATE.md 2>/dev/null
 - Accumulated decisions (constraints on this execution)
 - Blockers/concerns (things to watch for)
 
-**If file missing but .gsd/ exists:** Reconstruct from existing artifacts.
+**If file missing but .hxsk/ exists:** Reconstruct from existing artifacts.
 
-**If .gsd/ doesn't exist:** Error — project not initialized.
+**If .hxsk/ doesn't exist:** Error — project not initialized.
 
 ### Step 2: Load Plan
 
@@ -224,7 +224,7 @@ Apply these rules automatically. Track all deviations for Summary documentation.
 
 ### Prerequisites
 
-- `.gsd/memories/` directory structure must exist
+- `.hxsk/memories/` directory structure must exist
 
 ### Purpose
 
@@ -235,7 +235,7 @@ Track deviation patterns across sessions. Before executing, check if similar tas
 Before starting task execution, check for historical deviation patterns:
 
 ```
-Grep(pattern: "deviation|{phase-plan}", path: ".gsd/memories/deviation/", output_mode: "files_with_matches")
+Grep(pattern: "deviation|{phase-plan}", path: ".hxsk/memories/deviation/", output_mode: "files_with_matches")
 ```
 
 If results found, Read the matching files and review past deviations to anticipate similar issues.
@@ -484,8 +484,8 @@ bash scripts/md-store-memory.sh "Plan 1.2 Complete" "Commit: $COMMIT_HASH" "exec
 
 ### PRD File Structure
 
-- `.gsd/prd-active.json` — 진행 중인 tasks (pending, in_progress, blocked)
-- `.gsd/prd-done.json` — 완료된 tasks (done)
+- `.hxsk/prd-active.json` — 진행 중인 tasks (pending, in_progress, blocked)
+- `.hxsk/prd-done.json` — 완료된 tasks (done)
 
 완료 시 task가 active에서 done으로 자동 이동됩니다.
 
@@ -510,7 +510,7 @@ Load ONLY what's necessary for current task:
 
 **Always load:**
 - The PLAN.md being executed
-- .gsd/STATE.md for position context
+- .hxsk/STATE.md for position context
 
 **Load if referenced:**
 - Files in `<context>` section
@@ -527,7 +527,7 @@ Load ONLY what's necessary for current task:
 
 ## SUMMARY.md Format
 
-After plan completion, create `.gsd/phases/{N}/{plan}-SUMMARY.md`:
+After plan completion, create `.hxsk/phases/{N}/{plan}-SUMMARY.md`:
 
 ```markdown
 ---
@@ -592,10 +592,10 @@ PLAN.md 파싱과 상태 관리는 네이티브 도구로 수행:
 
 ```
 # PLAN.md에서 태스크 추출
-Grep(pattern: "<task id=", path: ".gsd/phases/", output_mode: "content")
+Grep(pattern: "<task id=", path: ".hxsk/phases/", output_mode: "content")
 
 # 완료된 태스크 확인
-Grep(pattern: "status:.*done|status:.*completed", path: ".gsd/", output_mode: "files_with_matches")
+Grep(pattern: "status:.*done|status:.*completed", path: ".hxsk/", output_mode: "files_with_matches")
 
 # 실행 결과 메모리 저장
 bash scripts/md-store-memory.sh "Execution: {plan}" "{summary}" "execution,summary" "execution-summary"

@@ -26,7 +26,7 @@ tools: ["Read", "Write", "Edit", "Bash", "Grep", "Glob"]
 ## 재시작 프로토콜
 
 3회 연속 실패 시:
-- 현재 상태를 `.gsd/STATE.md`에 덤프
+- 현재 상태를 `.hxsk/STATE.md`에 덤프
 - `debug-blocked` 타입으로 메모리 저장
 - 웹 검색 또는 공식 문서 확인
 - 새로운 접근 방식으로 전환

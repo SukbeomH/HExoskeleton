@@ -83,7 +83,7 @@ gh pr create --title "<title>" --body "$(cat <<'EOF'
 ## GSD Context
 - Phase: <N>
 - Plans: <list of completed plans>
-- SPEC reference: `.gsd/SPEC.md`
+- SPEC reference: `.hxsk/SPEC.md`
 EOF
 )"
 ```

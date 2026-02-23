@@ -242,7 +242,7 @@ Phase Verification
 2. 가설 수립
 3. 검증 시도 (최대 3회)
 4. 3회 실패 시:
-   - 상태 저장 (.gsd/STATE.md)
+   - 상태 저장 (.hxsk/STATE.md)
    - fresh session 권장
 ```
 
@@ -268,7 +268,7 @@ Phase Verification
 5. "기술적 제약이 있나요?"
 ```
 
-**출력**: `.gsd/SPEC.md` (Status: DRAFT → FINALIZED)
+**출력**: `.hxsk/SPEC.md` (Status: DRAFT → FINALIZED)
 
 ---
 
@@ -356,13 +356,13 @@ Implementing user authentication
 /map ─────────────▶ ARCHITECTURE.md
       │
       ▼
-/plan N ──────────▶ .gsd/phases/N/*-PLAN.md
+/plan N ──────────▶ .hxsk/phases/N/*-PLAN.md
       │
       ▼
-/execute N ───────▶ .gsd/phases/N/*-SUMMARY.md
+/execute N ───────▶ .hxsk/phases/N/*-SUMMARY.md
       │
       ▼
-/verify N ────────▶ .gsd/phases/N/VERIFICATION.md
+/verify N ────────▶ .hxsk/phases/N/VERIFICATION.md
       │
       ├── PASS ──▶ /plan N+1
       │

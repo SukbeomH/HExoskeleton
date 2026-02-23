@@ -52,7 +52,7 @@ hxsk-plugin/
 6. **MCP 변환** (선택적):
    - `.mcp.json` 존재 시만 처리
    - 순수 bash 모드에서는 `[SKIP]` 메시지 출력
-7. **템플릿 복사**: `.gsd/templates/`, `.gsd/examples/`
+7. **템플릿 복사**: `.hxsk/templates/`, `.hxsk/examples/`
 8. **레퍼런스 복사**: `pyproject.toml`, `Makefile`, `.gitignore` 등
 9. **스캐폴딩 스크립트 생성**: `scaffold-gsd.sh`, `scaffold-infra.sh`, `README.md`
 10. **검증**: 구조, 카운트, 경로 변환, 권한, JSON 유효성
@@ -137,7 +137,7 @@ antigravity-boilerplate/
    - `safety.md`: 금지 사항, 필수 사항, 터미널 안전
    - `gsd-workflow.md`: 검증 철학, GSD 사이클, MCP 우선순위
 5. **MCP 변환**: `.mcp.json` → `mcp-settings.json` (Antigravity 표준)
-6. **템플릿 복사**: `.gsd/templates/`, `.gsd/examples/`
+6. **템플릿 복사**: `.hxsk/templates/`, `.hxsk/examples/`
 7. **유틸리티 스크립트**: `scaffold-gsd.sh`, Python 훅
 8. **검증**: 구조, 스킬 description, JSON 유효성
 
@@ -237,7 +237,7 @@ opencode-boilerplate/
 5. **opencode.json 생성**: 에이전트별 모델 설정 포함
 6. **MCP 변환**: `.mcp.json` → `.mcp.json`
 7. **AGENTS.md 생성**: `CLAUDE.md`에서 복사
-8. **템플릿 복사**: `.gsd/templates/`, `.gsd/examples/`
+8. **템플릿 복사**: `.hxsk/templates/`, `.hxsk/examples/`
 9. **유틸리티 스크립트**: `scaffold-gsd.sh`
 10. **검증**: 구조, 모델 설정, JSON 유효성
 
@@ -436,4 +436,4 @@ cp mcp-settings.json ~/.gemini/antigravity/
 - [README - 플러그인 빌드](../README.md#hxsk-plugin-빌드)
 - [README - 자동 릴리즈](../README.md#hxsk-plugin-자동-릴리즈)
 - [GITHUB-WORKFLOW.md](./GITHUB-WORKFLOW.md) - CI/CD 파이프라인
-- [.gsd/research/RESEARCH-google-antigravity-migration.md](../.gsd/research/RESEARCH-google-antigravity-migration.md) - Antigravity 리서치
+- [.hxsk/research/RESEARCH-google-antigravity-migration.md](../.hxsk/research/RESEARCH-google-antigravity-migration.md) - Antigravity 리서치
