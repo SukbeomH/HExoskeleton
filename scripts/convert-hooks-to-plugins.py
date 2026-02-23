@@ -57,15 +57,36 @@ def oc_event_to_name(oc_event: str) -> str:
     return "".join(p.capitalize() for p in oc_event.replace(".", "-").split("-")) + "Plugin"
 
 
+def generate_script_exec(fname: str, oc_event: str) -> str:
+    """Generate the TypeScript execution call for a single hook script."""
+    ext = os.path.splitext(fname)[1]
+    runner = "python3" if ext == ".py" else "bash"
+    script_path = f"${{import.meta.dir}}/../../scripts/{fname}"
+
+    if oc_event == "tool.execute.before":
+        # Guard hooks: run with tool context, throw on non-zero exit to block
+        return (
+            f"    const r_{fname.replace('-','_').replace('.','_')} = "
+            f"await $`{runner} {script_path}`"
+            f".env({{ TOOL_NAME: (input as any)?.tool ?? \"\", "
+            f"TOOL_INPUT: JSON.stringify(input) }}).nothrow();\n"
+            f"    if (r_{fname.replace('-','_').replace('.','_')}.exitCode !== 0) "
+            f"throw new Error(r_{fname.replace('-','_').replace('.','_')}.stderr.toString().trim() "
+            f"|| \"{fname} blocked execution\");"
+        )
+    else:
+        # Non-blocking hooks: run and ignore exit code
+        return f"    await $`{runner} {script_path}`.nothrow();"
+
+
 def generate_plugin(oc_event: str, hooks: list) -> str:
-    """Generate a TypeScript plugin stub for one OpenCode event group."""
+    """Generate a functional TypeScript plugin for one OpenCode event group."""
     claude_event = hooks[0][1]
     hook_comments = "\n".join(
         f" *   - {fname}: {desc}" for fname, _, desc in hooks
     )
     script_execs = "\n".join(
-        f"    // await $`bash ${{import.meta.dir}}/../../scripts/{fname}`"
-        for fname, _, _ in hooks
+        generate_script_exec(fname, oc_event) for fname, _, _ in hooks
     )
     plugin_name = oc_event_to_name(oc_event)
 
