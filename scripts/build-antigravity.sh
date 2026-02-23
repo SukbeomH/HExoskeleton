@@ -284,7 +284,11 @@ echo "  [+] validation.md"
     echo 'description: "GSD workflow rules — architecture principles and execution cycle"'
     echo "---"
     echo ""
-    extract_section "$CLAUDE_MD" "Architecture" | transform_tool_refs
+    extract_section "$CLAUDE_MD" "Architecture" | transform_tool_refs | sed \
+        -e 's/네이티브 Claude Code 도구(Grep, Glob, Read)/에이전트 내장 검색 도구(search, find_files, read_file)/g' \
+        -e 's/네이티브 Claude Code 도구만/에이전트 내장 도구만/g' \
+        -e 's/네이티브 Claude Code/에이전트 내장/g' \
+        -e 's/Claude Code/Antigravity IDE/g'
     echo ""
     echo "## GSD Cycle"
     echo ""
