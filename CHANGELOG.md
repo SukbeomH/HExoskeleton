@@ -1,5 +1,26 @@
 # Changelog
 
+## [1.9.2](https://github.com/SukbeomH/HExoskeleton/compare/hxsk-plugin-v1.9.1...hxsk-plugin-v1.9.2) (2026-02-23)
+
+
+### Bug Fixes
+
+* antigravity P0 critical fixes + opencode plugin warnings ([730f5b1](https://github.com/SukbeomH/HExoskeleton/commit/730f5b1f17f8e0476e48c612439dbccd3884165e))
+* **antigravity:** strip Claude Code tool refs from gsd-workflow.md generation ([cdfc89e](https://github.com/SukbeomH/HExoskeleton/commit/cdfc89ef6764e808bf5099abe19bab42d8651d17))
+* **opencode:** functional plugin implementations and pinned dependency version ([21d9de5](https://github.com/SukbeomH/HExoskeleton/commit/21d9de568506ff58c18c96e6df8bccadcf6b27ca))
+
+
+### Refactoring
+
+* rename GSD → HXSK across entire codebase ([3d3f78f](https://github.com/SukbeomH/HExoskeleton/commit/3d3f78f8ecb26d8453679124df8bfed858ce06b6))
+* rename GSD → HXSK across entire codebase ([b2ff977](https://github.com/SukbeomH/HExoskeleton/commit/b2ff977afe77fae2b59e60f25e9083051710c50a))
+* **structure:** rename .gsd/ → .hxsk/ ([1b198ea](https://github.com/SukbeomH/HExoskeleton/commit/1b198ea9a1ae2ac01f7c14c49ff2f207df2d9ebf))
+
+
+### Documentation
+
+* **brand:** rename GSD Boilerplate → HExoskeleton + add logo assets ([e6a84e6](https://github.com/SukbeomH/HExoskeleton/commit/e6a84e62282f9b3627550d2877867e76580c88b1))
+
 ## [1.9.0](https://github.com/SukbeomH/HExoskeleton/compare/hxsk-plugin-v1.8.6...hxsk-plugin-v1.9.0) (2026-02-20)
 
 
