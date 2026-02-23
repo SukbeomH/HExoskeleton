@@ -452,7 +452,7 @@ fi
 
 # Ensure package.json exists
 cat > "$OPENCODE/.opencode/package.json" << 'PKGEOF'
-{"name":"opencode-plugins","type":"module","dependencies":{"@opencode-ai/plugin":"latest"}}
+{"name":"opencode-plugins","type":"module","dependencies":{"@opencode-ai/plugin":"^1.2.10"}}
 PKGEOF
 
 # Create migration guide
