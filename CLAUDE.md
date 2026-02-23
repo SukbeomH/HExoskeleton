@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-AI 에이전트 기반 개발을 위한 경량 프로젝트 보일러플레이트. 네이티브 Claude Code 도구(Grep, Glob, Read)와 파일 기반 메모리 시스템(`.hxsk/memories/`)을 활용하며 GSD(Get Shit Done) 문서 기반 방법론을 결합.
+AI 에이전트 기반 개발을 위한 경량 프로젝트 보일러플레이트. 네이티브 Claude Code 도구(Grep, Glob, Read)와 파일 기반 메모리 시스템(`.hxsk/memories/`)을 활용하며 HXSK(Get Shit Done) 문서 기반 방법론을 결합.
 
 **외부 종속성 없음**: 순수 bash 스크립트 + 마크다운 파일 기반. Documentation is bilingual (Korean/English).
 
@@ -16,7 +16,7 @@ AI 에이전트 기반 개발을 위한 경량 프로젝트 보일러플레이�
   - `hooks/` — Event hooks and utility scripts
   - `settings.json` — Claude Code project settings
 - **.github/agents/** — GitHub Agent specification
-- **.hxsk/** — GSD documents and context management:
+- **.hxsk/** — HXSK documents and context management:
   - `SPEC.md`, `PLAN.md`, `DECISIONS.md`, `STATE.md` — Core working docs
   - `PATTERNS.md` — Distilled learnings for fresh sessions (2KB limit)
   - `memories/` — File-based agent memory (14 type directories)
@@ -53,7 +53,7 @@ make patch-clean              # Patch workspace 삭제
 - **코드 분석**: 네이티브 Claude Code 도구(Grep, Glob, Read)
 - **에이전트 메모리**: `.hxsk/memories/{type}/` 마크다운 파일 기반. 14개 타입 디렉토리 + `_schema/` 스키마 디렉토리
 - **메모리 도구**: `scripts/md-store-memory.sh` (저장, A-Mem 확장), `scripts/md-recall-memory.sh` (검색, 2-hop)
-- **GSD Workflow**: SPEC.md → PLAN.md → EXECUTE → VERIFY. Working docs in `.hxsk/`
+- **HXSK Workflow**: SPEC.md → PLAN.md → EXECUTE → VERIFY. Working docs in `.hxsk/`
 
 ## Memory Protocol
 

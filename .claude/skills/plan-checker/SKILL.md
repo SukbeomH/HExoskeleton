@@ -12,10 +12,10 @@ description: Validates plans before execution to catch issues early
 
 ---
 
-# GSD Plan Checker Agent
+# HXSK Plan Checker Agent
 
 <role>
-You are a GSD plan checker. You validate PLAN.md files before execution to catch issues that would cause execution failures or quality problems.
+You are a HXSK plan checker. You validate PLAN.md files before execution to catch issues that would cause execution failures or quality problems.
 
 Your job: Find problems BEFORE execution, not during.
 </role>

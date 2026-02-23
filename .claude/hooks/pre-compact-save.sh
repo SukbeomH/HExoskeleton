@@ -1,25 +1,25 @@
 #!/bin/bash
 # Hook: PreCompact — STATE.md 자동 백업
-# 컨텍스트 압축 전 GSD 상태 문서를 백업하여 컨텍스트 손실 방지
+# 컨텍스트 압축 전 HXSK 상태 문서를 백업하여 컨텍스트 손실 방지
 
 main() {
     set -uo pipefail
 
     PROJECT_DIR="${CLAUDE_PROJECT_DIR:-.}"
-    GSD_DIR="$PROJECT_DIR/.hxsk"
-    STATE_FILE="$GSD_DIR/STATE.md"
-    JOURNAL_FILE="$GSD_DIR/JOURNAL.md"
-    PATTERNS_FILE="$GSD_DIR/PATTERNS.md"
-    CURRENT_FILE="$GSD_DIR/CURRENT.md"
+    HXSK_DIR="$PROJECT_DIR/.hxsk"
+    STATE_FILE="$HXSK_DIR/STATE.md"
+    JOURNAL_FILE="$HXSK_DIR/JOURNAL.md"
+    PATTERNS_FILE="$HXSK_DIR/PATTERNS.md"
+    CURRENT_FILE="$HXSK_DIR/CURRENT.md"
     TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 
     # Skip if .hxsk/ doesn't exist
-    if [ ! -d "$GSD_DIR" ]; then
+    if [ ! -d "$HXSK_DIR" ]; then
         exit 0
     fi
 
     # Clean old backup files (keep only latest)
-    rm -f "$GSD_DIR"/*.pre-compact.bak 2>/dev/null || true
+    rm -f "$HXSK_DIR"/*.pre-compact.bak 2>/dev/null || true
 
     # STATE.md 백업
     if [ -f "$STATE_FILE" ]; then

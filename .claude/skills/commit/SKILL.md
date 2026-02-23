@@ -1,24 +1,24 @@
 ---
 name: commit
-description: Analyzes diffs, splits logical changes, creates conventional emoji commits aligned with GSD atomic commit protocol
+description: Analyzes diffs, splits logical changes, creates conventional emoji commits aligned with HXSK atomic commit protocol
 ---
 
 ## Quick Reference
 - **Pre-commit**: `shellcheck *.sh` (선택적), `git diff --stat` 확인
 - **Commit format**: `<emoji> <type>(<scope>): <description>`
 - **Types**: feat, fix, docs, style, refactor, perf, test, chore, ci
-- **GSD scope**: `(phase-N.M)` 형식 — 예: `feat(phase-1.2): add login endpoint`
+- **HXSK scope**: `(phase-N.M)` 형식 — 예: `feat(phase-1.2): add login endpoint`
 - **Split signals**: 다른 모듈, 혼합 유형(feature+config), 독립 버그 수정
 
 ---
 
-# GSD Commit Skill
+# HXSK Commit Skill
 
 <role>
 You create well-structured git commits following conventional commit format with emoji.
 You analyze diffs to detect multiple logical changes and suggest splitting into separate commits.
 
-This skill is the shipping mechanism for GSD executor's atomic commit requirement.
+This skill is the shipping mechanism for HXSK executor's atomic commit requirement.
 </role>
 
 ---
@@ -108,9 +108,9 @@ EOF
 | `chore` | Tooling, config, dependencies |
 | `ci` | CI/CD changes |
 
-### GSD-Specific Scopes
+### HXSK-Specific Scopes
 
-When executing GSD plans, use phase-plan scope:
+When executing HXSK plans, use phase-plan scope:
 
 ```
 feat(phase-1.2): implement login endpoint with JWT

@@ -38,7 +38,7 @@ Claude Code의 **Hooks**는 특정 이벤트에 자동으로 응답하는 스크
 
 | 이벤트 | 스크립트 | 타입 | 기능 | 타임아웃 |
 |--------|----------|------|------|----------|
-| **SessionStart** | `session-start.sh` | command | GSD STATE.md 로드, git status 주입 | 10s |
+| **SessionStart** | `session-start.sh` | command | HXSK STATE.md 로드, git status 주입 | 10s |
 | **PreToolUse** (Edit/Write/Read) | `file-protect.py` | command | .env, 시크릿 파일 보호 | 5s |
 | **PreToolUse** (Bash) | `bash-guard.py` | command | 위험한 명령어 차단 | 5s |
 | **PostToolUse** (Edit/Write) | `auto-format.sh` | command | Python 파일 자동 포맷 (ruff) | 30s |
@@ -56,7 +56,7 @@ Claude Code의 **Hooks**는 특정 이벤트에 자동으로 응답하는 스크
 |----------|------|
 | `md-store-memory.sh` | 파일 기반 메모리 저장 |
 | `md-recall-memory.sh` | 파일 기반 메모리 검색 |
-| `scaffold-gsd.sh` | GSD 문서 초기화 |
+| `scaffold-hxsk.sh` | HXSK 문서 초기화 |
 | `compact-context.sh` | 컨텍스트 압축 |
 | `organize-docs.sh` | 문서 정리/아카이브 |
 | `scaffold-infra.sh` | 인프라 스캐폴딩 |
@@ -299,7 +299,7 @@ bash .claude/hooks/md-recall-memory.sh \
 ### 1. session-start.sh
 
 **이벤트**: SessionStart
-**역할**: 세션 시작 시 GSD 상태와 git status를 컨텍스트에 주입
+**역할**: 세션 시작 시 HXSK 상태와 git status를 컨텍스트에 주입
 
 ```bash
 #!/bin/bash
@@ -308,7 +308,7 @@ set -euo pipefail
 PROJECT_DIR="${CLAUDE_PROJECT_DIR:-.}"
 STATE_FILE="$PROJECT_DIR/.hxsk/STATE.md"
 
-# 1. GSD STATE.md 로드 (상위 80줄)
+# 1. HXSK STATE.md 로드 (상위 80줄)
 if [ -f "$STATE_FILE" ]; then
     STATE_CONTENT=$(head -80 "$STATE_FILE" 2>/dev/null || true)
 fi

@@ -19,13 +19,13 @@ if [[ "${1:-}" == "--dry-run" ]]; then
     echo "[DRY-RUN] No files will be modified"
 fi
 
-GSD_DIR="${CLAUDE_PROJECT_DIR:-.}/.hxsk"
-ARCHIVE_DIR="$GSD_DIR/archive"
+HXSK_DIR="${CLAUDE_PROJECT_DIR:-.}/.hxsk"
+ARCHIVE_DIR="$HXSK_DIR/archive"
 YEAR_MONTH=$(date +%Y-%m)
 
 # Check if .hxsk directory exists
-if [[ ! -d "$GSD_DIR" ]]; then
-    echo "[SKIP] .hxsk/ directory not found at $GSD_DIR"
+if [[ ! -d "$HXSK_DIR" ]]; then
+    echo "[SKIP] .hxsk/ directory not found at $HXSK_DIR"
     echo "Run /hxsk:init to initialize HExoskeleton documents."
     exit 0
 fi
@@ -44,7 +44,7 @@ echo "================================================================"
 # 1. PATTERNS.md size check
 # ─────────────────────────────────────────────────────
 
-PATTERNS_FILE="$GSD_DIR/PATTERNS.md"
+PATTERNS_FILE="$HXSK_DIR/PATTERNS.md"
 if [[ -f "$PATTERNS_FILE" ]]; then
     PATTERNS_SIZE=$(wc -c < "$PATTERNS_FILE" | tr -d ' ')
     PATTERNS_ITEMS=$(grep -c "^- " "$PATTERNS_FILE" 2>/dev/null | tr -d '[:space:]' || echo 0)
@@ -70,7 +70,7 @@ fi
 # 2. JOURNAL.md archiving
 # ─────────────────────────────────────────────────────
 
-JOURNAL_FILE="$GSD_DIR/JOURNAL.md"
+JOURNAL_FILE="$HXSK_DIR/JOURNAL.md"
 if [[ -f "$JOURNAL_FILE" ]]; then
     # Count sessions (headers starting with ### [Session or ## Session)
     SESSION_COUNT=$(grep -c "^##.* Session" "$JOURNAL_FILE" 2>/dev/null || echo 0)
@@ -128,7 +128,7 @@ fi
 # 3. CHANGELOG.md archiving
 # ─────────────────────────────────────────────────────
 
-CHANGELOG_FILE="$GSD_DIR/CHANGELOG.md"
+CHANGELOG_FILE="$HXSK_DIR/CHANGELOG.md"
 if [[ -f "$CHANGELOG_FILE" ]]; then
     ENTRY_COUNT=$(grep -c "^### \[" "$CHANGELOG_FILE" 2>/dev/null | tr -d '[:space:]' || echo 0)
 
@@ -185,8 +185,8 @@ fi
 # 4. prd-active.json cleanup
 # ─────────────────────────────────────────────────────
 
-PRD_ACTIVE="$GSD_DIR/prd-active.json"
-PRD_DONE="$GSD_DIR/prd-done.json"
+PRD_ACTIVE="$HXSK_DIR/prd-active.json"
+PRD_DONE="$HXSK_DIR/prd-done.json"
 if [[ -f "$PRD_ACTIVE" ]]; then
     PENDING_COUNT=$(jq '.tasks | length' "$PRD_ACTIVE" 2>/dev/null || echo 0)
     PRD_SIZE=$(wc -c < "$PRD_ACTIVE" | tr -d ' ')

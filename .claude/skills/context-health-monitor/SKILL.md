@@ -239,7 +239,7 @@ wc -c .hxsk/PATTERNS.md  # Should be < 2048
 This skill integrates with:
 - `/compact` — Proactive context compaction (Rule 4)
 - `/handoff` — Lightweight session transfer when context is beyond recovery
-- `/pause` — Full GSD session handoff with state archival
+- `/pause` — Full HXSK session handoff with state archival
 - `/resume` — Loads the state dump context
 - `PATTERNS.md` — Pattern extraction on session end
 - `.gemini/GEMINI.md` Rule 3 (Context Hygiene) — After 3 failed debug attempts: STOP, summarize to STATE.md, document blocker in DECISIONS.md, recommend fresh session

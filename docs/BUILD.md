@@ -35,7 +35,7 @@ hxsk-plugin/
 │   └── hooks.json           # 훅 설정 (경로 변환됨)
 ├── scripts/                  # 훅 스크립트
 ├── .mcp.json                # MCP 설정 (선택적 - 순수 bash 모드 지원)
-├── templates/gsd/           # GSD 템플릿 + 예제
+├── templates/hxsk/           # HXSK 템플릿 + 예제
 ├── references/              # 인프라 레퍼런스 파일
 └── README.md
 ```
@@ -54,7 +54,7 @@ hxsk-plugin/
    - 순수 bash 모드에서는 `[SKIP]` 메시지 출력
 7. **템플릿 복사**: `.hxsk/templates/`, `.hxsk/examples/`
 8. **레퍼런스 복사**: `pyproject.toml`, `Makefile`, `.gitignore` 등
-9. **스캐폴딩 스크립트 생성**: `scaffold-gsd.sh`, `scaffold-infra.sh`, `README.md`
+9. **스캐폴딩 스크립트 생성**: `scaffold-hxsk.sh`, `scaffold-infra.sh`, `README.md`
 10. **검증**: 구조, 카운트, 경로 변환, 권한, JSON 유효성
 
 ### 플러그인 사용
@@ -112,10 +112,10 @@ antigravity-boilerplate/
 │   └── rules/               # 패시브 규칙 (항상 적용)
 │       ├── code-style.md    # Python/코드 스타일 규칙
 │       ├── safety.md        # 안전 규칙 (금지/필수 사항)
-│       └── gsd-workflow.md  # GSD 워크플로우 규칙
-├── templates/gsd/           # GSD 템플릿 + 예제
+│       └── hxsk-workflow.md  # HXSK 워크플로우 규칙
+├── templates/hxsk/           # HXSK 템플릿 + 예제
 ├── scripts/
-│   ├── scaffold-gsd.sh      # GSD 문서 초기화
+│   ├── scaffold-hxsk.sh      # HXSK 문서 초기화
 │   ├── bash-guard.py        # Bash 명령 가드
 │   └── file-protect.py      # 파일 보호
 ├── mcp-settings.json        # MCP 서버 설정 (선택적)
@@ -135,10 +135,10 @@ antigravity-boilerplate/
    - `CLAUDE.md`에서 규칙 추출
    - `code-style.md`: Python 표준, 패키지 관리, 코드 품질
    - `safety.md`: 금지 사항, 필수 사항, 터미널 안전
-   - `gsd-workflow.md`: 검증 철학, GSD 사이클, MCP 우선순위
+   - `hxsk-workflow.md`: 검증 철학, HXSK 사이클, MCP 우선순위
 5. **MCP 변환**: `.mcp.json` → `mcp-settings.json` (Antigravity 표준)
 6. **템플릿 복사**: `.hxsk/templates/`, `.hxsk/examples/`
-7. **유틸리티 스크립트**: `scaffold-gsd.sh`, Python 훅
+7. **유틸리티 스크립트**: `scaffold-hxsk.sh`, Python 훅
 8. **검증**: 구조, 스킬 description, JSON 유효성
 
 ### Antigravity 주요 개념
@@ -186,10 +186,10 @@ cp -r antigravity-boilerplate/.agent /path/to/project/
 cp antigravity-boilerplate/mcp-settings.json /path/to/project/
 ```
 
-**방법 3: GSD 문서 초기화**
+**방법 3: HXSK 문서 초기화**
 ```bash
 cd /path/to/project
-zsh antigravity-boilerplate/scripts/scaffold-gsd.sh
+zsh antigravity-boilerplate/scripts/scaffold-hxsk.sh
 ```
 
 ---
@@ -214,9 +214,9 @@ opencode-boilerplate/
 │   ├── commands/            # 워크플로우 명령어
 │   ├── plugins/             # TypeScript 플러그인 (빈 디렉토리)
 │   └── skill/               # 16개 스킬
-├── templates/gsd/           # GSD 템플릿 + 예제
+├── templates/hxsk/           # HXSK 템플릿 + 예제
 ├── scripts/
-│   ├── scaffold-gsd.sh      # GSD 문서 초기화
+│   ├── scaffold-hxsk.sh      # HXSK 문서 초기화
 │   └── *.py                 # 유틸리티 스크립트
 ├── opencode.json            # 메인 설정 (에이전트별 모델 매핑)
 ├── AGENTS.md                # 프로젝트 규칙 (CLAUDE.md에서 복사)
@@ -238,7 +238,7 @@ opencode-boilerplate/
 6. **MCP 변환**: `.mcp.json` → `.mcp.json`
 7. **AGENTS.md 생성**: `CLAUDE.md`에서 복사
 8. **템플릿 복사**: `.hxsk/templates/`, `.hxsk/examples/`
-9. **유틸리티 스크립트**: `scaffold-gsd.sh`
+9. **유틸리티 스크립트**: `scaffold-hxsk.sh`
 10. **검증**: 구조, 모델 설정, JSON 유효성
 
 ### 모델 매핑
@@ -286,8 +286,8 @@ cp opencode-boilerplate/opencode.json /path/to/project/
 cp opencode-boilerplate/AGENTS.md /path/to/project/
 cp opencode-boilerplate/.mcp.json /path/to/project/
 
-# GSD 문서 초기화
-bash opencode-boilerplate/scripts/scaffold-gsd.sh
+# HXSK 문서 초기화
+bash opencode-boilerplate/scripts/scaffold-hxsk.sh
 
 # OpenCode 실행
 cd /path/to/project && opencode
@@ -333,10 +333,10 @@ Phase 4a: 에이전트
 Phase 4b: 훅 설정 (hooks.json 경로 변환)
 Phase 4c: 훅 스크립트
 Phase 5a: MCP 설정 (선택적)
-Phase 5b: GSD 템플릿
+Phase 5b: HXSK 템플릿
 Phase 5c: 인프라 레퍼런스
 Phase 5d: 유틸리티 스크립트 (compact-context.sh, organize-docs.sh)
-Phase 6a: scaffold-gsd.sh 생성
+Phase 6a: scaffold-hxsk.sh 생성
 Phase 6b: scaffold-infra.sh 생성
 Phase 6c: README.md 생성
 Phase 7:  (설치 스크립트 불필요 — --plugin-dir 방식)
@@ -352,7 +352,7 @@ Phase 2: 스킬 마이그레이션 (description 검증)
 Phase 3: 워크플로우 (description 자동 추가)
 Phase 4: 규칙 생성 (CLAUDE.md → rules/*.md)
 Phase 5: MCP 설정
-Phase 6: GSD 템플릿
+Phase 6: HXSK 템플릿
 Phase 7: 유틸리티 스크립트
 Phase 8: README
 Phase 9: 검증

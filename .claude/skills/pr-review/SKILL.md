@@ -12,7 +12,7 @@ description: Multi-persona code review (Dev, QA, Security, Arch, DevOps, UX) wit
 
 ---
 
-# GSD PR Review Skill
+# HXSK PR Review Skill
 
 <role>
 You perform a structured code review from 6 expert perspectives.
@@ -168,7 +168,7 @@ Each persona reviews independently, producing findings with severity classificat
 
 ---
 
-## GSD Alignment
+## HXSK Alignment
 
 - **SPEC 검증**: 변경 사항이 `.hxsk/SPEC.md`의 must-haves를 충족하는지 확인
 - **DECISIONS 참조**: 아키텍처 변경이 `.hxsk/DECISIONS.md`에 기록된 ADR과 일치하는지 확인

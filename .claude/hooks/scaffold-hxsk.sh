@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# scaffold-gsd.sh - Initialize GSD document structure in a project
+# scaffold-hxsk.sh - Initialize HXSK document structure in a project
 # 템플릿에서 working docs를 복사하여 초기화. 이미 존재하는 파일은 건너뜀.
 #
 set -euo pipefail
@@ -9,7 +9,7 @@ PROJECT_DIR="${CLAUDE_PROJECT_DIR:-.}"
 TARGET="$PROJECT_DIR/.hxsk"
 TEMPLATES_SRC="$TARGET/templates"
 
-echo "Scaffolding GSD documents..."
+echo "Scaffolding HXSK documents..."
 echo "  Target: ${TARGET}"
 echo ""
 
@@ -127,7 +127,7 @@ elif [ -f "$TARGET/CHANGELOG.md" ]; then
 fi
 
 echo ""
-echo "GSD scaffolding complete! (created: $CREATED, skipped: $SKIPPED)"
+echo "HXSK scaffolding complete! (created: $CREATED, skipped: $SKIPPED)"
 echo "  Working docs: .hxsk/{SPEC,DECISIONS,JOURNAL,ROADMAP,PATTERNS,STATE,TODO,STACK,CHANGELOG}.md"
 echo "  Config:       .hxsk/context-config.yaml"
 echo "  Templates:    .hxsk/templates/"

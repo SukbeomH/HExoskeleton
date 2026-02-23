@@ -1,5 +1,5 @@
 ---
-description: Executes GSD plans with atomic commits, deviation handling, checkpoint protocols, and state management.
+description: Executes HXSK plans with atomic commits, deviation handling, checkpoint protocols, and state management.
 model: sonnet
 tools: ["Read", "Write", "Edit", "Bash", "Grep", "Glob"]
 ---
