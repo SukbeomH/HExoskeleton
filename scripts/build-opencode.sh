@@ -292,11 +292,28 @@ fi
 
 # --- Phase 7: AGENTS.md (from CLAUDE.md) ---
 echo ""
-echo "[Phase 7] Creating AGENTS.md..."
+echo "[Phase 7] Creating AGENTS.md from CLAUDE.md (OpenCode-patched)..."
 
 if [ -f "$BOILERPLATE/CLAUDE.md" ]; then
-    cp "$BOILERPLATE/CLAUDE.md" "$OPENCODE/AGENTS.md"
-    echo "  [+] AGENTS.md created from CLAUDE.md"
+    sed \
+        -e 's|CLAUDE\.md|AGENTS.md|g' \
+        -e 's|Claude Code (claude\.ai/code)|OpenCode|g' \
+        -e 's|claude\.ai/code|OpenCode|g' \
+        -e 's|Claude Code|OpenCode|g' \
+        -e 's|\.claude/skills/|.opencode/skill/|g' \
+        -e 's|\.claude/agents/|.opencode/agents/|g' \
+        -e 's|\.claude/|.opencode/|g' \
+        -e 's|`skills/` — Modular skill definitions|`skill/` — Modular skill definitions|g' \
+        -e 's|`hooks/` — Event hooks and utility scripts|`plugins/` — TypeScript plugins|g' \
+        -e 's|`settings\.json` — .* settings|`opencode.json` — OpenCode project settings|g' \
+        -e 's|`settings\.json`|`opencode.json`|g' \
+        -e 's|(Grep, Glob, Read)|(grep, find, cat)|g' \
+        -e 's|Grep/Glob|grep/find|g' \
+        -e 's|`Grep(pattern: "{project context}", path: ".hxsk/memories/")`|`grep -r "{project context}" .hxsk/memories/`|g' \
+        -e 's|`Grep(path: ".hxsk/memories/")`|`grep -r <pattern> .hxsk/memories/`|g' \
+        -e 's|`Glob(pattern: ".hxsk/memories/{type}/\*\.md")`|`find .hxsk/memories/{type}/ -name "*.md"`|g' \
+        "$BOILERPLATE/CLAUDE.md" > "$OPENCODE/AGENTS.md"
+    echo "  [+] AGENTS.md created from CLAUDE.md (OpenCode-patched)"
 else
     cat > "$OPENCODE/AGENTS.md" << 'AGENTSEOF'
 # Project Rules
