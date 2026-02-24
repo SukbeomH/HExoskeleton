@@ -1,12 +1,8 @@
-# HExoskeleton
-
 <p align="center">
   <img src="logo.png" alt="HExoskeleton Logo" width="200" />
 </p>
 
-<p align="center">
-  <img src="logo.gif" alt="HExoskeleton Demo" width="480" />
-</p>
+# HExoskeleton
 
 > **Get Shit Done** — 추상화의 늪 없이, 실제 결과물을 내는 AI 에이전트 개발 프레임워크.
 
@@ -460,6 +456,10 @@ make help                   # 전체 명령어 목록
    연결 그래프           이중 메모리 분류       계획-실행 분리
    2-hop 검색            중복 제거             적응적 탐색
 ```
+
+<p align="center">
+  <img src="logo.gif" alt="HExoskeleton Demo" width="480" />
+</p>
 
 ---
 
