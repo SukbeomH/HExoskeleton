@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.9.3](https://github.com/SukbeomH/HExoskeleton/compare/hxsk-plugin-v1.9.2...hxsk-plugin-v1.9.3) (2026-02-24)
+
+
+### Bug Fixes
+
+* **build-opencode:** Phase 7 AGENTS.md 변환 sed 파이프라인 적용 ([3ace56d](https://github.com/SukbeomH/HExoskeleton/commit/3ace56dbd65c84e8dbc45f00785a50eaff146e8f))
+* **build-opencode:** Phase 7 AGENTS.md 변환 시 sed 파이프라인 적용 ([7324e1a](https://github.com/SukbeomH/HExoskeleton/commit/7324e1aa92da5680a2e332130d7fbcf023633b23))
+
 ## [1.9.2](https://github.com/SukbeomH/HExoskeleton/compare/hxsk-plugin-v1.9.1...hxsk-plugin-v1.9.2) (2026-02-23)
 
 
