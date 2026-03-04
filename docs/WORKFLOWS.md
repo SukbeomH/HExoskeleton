@@ -8,10 +8,12 @@ Claude Code의 **Workflows**는 슬래시 명령어(`/command`)로 호출되는 
 
 | 항목 | 설명 |
 |------|------|
-| **위치** | `.agent/workflows/*.md` |
-| **개수** | 30개 (+ init.md = 31개 in plugin) |
+| **소스** | `.claude/agents/*.md` (빌드 시 워크플로우로 변환) |
+| **빌드 출력** | Plugin: `commands/`, Antigravity: `.agent/workflows/`, OpenCode: `.opencode/commands/` |
 | **호출 방식** | `/hxsk:<command>` 또는 `/<command>` |
 | **인자 전달** | `$ARGUMENTS` 변수로 전달 |
+
+> **Note**: 워크플로우 파일은 소스에 직접 존재하지 않고, `scripts/build-*.sh`가 agents에서 자동 생성합니다.
 
 ---
 

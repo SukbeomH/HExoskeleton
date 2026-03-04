@@ -9,10 +9,10 @@ set -euo pipefail
 BOILERPLATE="$(cd "$(dirname "$0")/.." && pwd)"
 OPENCODE="${BOILERPLATE}/opencode-boilerplate"
 
-echo "=== OpenCode Builder ==="
-echo "Source: ${BOILERPLATE}"
-echo "Target: ${OPENCODE}"
-echo ""
+# shellcheck source=build-common.sh
+source "$(cd "$(dirname "$0")" && pwd)/build-common.sh"
+
+init_build "OpenCode Builder" "$BOILERPLATE" "$OPENCODE"
 
 # --- Phase 1: Directory Structure ---
 echo "[Phase 1] Creating directory structure..."
@@ -645,24 +645,8 @@ READMEEOF
 echo "  [+] README.md"
 
 # --- Phase 11: Verification ---
-echo ""
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo "[Phase 11] Verification"
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-
-errors=0
-
-# Structure check
-echo ""
-echo "[Structure]"
-for dir in .opencode/agents .opencode/commands .opencode/skill templates scripts; do
-    if [ -d "$OPENCODE/$dir" ]; then
-        echo "  [OK] $dir/"
-    else
-        echo "  [FAIL] $dir/ missing"
-        errors=$((errors + 1))
-    fi
-done
+verify_header 11
+verify_dirs "$OPENCODE" .opencode/agents .opencode/commands .opencode/skill templates scripts
 
 # Counts
 echo ""
@@ -671,14 +655,9 @@ agent_count=$(ls "$OPENCODE/.opencode/agents/"*.md 2>/dev/null | wc -l | tr -d '
 command_count=$(ls "$OPENCODE/.opencode/commands/"*.md 2>/dev/null | wc -l | tr -d ' ')
 skill_count=$(ls -d "$OPENCODE/.opencode/skill"/*/ 2>/dev/null | wc -l | tr -d ' ')
 
-echo "  Agents:   ${agent_count} (expected: 15)"
-[ "$agent_count" -ge 15 ] || echo "    [WARN] Low agent count"
-
-echo "  Commands: ${command_count}"
-[ "$command_count" -ge 1 ] || echo "    [WARN] No commands found"
-
-echo "  Skills:   ${skill_count} (expected: 17)"
-[ "$skill_count" -ge 17 ] || echo "    [WARN] Low skill count"
+verify_count "Agents" "$agent_count" 15
+verify_count "Commands" "$command_count" 1
+verify_count "Skills" "$skill_count" 17
 
 # Model field check
 echo ""
@@ -697,47 +676,30 @@ echo "  [OK] ${with_model}/${agent_count} agents have model configured"
 # JSON validity
 echo ""
 echo "[JSON Validity]"
-if python3 -c "import json; json.load(open('$OPENCODE/opencode.json'))" 2>/dev/null; then
-    echo "  [OK] opencode.json"
-else
-    echo "  [FAIL] opencode.json invalid"
-    errors=$((errors + 1))
-fi
-if [ -f "$OPENCODE/.mcp.json" ]; then
-    if python3 -c "import json; json.load(open('$OPENCODE/.mcp.json'))" 2>/dev/null; then
-        echo "  [OK] .mcp.json"
-    else
-        echo "  [FAIL] .mcp.json invalid"
-        errors=$((errors + 1))
-    fi
-fi
+verify_json "$OPENCODE/opencode.json"
+verify_json_optional "$OPENCODE/.mcp.json"
 
 # Summary
-echo ""
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-if [ $errors -eq 0 ]; then
-    echo "BUILD SUCCESSFUL"
-    echo ""
-    echo "OpenCode workspace created at: $OPENCODE"
-    echo ""
-    echo "To use:"
-    echo "  1. Copy to your project:"
-    echo "     cp -r $OPENCODE/.opencode /path/to/project/"
-    echo "     cp $OPENCODE/opencode.json /path/to/project/"
-    echo "     cp $OPENCODE/AGENTS.md /path/to/project/"
-    if [ -f "$OPENCODE/.mcp.json" ]; then
-        echo "     cp $OPENCODE/.mcp.json /path/to/project/"
-    fi
-    echo ""
-    echo "  2. Or use directly:"
-    echo "     cd $OPENCODE && opencode"
-    echo ""
-    echo "Key features:"
-    echo "  ✅ Model per agent (${with_model} agents configured)"
-    echo "  ✅ Token optimization (compaction + small_model)"
-    echo "  ✅ ${command_count} workflow commands"
-    echo "  ✅ ${skill_count} skills"
-else
-    echo "BUILD COMPLETED WITH $errors ERROR(S)"
-    exit 1
-fi
+mcp_line=""
+[ -f "$OPENCODE/.mcp.json" ] && mcp_line="     cp $OPENCODE/.mcp.json /path/to/project/"
+
+usage_lines=(
+    "To use:"
+    "  1. Copy to your project:"
+    "     cp -r $OPENCODE/.opencode /path/to/project/"
+    "     cp $OPENCODE/opencode.json /path/to/project/"
+    "     cp $OPENCODE/AGENTS.md /path/to/project/"
+)
+[ -n "$mcp_line" ] && usage_lines+=("$mcp_line")
+usage_lines+=(
+    ""
+    "  2. Or use directly:"
+    "     cd $OPENCODE && opencode"
+    ""
+    "Key features:"
+    "  Model per agent (${with_model} agents configured)"
+    "  Token optimization (compaction + small_model)"
+    "  ${command_count} workflow commands"
+    "  ${skill_count} skills"
+)
+print_build_result "$OPENCODE" "${usage_lines[@]}"
