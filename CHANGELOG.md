@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.9.4](https://github.com/SukbeomH/HExoskeleton/compare/hxsk-plugin-v1.9.3...hxsk-plugin-v1.9.4) (2026-03-04)
+
+
+### Bug Fixes
+
+* 코드베이스 리팩토링 — 버그 수정, dead code 제거, 스킬 트리거 강화 ([64cac86](https://github.com/SukbeomH/HExoskeleton/commit/64cac864cb98efa51cbc57878c2e34673792d12e))
+* 코드베이스 리팩토링 — 버그 수정, dead code 제거, 스킬 트리거 강화 ([9fd7720](https://github.com/SukbeomH/HExoskeleton/commit/9fd7720a94b93cc439d2b70e9899e4a38378eb1e))
+
 ## [1.9.3](https://github.com/SukbeomH/HExoskeleton/compare/hxsk-plugin-v1.9.2...hxsk-plugin-v1.9.3) (2026-02-24)
 
 
