@@ -2,6 +2,7 @@
 name: memory-protocol
 description: Memory operation rules — file-based recall/store protocol, field requirements, type registry
 version: 4.0.0
+trigger: "메모리 저장, 과거 기록 검색, 메모리 조회, store memory, recall memory, search past decisions"
 allowed-tools:
   - Read
   - Write

@@ -8,7 +8,7 @@ allowed-tools:
   - Glob
   - WebSearch
   - WebFetch
-trigger: "When asked to write a solution comparison or selection report"
+trigger: "솔루션 비교 보고서, 기술 선정 보고서, 벤더 평가, TCO 분석, write comparison report, technology evaluation, decision support report"
 ---
 
 ## Quick Reference

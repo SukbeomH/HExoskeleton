@@ -9,7 +9,7 @@ allowed-tools:
   - Bash
   - Grep
   - Glob
-trigger: "First time running HExoskeleton on a new project, or after cloning"
+trigger: "프로젝트 초기화, 프로젝트 셋업, 처음 설정, project setup, initialize project, after cloning"
 ---
 
 ## Quick Reference

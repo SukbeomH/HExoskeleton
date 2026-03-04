@@ -7,7 +7,7 @@ allowed-tools:
   - Grep
   - Glob
   - Bash
-trigger: "Before merging PRs or completing major features"
+trigger: "아키텍처 검토, 레이어 위반 확인, 순환 의존성, review architecture, check layer violations, before merging structural changes"
 ---
 
 ## Quick Reference

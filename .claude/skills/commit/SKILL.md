@@ -1,6 +1,7 @@
 ---
 name: commit
 description: Analyzes diffs, splits logical changes, creates conventional emoji commits aligned with HXSK atomic commit protocol
+trigger: "커밋 생성, git commit, 커밋 메시지 작성, 변경사항 커밋, conventional commit"
 ---
 
 ## Quick Reference

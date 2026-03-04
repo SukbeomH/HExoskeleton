@@ -1,6 +1,7 @@
 ---
 name: pr-review
 description: Multi-persona code review (Dev, QA, Security, Arch, DevOps, UX) with severity triage and actionable feedback
+trigger: "코드 리뷰, PR 리뷰, 풀 리퀘스트 검토, review PR, code review, security review"
 ---
 
 ## Quick Reference

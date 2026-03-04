@@ -1,6 +1,7 @@
 ---
 name: context-health-monitor
 description: Monitors context complexity and triggers state dumps before quality degrades
+trigger: "컨텍스트 상태 확인, 세션 덤프, 3-strike 발동, 세션 인수인계, context health, session handoff"
 allowed-tools:
   - Read
   - Write

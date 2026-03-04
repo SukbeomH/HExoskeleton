@@ -1,6 +1,7 @@
 ---
 name: codebase-mapper
 description: Analyzes existing codebases to understand structure, patterns, and technical debt
+trigger: "코드베이스 분석, 프로젝트 구조 파악, 아키텍처 문서화, 기술 부채 조사, analyze codebase, map structure, onboarding"
 ---
 
 ## Quick Reference

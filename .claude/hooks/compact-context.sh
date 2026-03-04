@@ -130,21 +130,21 @@ fi
 
 CHANGELOG_FILE="$HXSK_DIR/CHANGELOG.md"
 if [[ -f "$CHANGELOG_FILE" ]]; then
-    ENTRY_COUNT=$(grep -c "^### \[" "$CHANGELOG_FILE" 2>/dev/null | tr -d '[:space:]' || echo 0)
+    ENTRY_COUNT=$(grep -c "^## \[" "$CHANGELOG_FILE" 2>/dev/null | tr -d '[:space:]' || echo 0)
 
     echo ""
     echo "--- CHANGELOG.md ---"
-    echo "  Entries: ${ENTRY_COUNT} (keep: 5)"
+    echo "  Entries: ${ENTRY_COUNT} (keep: 20)"
 
-    if [[ "$ENTRY_COUNT" -gt 5 ]]; then
+    if [[ "$ENTRY_COUNT" -gt 20 ]]; then
         ARCHIVE_FILE="$ARCHIVE_DIR/changelog-${YEAR_MONTH}.md"
-        echo "  [ACTION] Would archive $(($ENTRY_COUNT - 5)) old entries to $ARCHIVE_FILE"
+        echo "  [ACTION] Would archive $(($ENTRY_COUNT - 20)) old entries to $ARCHIVE_FILE"
 
         if [[ "$DRY_RUN" == false ]]; then
             # Archive old entries
-            ENTRY_LINES=$(grep -n "^### \[" "$CHANGELOG_FILE" | cut -d: -f1)
+            ENTRY_LINES=$(grep -n "^## \[" "$CHANGELOG_FILE" | cut -d: -f1)
             ENTRY_ARRAY=($ENTRY_LINES)
-            KEEP_FROM_IDX=$((${#ENTRY_ARRAY[@]} - 5))
+            KEEP_FROM_IDX=$((${#ENTRY_ARRAY[@]} - 20))
 
             if [[ $KEEP_FROM_IDX -gt 0 ]]; then
                 KEEP_FROM_LINE=${ENTRY_ARRAY[$KEEP_FROM_IDX]}
