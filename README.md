@@ -34,18 +34,18 @@ SPEC → PLAN → EXECUTE → VERIFY
 
 | 구성요소 | 개수 | 설명 |
 |----------|------|------|
-| **Skills** | 16 | Claude가 상황을 인식하여 자율 호출하는 기능 단위 (How) |
-| **Agents** | 14 | 스킬을 조합하고 오케스트레이션하는 서브에이전트 (When/With What) |
-| **Hooks** | 14 | 이벤트 기반 자동화 (가드레일, 상태 저장, 검증) |
+| **Skills** | 17 | Claude가 상황을 인식하여 자율 호출하는 기능 단위 (How) |
+| **Agents** | 15 | 스킬을 조합하고 오케스트레이션하는 서브에이전트 (When/With What) |
+| **Hooks** | 17 | 이벤트 기반 자동화 (가드레일, 상태 저장, 검증) |
 | **Memory System** | 14 types | A-Mem 확장 파일 기반 메모리 (2-hop 검색, 중복 방지) |
 
 ### 상세 문서
 
 | 문서 | 설명 |
 |------|------|
-| [Agents](docs/AGENTS.md) | 14개 서브에이전트 (역할, capabilities, 실행 흐름) |
-| [Skills](docs/SKILLS.md) | 16개 스킬 (트리거 조건, 도구 연동) |
-| [Hooks](docs/HOOKS.md) | 14개 훅 이벤트 (이벤트, 코드, 작동 예시) |
+| [Agents](docs/AGENTS.md) | 15개 서브에이전트 (역할, capabilities, 실행 흐름) |
+| [Skills](docs/SKILLS.md) | 17개 스킬 (트리거 조건, 도구 연동) |
+| [Hooks](docs/HOOKS.md) | 17개 훅 이벤트 (이벤트, 코드, 작동 예시) |
 | [Memory](docs/MEMORY.md) | 파일 기반 메모리 시스템 상세 |
 | [Build](docs/BUILD.md) | 빌드 가이드 (Claude Code Plugin, Antigravity, OpenCode) |
 | [GitHub Workflow](docs/GITHUB-WORKFLOW.md) | CI/CD 파이프라인 (release-please) |
@@ -57,9 +57,9 @@ SPEC → PLAN → EXECUTE → VERIFY
 ```
 .
 ├── .claude/                   # Claude Code 설정 (Single Source of Truth)
-│   ├── agents/                # 서브에이전트 정의 (14)
-│   ├── skills/                # 스킬 정의 (16)
-│   ├── hooks/                 # 훅 스크립트 (14 이벤트)
+│   ├── agents/                # 서브에이전트 정의 (15)
+│   ├── skills/                # 스킬 정의 (17)
+│   ├── hooks/                 # 훅 스크립트 (17)
 │   └── settings.json          # 훅 설정
 ├── .hxsk/                      # HXSK 작업 문서
 │   ├── STATE.md               # 현재 작업 상태 (git 추적)
@@ -209,7 +209,7 @@ Claude는 작업 성격을 인식하여 적절한 스킬을 **스스로 판단�
 
 ---
 
-## Skills (16)
+## Skills (17)
 
 **Skills**는 Claude가 작업 컨텍스트를 기반으로 **자율적으로 호출**하는 전문 기능입니다.
 
@@ -231,10 +231,11 @@ Claude는 작업 성격을 인식하여 적절한 스킬을 **스스로 판단�
 | `empirical-validation` | 경험적 증거 요구 | 완료 확인 시 |
 | `bootstrap` | 프로젝트 초기 설정 | 부트스트랩 요청 시 |
 | `memory-protocol` | 메모리 검색/저장 프로토콜 | 메모리 작업 시 |
+| `write-report` | 솔루션 비교 보고서 작성 | 기술 선정/벤더 평가 시 |
 
 ---
 
-## Agents (14)
+## Agents (15)
 
 **Agents**는 특정 작업에 특화된 **서브에이전트**입니다.
 
@@ -254,10 +255,11 @@ Claude는 작업 성격을 인식하여 적절한 스킬을 **스스로 판단�
 | `clean` | 코드 품질 | clean |
 | `context-health-monitor` | 컨텍스트 모니터링 | context-health-monitor |
 | `bootstrap` | 프로젝트 초기화 | bootstrap, memory-protocol |
+| `write-report` | 솔루션 비교 보고서 | write-report |
 
 ---
 
-## Hooks (14)
+## Hooks (17)
 
 **Hooks**는 Claude Code 이벤트에 자동으로 응답하는 스크립트입니다. AI의 자율성을 유지하면서도 **위험 행동을 원천 차단**하는 가드레일 역할을 합니다.
 
@@ -267,6 +269,7 @@ Claude는 작업 성격을 인식하여 적절한 스킬을 **스스로 판단�
 | **PreToolUse** | `bash-guard.py` | 위험한 명령어 차단 |
 | **PreToolUse** | `file-protect.py` | .env, 시크릿 파일 보호 |
 | **PostToolUse** | `auto-format.sh` | Python 파일 자동 포맷 |
+| **PostToolUse** | `track-modifications.sh` | 변경 파일 추적 |
 | **PreCompact** | `pre-compact-save.sh` | 컴팩트 전 상태 저장 |
 | **Stop** | `stop-context-save.sh` | 세션 컨텍스트 저장 |
 | **Stop** | `post-turn-verify.sh` | 작업 검증 |
@@ -280,8 +283,10 @@ Claude는 작업 성격을 인식하여 적절한 스킬을 **스스로 판단�
 | `md-store-memory.sh` | 파일 기반 메모리 저장 |
 | `md-recall-memory.sh` | 파일 기반 메모리 검색 |
 | `scaffold-hxsk.sh` | HXSK 문서 초기화 |
+| `scaffold-infra.sh` | 인프라 스캐폴딩 |
 | `compact-context.sh` | 컨텍스트 압축 |
 | `organize-docs.sh` | 문서 정리/아카이브 |
+| `_json_parse.sh` | JSON 파싱 유틸리티 |
 
 ---
 

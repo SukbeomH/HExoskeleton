@@ -347,7 +347,7 @@ GEMINIHEADER
 ## Repository Layout
 
 - **.agent/** — Agent configuration (Antigravity format):
-  - `skills/` — Modular skill definitions (16 skills, SKILL.md format)
+  - `skills/` — Modular skill definitions (17 skills, SKILL.md format)
   - `workflows/` — Workflow commands (triggered via `/` commands)
   - `rules/` — Always-on passive rules (4 rule files)
 - **.hxsk/** — HXSK documents and context management:
@@ -522,11 +522,11 @@ AI agent development boilerplate for **Google Antigravity IDE**.
 
 ```
 .agent/
-├── skills/          # 16 AI skills (SKILL.md format)
+├── skills/          # 17 AI skills (SKILL.md format)
 │   ├── planner/     # Planning skill
 │   ├── executor/    # Execution skill
 │   └── ...
-├── workflows/       # 14 workflow commands (from agent orchestrations)
+├── workflows/       # 15 workflow commands (from agent orchestrations)
 │   ├── planner.md   # /planner command
 │   ├── executor.md  # /executor command
 │   └── ...
@@ -555,7 +555,7 @@ bash scripts/md-recall-memory.sh "query" "." 5 compact
 
 14 memory types: `architecture-decision`, `root-cause`, `session-summary`, etc.
 
-## Skills (16)
+## Skills (17)
 
 | Skill | Description |
 |-------|-------------|
@@ -654,11 +654,11 @@ skill_count=$(find "$ANTIGRAVITY/.agent/skills" -mindepth 1 -maxdepth 1 -type d 
 workflow_count=$(find "$ANTIGRAVITY/.agent/workflows" -name "*.md" | wc -l | tr -d ' ')
 rules_count=$(find "$ANTIGRAVITY/.agent/rules" -name "*.md" | wc -l | tr -d ' ')
 
-echo "  Skills:    ${skill_count} (expected: 16)"
-[ "$skill_count" -ge 16 ] || { echo "    [WARN] Low skill count"; warnings=$((warnings + 1)); }
+echo "  Skills:    ${skill_count} (expected: 17)"
+[ "$skill_count" -ge 17 ] || { echo "    [WARN] Low skill count"; warnings=$((warnings + 1)); }
 
-echo "  Workflows: ${workflow_count} (expected: 14)"
-[ "$workflow_count" -ge 14 ] || { echo "    [WARN] Low workflow count"; warnings=$((warnings + 1)); }
+echo "  Workflows: ${workflow_count} (expected: 15)"
+[ "$workflow_count" -ge 15 ] || { echo "    [WARN] Low workflow count"; warnings=$((warnings + 1)); }
 
 echo "  Rules:     ${rules_count} (expected: 4)"
 [ "$rules_count" -ge 4 ] || { echo "    [WARN] Missing rules"; warnings=$((warnings + 1)); }

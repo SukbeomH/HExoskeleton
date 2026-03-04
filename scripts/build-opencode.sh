@@ -536,13 +536,13 @@ AI agent development boilerplate for **OpenCode**.
 
 ```
 .opencode/
-├── agents/          # 14 agents with model config
+├── agents/          # 15 agents with model config
 │   ├── planner.md   # model: anthropic/claude-opus-4-20250514
 │   ├── executor.md  # model: anthropic/claude-sonnet-4-20250514
 │   └── ...
 ├── commands/        # Workflow commands (/plan, /execute, etc.)
 ├── plugins/         # TypeScript plugins
-└── skill/           # 16 skills (SKILL.md format)
+└── skill/           # 17 skills (SKILL.md format)
 
 scripts/             # Utility scripts (메모리 포함)
 opencode.json        # Main config with agent model mapping
@@ -671,14 +671,14 @@ agent_count=$(ls "$OPENCODE/.opencode/agents/"*.md 2>/dev/null | wc -l | tr -d '
 command_count=$(ls "$OPENCODE/.opencode/commands/"*.md 2>/dev/null | wc -l | tr -d ' ')
 skill_count=$(ls -d "$OPENCODE/.opencode/skill"/*/ 2>/dev/null | wc -l | tr -d ' ')
 
-echo "  Agents:   ${agent_count} (expected: 14)"
-[ "$agent_count" -ge 14 ] || echo "    [WARN] Low agent count"
+echo "  Agents:   ${agent_count} (expected: 15)"
+[ "$agent_count" -ge 15 ] || echo "    [WARN] Low agent count"
 
 echo "  Commands: ${command_count}"
 [ "$command_count" -ge 1 ] || echo "    [WARN] No commands found"
 
-echo "  Skills:   ${skill_count} (expected: 16)"
-[ "$skill_count" -ge 16 ] || echo "    [WARN] Low skill count"
+echo "  Skills:   ${skill_count} (expected: 17)"
+[ "$skill_count" -ge 17 ] || echo "    [WARN] Low skill count"
 
 # Model field check
 echo ""

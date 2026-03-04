@@ -9,7 +9,7 @@ Claude Code의 **Agents**는 특정 작업에 특화된 서브프로세스입니
 | 항목 | 설명 |
 |------|------|
 | **위치** | `.claude/agents/*.md` |
-| **개수** | 14개 |
+| **개수** | 15개 |
 | **호출 방식** | Claude가 필요 시 자동 위임 또는 Task 도구로 명시적 호출 |
 | **컨텍스트** | 메인 대화와 분리된 별도 서브프로세스 |
 
@@ -50,6 +50,12 @@ Claude Code의 **Agents**는 특정 작업에 특화된 서브프로세스입니
 | Agent | 파일 | 역할 | Capabilities |
 |-------|------|------|--------------|
 | `clean` | `clean.md` | 코드 품질 도구 실행 | Read, Write, Edit, Bash, Grep, Glob |
+
+### 보고서 에이전트
+
+| Agent | 파일 | 역할 | Capabilities |
+|-------|------|------|--------------|
+| `write-report` | `write-report.md` | 솔루션 비교 보고서 작성 | Read, Grep, Glob, WebSearch, WebFetch |
 
 ---
 

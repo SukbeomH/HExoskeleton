@@ -9,7 +9,7 @@ Claude Code의 **Skills**는 Claude가 작업 컨텍스트를 기반으로 **자
 | 항목 | 설명 |
 |------|------|
 | **위치** | `.claude/skills/*/SKILL.md` |
-| **개수** | 16개 |
+| **개수** | 17개 |
 | **호출 방식** | Claude가 작업 컨텍스트 기반으로 자율적 결정 |
 | **컨텍스트** | 메인 대화에서 실행 (컨텍스트 공유) |
 
@@ -52,6 +52,7 @@ Claude Code의 **Skills**는 Claude가 작업 컨텍스트를 기반으로 **자
 |-------|----------|------|-------------|
 | `clean` | `clean/` | 코드 품질 도구 실행 (shellcheck) | 품질 체크 요청 시 |
 | `memory-protocol` | `memory-protocol/` | 메모리 검색/저장 프로토콜 | 메모리 작업 시 |
+| `write-report` | `write-report/` | 솔루션 비교 보고서 작성 | 기술 선정/벤더 평가 시 |
 
 ---
 
