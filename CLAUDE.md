@@ -10,29 +10,13 @@ AI 에이전트 기반 개발을 위한 경량 프로젝트 보일러플레이�
 
 ## Repository Layout
 
-- **.claude/** — Single source of truth for agent configuration:
-  - `agents/` — Agent definitions (14 agents, skill 래핑 구조)
-  - `skills/` — Modular skill definitions (16 skills)
-  - `hooks/` — Event hooks and utility scripts
-  - `settings.json` — Claude Code project settings
-- **.github/agents/** — GitHub Agent specification
-- **.hxsk/** — HXSK documents and context management:
-  - `SPEC.md`, `PLAN.md`, `DECISIONS.md`, `STATE.md` — Core working docs
-  - `PATTERNS.md` — Distilled learnings for fresh sessions (2KB limit)
-  - `memories/` — File-based agent memory (14 type directories)
-  - `reports/` — Analysis reports (REPORT-*.md)
-  - `research/` — Research documents (RESEARCH-*.md)
-  - `archive/` — Monthly archives (journal, changelog, prd)
-  - `templates/` — Document templates
-- **.gemini/** — Gemini agent config (CLAUDE.md 참조로 축소)
-- **scripts/** — Utility scripts
+- **.claude/** — Agent/Skill/Hook 설정 (single source of truth)
+- **.hxsk/** — Working docs (`SPEC/PLAN/DECISIONS/STATE.md`), `memories/`, `reports/`, `research/`
+- **scripts/** — Utility scripts (md-store-memory.sh, md-recall-memory.sh 등)
 
 ### Agent-Skill 래핑 구조
-
-Skill은 "어떻게(How)"를 정의하고, Agent는 "언제/무엇과 함께(When/With What)"를 정의한다.
-
-- **Skill** (`.claude/skills/{name}/SKILL.md`): 재사용 가능한 최소 모듈. 실행 절차와 규칙을 상세히 기술.
-- **Agent** (`.claude/agents/{name}.md`): Skill을 탑재하고 오케스트레이션 흐름을 정의. model/tools 메타데이터 포함.
+- **Skill** (`.claude/skills/{name}/SKILL.md`): "어떻게(How)" — 재사용 가능한 실행 절차
+- **Agent** (`.claude/agents/{name}.md`): "언제/무엇과(When/With What)" — Skill 탑재 + 오케스트레이션
 
 ## Commands
 
@@ -59,23 +43,12 @@ make patch-clean              # Patch workspace 삭제
 
 파일 기반 메모리 시스템 (A-Mem 확장). 상세는 `.claude/skills/memory-protocol/SKILL.md` 참조.
 
-### Session Start
-- `Grep(pattern: "{project context}", path: ".hxsk/memories/")` 또는 `md-recall-memory.sh` 실행
-- 결과가 부족할 때 `Glob(pattern: ".hxsk/memories/{type}/*.md")`로 타입별 탐색
-
-### Search Protocol
+### Search (우선순위)
 | 방식 | 용도 | 순서 |
 |------|------|------|
-| `md-recall-memory.sh <query> [path] [limit] [mode] [hop]` | 훅 기반 검색 (2-hop 지원) | **권장** |
+| `md-recall-memory.sh <query>` | 훅 기반 검색 (2-hop 지원) | **권장** |
 | `Grep(path: ".hxsk/memories/")` | Broad context (세션/태스크 시작) | **1st** |
 | `Glob(pattern: ".hxsk/memories/{type}/*.md")` | Narrow filter (타입 특정) | **2nd** |
-
-### Storage (A-Mem 확장)
-```bash
-md-store-memory.sh <title> <content> [tags] [type] [keywords] [contextual_desc] [related]
-```
-- **중복 방지**: 동일 title 저장 시 `[SKIP:DUPLICATE]` 반환
-- **2-hop 검색**: `related` 필드로 연결된 메모리 자동 추적
 
 ### Storage Triggers
 | Trigger | Type |
@@ -88,26 +61,7 @@ md-store-memory.sh <title> <content> [tags] [type] [keywords] [contextual_desc] 
 | Execution summary | `execution-summary` |
 | Session end (auto) | `session-summary` |
 
-### Memory File Format (A-Mem 확장)
-`.hxsk/memories/{type}/{YYYY-MM-DD}_{slug}.md`:
-```markdown
----
-title: "{title}"
-tags: [tag1, tag2]
-type: {type}
-created: {ISO-8601}
-contextual_description: "{1줄 요약}"
-keywords: [keyword1, keyword2]
-related: [related_file_slug]
----
-## {title}
-{content}
-```
-
-### Schema Validation
-`.hxsk/memories/_schema/`에서 타입별 JSON Schema와 관계 정의:
-- `base.schema.json`: 공통 필드 스키마
-- `type-relations.yaml`: 14개 타입 간 관계 (Ontology)
+저장 명령어, 파일 포맷, 스키마 상세는 `.claude/skills/memory-protocol/SKILL.md` 참조.
 
 ## Validation
 
@@ -116,7 +70,28 @@ related: [related_file_slug]
 - **결과 우선**: 기능 동작 확인 후 스타일 수정
 - **실패 전수 보고**: 모든 실패를 수집하여 보고 (첫 번째에서 멈추지 않음)
 - **조건부 성공**: 실제 결과 확인 후에만 성공 출력
-- **3회 연속 실패 시**: 접근 방식 변경 — 웹 검색, 공식 문서, 또는 fresh session
+
+## Execution Constraints
+
+- **3-Strike Rule**: 동일 접근 3회 연속 실패 시 반드시 전환 — 웹 검색, 공식 문서, 또는 fresh session
+- **WebFetch 순차 실행**: 병렬 fetch 금지. 병렬 호출 시 "Sibling tool call errored" 발생
+- **Atomic Commit**: 태스크당 하나의 커밋. 논리적 단위 유지
+- **Discovery Levels**: L1=CLAUDE.md (요약) → L2=skills/SKILL.md (상세) → L3=.hxsk/research/ (출처/벤치마크)
+
+## Prompt Maintenance Rules
+
+CLAUDE.md, SKILL.md, Agent 정의 파일을 수정할 때 아래 규칙을 따른다.
+
+### L1 편집 규칙 (CLAUDE.md)
+- **포함**: 검색 순서, 트리거 조건, 제약 조건, "상세는 X 참조" 링크
+- **제외**: 명령어 예시, 파일 포맷 블록, 스키마 설명, 구현 세부사항
+- **한도**: 단일 프로토콜 섹션 ≤15줄. 전체 파일 ≤120줄
+- **검증**: 수정 후 `wc -l CLAUDE.md` 실행하여 한도 초과 확인
+
+### Skill/Agent 편집 규칙
+- Quick Reference ≤5줄 (bullet point)
+- frontmatter 필드: 기존 파일과 동일한 키 사용
+- 새 Skill 추가 시 기존 패턴(planner, arch-review) 참조
 
 ## Agent Boundaries
 
@@ -124,8 +99,6 @@ related: [related_file_slug]
 - Grep/Glob 기반 impact analysis before refactoring or deleting code
 - Read `.hxsk/SPEC.md` before implementation
 - Verify empirically — 명령 실행 결과로 증명
-- Atomic commits per task
-- **WebFetch는 순차적으로 실행할 것 (병렬 fetch 금지)** — 병렬 호출 시 "Sibling tool call errored" 발생
 
 ### Ask First
 - Adding external dependencies
@@ -138,4 +111,4 @@ related: [related_file_slug]
 - Assume API signatures without verification
 - Skip failing tests to "fix later"
 - Print unconditional success messages without verification
-- Use `--dangerously-skip-permissions` outside containers
+- `--dangerously-skip-permissions` 사용 금지 — 컨테이너 환경 포함 모든 곳에서 위험
