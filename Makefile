@@ -6,7 +6,6 @@ SHELL := $(shell command -v bash)
 export
 
 .PHONY: status setup install-deps init-env check-deps clean \
-        patch-prompt patch-restore patch-clean \
         build build-plugin build-antigravity build-opencode help
 
 # ─────────────────────────────────────────────────────
@@ -70,40 +69,6 @@ setup: ## Full initial setup (install deps → env)
 	@echo "  1. Run: /bootstrap to initialize HXSK workflow"
 
 # ─────────────────────────────────────────────────────
-# System Prompt Patching
-# ─────────────────────────────────────────────────────
-
-CLAUDE_CODE_VERSION ?= $(shell claude --version 2>/dev/null | awk '{print $$1}')
-PATCH_DIR ?= claude-code-tips/system-prompt
-
-patch-prompt: ## Patch Claude Code system prompt (reduces token usage ~50%)
-	@echo "=== System Prompt Patcher ==="
-	@command -v node >/dev/null 2>&1 || { echo "[MISSING] node — install Node.js"; exit 1; }
-	@echo "Claude Code version: $(CLAUDE_CODE_VERSION)"
-	@test -d "$(PATCH_DIR)/$(CLAUDE_CODE_VERSION)" || { echo "[ERROR] No patches for v$(CLAUDE_CODE_VERSION) in $(PATCH_DIR)/"; echo "See: .hxsk/GUIDE-system-prompt-patch.md > Version Upgrade"; exit 1; }
-	@mkdir -p .patch-workspace
-	npm install --prefix .patch-workspace @anthropic-ai/claude-code@$(CLAUDE_CODE_VERSION) --silent
-	@cp .patch-workspace/node_modules/@anthropic-ai/claude-code/cli.js /tmp/_claude_cli.js
-	@cp .patch-workspace/node_modules/@anthropic-ai/claude-code/cli.js /tmp/_claude_cli.js.backup
-	@node "$(PATCH_DIR)/$(CLAUDE_CODE_VERSION)/patch-cli.js" /tmp/_claude_cli.js
-	@cp /tmp/_claude_cli.js .patch-workspace/node_modules/@anthropic-ai/claude-code/cli.js
-	@cp /tmp/_claude_cli.js.backup .patch-workspace/node_modules/@anthropic-ai/claude-code/cli.js.backup
-	@rm -f /tmp/_claude_cli.js /tmp/_claude_cli.js.backup
-	@echo ""
-	@echo "Patched! Run with:"
-	@echo "  DISABLE_AUTOUPDATER=1 npx --prefix .patch-workspace claude"
-
-patch-restore: ## Restore original Claude Code CLI (undo patch)
-	@test -f .patch-workspace/node_modules/@anthropic-ai/claude-code/cli.js.backup || { echo "[ERROR] No backup found. Nothing to restore."; exit 1; }
-	@cp .patch-workspace/node_modules/@anthropic-ai/claude-code/cli.js.backup \
-		.patch-workspace/node_modules/@anthropic-ai/claude-code/cli.js
-	@echo "Restored original cli.js from backup."
-
-patch-clean: ## Remove patched Claude Code workspace
-	rm -rf .patch-workspace/
-	@echo "Removed .patch-workspace/"
-
-# ─────────────────────────────────────────────────────
 # Build Targets
 # ─────────────────────────────────────────────────────
 
@@ -129,8 +94,8 @@ build-opencode: ## Build OpenCode workspace (opencode-boilerplate/)
 # Cleanup
 # ─────────────────────────────────────────────────────
 
-clean: ## Remove index data and patch workspace
-	rm -rf .code-graph-rag/ .patch-workspace/
+clean: ## Remove build artifacts
+	rm -rf hxsk-plugin/ antigravity-boilerplate/ opencode-boilerplate/
 
 # ─────────────────────────────────────────────────────
 # Help

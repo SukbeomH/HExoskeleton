@@ -9,10 +9,10 @@ set -euo pipefail
 BOILERPLATE="$(cd "$(dirname "$0")/.." && pwd)"
 PLUGIN="${BOILERPLATE}/hxsk-plugin"
 
-echo "=== HExoskeleton Plugin Builder ==="
-echo "Source: ${BOILERPLATE}"
-echo "Target: ${PLUGIN}"
-echo ""
+# shellcheck source=build-common.sh
+source "$(cd "$(dirname "$0")" && pwd)/build-common.sh"
+
+init_build "HExoskeleton Plugin Builder" "$BOILERPLATE" "$PLUGIN"
 
 # --- Phase 1: Directory Structure + Manifest ---
 echo "[Phase 1] Creating directory structure..."
@@ -765,24 +765,8 @@ echo "[Phase 7] Plugin is used via --plugin-dir flag. No install scripts needed.
 rm -f "$PLUGIN/.claude-plugin/marketplace.json"
 
 # --- Phase 8: Verification ---
-echo ""
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo "[Phase 8] Verification"
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-
-errors=0
-
-# Structure check
-echo ""
-echo "[Structure]"
-for dir in .claude-plugin commands skills agents hooks scripts templates references; do
-    if [ -d "$PLUGIN/$dir" ]; then
-        echo "  [OK] $dir/"
-    else
-        echo "  [FAIL] $dir/ missing"
-        errors=$((errors + 1))
-    fi
-done
+verify_header 8
+verify_dirs "$PLUGIN" .claude-plugin commands skills agents hooks scripts templates references
 
 # Count check
 echo ""
@@ -796,17 +780,10 @@ template_count=$(ls "$PLUGIN/templates/hxsk/templates/"*.md 2>/dev/null | wc -l 
 echo "  Commands:  ${cmd_count}"
 [ "$cmd_count" -ge 1 ] || { echo "    [WARN] No commands found"; }
 
-echo "  Skills:    ${skill_count} (expected: 17)"
-[ "$skill_count" -ge 17 ] || { echo "    [WARN] Expected 17 skills"; }
-
-echo "  Agents:    ${agent_count} (expected: 15)"
-[ "$agent_count" -ge 15 ] || { echo "    [WARN] Expected 15 agents"; }
-
-echo "  Scripts:   ${script_count} (expected: 9)"
-[ "$script_count" -ge 9 ] || { echo "    [WARN] Expected 9 scripts"; }
-
-echo "  Templates: ${template_count} (expected: 22)"
-[ "$template_count" -ge 22 ] || { echo "    [WARN] Expected 22 templates"; }
+verify_count "Skills" "$skill_count" 17
+verify_count "Agents" "$agent_count" 15
+verify_count "Scripts" "$script_count" 9
+verify_count "Templates" "$template_count" 22
 
 # Transformation check
 echo ""
@@ -815,7 +792,7 @@ echo "[Transformations]"
 # hooks.json should not contain .claude/hooks/
 if grep -q '\.claude/hooks/' "$PLUGIN/hooks/hooks.json" 2>/dev/null; then
     echo "  [FAIL] hooks.json still contains .claude/hooks/ references"
-    errors=$((errors + 1))
+    BUILD_ERRORS=$((BUILD_ERRORS + 1))
 else
     echo "  [OK] hooks.json paths transformed"
 fi
@@ -823,7 +800,7 @@ fi
 # SKILL.md files should not contain .claude/hooks/ references
 if grep -rl '\.claude/hooks/' "$PLUGIN/skills/" 2>/dev/null | grep -q .; then
     echo "  [FAIL] SKILL.md files still contain .claude/hooks/ references"
-    errors=$((errors + 1))
+    BUILD_ERRORS=$((BUILD_ERRORS + 1))
 else
     echo "  [OK] SKILL.md paths transformed"
 fi
@@ -834,7 +811,7 @@ if [ -f "$PLUGIN/.mcp.json" ]; then
         echo "  [OK] .mcp.json contains CLAUDE_PROJECT_DIR"
     else
         echo "  [FAIL] .mcp.json missing CLAUDE_PROJECT_DIR"
-        errors=$((errors + 1))
+        BUILD_ERRORS=$((BUILD_ERRORS + 1))
     fi
 else
     echo "  [SKIP] .mcp.json not present (pure bash mode)"
@@ -854,44 +831,20 @@ done
 if [ $non_exec -eq 0 ]; then
     echo "  [OK] All scripts executable"
 else
-    errors=$((errors + non_exec))
+    BUILD_ERRORS=$((BUILD_ERRORS + non_exec))
 fi
 
 # JSON validity check
 echo ""
 echo "[JSON Validity]"
-for json in "$PLUGIN/.claude-plugin/plugin.json" "$PLUGIN/hooks/hooks.json"; do
-    if python3 -c "import json; json.load(open('$json'))" 2>/dev/null; then
-        echo "  [OK] $(basename "$json")"
-    else
-        echo "  [FAIL] $(basename "$json") invalid"
-        errors=$((errors + 1))
-    fi
-done
-# Optional .mcp.json check
-if [ -f "$PLUGIN/.mcp.json" ]; then
-    if python3 -c "import json; json.load(open('$PLUGIN/.mcp.json'))" 2>/dev/null; then
-        echo "  [OK] .mcp.json"
-    else
-        echo "  [FAIL] .mcp.json invalid"
-        errors=$((errors + 1))
-    fi
-fi
+verify_json "$PLUGIN/.claude-plugin/plugin.json"
+verify_json "$PLUGIN/hooks/hooks.json"
+verify_json_optional "$PLUGIN/.mcp.json"
 
 # Summary
-echo ""
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-if [ $errors -eq 0 ]; then
-    echo "BUILD SUCCESSFUL"
-    echo ""
-    echo "Plugin created at: $PLUGIN"
-    echo ""
-    echo "To use:"
-    echo "  claude --plugin-dir $PLUGIN"
-    echo ""
-    echo "To use permanently (shell alias):"
-    echo "  alias claude='claude --plugin-dir $PLUGIN'"
-else
-    echo "BUILD COMPLETED WITH $errors ERROR(S)"
-    exit 1
-fi
+print_build_result "$PLUGIN" \
+    "To use:" \
+    "  claude --plugin-dir $PLUGIN" \
+    "" \
+    "To use permanently (shell alias):" \
+    "  alias claude='claude --plugin-dir $PLUGIN'"

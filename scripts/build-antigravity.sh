@@ -17,10 +17,10 @@ BOILERPLATE="$(cd "$(dirname "$0")/.." && pwd)"
 ANTIGRAVITY="${BOILERPLATE}/antigravity-boilerplate"
 CLAUDE_MD="${BOILERPLATE}/CLAUDE.md"
 
-echo "=== Antigravity Builder v2 ==="
-echo "Source: ${BOILERPLATE}"
-echo "Target: ${ANTIGRAVITY}"
-echo ""
+# shellcheck source=build-common.sh
+source "$(cd "$(dirname "$0")" && pwd)/build-common.sh"
+
+init_build "Antigravity Builder v2" "$BOILERPLATE" "$ANTIGRAVITY"
 
 # ================================================================
 # Utility Functions
@@ -627,25 +627,8 @@ echo "  [+] README.md"
 # ================================================================
 # Phase 9: Verification
 # ================================================================
-echo ""
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo "[Phase 9] Verification"
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-
-errors=0
-warnings=0
-
-# --- Structure check ---
-echo ""
-echo "[Structure]"
-for dir in .agent/skills .agent/workflows .agent/rules templates scripts; do
-    if [ -d "$ANTIGRAVITY/$dir" ]; then
-        echo "  [OK] $dir/"
-    else
-        echo "  [FAIL] $dir/ missing"
-        errors=$((errors + 1))
-    fi
-done
+verify_header 9
+verify_dirs "$ANTIGRAVITY" .agent/skills .agent/workflows .agent/rules templates scripts
 
 # --- Counts ---
 echo ""
@@ -654,14 +637,9 @@ skill_count=$(find "$ANTIGRAVITY/.agent/skills" -mindepth 1 -maxdepth 1 -type d 
 workflow_count=$(find "$ANTIGRAVITY/.agent/workflows" -name "*.md" | wc -l | tr -d ' ')
 rules_count=$(find "$ANTIGRAVITY/.agent/rules" -name "*.md" | wc -l | tr -d ' ')
 
-echo "  Skills:    ${skill_count} (expected: 17)"
-[ "$skill_count" -ge 17 ] || { echo "    [WARN] Low skill count"; warnings=$((warnings + 1)); }
-
-echo "  Workflows: ${workflow_count} (expected: 15)"
-[ "$workflow_count" -ge 15 ] || { echo "    [WARN] Low workflow count"; warnings=$((warnings + 1)); }
-
-echo "  Rules:     ${rules_count} (expected: 4)"
-[ "$rules_count" -ge 4 ] || { echo "    [WARN] Missing rules"; warnings=$((warnings + 1)); }
+verify_count "Skills" "$skill_count" 17
+verify_count "Workflows" "$workflow_count" 15
+verify_count "Rules" "$rules_count" 4
 
 # --- Frontmatter compliance (check only within --- fences) ---
 echo ""
@@ -680,7 +658,7 @@ done < <(find "$ANTIGRAVITY/.agent/skills" -name "SKILL.md")
 if [ "$bad_fm" -eq 0 ]; then
     echo "  [OK] No non-standard frontmatter fields"
 else
-    errors=$((errors + bad_fm))
+    BUILD_ERRORS=$((BUILD_ERRORS + bad_fm))
 fi
 
 # --- <role> tag check ---
@@ -696,7 +674,7 @@ done < <(find "$ANTIGRAVITY/.agent/skills" -name "SKILL.md")
 if [ "$role_tags" -eq 0 ]; then
     echo "  [OK] No <role> tags found"
 else
-    errors=$((errors + role_tags))
+    BUILD_ERRORS=$((BUILD_ERRORS + role_tags))
 fi
 
 # --- 12,000 char limit ---
@@ -714,7 +692,7 @@ done
 if [ "$over_limit" -eq 0 ]; then
     echo "  [OK] All workflows/rules within 12,000 char limit"
 else
-    errors=$((errors + over_limit))
+    BUILD_ERRORS=$((BUILD_ERRORS + over_limit))
 fi
 
 # --- GEMINI.md existence ---
@@ -724,7 +702,7 @@ if [ -f "$ANTIGRAVITY/GEMINI.md" ]; then
     echo "  [OK] GEMINI.md exists ($(wc -c < "$ANTIGRAVITY/GEMINI.md" | tr -d ' ') chars)"
 else
     echo "  [FAIL] GEMINI.md missing"
-    errors=$((errors + 1))
+    BUILD_ERRORS=$((BUILD_ERRORS + 1))
 fi
 
 # --- No external interpreter calls in this script ---
@@ -733,7 +711,7 @@ echo "[Pure Bash]"
 # Verify no external interpreter (py/ruby/node) invocations exist
 if grep -qE '^\s*(python3?|ruby|node) |[|&;]\s*(python3?|ruby|node) |\$\((python3?|ruby|node)' "$0" 2>/dev/null; then
     echo "  [FAIL] Found external interpreter invocations in build script"
-    errors=$((errors + 1))
+    BUILD_ERRORS=$((BUILD_ERRORS + 1))
 else
     echo "  [OK] Pure bash — no external interpreter calls"
 fi
@@ -752,7 +730,7 @@ done
 if [ "$missing_desc" -eq 0 ]; then
     echo "  [OK] All skills have descriptions"
 else
-    warnings=$((warnings + missing_desc))
+    BUILD_WARNINGS=$((BUILD_WARNINGS + missing_desc))
 fi
 
 # --- Workflow quality check ---
@@ -776,26 +754,15 @@ done
 if [ "$wf_too_short" -eq 0 ] && [ "$wf_no_desc" -eq 0 ]; then
     echo "  [OK] All workflows have description and substantive content"
 else
-    warnings=$((warnings + wf_too_short + wf_no_desc))
+    BUILD_WARNINGS=$((BUILD_WARNINGS + wf_too_short + wf_no_desc))
 fi
 
 # --- Summary ---
-echo ""
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-if [ $errors -eq 0 ]; then
-    echo "BUILD SUCCESSFUL"
-    [ $warnings -gt 0 ] && echo "  (${warnings} warning(s))"
-    echo ""
-    echo "Antigravity workspace created at: $ANTIGRAVITY"
-    echo ""
-    echo "To use:"
-    echo "  1. Open $ANTIGRAVITY in Antigravity IDE"
-    echo "  2. Run: bash scripts/scaffold-hxsk.sh"
-    echo ""
-    echo "Or copy to an existing project:"
-    echo "  cp -r $ANTIGRAVITY/.agent /path/to/project/"
-    echo "  cp $ANTIGRAVITY/GEMINI.md /path/to/project/"
-else
-    echo "BUILD COMPLETED WITH $errors ERROR(S), $warnings WARNING(S)"
-    exit 1
-fi
+print_build_result "$ANTIGRAVITY" \
+    "To use:" \
+    "  1. Open $ANTIGRAVITY in Antigravity IDE" \
+    "  2. Run: bash scripts/scaffold-hxsk.sh" \
+    "" \
+    "Or copy to an existing project:" \
+    "  cp -r $ANTIGRAVITY/.agent /path/to/project/" \
+    "  cp $ANTIGRAVITY/GEMINI.md /path/to/project/"

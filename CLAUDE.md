@@ -24,10 +24,8 @@ AI 에이전트 기반 개발을 위한 경량 프로젝트 보일러플레이�
 make setup                    # Full setup (install → env)
 make status                   # Tool & environment status
 make check-deps               # Verify prerequisites
-make clean                    # Patch workspace cleanup
-make patch-prompt             # System prompt patching (토큰 절감)
-make patch-restore            # Patch 원복
-make patch-clean              # Patch workspace 삭제
+make clean                    # Build artifacts cleanup
+make build                    # Build all targets (plugin, antigravity, opencode)
 ```
 
 ## Architecture
