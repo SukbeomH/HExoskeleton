@@ -12,6 +12,8 @@ HOOK_DIR="$(cd "$(dirname "$0")" && pwd)"
 FLAG_FILE="$PROJECT_DIR/.hxsk/.modified-this-session"
 CURRENT_MD="$PROJECT_DIR/.hxsk/CURRENT.md"
 LOG_FILE="$PROJECT_DIR/.hxsk/.context-save.log"
+TRACK_LOG="$PROJECT_DIR/.hxsk/.track-modifications.log"
+PATTERNS_MD="$PROJECT_DIR/.hxsk/PATTERNS.md"
 
 # 플래그 파일 없으면 스킵
 [[ -f "$FLAG_FILE" ]] || exit 0
@@ -77,6 +79,13 @@ EOF
     # ── 2. 파일 기반 메모리 저장 (변경 파일이 1개 이상일 때) ──
     # Nemori + A-Mem: 서사 형태 + 확장 필드로 저장
     FILE_COUNT=$(echo "$MODIFIED" | grep -c '.' 2>/dev/null || echo "0")
+
+    # track-modifications.log에서 수정 횟수 집계
+    MODIFICATIONS_COUNT=0
+    if [[ -f "$TRACK_LOG" ]]; then
+        MODIFICATIONS_COUNT=$(wc -l < "$TRACK_LOG" | tr -d ' ')
+    fi
+
     if [[ "$FILE_COUNT" -ge 1 ]]; then
         # CURRENT.md가 있으면 풍부한 content 사용, 없으면 fallback
         if [[ -f "$CURRENT_MD" ]]; then
@@ -84,11 +93,14 @@ EOF
         else
             MEMORY_CONTENT="On $TS, the developer worked on the $BRANCH branch, modifying $FILE_COUNT files. $(echo "$RECENT_COMMITS" | head -1)"
         fi
+        # modifications_count 추가
+        MEMORY_CONTENT="${MEMORY_CONTENT}
+modifications_count: $MODIFICATIONS_COUNT"
 
         # A-Mem 확장 필드: keywords, contextual_description
         # 변경 파일에서 키워드 추출
         KEYWORDS=$(echo "$MODIFIED" | head -5 | sed 's/^[[:space:]MADRC?]*//' | xargs -I{} basename {} 2>/dev/null | tr '\n' ',' | sed 's/,$//')
-        CONTEXTUAL_DESC="Session on $BRANCH: $FILE_COUNT files modified"
+        CONTEXTUAL_DESC="Session on $BRANCH: $FILE_COUNT files modified ($MODIFICATIONS_COUNT tool edits)"
 
         "$HOOK_DIR/md-store-memory.sh" \
             "Session [$TS]: $BRANCH" \
@@ -101,6 +113,29 @@ EOF
             && echo "[$TS] Memory stored (A-Mem extended)" >> "$LOG_FILE" \
             || echo "[$TS] Memory store failed" >> "$LOG_FILE"
     fi
+
+    # ── 3. ACE Reflector: pattern-discovery 힌트를 PATTERNS.md에 추가 ──
+    PATTERN_DIR="$PROJECT_DIR/.hxsk/memories/pattern-discovery"
+    if [[ -d "$PATTERN_DIR" ]]; then
+        # 오늘 생성된 pattern-discovery 메모리 확인
+        TODAY=$(date '+%Y-%m-%d')
+        for pfile in "$PATTERN_DIR/${TODAY}"_*.md; do
+            [[ -f "$pfile" ]] || continue
+            SLUG=$(basename "$pfile" .md)
+            # 이미 힌트가 있으면 스킵
+            if [[ -f "$PATTERNS_MD" ]] && grep -q "AUTO-HINT: $SLUG" "$PATTERNS_MD" 2>/dev/null; then
+                continue
+            fi
+            # PATTERNS.md 말미에 힌트 코멘트 추가
+            if [[ -f "$PATTERNS_MD" ]]; then
+                echo "<!-- AUTO-HINT: $SLUG -->" >> "$PATTERNS_MD"
+                echo "[$TS] Pattern hint added: $SLUG" >> "$LOG_FILE"
+            fi
+        done
+    fi
+
+    # ── 4. track-modifications.log 초기화 ──
+    rm -f "$TRACK_LOG"
 ) &
 
 exit 0
