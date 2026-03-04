@@ -1,6 +1,7 @@
 ---
 name: clean
 description: Runs shell script quality checks (shellcheck, shfmt) across the codebase
+trigger: "코드 품질 검사, 린트, 포맷팅 수정, shellcheck, shfmt, pre-commit quality gate"
 ---
 
 ## Quick Reference

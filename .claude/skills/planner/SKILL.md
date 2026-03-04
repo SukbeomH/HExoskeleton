@@ -1,6 +1,7 @@
 ---
 name: planner
 description: Creates executable phase plans with task breakdown, dependency analysis, and goal-backward verification
+trigger: "플랜 작성, 계획 수립, 태스크 분해, create plan, break down tasks, make PLAN.md"
 ---
 
 ## Quick Reference

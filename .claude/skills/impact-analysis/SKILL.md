@@ -7,7 +7,7 @@ allowed-tools:
   - Grep
   - Glob
   - Bash
-trigger: "Before ANY code modification or refactoring"
+trigger: "영향 분석, 변경 영향 범위, 의존성 분석, impact analysis, check what this affects, before modifying files"
 ---
 
 ## Quick Reference

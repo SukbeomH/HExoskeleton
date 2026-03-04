@@ -1,6 +1,7 @@
 ---
 name: create-pr
 description: Analyzes changes, creates branch, splits commits logically, pushes and creates pull request via gh CLI
+trigger: "PR 생성, 풀 리퀘스트 만들기, push and create PR, gh pr create"
 ---
 
 ## Quick Reference

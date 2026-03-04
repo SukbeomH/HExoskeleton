@@ -1,6 +1,7 @@
 ---
 name: empirical-validation
 description: Requires proof before marking work complete — no "trust me, it works"
+trigger: "경험적 검증, 실행 결과 확인, 증거 기반 확인, prove it works, empirical proof, validate with output"
 ---
 
 ## Quick Reference

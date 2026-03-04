@@ -796,11 +796,11 @@ template_count=$(ls "$PLUGIN/templates/hxsk/templates/"*.md 2>/dev/null | wc -l 
 echo "  Commands:  ${cmd_count}"
 [ "$cmd_count" -ge 1 ] || { echo "    [WARN] No commands found"; }
 
-echo "  Skills:    ${skill_count} (expected: 16)"
-[ "$skill_count" -ge 16 ] || { echo "    [WARN] Expected 16 skills"; }
+echo "  Skills:    ${skill_count} (expected: 17)"
+[ "$skill_count" -ge 17 ] || { echo "    [WARN] Expected 17 skills"; }
 
-echo "  Agents:    ${agent_count} (expected: 14)"
-[ "$agent_count" -ge 14 ] || { echo "    [WARN] Expected 14 agents"; }
+echo "  Agents:    ${agent_count} (expected: 15)"
+[ "$agent_count" -ge 15 ] || { echo "    [WARN] Expected 15 agents"; }
 
 echo "  Scripts:   ${script_count} (expected: 9)"
 [ "$script_count" -ge 9 ] || { echo "    [WARN] Expected 9 scripts"; }

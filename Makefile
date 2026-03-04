@@ -49,7 +49,7 @@ status: ## Show tool status
 	@test -f .env && echo "  .env: exists" || echo "  .env: MISSING (run: make init-env)"
 	@echo ""
 	@echo "=== Memory ==="
-	@test -d .gsd/memories && echo "  .gsd/memories/: exists ($$(ls .gsd/memories/ | wc -l | tr -d ' ') type dirs)" || echo "  .gsd/memories/: MISSING"
+	@test -d .hxsk/memories && echo "  .hxsk/memories/: exists ($$(ls .hxsk/memories/ | wc -l | tr -d ' ') type dirs)" || echo "  .hxsk/memories/: MISSING"
 
 # ─────────────────────────────────────────────────────
 # Full Setup
@@ -67,7 +67,7 @@ setup: ## Full initial setup (install deps → env)
 	@echo "========================================="
 	@echo ""
 	@echo "Next steps:"
-	@echo "  1. Run: /new-project to start a GSD workflow"
+	@echo "  1. Run: /bootstrap to initialize HXSK workflow"
 
 # ─────────────────────────────────────────────────────
 # System Prompt Patching
@@ -80,7 +80,7 @@ patch-prompt: ## Patch Claude Code system prompt (reduces token usage ~50%)
 	@echo "=== System Prompt Patcher ==="
 	@command -v node >/dev/null 2>&1 || { echo "[MISSING] node — install Node.js"; exit 1; }
 	@echo "Claude Code version: $(CLAUDE_CODE_VERSION)"
-	@test -d "$(PATCH_DIR)/$(CLAUDE_CODE_VERSION)" || { echo "[ERROR] No patches for v$(CLAUDE_CODE_VERSION) in $(PATCH_DIR)/"; echo "See: .gsd/GUIDE-system-prompt-patch.md > Version Upgrade"; exit 1; }
+	@test -d "$(PATCH_DIR)/$(CLAUDE_CODE_VERSION)" || { echo "[ERROR] No patches for v$(CLAUDE_CODE_VERSION) in $(PATCH_DIR)/"; echo "See: .hxsk/GUIDE-system-prompt-patch.md > Version Upgrade"; exit 1; }
 	@mkdir -p .patch-workspace
 	npm install --prefix .patch-workspace @anthropic-ai/claude-code@$(CLAUDE_CODE_VERSION) --silent
 	@cp .patch-workspace/node_modules/@anthropic-ai/claude-code/cli.js /tmp/_claude_cli.js
