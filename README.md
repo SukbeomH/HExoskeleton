@@ -34,7 +34,7 @@ SPEC → PLAN → EXECUTE → VERIFY
 
 | 구성요소 | 개수 | 설명 |
 |----------|------|------|
-| **Skills** | 17 | Claude가 상황을 인식하여 자율 호출하는 기능 단위 (How) |
+| **Skills** | 18 | Claude가 상황을 인식하여 자율 호출하는 기능 단위 (How) |
 | **Agents** | 15 | 스킬을 조합하고 오케스트레이션하는 서브에이전트 (When/With What) |
 | **Hooks** | 17 | 이벤트 기반 자동화 (가드레일, 상태 저장, 검증) |
 | **Memory System** | 14 types | A-Mem 확장 파일 기반 메모리 (2-hop 검색, 중복 방지) |
@@ -44,7 +44,7 @@ SPEC → PLAN → EXECUTE → VERIFY
 | 문서 | 설명 |
 |------|------|
 | [Agents](docs/AGENTS.md) | 15개 서브에이전트 (역할, capabilities, 실행 흐름) |
-| [Skills](docs/SKILLS.md) | 17개 스킬 (트리거 조건, 도구 연동) |
+| [Skills](docs/SKILLS.md) | 18개 스킬 (트리거 조건, 도구 연동) |
 | [Hooks](docs/HOOKS.md) | 17개 훅 이벤트 (이벤트, 코드, 작동 예시) |
 | [Memory](docs/MEMORY.md) | 파일 기반 메모리 시스템 상세 |
 | [Build](docs/BUILD.md) | 빌드 가이드 (Claude Code Plugin, Antigravity, OpenCode) |
@@ -58,7 +58,7 @@ SPEC → PLAN → EXECUTE → VERIFY
 .
 ├── .claude/                   # Claude Code 설정 (Single Source of Truth)
 │   ├── agents/                # 서브에이전트 정의 (15)
-│   ├── skills/                # 스킬 정의 (17)
+│   ├── skills/                # 스킬 정의 (18)
 │   ├── hooks/                 # 훅 스크립트 (17)
 │   └── settings.json          # 훅 설정
 ├── .hxsk/                      # HXSK 작업 문서
@@ -209,7 +209,7 @@ Claude는 작업 성격을 인식하여 적절한 스킬을 **스스로 판단�
 
 ---
 
-## Skills (17)
+## Skills (18)
 
 **Skills**는 Claude가 작업 컨텍스트를 기반으로 **자율적으로 호출**하는 전문 기능입니다.
 
@@ -232,6 +232,7 @@ Claude는 작업 성격을 인식하여 적절한 스킬을 **스스로 판단�
 | `bootstrap` | 프로젝트 초기 설정 | 부트스트랩 요청 시 |
 | `memory-protocol` | 메모리 검색/저장 프로토콜 | 메모리 작업 시 |
 | `write-report` | 솔루션 비교 보고서 작성 | 기술 선정/벤더 평가 시 |
+| `handoff` | 세션 핸드오프 워크플로우 (테스트→커밋→push→메모리 저장) | 세션 종료 시 |
 
 ---
 

@@ -542,7 +542,7 @@ AI agent development boilerplate for **OpenCode**.
 │   └── ...
 ├── commands/        # Workflow commands (/plan, /execute, etc.)
 ├── plugins/         # TypeScript plugins
-└── skill/           # 17 skills (SKILL.md format)
+└── skill/           # 18 skills (SKILL.md format)
 
 scripts/             # Utility scripts (메모리 포함)
 opencode.json        # Main config with agent model mapping
@@ -657,7 +657,7 @@ skill_count=$(ls -d "$OPENCODE/.opencode/skill"/*/ 2>/dev/null | wc -l | tr -d '
 
 verify_count "Agents" "$agent_count" 15
 verify_count "Commands" "$command_count" 1
-verify_count "Skills" "$skill_count" 17
+verify_count "Skills" "$skill_count" 18
 
 # Model field check
 echo ""

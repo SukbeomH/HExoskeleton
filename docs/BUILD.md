@@ -29,7 +29,7 @@ hxsk-plugin/
 ├── .claude-plugin/
 │   └── plugin.json          # 매니페스트 (name, version, description)
 ├── commands/                 # 워크플로우 명령어
-├── skills/                   # 17개 스킬
+├── skills/                   # 18개 스킬
 ├── agents/                   # 15개 에이전트
 ├── hooks/
 │   └── hooks.json           # 훅 설정 (경로 변환됨)
@@ -101,7 +101,7 @@ make build-antigravity
 ```
 antigravity-boilerplate/
 ├── .agent/
-│   ├── skills/              # 17개 스킬 (SKILL.md format)
+│   ├── skills/              # 18개 스킬 (SKILL.md format)
 │   │   ├── planner/
 │   │   ├── executor/
 │   │   └── ...
@@ -213,7 +213,7 @@ opencode-boilerplate/
 │   │   └── ...
 │   ├── commands/            # 워크플로우 명령어
 │   ├── plugins/             # TypeScript 플러그인 (빈 디렉토리)
-│   └── skill/               # 17개 스킬
+│   └── skill/               # 18개 스킬
 ├── templates/hxsk/           # HXSK 템플릿 + 예제
 ├── scripts/
 │   ├── scaffold-hxsk.sh      # HXSK 문서 초기화

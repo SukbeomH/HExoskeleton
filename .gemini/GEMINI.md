@@ -19,4 +19,4 @@
 | `.hxsk/PLAN.md` | 실행 계획 |
 | `.hxsk/STATE.md` | 진행 상태 |
 | `.claude/agents/` | Agent 정의 (15개) |
-| `.claude/skills/` | Skill 정의 (17개) |
+| `.claude/skills/` | Skill 정의 (18개) |
