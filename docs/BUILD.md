@@ -30,7 +30,7 @@ hxsk-plugin/
 │   └── plugin.json          # 매니페스트 (name, version, description)
 ├── commands/                 # 워크플로우 명령어
 ├── skills/                   # 18개 스킬
-├── agents/                   # 15개 에이전트
+├── agents/                   # 16개 에이전트
 ├── hooks/
 │   └── hooks.json           # 훅 설정 (경로 변환됨)
 ├── scripts/                  # 훅 스크립트
@@ -207,7 +207,7 @@ make build-opencode
 ```
 opencode-boilerplate/
 ├── .opencode/
-│   ├── agents/              # 15개 에이전트 (모델 설정 포함)
+│   ├── agents/              # 16개 에이전트 (모델 설정 포함)
 │   │   ├── planner.md       # model: anthropic/claude-opus-4-20250514
 │   │   ├── executor.md      # model: anthropic/claude-sonnet-4-20250514
 │   │   └── ...

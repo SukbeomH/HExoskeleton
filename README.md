@@ -35,7 +35,7 @@ SPEC → PLAN → EXECUTE → VERIFY
 | 구성요소 | 개수 | 설명 |
 |----------|------|------|
 | **Skills** | 18 | Claude가 상황을 인식하여 자율 호출하는 기능 단위 (How) |
-| **Agents** | 15 | 스킬을 조합하고 오케스트레이션하는 서브에이전트 (When/With What) |
+| **Agents** | 16 | 스킬을 조합하고 오케스트레이션하는 서브에이전트 (When/With What) |
 | **Hooks** | 17 | 이벤트 기반 자동화 (가드레일, 상태 저장, 검증) |
 | **Memory System** | 14 types | A-Mem 확장 파일 기반 메모리 (2-hop 검색, 중복 방지) |
 
@@ -43,7 +43,7 @@ SPEC → PLAN → EXECUTE → VERIFY
 
 | 문서 | 설명 |
 |------|------|
-| [Agents](docs/AGENTS.md) | 15개 서브에이전트 (역할, capabilities, 실행 흐름) |
+| [Agents](docs/AGENTS.md) | 16개 서브에이전트 (역할, capabilities, 실행 흐름) |
 | [Skills](docs/SKILLS.md) | 18개 스킬 (트리거 조건, 도구 연동) |
 | [Hooks](docs/HOOKS.md) | 17개 훅 이벤트 (이벤트, 코드, 작동 예시) |
 | [Memory](docs/MEMORY.md) | 파일 기반 메모리 시스템 상세 |
@@ -236,7 +236,7 @@ Claude는 작업 성격을 인식하여 적절한 스킬을 **스스로 판단�
 
 ---
 
-## Agents (15)
+## Agents (16)
 
 **Agents**는 특정 작업에 특화된 **서브에이전트**입니다.
 
@@ -257,6 +257,7 @@ Claude는 작업 성격을 인식하여 적절한 스킬을 **스스로 판단�
 | `context-health-monitor` | 컨텍스트 모니터링 | context-health-monitor |
 | `bootstrap` | 프로젝트 초기화 | bootstrap, memory-protocol |
 | `write-report` | 솔루션 비교 보고서 | write-report |
+| `handoff` | 세션 핸드오프 자동화 | handoff, commit, memory-protocol |
 
 ---
 
