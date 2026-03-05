@@ -8,9 +8,17 @@
 
 | 항목 | 위치 |
 |------|------|
-| **CI 워크플로우** | `.github/workflows/ci.yml` |
+| **Release 워크플로우** | `.github/workflows/release-plugin.yml` |
 | **Issue 템플릿** | `.github/ISSUE_TEMPLATE/*.yml` |
 | **GitHub Agent** | `.github/agents/agent.md` |
+
+> Note: 현재 활성화된 CI는 `Release HXSK Plugin` 하나이며(기존 `ci.yml` 없음), 최근 실패 패턴을 아래에 기록합니다.
+
+### Release HXSK Plugin 실패 패턴
+
+- **2026-03-04 · run #65** — `release-please` 스텝이 릴리즈 목록 조회 중 GitHub “Unicorn!” HTML(503) 응답을 받아 실패. 레거시 `gsd-plugin` 태그 스캔 시 발생한 GitHub API 일시 장애로, 재시도 필요.
+- **2026-03-04 · run #61** — 기존에 닫힌 release PR `#44`를 다시 업데이트하려다 `state cannot be changed. The pull request cannot be reopened.` 검증 오류로 실패. 원인: release-please가 닫힌 PR/브랜치를 참조한 상태에서 새 PR `#46`을 만든 뒤 동일 브랜치 업데이트를 시도. 해결: 닫힌 release-please 브랜치를 정리(삭제)하거나 열린 release PR을 하나만 유지.
+- **2026-02-20 · run #50~51** — 디버그 출력 스텝에서 `echo '${{ toJSON(...) }}'`가 릴리즈 노트 내 괄호/markdown을 그대로 포함하면서 `syntax error near unexpected token '('`로 실패. 이후 Heredoc(`cat <<'DEBUGEOF'`)으로 quoting 수정하여 해결됨.
 
 ---
 
