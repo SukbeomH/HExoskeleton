@@ -100,7 +100,8 @@ modifications_count: $MODIFICATIONS_COUNT"
         # A-Mem 확장 필드: keywords, contextual_description
         # 변경 파일에서 키워드 추출
         KEYWORDS=$(echo "$MODIFIED" | head -5 | sed 's/^[[:space:]MADRC?]*//' | xargs -I{} basename {} 2>/dev/null | tr '\n' ',' | sed 's/,$//')
-        CONTEXTUAL_DESC="Session on $BRANCH: $FILE_COUNT files modified ($MODIFICATIONS_COUNT tool edits)"
+        SHORT_COMMIT=$(echo "$RECENT_COMMITS" | head -1 | sed 's/^[a-f0-9]* //' | cut -c1-80)
+        CONTEXTUAL_DESC="[$BRANCH] $FILE_COUNT files${SHORT_COMMIT:+. ${SHORT_COMMIT}}"
 
         "$HOOK_DIR/md-store-memory.sh" \
             "Session [$TS]: $BRANCH" \
