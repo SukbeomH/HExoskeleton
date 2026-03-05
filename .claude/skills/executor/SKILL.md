@@ -445,6 +445,43 @@ git commit -m "feat({phase}-{plan}): {task description}"
 
 ---
 
+## Phase Checkpoint Commit
+
+Phase 단위로 checkpoint commit을 생성하여 partial achievement를 방지합니다.
+
+### When to Checkpoint
+
+- **Phase 완료 시**: 해당 phase의 모든 task 커밋 후 phase checkpoint 생성
+- **Mid-execution 중단 시**: 세션 종료가 필요한 경우 현재 task까지 완료 후 checkpoint
+
+### Checkpoint Procedure
+
+1. **테스트 실행**: `detect-language.sh`의 `detect_test_runner()` + `get_test_cmd()` 활용
+2. **Phase commit**: `git commit -m "checkpoint({phase}): complete phase N — M/T tasks done"`
+3. **Push**: `git push` — recovery point를 remote에 보존
+4. **STATE.md 업데이트**: 현재 phase 진행 상태 기록
+
+```bash
+source scripts/detect-language.sh
+RUNNER=$(detect_test_runner)
+PKG=$(detect_pkg_manager)
+TEST_CMD=$(get_test_cmd "$RUNNER" "$PKG")
+# 테스트 실행 후 결과에 따라 commit message에 test status 포함
+```
+
+### Mid-Execution Handoff
+
+세션 중단이 불가피한 경우:
+
+1. 현재 task를 안전한 지점까지 완료
+2. 위 Checkpoint Procedure 실행
+3. `handoff` 스킬 호출 — 세션 인수인계 메모리 저장 + 요약 출력
+4. 다음 세션에서 PLAN.md + handoff 메모리로 정확한 재개 지점 확인 가능
+
+> **목적**: Phase checkpoint가 있으면 다음 세션에서 처음부터 다시 시작할 필요 없이 중단 지점부터 재개 가능.
+
+---
+
 ## PRD Update Protocol
 
 작업 완료 후 PRD 상태를 업데이트하여 진행 상황을 추적합니다.

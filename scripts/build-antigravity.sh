@@ -347,7 +347,7 @@ GEMINIHEADER
 ## Repository Layout
 
 - **.agent/** — Agent configuration (Antigravity format):
-  - `skills/` — Modular skill definitions (17 skills, SKILL.md format)
+  - `skills/` — Modular skill definitions (18 skills, SKILL.md format)
   - `workflows/` — Workflow commands (triggered via `/` commands)
   - `rules/` — Always-on passive rules (4 rule files)
 - **.hxsk/** — HXSK documents and context management:
@@ -522,7 +522,7 @@ AI agent development boilerplate for **Google Antigravity IDE**.
 
 ```
 .agent/
-├── skills/          # 17 AI skills (SKILL.md format)
+├── skills/          # 18 AI skills (SKILL.md format)
 │   ├── planner/     # Planning skill
 │   ├── executor/    # Execution skill
 │   └── ...
@@ -555,7 +555,7 @@ bash scripts/md-recall-memory.sh "query" "." 5 compact
 
 14 memory types: `architecture-decision`, `root-cause`, `session-summary`, etc.
 
-## Skills (17)
+## Skills (18)
 
 | Skill | Description |
 |-------|-------------|
@@ -637,7 +637,7 @@ skill_count=$(find "$ANTIGRAVITY/.agent/skills" -mindepth 1 -maxdepth 1 -type d 
 workflow_count=$(find "$ANTIGRAVITY/.agent/workflows" -name "*.md" | wc -l | tr -d ' ')
 rules_count=$(find "$ANTIGRAVITY/.agent/rules" -name "*.md" | wc -l | tr -d ' ')
 
-verify_count "Skills" "$skill_count" 17
+verify_count "Skills" "$skill_count" 18
 verify_count "Workflows" "$workflow_count" 15
 verify_count "Rules" "$rules_count" 4
 

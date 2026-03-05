@@ -58,6 +58,7 @@ make build                    # Build all targets (plugin, antigravity, opencode
 | Plan deviation | `deviation` |
 | Execution summary | `execution-summary` |
 | Session end (auto) | `session-summary` |
+| Session handoff (manual) | `session-handoff` |
 
 저장 명령어, 파일 포맷, 스키마 상세는 `.claude/skills/memory-protocol/SKILL.md` 참조.
 
