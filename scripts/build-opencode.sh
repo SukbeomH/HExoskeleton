@@ -472,6 +472,18 @@ cat > "$OPENCODE/.opencode/package.json" << 'PKGEOF'
 {"name":"opencode-plugins","type":"module","dependencies":{"@opencode-ai/plugin":"^1.2.10"}}
 PKGEOF
 
+# Install plugin dependencies
+echo "  Installing plugin dependencies..."
+if command -v npm >/dev/null 2>&1; then
+    if (cd "$OPENCODE/.opencode" && npm install --silent 2>&1); then
+        echo "  [+] npm install completed"
+    else
+        echo "  [WARN] npm install failed — plugins may not load. Run: cd $OPENCODE/.opencode && npm install"
+    fi
+else
+    echo "  [WARN] npm not found — skip install. Run manually: cd $OPENCODE/.opencode && npm install"
+fi
+
 # Create migration guide
 cat > "$OPENCODE/.opencode/plugins/MIGRATION-GUIDE.md" << 'GUIDEEOF'
 # Hooks → Plugins Migration Guide
@@ -656,7 +668,7 @@ command_count=$(ls "$OPENCODE/.opencode/commands/"*.md 2>/dev/null | wc -l | tr 
 skill_count=$(ls -d "$OPENCODE/.opencode/skill"/*/ 2>/dev/null | wc -l | tr -d ' ')
 
 verify_count "Agents" "$agent_count" 16
-verify_count "Commands" "$command_count" 1
+verify_count "Commands" "$command_count" 18
 verify_count "Skills" "$skill_count" 18
 
 # Model field check

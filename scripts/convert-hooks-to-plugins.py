@@ -17,6 +17,7 @@ EVENT_MAP = {
     "PreToolUse":    "tool.execute.before",
     "PostToolUse":   "tool.execute.after",
     "Stop":          "session.idle",
+    "SubagentStop":  "session.idle",
     "SessionEnd":    "session.idle",
     "PreCompact":    "session.idle",
 }

@@ -782,7 +782,7 @@ echo "  Commands:  ${cmd_count}"
 
 verify_count "Skills" "$skill_count" 18
 verify_count "Agents" "$agent_count" 16
-verify_count "Scripts" "$script_count" 9
+verify_count "Scripts" "$script_count" 17
 verify_count "Templates" "$template_count" 22
 
 # Transformation check
