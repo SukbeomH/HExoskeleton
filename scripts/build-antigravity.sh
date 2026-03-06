@@ -349,8 +349,8 @@ Do NOT execute these commands without explicit user confirmation:
 If you want to validate a command before running, you can use:
 
 ```bash
-python3 scripts/bash-guard.py
-python3 scripts/file-protect.py
+$ python3 scripts/bash-guard.py
+$ python3 scripts/file-protect.py
 ```
 SECEOF
 echo "  [+] security-guard.md"
