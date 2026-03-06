@@ -10,14 +10,7 @@
     ".": {
       "component": "hxsk-plugin",
       "changelog-path": "CHANGELOG.md",
-      "release-type": "simple",
-      "extra-files": [
-        {
-          "type": "json",
-          "path": "hxsk-plugin/.claude-plugin/plugin.json",
-          "jsonpath": "$.version"
-        }
-      ]
+      "release-type": "simple"
     }
   },
   "changelog-sections": [

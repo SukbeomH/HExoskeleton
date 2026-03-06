@@ -309,6 +309,91 @@ echo "  [+] hxsk-workflow.md"
 } > "$ANTIGRAVITY/.agent/rules/memory-protocol.md"
 echo "  [+] memory-protocol.md"
 
+# Rule 5: security-guard.md — compensates for missing hook-based guards
+cat > "$ANTIGRAVITY/.agent/rules/security-guard.md" << 'SECEOF'
+---
+description: "Security guard rules — compensates for hook-based protections unavailable in Antigravity IDE"
+---
+
+## Security Rules
+
+Antigravity IDE does not support event hooks. The following guards must be applied manually.
+
+### Dangerous Bash Commands — BLOCK before execution
+
+Do NOT execute these commands without explicit user confirmation:
+
+| Pattern | Risk |
+|---------|------|
+| `git push --force` or `git push -f` | Overwrites remote history |
+| `rm -rf /` or `rm -rf *` | Irreversible deletion |
+| `git reset --hard` | Discards uncommitted work |
+| `git clean -f` | Removes untracked files permanently |
+| `chmod -R 777` | Insecure permissions |
+| `DROP TABLE` / `DELETE FROM` (no WHERE) | Data loss |
+
+**Rule**: When asked to run these commands, pause and confirm with the user first.
+
+### Sensitive File Protection — NEVER read or print
+
+| Pattern | Reason |
+|---------|--------|
+| `.env`, `.env.*` | Credentials |
+| `*secret*`, `*credential*`, `*password*` | Secrets |
+| `*.pem`, `*.key`, `id_rsa` | Private keys |
+
+**Rule**: Refuse to read, print, or commit these files.
+
+### Manual Security Check
+
+If you want to validate a command before running, you can use:
+
+```bash
+python3 scripts/bash-guard.py
+python3 scripts/file-protect.py
+```
+SECEOF
+echo "  [+] security-guard.md"
+
+# Rule 6: session-memory.md — compensates for missing stop-context-save hook
+cat > "$ANTIGRAVITY/.agent/rules/session-memory.md" << 'MEMEOF'
+---
+description: "Session memory rules — manual memory save protocol (replaces stop-context-save hook)"
+---
+
+## Session Memory Protocol
+
+Antigravity IDE does not support automatic session-end hooks. Memory must be saved manually.
+
+### When to Save Memory
+
+Save memory at the end of significant work:
+
+```bash
+# Store execution summary
+bash scripts/md-store-memory.sh \
+  "Task summary title" \
+  "What was accomplished and key findings" \
+  "execution,summary" \
+  "execution-summary"
+
+# Store architecture decisions
+bash scripts/md-store-memory.sh \
+  "Decision: title" \
+  "Context, decision, rationale" \
+  "arch,decision" \
+  "architecture-decision"
+```
+
+### Session End Checklist
+
+Before ending a session:
+1. Save execution summary if significant work was done
+2. Update `.hxsk/STATE.md` with current status
+3. Update `.hxsk/PATTERNS.md` if new reusable patterns discovered
+MEMEOF
+echo "  [+] session-memory.md"
+
 RULES_COUNT=$(find "$ANTIGRAVITY/.agent/rules" -name "*.md" | wc -l | tr -d ' ')
 echo "  [=] Total rules: ${RULES_COUNT}"
 
@@ -384,9 +469,9 @@ echo "  [+] GEMINI.md ($(wc -c < "$ANTIGRAVITY/GEMINI.md" | tr -d ' ') chars)"
 echo ""
 echo "[Phase 6] Copying utility scripts (selective)..."
 
-# Copy only standalone-capable scripts
+# Copy memory scripts + security guard scripts
 SCRIPT_COUNT=0
-for script in md-recall-memory.sh md-store-memory.sh _json_parse.sh; do
+for script in md-recall-memory.sh md-store-memory.sh _json_parse.sh bash-guard.py file-protect.py; do
     src="$BOILERPLATE/.claude/hooks/$script"
     if [ -f "$src" ]; then
         cp "$src" "$ANTIGRAVITY/scripts/"
@@ -639,7 +724,7 @@ rules_count=$(find "$ANTIGRAVITY/.agent/rules" -name "*.md" | wc -l | tr -d ' ')
 
 verify_count "Skills" "$skill_count" 18
 verify_count "Workflows" "$workflow_count" 15
-verify_count "Rules" "$rules_count" 4
+verify_count "Rules" "$rules_count" 6
 
 # --- Frontmatter compliance (check only within --- fences) ---
 echo ""
