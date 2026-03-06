@@ -98,9 +98,15 @@ while IFS= read -r filepath; do
         if [ -n "$CTX_DESC" ]; then
             echo "  ${CTX_DESC:0:200}"
         else
-            # fallback: content 첫 줄
-            SUMMARY=$(awk '/^---$/{c++;next} c>=2 && /^[^#]/ && NF{print; exit}' "$filepath" 2>/dev/null || true)
-            [ -n "$SUMMARY" ] && echo "  ${SUMMARY:0:100}..."
+            # 1차 fallback: > 블록쿼트 (Nemori 서사 문장)
+            NARRATIVE=$(awk '/^---$/{c++;next} c>=2 && /^>/{print; exit}' "$filepath" 2>/dev/null | sed 's/^> //' || true)
+            if [ -n "$NARRATIVE" ]; then
+                echo "  ${NARRATIVE:0:200}"
+            else
+                # 2차 fallback: 헤더·빈줄·블록쿼트 제외 첫 줄
+                SUMMARY=$(awk '/^---$/{c++;next} c>=2 && /^[^#>]/ && NF{print; exit}' "$filepath" 2>/dev/null || true)
+                [ -n "$SUMMARY" ] && echo "  ${SUMMARY:0:150}..."
+            fi
         fi
     else
         # full 모드: 전체 내용 포함

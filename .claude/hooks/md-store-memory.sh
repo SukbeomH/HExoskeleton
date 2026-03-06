@@ -50,6 +50,23 @@ if [ -n "$DUPLICATE_CHECK" ]; then
     exit 0
 fi
 
+# ── Predict-Calibrate: keyword similarity warning (cross-day, cross-type) ──
+if [ -n "$KEYWORDS" ]; then
+    _MATCH_COUNT=0
+    _SIMILAR_FILE=""
+    for _KW in $(echo "$KEYWORDS" | tr ',' '\n' | sed 's/^[[:space:]]*//' | head -3); do
+        [ -z "$_KW" ] && continue
+        _FOUND=$(grep -rl "  - $_KW" "$MEMORIES_DIR" 2>/dev/null | grep -v "$FILEPATH" | head -1 || true)
+        if [ -n "$_FOUND" ]; then
+            _MATCH_COUNT=$((_MATCH_COUNT + 1))
+            [ -z "$_SIMILAR_FILE" ] && _SIMILAR_FILE="$_FOUND"
+        fi
+    done
+    if [ "$_MATCH_COUNT" -ge 2 ]; then
+        echo "[WARN:SIMILAR] $_SIMILAR_FILE" >&2
+    fi
+fi
+
 # 일반 중복 방지: 같은 날짜+슬러그면 타임스탬프 추가
 if [ -f "$FILEPATH" ]; then
     TIME_SUFFIX=$(date +%H%M%S)

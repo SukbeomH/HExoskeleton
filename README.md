@@ -411,8 +411,10 @@ make help                   # 전체 명령어 목록
 |-------------|---------------|
 | Episodic + Semantic 이중 메모리 | `session-summary` (에피소드) vs `architecture-decision`, `pattern-discovery` (의미) 타입 분리 |
 | 중복 제거 | `md-store-memory.sh`의 `[SKIP:DUPLICATE]` — 동일 title 저장 방지 |
+| session-summary 서사화 | `stop-context-save.sh`가 커밋 메시지 포함 contextual_description 생성 |
+| keyword 유사도 경고 | `[WARN:SIMILAR]`: 2개 이상 키워드 매칭 시 경고 (저장 계속) |
 
-**채택하지 않은 것**: Predict-Calibrate 사이클 — LLM 추가 호출 비용 대비 효용이 불확실하여 보류.
+**채택하지 않은 것**: Predict-Calibrate 사이클 전체 — LLM 추가 호출 비용 대비 효용이 불확실. 단, 경량 적용으로 keyword 유사도 기반 `[WARN:SIMILAR]` 경고를 구현.
 
 ### 토큰 최적화 연구에서 채택한 것
 
@@ -424,6 +426,7 @@ make help                   # 전체 명령어 목록
 | 적응적 탐색 깊이 | System-1.x | planner의 Discovery Level (0-3) |
 | 가설 가지치기 | Tree of Thoughts | `debug-eliminated` 메모리 타입 |
 | 도구 문서 압축 | EASYTOOL | 스킬 2단계 로딩 (요약 → 상세) |
+| 서사 문장 우선 fallback | Context Compression 연구 | `md-recall-memory.sh`: `>` 블록쿼트를 우선 fallback으로 사용 |
 
 ### 온톨로지에서 채택한 것
 
