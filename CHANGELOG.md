@@ -1,6 +1,6 @@
 # Changelog
 
-## [1.10.0](https://github.com/SukbeomH/HExoskeleton/compare/hxsk-plugin-v1.9.4...hxsk-plugin-v1.10.0) (2026-03-04)
+## [1.10.0](https://github.com/SukbeomH/HExoskeleton/compare/hxsk-plugin-v1.9.4...hxsk-plugin-v1.10.0) (2026-03-05)
 
 
 ### Features
@@ -83,6 +83,7 @@
 * Replace Vagrant with Docker Compose and Makefile for infrastructure management, and integrate uv for Python dependency locking. ([d7d266d](https://github.com/SukbeomH/HExoskeleton/commit/d7d266d06749b2f39413cbee6e9ad16dd631578d))
 * **scaffold:** 템플릿 복사 로직 추가 및 make index MCP 전환 ([aaf7799](https://github.com/SukbeomH/HExoskeleton/commit/aaf77995de0619bee3ee1312df0683d90b992636))
 * SessionEnd 훅으로 대화 내역 자동 저장 ([e0e9024](https://github.com/SukbeomH/HExoskeleton/commit/e0e90248847413551a1f97656167108d109c2bc6))
+* **skills:** add handoff skill + executor phase checkpoint commit ([508691e](https://github.com/SukbeomH/HExoskeleton/commit/508691ec6937cf1706fd0d2412fec8fbbbf08470))
 * Standardize skill names to kebab-case and update skill command examples from PowerShell to Bash. ([96c96cc](https://github.com/SukbeomH/HExoskeleton/commit/96c96cca066ddbb7e93ce587f741721b17076451))
 * Update .gitignore to ignore .legacy dir ([991c9c4](https://github.com/SukbeomH/HExoskeleton/commit/991c9c4af3f38102bcde84e964eb8986851adb94))
 * Update Docker task commands and enhance documentation for consistency ([b731849](https://github.com/SukbeomH/HExoskeleton/commit/b73184906b13f64d929bc4345ebeb0e959e19b3a))
@@ -167,6 +168,7 @@
 * **gsd:** update SPEC.md and CHANGELOG.md for multi-language support ([9aae902](https://github.com/SukbeomH/HExoskeleton/commit/9aae902191fc2312c911e252d3221ee8059b925f))
 * HOOKS.md에 save-transcript.sh 훅 문서 추가 ([a44aac3](https://github.com/SukbeomH/HExoskeleton/commit/a44aac36d472424ca9d899b69972894c41e5cd34))
 * **memory:** scripts/ 중립 경로로 예시 업데이트 + 경로 전략 섹션 추가 ([#28](https://github.com/SukbeomH/HExoskeleton/issues/28)) ([0d60d95](https://github.com/SukbeomH/HExoskeleton/commit/0d60d951ab4196199da2d48784be49128ac2498c))
+* note workflow failure patterns ([d303b31](https://github.com/SukbeomH/HExoskeleton/commit/d303b31841e692ae44cba40dfa7de24d41f7fdd9))
 * README 문서 대폭 개선 및 환경변수/참고문서 섹션 추가 ([be3d08c](https://github.com/SukbeomH/HExoskeleton/commit/be3d08c03939a8c1b282a1a7429225885efa719f))
 * **readme:** add execution flow diagrams and decision logic ([aaa99bb](https://github.com/SukbeomH/HExoskeleton/commit/aaa99bb4cc0bba8c1f1c37ecadd9b23391122a0d))
 * README에 설계 배경(Design Rationale) 섹션 추가 ([#23](https://github.com/SukbeomH/HExoskeleton/issues/23)) ([5a6dfbc](https://github.com/SukbeomH/HExoskeleton/commit/5a6dfbc4c4083334a27beebd75bef4978706a47c))
