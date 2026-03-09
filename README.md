@@ -36,7 +36,7 @@ SPEC → PLAN → EXECUTE → VERIFY
 |----------|------|------|
 | **Skills** | 18 | Claude가 상황을 인식하여 자율 호출하는 기능 단위 (How) |
 | **Agents** | 16 | 스킬을 조합하고 오케스트레이션하는 서브에이전트 (When/With What) |
-| **Hooks** | 17 | 이벤트 기반 자동화 (가드레일, 상태 저장, 검증) |
+| **Hooks** | 11 | 이벤트 기반 자동화 (가드레일, 상태 저장, 검증) |
 | **Memory System** | 14 types | A-Mem 확장 파일 기반 메모리 (2-hop 검색, 중복 방지) |
 
 ### 상세 문서
@@ -45,10 +45,14 @@ SPEC → PLAN → EXECUTE → VERIFY
 |------|------|
 | [Agents](docs/AGENTS.md) | 16개 서브에이전트 (역할, capabilities, 실행 흐름) |
 | [Skills](docs/SKILLS.md) | 18개 스킬 (트리거 조건, 도구 연동) |
-| [Hooks](docs/HOOKS.md) | 17개 훅 이벤트 (이벤트, 코드, 작동 예시) |
+| [Hooks](docs/HOOKS.md) | 11개 훅 이벤트 (이벤트, 코드, 작동 예시) |
 | [Memory](docs/MEMORY.md) | 파일 기반 메모리 시스템 상세 |
 | [Build](docs/BUILD.md) | 빌드 가이드 (Claude Code Plugin, Antigravity, OpenCode) |
 | [GitHub Workflow](docs/GITHUB-WORKFLOW.md) | CI/CD 파이프라인 (release-please) |
+| [Antigravity Agent](docs/ANTIGRAVITY_AGENT_GUIDE.md) | Antigravity 에이전트 가이드 |
+| [Linting](docs/LINTING.md) | 린팅 설정 가이드 |
+| [MCP](docs/MCP.md) | MCP 서버 통합 |
+| [Workflows](docs/WORKFLOWS.md) | 워크플로우 상세 |
 
 ---
 
@@ -57,9 +61,9 @@ SPEC → PLAN → EXECUTE → VERIFY
 ```
 .
 ├── .claude/                   # Claude Code 설정 (Single Source of Truth)
-│   ├── agents/                # 서브에이전트 정의 (15)
+│   ├── agents/                # 서브에이전트 정의 (16)
 │   ├── skills/                # 스킬 정의 (18)
-│   ├── hooks/                 # 훅 스크립트 (17)
+│   ├── hooks/                 # 훅 스크립트 (11) + 유틸리티 (6)
 │   └── settings.json          # 훅 설정
 ├── .hxsk/                      # HXSK 작업 문서
 │   ├── STATE.md               # 현재 작업 상태 (git 추적)
@@ -83,7 +87,12 @@ SPEC → PLAN → EXECUTE → VERIFY
 │   ├── build-plugin.sh        # HXSK 플러그인 빌드
 │   ├── build-antigravity.sh   # Antigravity 워크스페이스 빌드
 │   ├── build-opencode.sh      # OpenCode 워크스페이스 빌드
-│   └── bootstrap.sh           # 프로젝트 부트스트랩
+│   ├── build-common.sh        # 빌드 공통 함수
+│   ├── bootstrap.sh           # 프로젝트 부트스트랩
+│   ├── md-store-memory.sh     # 메모리 저장
+│   ├── md-recall-memory.sh    # 메모리 검색
+│   ├── detect-language.sh     # 언어 감지
+│   └── convert-hooks-to-plugins.py  # 훅→플러그인 변환
 ├── Makefile                   # 개발 명령어
 └── CLAUDE.md                  # Claude Code 지침
 ```
@@ -261,7 +270,7 @@ Claude는 작업 성격을 인식하여 적절한 스킬을 **스스로 판단�
 
 ---
 
-## Hooks (17)
+## Hooks (11)
 
 **Hooks**는 Claude Code 이벤트에 자동으로 응답하는 스크립트입니다. AI의 자율성을 유지하면서도 **위험 행동을 원천 차단**하는 가드레일 역할을 합니다.
 
@@ -275,6 +284,7 @@ Claude는 작업 성격을 인식하여 적절한 스킬을 **스스로 판단�
 | **PreCompact** | `pre-compact-save.sh` | 컴팩트 전 상태 저장 |
 | **Stop** | `stop-context-save.sh` | 세션 컨텍스트 저장 |
 | **Stop** | `post-turn-verify.sh` | 작업 검증 |
+| **SubagentStop** | *(prompt)* | 서브에이전트 완료 시 결과 요약 및 패턴 기록 |
 | **SessionEnd** | `save-session-changes.sh` | 세션 변경사항 추적 |
 | **SessionEnd** | `save-transcript.sh` | 대화 기록 저장 |
 
