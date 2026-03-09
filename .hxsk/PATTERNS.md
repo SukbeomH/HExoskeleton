@@ -11,11 +11,11 @@
 - **외부 종속성 없음**: 순수 bash 스크립트 + 네이티브 Claude Code 도구만 사용
 
 ## Memory System
-- **저장**: `bash scripts/md-store-memory.sh <title> <content> [tags] [type] [keywords] [contextual_desc] [related]`
-- **검색**: `bash scripts/md-recall-memory.sh <query> [path] [limit] [mode] [hop]`
+- **저장**: `bash scripts/md-store-memory.sh <title> <content> [tags] [type]`
+- **검색**: `bash scripts/md-recall-memory.sh <query> [path] [limit] [mode]`
 - **A-Mem 필드**: `keywords`, `contextual_description`, `related` (2-hop 검색용)
-- **중복 방지**: 동일 title 저장 시 `[SKIP:DUPLICATE]` 반환 (Nemori Predict-Calibrate)
-- **스키마**: `.hxsk/memories/_schema/`에 JSON Schema + type-relations.yaml
+- **중복 방지**: 동일 title → `[SKIP:DUPLICATE]` 반환
+- **스키마**: `.hxsk/memories/_schema/` (JSON Schema + type-relations.yaml)
 
 ## Conventions
 - 커밋: atomic, conventional format. PR 통해 master 병합 (protected branch)
@@ -27,14 +27,13 @@
 - 메모리 타입 14개: architecture-decision, root-cause, debug-eliminated, debug-blocked, health-event, session-handoff, execution-summary, deviation, pattern-discovery, bootstrap, session-summary, session-snapshot, security-finding, general
 
 ## Memory Triggers
-| Trigger | Type | Timing |
-|---------|------|--------|
-| Bug root cause | `root-cause` | Immediate |
-| Architecture decision | `architecture-decision` | Immediate |
-| Hypothesis eliminated | `debug-eliminated` | Immediate |
-| Session end | `session-summary` | Auto (hook) |
+- Bug root cause → `root-cause`, Architecture decision → `architecture-decision`, Session end → `session-summary` (auto hook)
+
+## Plugin (Claude Code)
+- `hooks/hooks.json`은 기본 자동 탐색 경로. 포맷: `{"hooks":{...}}` wrapper 필수. `${CLAUDE_PLUGIN_ROOT}`로 스크립트 경로 참조
+- heredoc 내 코드 예시가 grep 패턴 오탐 유발 가능. `$ python3` prefix로 회피
 
 ---
 
-*Last updated: 2026-02-05*
-*Items: 14/20*
+*Last updated: 2026-03-06*
+*Items: 15/20*
