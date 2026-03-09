@@ -169,6 +169,24 @@ Each persona reviews independently, producing findings with severity classificat
 
 ---
 
+## Convention Compliance Check
+
+PR 리뷰 시 `docs/CONVENTIONS.md` 기반으로 추가 검증:
+
+**PR 범위 검증**:
+- 변경 목적이 2개 이상 혼합되어 있지 않은가?
+- 프로덕션 코드 변경이 500줄을 넘지 않는가?
+- 이슈의 Done Criteria를 모두 충족하는가?
+
+**리뷰 중 발견된 문제 처리**:
+| 유형 | 처리 |
+|------|------|
+| 현재 PR의 직접적인 버그 | 현재 PR에서 수정 |
+| 기존 코드 구조적 문제 | **새 이슈 등록** → 코멘트에 링크 |
+| "이것도 개선하면 좋겠다" | **새 이슈 등록** → 현재 PR에서 하지 않음 |
+
+범위 초과 발견 시 `[High]` severity로 보고하고 이슈 분리를 권장한다.
+
 ## HXSK Alignment
 
 - **SPEC 검증**: 변경 사항이 `.hxsk/SPEC.md`의 must-haves를 충족하는지 확인

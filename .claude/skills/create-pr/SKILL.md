@@ -44,14 +44,16 @@ git checkout -b feat/add-user-auth
 ```
 
 **Branch naming conventions:**
-- `feat/<description>` — New features
-- `fix/<description>` — Bug fixes
-- `refactor/<description>` — Refactoring
-- `docs/<description>` — Documentation
-- `chore/<description>` — Maintenance
+- `feature/{issue-number}-{description}` — New features
+- `bugfix/{issue-number}-{description}` — Bug fixes
+- `refactor/{issue-number}-{description}` — Refactoring
+- `docs/{issue-number}-{description}` — Documentation
+- `release/v{version}` — Release preparation
 
-For HXSK phases:
-- `phase-1/implement-auth` — Phase-scoped work
+For HXSK phases (이슈 없는 경우):
+- `feat/<description>` or `phase-1/implement-auth`
+
+**규칙**: 이슈 번호 포함 필수, 영문 소문자 + 하이픈만 사용
 
 ### Step 3: Stage and Commit
 
@@ -110,6 +112,32 @@ Keep under 70 characters.
 - **Changes**: Key files/modules affected
 - **Test Plan**: How to verify the changes work
 - **HXSK Context**: Phase/plan reference for traceability
+
+## PR 크기 가이드라인
+
+| 크기 | 프로덕션 코드 | 기준 |
+|------|-------------|------|
+| Small | ~200 lines | **목표** |
+| Medium | ~500 lines | 허용 |
+| Large | ~1,000 lines | 분리 검토 |
+| XLarge | 1,000+ lines | **반드시 분리** |
+
+## PR 생성 전 자가 점검
+
+- [ ] 변경 목적이 2개 이상 포함되어 있지 않은가?
+- [ ] 프로덕션 코드 변경이 500줄을 넘지 않는가?
+- [ ] "이것도 같이 고치면 좋겠다"로 범위를 넓히지 않았는가?
+- [ ] PR 설명만 읽고도 왜 이 변경이 필요한지 이해할 수 있는가?
+
+## Merge 전략
+
+| 상황 | 방식 |
+|------|------|
+| feature/bugfix → develop | **Squash and merge** |
+| develop → main (릴리즈) | **Merge commit** |
+| hotfix → main | **Merge commit** |
+
+> 상세 컨벤션: `docs/CONVENTIONS.md` 섹션 5 참조
 
 ---
 

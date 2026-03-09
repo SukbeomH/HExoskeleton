@@ -124,10 +124,13 @@ test(phase-1.3): add integration tests for auth flow
 ## Commit Message Rules
 
 - **Imperative mood**: "add feature" not "added feature"
-- **First line**: max 72 characters
+- **First line**: max 72 characters (제목 50자 이내 권장)
 - **Scope**: module or phase-plan reference
-- **Body**: explain WHY, not WHAT (the diff shows WHAT)
+- **Body**: explain WHY, not WHAT (the diff shows WHAT). 본문은 72자 줄바꿈
 - **No period** at the end of the subject line
+- **Issue linking**: 이슈를 닫는 커밋에는 `Resolved #N` 포함
+
+> 상세 컨벤션: `docs/CONVENTIONS.md` 섹션 4 참조
 
 ---
 
