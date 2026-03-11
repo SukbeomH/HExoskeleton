@@ -180,6 +180,22 @@ for skill_dir in "$BOILERPLATE"/.claude/skills/*/; do
     split_large_skill "$target_dir" 500
 done
 
+# Transform script paths in SKILL.md files: scripts/ → .hxsk/scripts/
+_sed_inplace() {
+    if sed --version 2>/dev/null | grep -q GNU; then
+        sed -i "$@"
+    else
+        sed -i '' "$@"
+    fi
+}
+while IFS= read -r f; do
+    _sed_inplace \
+        -e 's|scripts/md-store-memory\.sh|.hxsk/scripts/md-store-memory.sh|g' \
+        -e 's|scripts/md-recall-memory\.sh|.hxsk/scripts/md-recall-memory.sh|g' \
+        "$f"
+done < <(find "$ANTIGRAVITY/.agent/skills" -name "*.md")
+echo "  [+] Transformed script paths in SKILL.md files"
+
 SKILLS_COUNT=$(find "$ANTIGRAVITY/.agent/skills" -mindepth 1 -maxdepth 1 -type d | wc -l | tr -d ' ')
 echo "  [=] Total skills: ${SKILLS_COUNT}"
 
@@ -287,7 +303,9 @@ echo "  [+] validation.md"
         -e 's/네이티브 Claude Code 도구(Grep, Glob, Read)/에이전트 내장 검색 도구(search, find_files, read_file)/g' \
         -e 's/네이티브 Claude Code 도구만/에이전트 내장 도구만/g' \
         -e 's/네이티브 Claude Code/에이전트 내장/g' \
-        -e 's/Claude Code/Antigravity IDE/g'
+        -e 's/Claude Code/Antigravity IDE/g' \
+        -e 's|scripts/md-store-memory\.sh|.hxsk/scripts/md-store-memory.sh|g' \
+        -e 's|scripts/md-recall-memory\.sh|.hxsk/scripts/md-recall-memory.sh|g'
     echo ""
     echo "## HXSK Cycle"
     echo ""

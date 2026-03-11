@@ -143,6 +143,22 @@ for skill_dir in "$BOILERPLATE"/.claude/skills/*/; do
     echo "  [+] ${skill_name}"
 done
 
+# Transform script paths in SKILL.md files: scripts/ → .hxsk/scripts/
+_sed_inplace() {
+    if sed --version 2>/dev/null | grep -q GNU; then
+        sed -i "$@"
+    else
+        sed -i '' "$@"
+    fi
+}
+while IFS= read -r f; do
+    _sed_inplace \
+        -e 's|scripts/md-store-memory\.sh|.hxsk/scripts/md-store-memory.sh|g' \
+        -e 's|scripts/md-recall-memory\.sh|.hxsk/scripts/md-recall-memory.sh|g' \
+        "$f"
+done < <(find "$OPENCODE/.opencode/skill" -name "*.md")
+echo "  [+] Transformed script paths in SKILL.md files"
+
 SKILLS_COUNT=$(ls -d "$OPENCODE/.opencode/skill"/*/ 2>/dev/null | wc -l | tr -d ' ')
 echo "  [=] Total skills: ${SKILLS_COUNT}"
 
@@ -431,6 +447,15 @@ fi
 # Convert hooks to TypeScript plugins using converter script
 echo "  Converting hooks to TypeScript plugins..."
 if python3 "$BOILERPLATE/scripts/convert-hooks-to-plugins.py" "$BOILERPLATE/.claude/hooks" "$OPENCODE/.opencode/plugins" 2>&1 | grep -v "^$"; then
+    # Transform script paths in generated plugins: scripts/ → .hxsk/scripts/
+    for ts_file in "$OPENCODE/.opencode/plugins/"*.ts; do
+        [ -f "$ts_file" ] || continue
+        _sed_inplace \
+            -e 's|/scripts/bash-guard\.py|/.hxsk/scripts/bash-guard.py|g' \
+            -e 's|/scripts/file-protect\.py|/.hxsk/scripts/file-protect.py|g' \
+            -e 's|/scripts/\([a-z_-]*\)\.sh|/.hxsk/scripts/\1.sh|g' \
+            "$ts_file"
+    done
     echo "  [+] Plugins converted successfully"
 else
     echo "  [WARN] Plugin conversion had issues, creating minimal templates"
