@@ -143,14 +143,13 @@ split_large_skill() {
 echo "[Phase 1] Creating directory structure..."
 rm -rf "$ANTIGRAVITY"
 mkdir -p "$ANTIGRAVITY"/.agent/{skills,workflows,rules}
-mkdir -p "$ANTIGRAVITY"/templates/hxsk/{templates,examples}
-mkdir -p "$ANTIGRAVITY"/scripts
+mkdir -p "$ANTIGRAVITY"/.hxsk/{scripts,templates,examples}
 
 echo "  [+] .agent/skills/"
 echo "  [+] .agent/workflows/"
 echo "  [+] .agent/rules/"
-echo "  [+] templates/hxsk/"
-echo "  [+] scripts/"
+echo "  [+] .hxsk/scripts/"
+echo "  [+] .hxsk/templates/"
 
 # ================================================================
 # Phase 2: Skills Migration (sanitized)
@@ -349,8 +348,8 @@ Do NOT execute these commands without explicit user confirmation:
 If you want to validate a command before running, you can use:
 
 ```bash
-$ python3 scripts/bash-guard.py
-$ python3 scripts/file-protect.py
+$ python3 .hxsk/scripts/bash-guard.py
+$ python3 .hxsk/scripts/file-protect.py
 ```
 SECEOF
 echo "  [+] security-guard.md"
@@ -371,14 +370,14 @@ Save memory at the end of significant work:
 
 ```bash
 # Store execution summary
-bash scripts/md-store-memory.sh \
+bash .hxsk/scripts/md-store-memory.sh \
   "Task summary title" \
   "What was accomplished and key findings" \
   "execution,summary" \
   "execution-summary"
 
 # Store architecture decisions
-bash scripts/md-store-memory.sh \
+bash .hxsk/scripts/md-store-memory.sh \
   "Decision: title" \
   "Context, decision, rationale" \
   "arch,decision" \
@@ -423,7 +422,7 @@ GEMINIHEADER
         -e 's/Claude Code/Antigravity/g' \
         -e 's/네이티브 Antigravity 도구(Grep, Glob, Read)/에이전트 내장 검색 도구/g' \
         -e 's/네이티브 Antigravity 도구만/에이전트 내장 도구만/g' \
-        -e 's/\.claude\/hooks\//scripts\//g'
+        -e 's/\.claude\/hooks\//.hxsk\/scripts\//g'
 
     echo ""
 
@@ -439,16 +438,16 @@ GEMINIHEADER
   - `SPEC.md`, `PLAN.md`, `DECISIONS.md`, `STATE.md` — Core working docs
   - `PATTERNS.md` — Distilled learnings for fresh sessions (2KB limit)
   - `memories/` — File-based agent memory (14 type directories)
-  - `reports/`, `research/`, `archive/` — Secondary documents
+  - `scripts/` — Utility scripts (memory system, scaffolding)
   - `templates/` — Document templates
-- **scripts/** — Utility scripts (memory system, scaffolding)
+  - `reports/`, `research/`, `archive/` — Secondary documents
 
 LAYOUT
 
     # Memory Protocol (transformed)
     extract_section "$CLAUDE_MD" "Memory Protocol" | transform_tool_refs | sed \
         -e 's/\.claude\/skills\//.agent\/skills\//g' \
-        -e 's/\.claude\/hooks\//scripts\//g'
+        -e 's/\.claude\/hooks\//.hxsk\/scripts\//g'
 
     echo ""
 
@@ -474,8 +473,8 @@ SCRIPT_COUNT=0
 for script in md-recall-memory.sh md-store-memory.sh _json_parse.sh bash-guard.py file-protect.py; do
     src="$BOILERPLATE/.claude/hooks/$script"
     if [ -f "$src" ]; then
-        cp "$src" "$ANTIGRAVITY/scripts/"
-        chmod +x "$ANTIGRAVITY/scripts/$script"
+        cp "$src" "$ANTIGRAVITY/.hxsk/scripts/"
+        chmod +x "$ANTIGRAVITY/.hxsk/scripts/$script"
         echo "  [+] ${script}"
         SCRIPT_COUNT=$((SCRIPT_COUNT + 1))
     else
@@ -484,67 +483,57 @@ for script in md-recall-memory.sh md-store-memory.sh _json_parse.sh bash-guard.p
 done
 
 # scaffold-hxsk.sh — inline generation (same as before)
-cat > "$ANTIGRAVITY/scripts/scaffold-hxsk.sh" << 'SCAFFOLDEOF'
+cat > "$ANTIGRAVITY/.hxsk/scripts/scaffold-hxsk.sh" << 'SCAFFOLDEOF'
 #!/usr/bin/env bash
 #
-# scaffold-hxsk.sh - Initialize HXSK document structure
+# scaffold-hxsk.sh - Initialize HXSK working documents from bundled templates
 #
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-TEMPLATE_DIR="${SCRIPT_DIR}/../templates/hxsk"
-TARGET="${1:-.hxsk}"
+HXSK_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 
-echo "Scaffolding HXSK documents to ${TARGET}..."
+echo "Scaffolding HXSK working documents..."
+echo "  HXSK dir: ${HXSK_DIR}"
 
-mkdir -p "$TARGET"/{templates,examples,archive,reports,research,memories}
+mkdir -p "$HXSK_DIR"/{archive,reports,research,memories}
 
-# Copy working documents
-for f in "$TEMPLATE_DIR"/*.md; do
+# Create working documents from templates
+CREATED=0
+SKIPPED=0
+for f in "$HXSK_DIR"/templates/*.md; do
     [ -f "$f" ] || continue
-    dst="$TARGET/$(basename "$f")"
+    base=$(basename "$f")
+    upper=$(echo "${base%.md}" | tr '[:lower:]' '[:upper:]')
+    dst="$HXSK_DIR/${upper}.md"
     if [ -f "$dst" ]; then
-        echo "[SKIP] $(basename "$f")"
+        echo "  [SKIP] ${upper}.md"
+        SKIPPED=$((SKIPPED + 1))
     else
         cp "$f" "$dst"
-        echo "[CREATED] $(basename "$f")"
+        echo "  [CREATED] ${upper}.md"
+        CREATED=$((CREATED + 1))
     fi
 done
 
-# Copy yaml configs
-for f in "$TEMPLATE_DIR"/templates/*.yaml; do
+# Copy yaml configs to root
+for f in "$HXSK_DIR"/templates/*.yaml; do
     [ -f "$f" ] || continue
-    dst="$TARGET/$(basename "$f")"
+    dst="$HXSK_DIR/$(basename "$f")"
     if [ -f "$dst" ]; then
-        echo "[SKIP] $(basename "$f")"
+        echo "  [SKIP] $(basename "$f")"
+        SKIPPED=$((SKIPPED + 1))
     else
         cp "$f" "$dst"
-        echo "[CREATED] $(basename "$f")"
+        echo "  [CREATED] $(basename "$f")"
+        CREATED=$((CREATED + 1))
     fi
-done
-
-# Copy templates
-for f in "$TEMPLATE_DIR"/templates/*.md; do
-    [ -f "$f" ] || continue
-    dst="$TARGET/templates/$(basename "$f")"
-    [ -f "$dst" ] && continue
-    cp "$f" "$dst"
-    echo "[CREATED] templates/$(basename "$f")"
-done
-
-# Copy examples
-for f in "$TEMPLATE_DIR"/examples/*.md; do
-    [ -f "$f" ] || continue
-    dst="$TARGET/examples/$(basename "$f")"
-    [ -f "$dst" ] && continue
-    cp "$f" "$dst"
-    echo "[CREATED] examples/$(basename "$f")"
 done
 
 echo ""
-echo "HXSK scaffolding complete!"
+echo "HXSK scaffolding complete! (created: $CREATED, skipped: $SKIPPED)"
 SCAFFOLDEOF
-chmod +x "$ANTIGRAVITY/scripts/scaffold-hxsk.sh"
+chmod +x "$ANTIGRAVITY/.hxsk/scripts/scaffold-hxsk.sh"
 echo "  [+] scaffold-hxsk.sh (generated)"
 SCRIPT_COUNT=$((SCRIPT_COUNT + 1))
 echo "  [=] Total scripts: ${SCRIPT_COUNT}"
@@ -556,27 +545,15 @@ echo ""
 echo "[Phase 7] Copying HXSK templates..."
 
 # Templates
-cp "$BOILERPLATE"/.hxsk/templates/*.md "$ANTIGRAVITY/templates/hxsk/templates/" 2>/dev/null || true
-cp "$BOILERPLATE"/.hxsk/templates/*.yaml "$ANTIGRAVITY/templates/hxsk/templates/" 2>/dev/null || true
-TEMPLATES_COUNT=$(find "$ANTIGRAVITY/templates/hxsk/templates" -type f 2>/dev/null | wc -l | tr -d ' ')
+cp "$BOILERPLATE"/.hxsk/templates/*.md "$ANTIGRAVITY/.hxsk/templates/" 2>/dev/null || true
+cp "$BOILERPLATE"/.hxsk/templates/*.yaml "$ANTIGRAVITY/.hxsk/templates/" 2>/dev/null || true
+TEMPLATES_COUNT=$(find "$ANTIGRAVITY/.hxsk/templates" -type f 2>/dev/null | wc -l | tr -d ' ')
 echo "  [+] ${TEMPLATES_COUNT} templates"
 
 # Examples
-cp "$BOILERPLATE"/.hxsk/examples/*.md "$ANTIGRAVITY/templates/hxsk/examples/" 2>/dev/null || true
-EXAMPLES_COUNT=$(find "$ANTIGRAVITY/templates/hxsk/examples" -type f 2>/dev/null | wc -l | tr -d ' ')
+cp "$BOILERPLATE"/.hxsk/examples/*.md "$ANTIGRAVITY/.hxsk/examples/" 2>/dev/null || true
+EXAMPLES_COUNT=$(find "$ANTIGRAVITY/.hxsk/examples" -type f 2>/dev/null | wc -l | tr -d ' ')
 echo "  [+] ${EXAMPLES_COUNT} examples"
-
-# Working document shells
-for doc in SPEC DECISIONS JOURNAL ROADMAP PATTERNS STATE TODO STACK CHANGELOG; do
-    doc_lower=$(echo "$doc" | tr '[:upper:]' '[:lower:]')
-    cat > "$ANTIGRAVITY/templates/hxsk/${doc}.md" << EOF
-# ${doc}
-
-<!-- Initialize with /init workflow -->
-<!-- See templates/${doc_lower}.md for full template -->
-EOF
-done
-echo "  [+] 9 working document shells"
 
 # ================================================================
 # Phase 8: README
@@ -598,9 +575,9 @@ AI agent development boilerplate for **Google Antigravity IDE**.
    antigravity .
    ```
 
-2. **Initialize HXSK Documents**
+2. **Initialize HXSK Working Documents**
    ```bash
-   bash scripts/scaffold-hxsk.sh
+   bash .hxsk/scripts/scaffold-hxsk.sh
    ```
 
 ## Directory Structure
@@ -608,21 +585,16 @@ AI agent development boilerplate for **Google Antigravity IDE**.
 ```
 .agent/
 ├── skills/          # 18 AI skills (SKILL.md format)
-│   ├── planner/     # Planning skill
-│   ├── executor/    # Execution skill
-│   └── ...
 ├── workflows/       # 15 workflow commands (from agent orchestrations)
-│   ├── planner.md   # /planner command
-│   ├── executor.md  # /executor command
-│   └── ...
-└── rules/           # 4 always-on passive rules
-    ├── agent-boundaries.md
-    ├── validation.md
-    ├── hxsk-workflow.md
-    └── memory-protocol.md
+└── rules/           # 6 always-on passive rules
 
-templates/hxsk/       # HXSK document templates
-scripts/             # Utility scripts (memory system)
+.hxsk/
+├── scripts/         # Utility scripts (memory system, scaffolding)
+├── templates/       # Document templates
+├── examples/        # Example documents
+├── SPEC.md, DECISIONS.md, ...  # Working documents (after scaffold)
+└── memories/        # File-based agent memory
+
 GEMINI.md            # Project instructions for Antigravity agents
 ```
 
@@ -632,10 +604,10 @@ File-based memory system with no external dependencies:
 
 ```bash
 # Store memory
-bash scripts/md-store-memory.sh "Title" "Content" "tags" "type"
+bash .hxsk/scripts/md-store-memory.sh "Title" "Content" "tags" "type"
 
 # Recall memory
-bash scripts/md-recall-memory.sh "query" "." 5 compact
+bash .hxsk/scripts/md-recall-memory.sh "query" "." 5 compact
 ```
 
 14 memory types: `architecture-decision`, `root-cause`, `session-summary`, etc.
@@ -713,7 +685,7 @@ echo "  [+] README.md"
 # Phase 9: Verification
 # ================================================================
 verify_header 9
-verify_dirs "$ANTIGRAVITY" .agent/skills .agent/workflows .agent/rules templates scripts
+verify_dirs "$ANTIGRAVITY" .agent/skills .agent/workflows .agent/rules .hxsk/scripts .hxsk/templates
 
 # --- Counts ---
 echo ""
@@ -846,7 +818,7 @@ fi
 print_build_result "$ANTIGRAVITY" \
     "To use:" \
     "  1. Open $ANTIGRAVITY in Antigravity IDE" \
-    "  2. Run: bash scripts/scaffold-hxsk.sh" \
+    "  2. Run: bash .hxsk/scripts/scaffold-hxsk.sh" \
     "" \
     "Or copy to an existing project:" \
     "  cp -r $ANTIGRAVITY/.agent /path/to/project/" \
