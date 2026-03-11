@@ -413,7 +413,9 @@ GEMINIHEADER
     # Project Overview (transformed)
     extract_section "$CLAUDE_MD" "Project Overview" | sed \
         -e 's/Claude Code/Antigravity/g' \
-        -e 's/네이티브 Claude Code 도구(Grep, Glob, Read)/에이전트 내장 도구/g'
+        -e 's/네이티브 Claude Code 도구(Grep, Glob, Read)/에이전트 내장 도구/g' \
+        -e 's|scripts/md-store-memory\.sh|.hxsk/scripts/md-store-memory.sh|g' \
+        -e 's|scripts/md-recall-memory\.sh|.hxsk/scripts/md-recall-memory.sh|g'
 
     echo ""
 
@@ -422,7 +424,10 @@ GEMINIHEADER
         -e 's/Claude Code/Antigravity/g' \
         -e 's/네이티브 Antigravity 도구(Grep, Glob, Read)/에이전트 내장 검색 도구/g' \
         -e 's/네이티브 Antigravity 도구만/에이전트 내장 도구만/g' \
-        -e 's/\.claude\/hooks\//.hxsk\/scripts\//g'
+        -e 's/\.claude\/hooks\//.hxsk\/scripts\//g' \
+        -e 's|`scripts/md-store-memory\.sh`|`.hxsk/scripts/md-store-memory.sh`|g' \
+        -e 's|`scripts/md-recall-memory\.sh`|`.hxsk/scripts/md-recall-memory.sh`|g' \
+        -e 's|scripts/ — Utility|.hxsk/scripts/ — Utility|g'
 
     echo ""
 
