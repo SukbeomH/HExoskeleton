@@ -18,15 +18,14 @@ init_build "OpenCode Builder" "$BOILERPLATE" "$OPENCODE"
 echo "[Phase 1] Creating directory structure..."
 rm -rf "$OPENCODE"
 mkdir -p "$OPENCODE"/.opencode/{agents,plugins,commands,skill}
-mkdir -p "$OPENCODE"/templates/hxsk/{templates,examples}
-mkdir -p "$OPENCODE"/scripts
+mkdir -p "$OPENCODE"/.hxsk/{scripts,templates,examples}
 
 echo "  [+] .opencode/agents/"
 echo "  [+] .opencode/plugins/"
 echo "  [+] .opencode/commands/"
 echo "  [+] .opencode/skill/"
-echo "  [+] templates/hxsk/"
-echo "  [+] scripts/"
+echo "  [+] .hxsk/scripts/"
+echo "  [+] .hxsk/templates/"
 
 # --- Phase 2: Agents Migration (with model field) ---
 echo ""
@@ -143,6 +142,22 @@ for skill_dir in "$BOILERPLATE"/.claude/skills/*/; do
 
     echo "  [+] ${skill_name}"
 done
+
+# Transform script paths in SKILL.md files: scripts/ → .hxsk/scripts/
+_sed_inplace() {
+    if sed --version 2>/dev/null | grep -q GNU; then
+        sed -i "$@"
+    else
+        sed -i '' "$@"
+    fi
+}
+while IFS= read -r f; do
+    _sed_inplace \
+        -e 's|scripts/md-store-memory\.sh|.hxsk/scripts/md-store-memory.sh|g' \
+        -e 's|scripts/md-recall-memory\.sh|.hxsk/scripts/md-recall-memory.sh|g' \
+        "$f"
+done < <(find "$OPENCODE/.opencode/skill" -name "*.md")
+echo "  [+] Transformed script paths in SKILL.md files"
 
 SKILLS_COUNT=$(ls -d "$OPENCODE/.opencode/skill"/*/ 2>/dev/null | wc -l | tr -d ' ')
 echo "  [=] Total skills: ${SKILLS_COUNT}"
@@ -304,6 +319,9 @@ if [ -f "$BOILERPLATE/CLAUDE.md" ]; then
         -e 's|\.claude/agents/|.opencode/agents/|g' \
         -e 's|\.claude/|.opencode/|g' \
         -e 's|`skills/` — Modular skill definitions|`skill/` — Modular skill definitions|g' \
+        -e 's|scripts/md-store-memory\.sh|.hxsk/scripts/md-store-memory.sh|g' \
+        -e 's|scripts/md-recall-memory\.sh|.hxsk/scripts/md-recall-memory.sh|g' \
+        -e 's|\*\*scripts/\*\*|**.hxsk/scripts/**|g' \
         -e 's|`hooks/` — Event hooks and utility scripts|`plugins/` — TypeScript plugins|g' \
         -e 's|`settings\.json` — .* settings|`opencode.json` — OpenCode project settings|g' \
         -e 's|`settings\.json`|`opencode.json`|g' \
@@ -340,94 +358,72 @@ echo ""
 echo "[Phase 8] Copying HXSK templates..."
 
 # Templates
-cp "$BOILERPLATE"/.hxsk/templates/*.md "$OPENCODE/templates/hxsk/templates/" 2>/dev/null || true
-cp "$BOILERPLATE"/.hxsk/templates/*.yaml "$OPENCODE/templates/hxsk/templates/" 2>/dev/null || true
-TEMPLATES_COUNT=$(find "$OPENCODE/templates/hxsk/templates" -type f 2>/dev/null | wc -l | tr -d ' ')
+cp "$BOILERPLATE"/.hxsk/templates/*.md "$OPENCODE/.hxsk/templates/" 2>/dev/null || true
+cp "$BOILERPLATE"/.hxsk/templates/*.yaml "$OPENCODE/.hxsk/templates/" 2>/dev/null || true
+TEMPLATES_COUNT=$(find "$OPENCODE/.hxsk/templates" -type f 2>/dev/null | wc -l | tr -d ' ')
 echo "  [+] ${TEMPLATES_COUNT} templates"
 
 # Examples
-cp "$BOILERPLATE"/.hxsk/examples/*.md "$OPENCODE/templates/hxsk/examples/" 2>/dev/null || true
-EXAMPLES_COUNT=$(find "$OPENCODE/templates/hxsk/examples" -type f 2>/dev/null | wc -l | tr -d ' ')
+cp "$BOILERPLATE"/.hxsk/examples/*.md "$OPENCODE/.hxsk/examples/" 2>/dev/null || true
+EXAMPLES_COUNT=$(find "$OPENCODE/.hxsk/examples" -type f 2>/dev/null | wc -l | tr -d ' ')
 echo "  [+] ${EXAMPLES_COUNT} examples"
-
-# Working document shells
-for doc in SPEC DECISIONS JOURNAL ROADMAP PATTERNS STATE TODO STACK CHANGELOG; do
-    doc_lower=$(echo "$doc" | tr '[:upper:]' '[:lower:]')
-    cat > "$OPENCODE/templates/hxsk/${doc}.md" << EOF
-# ${doc}
-
-<!-- Initialize with /init command -->
-<!-- See templates/${doc_lower}.md for full template -->
-EOF
-done
-echo "  [+] 9 working document shells"
 
 # --- Phase 9: Utility Scripts ---
 echo ""
 echo "[Phase 9] Creating utility scripts..."
 
 # scaffold-hxsk.sh
-cat > "$OPENCODE/scripts/scaffold-hxsk.sh" << 'SCAFFOLDEOF'
+cat > "$OPENCODE/.hxsk/scripts/scaffold-hxsk.sh" << 'SCAFFOLDEOF'
 #!/usr/bin/env bash
 #
-# scaffold-hxsk.sh - Initialize HXSK document structure
+# scaffold-hxsk.sh - Initialize HXSK working documents from bundled templates
 #
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-TEMPLATE_DIR="${SCRIPT_DIR}/../templates/hxsk"
-TARGET="${1:-.hxsk}"
+HXSK_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 
-echo "Scaffolding HXSK documents to ${TARGET}..."
+echo "Scaffolding HXSK working documents..."
+echo "  HXSK dir: ${HXSK_DIR}"
 
-mkdir -p "$TARGET"/{templates,examples,archive,reports,research}
+mkdir -p "$HXSK_DIR"/{archive,reports,research,memories}
 
-# Copy working documents
-for f in "$TEMPLATE_DIR"/*.md; do
+# Create working documents from templates
+CREATED=0
+SKIPPED=0
+for f in "$HXSK_DIR"/templates/*.md; do
     [ -f "$f" ] || continue
-    dst="$TARGET/$(basename "$f")"
+    base=$(basename "$f")
+    upper=$(echo "${base%.md}" | tr '[:lower:]' '[:upper:]')
+    dst="$HXSK_DIR/${upper}.md"
     if [ -f "$dst" ]; then
-        echo "[SKIP] $(basename "$f")"
+        echo "  [SKIP] ${upper}.md"
+        SKIPPED=$((SKIPPED + 1))
     else
         cp "$f" "$dst"
-        echo "[CREATED] $(basename "$f")"
+        echo "  [CREATED] ${upper}.md"
+        CREATED=$((CREATED + 1))
     fi
 done
 
-# Copy yaml configs
-for f in "$TEMPLATE_DIR"/templates/*.yaml; do
+# Copy yaml configs to root
+for f in "$HXSK_DIR"/templates/*.yaml; do
     [ -f "$f" ] || continue
-    dst="$TARGET/$(basename "$f")"
+    dst="$HXSK_DIR/$(basename "$f")"
     if [ -f "$dst" ]; then
-        echo "[SKIP] $(basename "$f")"
+        echo "  [SKIP] $(basename "$f")"
+        SKIPPED=$((SKIPPED + 1))
     else
         cp "$f" "$dst"
-        echo "[CREATED] $(basename "$f")"
+        echo "  [CREATED] $(basename "$f")"
+        CREATED=$((CREATED + 1))
     fi
-done
-
-# Copy templates
-for f in "$TEMPLATE_DIR"/templates/*.md; do
-    [ -f "$f" ] || continue
-    dst="$TARGET/templates/$(basename "$f")"
-    [ -f "$dst" ] && continue
-    cp "$f" "$dst"
-    echo "[CREATED] templates/$(basename "$f")"
-done
-
-# Copy examples
-for f in "$TEMPLATE_DIR"/examples/*.md; do
-    [ -f "$f" ] || continue
-    dst="$TARGET/examples/$(basename "$f")"
-    [ -f "$dst" ] && continue
-    cp "$f" "$dst"
-    echo "[CREATED] examples/$(basename "$f")"
 done
 
 echo ""
-echo "HXSK scaffolding complete!"
+echo "HXSK scaffolding complete! (created: $CREATED, skipped: $SKIPPED)"
 SCAFFOLDEOF
-chmod +x "$OPENCODE/scripts/scaffold-hxsk.sh"
+chmod +x "$OPENCODE/.hxsk/scripts/scaffold-hxsk.sh"
 echo "  [+] scaffold-hxsk.sh"
 
 # Copy ALL hook scripts (Python and Shell)
@@ -437,20 +433,29 @@ for script in "$BOILERPLATE"/.claude/hooks/*.py "$BOILERPLATE"/.claude/hooks/*.s
     [ -f "$script" ] || continue
     basename_script=$(basename "$script")
     [[ "$basename_script" == _* ]] && continue
-    cp "$script" "$OPENCODE/scripts/"
-    chmod +x "$OPENCODE/scripts/$basename_script"
+    cp "$script" "$OPENCODE/.hxsk/scripts/"
+    chmod +x "$OPENCODE/.hxsk/scripts/$basename_script"
     HOOK_COUNT=$((HOOK_COUNT + 1))
 done
 echo "  [+] Copied ${HOOK_COUNT} hook scripts"
 
 # Copy utility
 if [ -f "$BOILERPLATE/.claude/hooks/_json_parse.sh" ]; then
-    cp "$BOILERPLATE/.claude/hooks/_json_parse.sh" "$OPENCODE/scripts/"
+    cp "$BOILERPLATE/.claude/hooks/_json_parse.sh" "$OPENCODE/.hxsk/scripts/"
 fi
 
 # Convert hooks to TypeScript plugins using converter script
 echo "  Converting hooks to TypeScript plugins..."
 if python3 "$BOILERPLATE/scripts/convert-hooks-to-plugins.py" "$BOILERPLATE/.claude/hooks" "$OPENCODE/.opencode/plugins" 2>&1 | grep -v "^$"; then
+    # Transform script paths in generated plugins: scripts/ → .hxsk/scripts/
+    for ts_file in "$OPENCODE/.opencode/plugins/"*.ts; do
+        [ -f "$ts_file" ] || continue
+        _sed_inplace \
+            -e 's|/scripts/bash-guard\.py|/.hxsk/scripts/bash-guard.py|g' \
+            -e 's|/scripts/file-protect\.py|/.hxsk/scripts/file-protect.py|g' \
+            -e 's|/scripts/\([a-z_-]*\)\.sh|/.hxsk/scripts/\1.sh|g' \
+            "$ts_file"
+    done
     echo "  [+] Plugins converted successfully"
 else
     echo "  [WARN] Plugin conversion had issues, creating minimal templates"
@@ -530,13 +535,14 @@ AI agent development boilerplate for **OpenCode**.
 1. **Copy to your project**
    ```bash
    cp -r opencode-boilerplate/.opencode /path/to/project/
+   cp -r opencode-boilerplate/.hxsk /path/to/project/
    cp opencode-boilerplate/opencode.json /path/to/project/
    cp opencode-boilerplate/AGENTS.md /path/to/project/
    ```
 
-2. **Initialize HXSK Documents**
+2. **Initialize HXSK Working Documents**
    ```bash
-   bash scripts/scaffold-hxsk.sh
+   bash .hxsk/scripts/scaffold-hxsk.sh
    ```
 
 3. **Start OpenCode**
@@ -549,17 +555,19 @@ AI agent development boilerplate for **OpenCode**.
 ```
 .opencode/
 ├── agents/          # 16 agents with model config
-│   ├── planner.md   # model: anthropic/claude-opus-4-20250514
-│   ├── executor.md  # model: anthropic/claude-sonnet-4-20250514
-│   └── ...
 ├── commands/        # Workflow commands (/plan, /execute, etc.)
 ├── plugins/         # TypeScript plugins
 └── skill/           # 18 skills (SKILL.md format)
 
-scripts/             # Utility scripts (메모리 포함)
+.hxsk/
+├── scripts/         # Utility scripts (메모리, 스캐폴딩)
+├── templates/       # Document templates
+├── examples/        # Example documents
+├── SPEC.md, DECISIONS.md, ...  # Working documents (after scaffold)
+└── memories/        # File-based agent memory
+
 opencode.json        # Main config with agent model mapping
 AGENTS.md            # Project rules (equivalent to CLAUDE.md)
-.mcp.json            # MCP server configuration (선택적)
 ```
 
 ## Memory System (순수 Bash)
@@ -568,10 +576,10 @@ AGENTS.md            # Project rules (equivalent to CLAUDE.md)
 
 ```bash
 # 메모리 저장
-bash scripts/md-store-memory.sh "제목" "내용" "태그" "타입"
+bash .hxsk/scripts/md-store-memory.sh "제목" "내용" "태그" "타입"
 
 # 메모리 검색
-bash scripts/md-recall-memory.sh "검색어" "." 5 compact
+bash .hxsk/scripts/md-recall-memory.sh "검색어" "." 5 compact
 ```
 
 14개 메모리 타입: `architecture-decision`, `root-cause`, `session-summary` 등
@@ -658,7 +666,7 @@ echo "  [+] README.md"
 
 # --- Phase 11: Verification ---
 verify_header 11
-verify_dirs "$OPENCODE" .opencode/agents .opencode/commands .opencode/skill templates scripts
+verify_dirs "$OPENCODE" .opencode/agents .opencode/commands .opencode/skill .hxsk/scripts .hxsk/templates
 
 # Counts
 echo ""
@@ -699,6 +707,7 @@ usage_lines=(
     "To use:"
     "  1. Copy to your project:"
     "     cp -r $OPENCODE/.opencode /path/to/project/"
+    "     cp -r $OPENCODE/.hxsk /path/to/project/"
     "     cp $OPENCODE/opencode.json /path/to/project/"
     "     cp $OPENCODE/AGENTS.md /path/to/project/"
 )

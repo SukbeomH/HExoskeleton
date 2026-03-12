@@ -53,6 +53,7 @@ SPEC → PLAN → EXECUTE → VERIFY
 | [Linting](docs/LINTING.md) | 린팅 설정 가이드 |
 | [MCP](docs/MCP.md) | MCP 서버 통합 |
 | [Workflows](docs/WORKFLOWS.md) | 워크플로우 상세 |
+| [Conventions](docs/CONVENTIONS.md) | 개발 컨벤션 (Issue, Branch, Commit, PR, Release) |
 
 ---
 
