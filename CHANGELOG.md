@@ -1,5 +1,31 @@
 # Changelog
 
+## [1.11.0](https://github.com/SukbeomH/HExoskeleton/compare/hxsk-plugin-v1.10.0...hxsk-plugin-v1.11.0) (2026-03-06)
+
+
+### Features
+
+* **memory:** 리서치 기반 메모리 시스템 개선 ([d79530c](https://github.com/SukbeomH/HExoskeleton/commit/d79530cd8f4c191274bf87228b3052a226702947))
+* **skills:** add handoff skill + executor phase checkpoint commit ([508691e](https://github.com/SukbeomH/HExoskeleton/commit/508691ec6937cf1706fd0d2412fec8fbbbf08470))
+
+
+### Bug Fixes
+
+* **build:** 빌드 타겟 훅 이식 문제 및 기술 부채 해소 ([#55](https://github.com/SukbeomH/HExoskeleton/issues/55)) ([b0b7ebc](https://github.com/SukbeomH/HExoskeleton/commit/b0b7ebc20a3754d2b515b133f772e0eea58df7a3))
+
+
+### Refactoring
+
+* 빌드 스크립트 공통 함수 추출 및 기술부채 해결 ([466f770](https://github.com/SukbeomH/HExoskeleton/commit/466f770b7181f77c005ccd68788eb7ec9966c14c))
+* 빌드 스크립트 공통 함수 추출 및 기술부채 해결 ([74dea81](https://github.com/SukbeomH/HExoskeleton/commit/74dea81cdea40936ac11861742aa4724163dfaa3))
+
+
+### Documentation
+
+* note workflow failure patterns ([d303b31](https://github.com/SukbeomH/HExoskeleton/commit/d303b31841e692ae44cba40dfa7de24d41f7fdd9))
+* 문서/스크립트 개수 최신화 (Skills 17, Agents 15, Hooks 17) ([3f4c00c](https://github.com/SukbeomH/HExoskeleton/commit/3f4c00cc6b12a59c50dbd5838787766c02b92477))
+* 문서/스크립트 개수 최신화 (Skills 17, Agents 15, Hooks 17) ([b40cf8e](https://github.com/SukbeomH/HExoskeleton/commit/b40cf8e75f79c2336c91c66f6ab2f32f4982962f))
+
 ## [1.10.0](https://github.com/SukbeomH/HExoskeleton/compare/hxsk-plugin-v1.9.4...hxsk-plugin-v1.10.0) (2026-03-05)
 
 
