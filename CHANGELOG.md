@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.11.1](https://github.com/SukbeomH/HExoskeleton/compare/hxsk-plugin-v1.11.0...hxsk-plugin-v1.11.1) (2026-03-12)
+
+
+### Refactoring
+
+* 빌드 출력 루트 정리 및 컨벤션 문서 추가 ([#58](https://github.com/SukbeomH/HExoskeleton/issues/58)) ([295030d](https://github.com/SukbeomH/HExoskeleton/commit/295030d693de34d004555d41088ecf014bcfff84))
+
+
+### Documentation
+
+* **patterns:** Plugin hooks.json 경로 스펙 + heredoc 오탐 패턴 추가 ([295030d](https://github.com/SukbeomH/HExoskeleton/commit/295030d693de34d004555d41088ecf014bcfff84))
+
 ## [1.11.0](https://github.com/SukbeomH/HExoskeleton/compare/hxsk-plugin-v1.10.0...hxsk-plugin-v1.11.0) (2026-03-06)
 
 
