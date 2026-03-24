@@ -101,6 +101,7 @@ logs_llm/
 !.hxsk/issues/
 !.hxsk/skills/
 !.hxsk/agents/
+!.hxsk/hooks/
 *.pre-compact.bak
 
 # Agent memory (ephemeral)
