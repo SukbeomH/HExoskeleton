@@ -80,6 +80,19 @@ Parse:
 - Verify those commits exist
 - Resume from specified task
 
+**Pattern D: Parallel wave dispatch (has wave structure)**
+- Read wave assignments from PLAN.md
+- For each wave (sequential):
+  - Validate file ownership within wave (same-wave plans MUST NOT modify same files)
+  - Dispatch wave items as parallel subagents (`Agent` tool, `isolation: "worktree"`)
+  - Wait for all subagents to complete
+  - Review results and merge worktrees (`bash scripts/merge-worktrees.sh`)
+- After all waves: run overall verification
+- Use `dispatcher` skill for detailed orchestration protocol
+
+**Pattern selection:**
+- Has WAVE_STRUCTURE with 2+ wave-1 plans → **Pattern D** (parallel dispatch)
+
 ### Step 4: Execute Tasks
 
 For each task:
