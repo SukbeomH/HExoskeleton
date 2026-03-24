@@ -1,5 +1,55 @@
 # Changelog
 
+## [1.12.0](https://github.com/SukbeomH/HExoskeleton/compare/hxsk-plugin-v1.11.1...hxsk-plugin-v1.12.0) (2026-03-24)
+
+
+### Features
+
+* **executor:** Pattern D — wave 기반 병렬 실행 지원 ([5fab9aa](https://github.com/SukbeomH/HExoskeleton/commit/5fab9aacd37652e83b74825510222660ef5d8e35))
+* **infra:** dispatcher skill + agent — wave 기반 병렬 실행 ([1d4306b](https://github.com/SukbeomH/HExoskeleton/commit/1d4306ba81b7866874703fc02880e1c20f07a5a5))
+* **infra:** merge-worktrees.sh — subagent 워크트리 병합 스크립트 ([19509c0](https://github.com/SukbeomH/HExoskeleton/commit/19509c0cd25ca766ab8934da1b67426cc2f5859e))
+* **infra:** 파일 기반 이슈 레지스트리 추가 ([4a02841](https://github.com/SukbeomH/HExoskeleton/commit/4a02841a77597ec45e754c948d9c6e9fdfb5a822))
+
+
+### Bug Fixes
+
+* **bootstrap:** python3/uv를 선택적 의존성으로 변경 ([c235b5c](https://github.com/SukbeomH/HExoskeleton/commit/c235b5c121faa8d0aa29f9bac54335474f1e8a40))
+* **build:** antigravity counts 갱신, 훅 선택 복사 의도 문서화, 콘텐츠 검증 추가 ([9159f24](https://github.com/SukbeomH/HExoskeleton/commit/9159f24113a84b3dae49b050f2f99e09bec5c066))
+* **build:** opencode 빌드 expected counts 갱신 ([8bcae25](https://github.com/SukbeomH/HExoskeleton/commit/8bcae25b4027a7c4a78209efa84b56e63e67b9d4))
+* **build:** plugin 빌드 expected counts 갱신 (19 skills, 17 agents, 24 templates) ([86a53a8](https://github.com/SukbeomH/HExoskeleton/commit/86a53a8355bdb3b223dd6a25269f62d85abb7956))
+* **ci:** 빌드 트리거 경로 확대 — scripts/**, .hxsk/examples/** 추가 ([a0ac94d](https://github.com/SukbeomH/HExoskeleton/commit/a0ac94d70d4b6c61e80e0dd6e48d1599a9a851b4))
+* **dispatcher:** Agent Boundaries 프로토콜 적용 ([8152d18](https://github.com/SukbeomH/HExoskeleton/commit/8152d18a960d54d07819e107b0284494bb3208df))
+* **empirical-validation:** 존재하지 않는 도구/파일 참조 제거 ([d2e9079](https://github.com/SukbeomH/HExoskeleton/commit/d2e9079ff493842d2cb7a1c36de084217fa1d0cb))
+* **executor:** Agent 도구 선언 추가 — Pattern D 실행 가능 ([f154e07](https://github.com/SukbeomH/HExoskeleton/commit/f154e07ba1b3a573e78ef448a2637182b2a0decd))
+* **hooks:** pattern-discovery 죽은 코드 제거, context-save.log 로테이션 추가 ([3730143](https://github.com/SukbeomH/HExoskeleton/commit/3730143990e87763bb8204e5073220ce68bdbdd3))
+* **planner:** Bash 도구 선언 추가 — 메모리 검색 가능 ([e0f3d46](https://github.com/SukbeomH/HExoskeleton/commit/e0f3d464e70b07c82fc58d1a0994351470a8b50d))
+* 로직 모순 16건 + 기술 부채 4건 해소 (wave 병렬 실행) ([c9de495](https://github.com/SukbeomH/HExoskeleton/commit/c9de49528cee83a0f613e39081885b6002df44ba))
+
+
+### Performance
+
+* **hooks:** session-start 토큰 40-60% 경량화 ([d3d0d6e](https://github.com/SukbeomH/HExoskeleton/commit/d3d0d6e13f82fc9bfe52521615e02ad1df372fb4))
+* **hooks:** SubagentStop 프롬프트 구조화 (토큰 30% 절감) ([95b657e](https://github.com/SukbeomH/HExoskeleton/commit/95b657ea1ee960404ac3cdf28a722ef8ce25c66b))
+
+
+### Refactoring
+
+* **build:** build-opencode.sh .mcp.json 변환에서 python3 제거 ([71edbc5](https://github.com/SukbeomH/HExoskeleton/commit/71edbc562a4f59155dd3736b9520a9683de25f3e))
+* **build:** build-plugin.sh에서 python3 완전 제거 — pure bash ([14a36a3](https://github.com/SukbeomH/HExoskeleton/commit/14a36a35d081d12c87a81714111dc931d09c0db5))
+* **build:** verify_json + extract_frontmatter_field pure bash 전환 ([ba60ecc](https://github.com/SukbeomH/HExoskeleton/commit/ba60ecc3f59050f12ba4ea7dd711838ab64e07d6))
+* **scripts:** 5개 중복 스크립트를 .claude/hooks/ canonical 위임 래퍼로 교체 ([e842398](https://github.com/SukbeomH/HExoskeleton/commit/e842398e130e345bc3244c57e8f9b4f3a8860850))
+
+
+### Documentation
+
+* 2차 기술 부채 해소 완료 반영, opencode Commands count 보정 ([b0c7bff](https://github.com/SukbeomH/HExoskeleton/commit/b0c7bfffcea52007d8eaa9520f04c502937692df))
+* **claude:** Repository Layout에 docs/ 추가, compaction 지침 추가 ([3eea363](https://github.com/SukbeomH/HExoskeleton/commit/3eea363f1c571066bdd627230a63194a17cb30fe))
+* Discovery Level vs 문서 계층 용어 명확화, PATTERNS.md 갱신 ([e746344](https://github.com/SukbeomH/HExoskeleton/commit/e74634464a536ce60538fd62acd0410e17569390))
+* **memory-protocol:** type relations 미구현 상태 명시 ([eb0d4f6](https://github.com/SukbeomH/HExoskeleton/commit/eb0d4f66bdcc2d77090dc8d27c8ff39265c6d374))
+* **patterns:** Plugin hooks.json 경로 스펙 + heredoc 오탐 패턴 추가 ([d023832](https://github.com/SukbeomH/HExoskeleton/commit/d0238324c20c70591f570cb411a05dc15b02fe82))
+* STATE.md, PATTERNS.md, 계획 문서 최신화 — 2차 부채 해소 완료 반영 ([563d086](https://github.com/SukbeomH/HExoskeleton/commit/563d086f2ae8f01761b09be57dcfa8ec318aa33a))
+* 프로젝트 문서 동기화 및 컨벤션 추가 ([#60](https://github.com/SukbeomH/HExoskeleton/issues/60)) ([d023832](https://github.com/SukbeomH/HExoskeleton/commit/d0238324c20c70591f570cb411a05dc15b02fe82))
+
 ## [1.11.1](https://github.com/SukbeomH/HExoskeleton/compare/hxsk-plugin-v1.11.0...hxsk-plugin-v1.11.1) (2026-03-12)
 
 
