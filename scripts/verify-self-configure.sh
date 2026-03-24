@@ -51,7 +51,7 @@ layer1() {
     echo ""
     echo "--- 1.3 llms.txt Links ---"
     # Extract markdown links: [text](path)
-    grep -oE '\([^)]+\)' "$REPO_ROOT/llms.txt" | tr -d '()' | while read -r link; do
+    while read -r link; do
         # Skip non-path entries (descriptions, Korean text, spaces)
         [[ "$link" == *" "* ]] && continue
         [[ "$link" == http* ]] && continue
@@ -62,13 +62,13 @@ layer1() {
         else
             fail "llms.txt → $link NOT FOUND"
         fi
-    done
+    done < <(grep -oE '\([^)]+\)' "$REPO_ROOT/llms.txt" | tr -d '()')
 
     # 1.4 Skills INDEX vs actual files
     echo ""
     echo "--- 1.4 Skills INDEX Consistency ---"
     SKILL_DIRS=$(find "$REPO_ROOT/.hxsk/skills" -mindepth 1 -maxdepth 1 -type d ! -name '_*' | sort)
-    SKILL_COUNT=$(echo "$SKILL_DIRS" | wc -l | tr -d ' ')
+    SKILL_COUNT=$(echo "$SKILL_DIRS" | grep -c '.' 2>/dev/null || echo "0")
     INDEX_SKILLS=$(grep -oE '`skills/[^`]+`' "$REPO_ROOT/.hxsk/skills/INDEX.md" 2>/dev/null | wc -l | tr -d ' ')
 
     if [ "$SKILL_COUNT" -eq "$INDEX_SKILLS" ]; then
@@ -91,7 +91,7 @@ layer1() {
     echo ""
     echo "--- 1.5 Agents INDEX Consistency ---"
     AGENT_FILES=$(find "$REPO_ROOT/.hxsk/agents" -name '*.md' ! -name 'INDEX.md' | sort)
-    AGENT_COUNT=$(echo "$AGENT_FILES" | wc -l | tr -d ' ')
+    AGENT_COUNT=$(echo "$AGENT_FILES" | grep -c '.' 2>/dev/null || echo "0")
     INDEX_AGENTS=$(grep -oE '`agents/[^`]+`' "$REPO_ROOT/.hxsk/agents/INDEX.md" 2>/dev/null | wc -l | tr -d ' ')
 
     if [ "$AGENT_COUNT" -eq "$INDEX_AGENTS" ]; then
@@ -104,7 +104,7 @@ layer1() {
     echo ""
     echo "--- 1.6 Hooks INDEX Consistency ---"
     HOOK_FILES=$(find "$REPO_ROOT/.hxsk/hooks" -type f \( -name '*.sh' -o -name '*.py' \) | sort)
-    HOOK_COUNT=$(echo "$HOOK_FILES" | wc -l | tr -d ' ')
+    HOOK_COUNT=$(echo "$HOOK_FILES" | grep -c '.' 2>/dev/null || echo "0")
     INDEX_HOOKS=$(grep -oE '`hooks/[^`]+`' "$REPO_ROOT/.hxsk/hooks/INDEX.md" 2>/dev/null | wc -l | tr -d ' ')
 
     if [ "$HOOK_COUNT" -eq "$INDEX_HOOKS" ]; then
@@ -133,13 +133,13 @@ layer1() {
         fi
 
         # Check each referenced hook file exists
-        grep -oE '\.hxsk/hooks/[^"]+' "$REPO_ROOT/.claude/settings.json" | sort -u | while read -r hookpath; do
+        while read -r hookpath; do
             if [ -f "$REPO_ROOT/$hookpath" ]; then
                 pass "settings.json → $hookpath"
             else
                 fail "settings.json → $hookpath NOT FOUND"
             fi
-        done
+        done < <(grep -oE '\.hxsk/hooks/[^"]+' "$REPO_ROOT/.claude/settings.json" | sort -u)
     else
         fail ".claude/settings.json not found"
     fi
@@ -191,14 +191,15 @@ layer2() {
     echo ""
 
     # Create temp project
-    TMPDIR=$(mktemp -d)
-    echo "  Temp project: $TMPDIR"
+    SIM_DIR=$(mktemp -d)
+    trap 'rm -rf "$SIM_DIR"' EXIT
+    echo "  Temp project: $SIM_DIR"
     echo ""
 
     # Simulate setup.md steps manually
     echo "--- 2.1 Step 2: Agent Instruction File ---"
-    cp "$REPO_ROOT/CLAUDE.md" "$TMPDIR/CLAUDE.md"
-    if [ -f "$TMPDIR/CLAUDE.md" ]; then
+    cp "$REPO_ROOT/CLAUDE.md" "$SIM_DIR/CLAUDE.md"
+    if [ -f "$SIM_DIR/CLAUDE.md" ]; then
         pass "CLAUDE.md copied to project"
     else
         fail "CLAUDE.md copy failed"
@@ -206,14 +207,14 @@ layer2() {
 
     echo ""
     echo "--- 2.2 Step 3: HXSK Document Structure ---"
-    mkdir -p "$TMPDIR/.hxsk"
+    mkdir -p "$SIM_DIR/.hxsk"
     # Create minimal working docs
-    echo "# SPEC" > "$TMPDIR/.hxsk/SPEC.md"
-    echo "# STATE" > "$TMPDIR/.hxsk/STATE.md"
-    echo "# PATTERNS" > "$TMPDIR/.hxsk/PATTERNS.md"
+    echo "# SPEC" > "$SIM_DIR/.hxsk/SPEC.md"
+    echo "# STATE" > "$SIM_DIR/.hxsk/STATE.md"
+    echo "# PATTERNS" > "$SIM_DIR/.hxsk/PATTERNS.md"
 
     for doc in SPEC.md STATE.md PATTERNS.md; do
-        if [ -f "$TMPDIR/.hxsk/$doc" ]; then
+        if [ -f "$SIM_DIR/.hxsk/$doc" ]; then
             pass ".hxsk/$doc created"
         else
             fail ".hxsk/$doc creation failed"
@@ -222,8 +223,8 @@ layer2() {
 
     # Copy templates
     if [ -d "$REPO_ROOT/.hxsk/templates" ]; then
-        cp -r "$REPO_ROOT/.hxsk/templates" "$TMPDIR/.hxsk/templates"
-        T_COUNT=$(find "$TMPDIR/.hxsk/templates" -name '*.md' | wc -l | tr -d ' ')
+        cp -r "$REPO_ROOT/.hxsk/templates" "$SIM_DIR/.hxsk/templates"
+        T_COUNT=$(find "$SIM_DIR/.hxsk/templates" -name '*.md' | wc -l | tr -d ' ')
         pass "Templates copied: $T_COUNT files"
     else
         fail "Source templates not found"
@@ -233,9 +234,9 @@ layer2() {
     echo "--- 2.3 Step 4: Skill Installation ---"
     # Install 4 recommended skills
     for skill in planner executor verifier memory-protocol; do
-        mkdir -p "$TMPDIR/.claude/skills/$skill"
+        mkdir -p "$SIM_DIR/.claude/skills/$skill"
         if [ -f "$REPO_ROOT/.hxsk/skills/$skill/SKILL.md" ]; then
-            cp "$REPO_ROOT/.hxsk/skills/$skill/SKILL.md" "$TMPDIR/.claude/skills/$skill/SKILL.md"
+            cp "$REPO_ROOT/.hxsk/skills/$skill/SKILL.md" "$SIM_DIR/.claude/skills/$skill/SKILL.md"
             pass "Skill installed: $skill"
         else
             fail "Skill source missing: $skill"
@@ -244,11 +245,11 @@ layer2() {
 
     echo ""
     echo "--- 2.4 Step 5: Hook Installation (Claude Code) ---"
-    mkdir -p "$TMPDIR/.hxsk/hooks"
+    mkdir -p "$SIM_DIR/.hxsk/hooks"
     # Copy essential hooks
     for hook in session-start.sh file-protect.py bash-guard.py stop-context-save.sh _json_parse.sh; do
         if [ -f "$REPO_ROOT/.hxsk/hooks/$hook" ]; then
-            cp "$REPO_ROOT/.hxsk/hooks/$hook" "$TMPDIR/.hxsk/hooks/$hook"
+            cp "$REPO_ROOT/.hxsk/hooks/$hook" "$SIM_DIR/.hxsk/hooks/$hook"
             pass "Hook installed: $hook"
         else
             fail "Hook source missing: $hook"
@@ -256,8 +257,8 @@ layer2() {
     done
 
     # Create settings.json with hook references
-    mkdir -p "$TMPDIR/.claude"
-    cat > "$TMPDIR/.claude/settings.json" << 'SETTINGSEOF'
+    mkdir -p "$SIM_DIR/.claude"
+    cat > "$SIM_DIR/.claude/settings.json" << 'SETTINGSEOF'
 {
   "hooks": {
     "SessionStart": [{"matcher": "startup|resume", "hooks": [{"type": "command", "command": "\"$CLAUDE_PROJECT_DIR\"/.hxsk/hooks/session-start.sh", "timeout": 10}]}],
@@ -275,7 +276,7 @@ SETTINGSEOF
     # Verify final project structure
     EXPECTED_DIRS=".claude .hxsk .hxsk/hooks .hxsk/templates .claude/skills"
     for d in $EXPECTED_DIRS; do
-        if [ -d "$TMPDIR/$d" ]; then
+        if [ -d "$SIM_DIR/$d" ]; then
             pass "Dir: $d/"
         else
             fail "Dir MISSING: $d/"
@@ -284,7 +285,7 @@ SETTINGSEOF
 
     EXPECTED_FILES="CLAUDE.md .claude/settings.json .hxsk/SPEC.md .hxsk/STATE.md .hxsk/PATTERNS.md"
     for f in $EXPECTED_FILES; do
-        if [ -f "$TMPDIR/$f" ]; then
+        if [ -f "$SIM_DIR/$f" ]; then
             pass "File: $f"
         else
             fail "File MISSING: $f"
@@ -294,16 +295,16 @@ SETTINGSEOF
     # Verify hook paths in settings.json point to real files
     echo ""
     echo "--- 2.6 Hook Path Resolution ---"
-    grep -oE '\.hxsk/hooks/[^"]+' "$TMPDIR/.claude/settings.json" | while read -r hookpath; do
-        if [ -f "$TMPDIR/$hookpath" ]; then
+    while read -r hookpath; do
+        if [ -f "$SIM_DIR/$hookpath" ]; then
             pass "Hook resolves: $hookpath"
         else
             fail "Hook NOT FOUND: $hookpath"
         fi
-    done
+    done < <(grep -oE '\.hxsk/hooks/[^"]+' "$SIM_DIR/.claude/settings.json")
 
-    # Cleanup
-    rm -rf "$TMPDIR"
+    # Cleanup (also handled by EXIT trap)
+    rm -rf "$SIM_DIR"
     echo ""
     echo "  Temp project cleaned up."
 }
