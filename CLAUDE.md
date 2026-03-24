@@ -32,4 +32,3 @@ CLAUDE.md, SKILL.md, Agent 정의 파일을 수정할 때:
 ## Agent Boundaries (Claude Code Specific)
 ### Never
 - `--dangerously-skip-permissions` 사용 금지
-- Read/print `.env` or credential files
