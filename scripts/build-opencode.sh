@@ -269,38 +269,9 @@ echo ""
 echo "[Phase 6] Creating MCP configuration..."
 
 if [ -f "$BOILERPLATE/.mcp.json" ]; then
-    python3 - "$BOILERPLATE" "$OPENCODE" << 'PYEOF'
-import json
-import sys
-
-boilerplate = sys.argv[1]
-opencode = sys.argv[2]
-
-with open(f"{boilerplate}/.mcp.json", 'r') as f:
-    mcp = json.load(f)
-
-# Transform for OpenCode
-if 'mcpServers' in mcp:
-    servers = mcp['mcpServers']
-
-    # graph-code: use current directory
-    if 'graph-code' in servers:
-        args = servers['graph-code'].get('args', [])
-        servers['graph-code']['args'] = [
-            '.' if arg == '.' else arg
-            for arg in args
-        ]
-
-# Remove non-standard fields
-mcp.pop('enable_tool_search', None)
-
-# Write config
-output_path = f"{opencode}/.mcp.json"
-with open(output_path, 'w') as f:
-    json.dump(mcp, f, indent=2)
-
-print("  [+] .mcp.json created")
-PYEOF
+    sed -e '/"enable_tool_search"/d' \
+        "$BOILERPLATE/.mcp.json" > "$OPENCODE/.mcp.json"
+    echo "  [+] .mcp.json created"
 else
     echo "  [SKIP] .mcp.json not found (pure bash mode)"
 fi
