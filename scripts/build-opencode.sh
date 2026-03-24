@@ -647,7 +647,7 @@ command_count=$(ls "$OPENCODE/.opencode/commands/"*.md 2>/dev/null | wc -l | tr 
 skill_count=$(ls -d "$OPENCODE/.opencode/skill"/*/ 2>/dev/null | wc -l | tr -d ' ')
 
 verify_count "Agents" "$agent_count" 17
-verify_count "Commands" "$command_count" 20
+verify_count "Commands" "$command_count" 19
 verify_count "Skills" "$skill_count" 19
 
 # Model field check
