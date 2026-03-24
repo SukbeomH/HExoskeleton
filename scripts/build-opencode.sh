@@ -675,9 +675,9 @@ agent_count=$(ls "$OPENCODE/.opencode/agents/"*.md 2>/dev/null | wc -l | tr -d '
 command_count=$(ls "$OPENCODE/.opencode/commands/"*.md 2>/dev/null | wc -l | tr -d ' ')
 skill_count=$(ls -d "$OPENCODE/.opencode/skill"/*/ 2>/dev/null | wc -l | tr -d ' ')
 
-verify_count "Agents" "$agent_count" 16
-verify_count "Commands" "$command_count" 18
-verify_count "Skills" "$skill_count" 18
+verify_count "Agents" "$agent_count" 17
+verify_count "Commands" "$command_count" 20
+verify_count "Skills" "$skill_count" 19
 
 # Model field check
 echo ""
