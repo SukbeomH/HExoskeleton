@@ -2,19 +2,19 @@
 
 ## Current Position
 
-**Milestone:** Phase 2 로직 모순 + 기술 부채 해소
+**Milestone:** Self-Configure 전환 완료
 **Phase:** Complete
-**Status:** idle
-**Branch:** seen-father (master merge 대기)
+**Status:** review pending
+**Branch:** feature/self-configure
 
 ## Last Action
 
-로직 모순 16건 + 잔여 기술 부채 4건 = 총 20건 해소. Wave 기반 병렬 실행(8+4+1 subagent). 3개 타겟 빌드 WARN 0건 통과. ARCHITECTURE.md 2차 부채 해소 반영.
+Self-Configure 전환 Phase 3 완료: 빌드 스크립트 5개 삭제, release-please + CI 워크플로우 삭제, Makefile build 타겟 제거, .gitignore 빌드 출력 항목 제거, 문서 전면 갱신.
 
 ## Next Steps
 
-1. seen-father → master PR 생성 및 merge
-2. 잔여 부채 2건 검토 (detect-language.sh, convert-hooks-to-plugins.py)
+1. T20: End-to-End 검증 실행
+2. feature/self-configure → master PR 생성 및 merge
 3. 새 작업 정의 시 SPEC.md 작성
 
 ## Active Decisions
@@ -23,8 +23,9 @@
 |----------|--------|------|---------|
 | GSD 버전 관리 | templates/ + examples/만 추적 | 2026-02-02 | .gitignore |
 | Memory 시스템 | 순수 bash + 마크다운 파일 기반 | 2026-02-05 | hooks, .hxsk/memories/ |
-| Agent 구조 | Skill(How) + Agent(When/With What) 래핑 | 2026-02-02 | .claude/ 전체 |
+| Agent 구조 | Skill(How) + Agent(When/With What) 래핑 | 2026-02-02 | .hxsk/ 전체 |
 | 외부 종속성 | 없음 (MCP, Python 환경 제거) | 2026-02-05 | 전체 시스템 |
+| 배포 모델 | Self-Configure (레포 = 배포, 빌드 없음) | 2026-03-24 | 전체 시스템 |
 
 ## Blockers
 
@@ -36,7 +37,7 @@ None
 
 ## Session Context
 
-2차 기술 부채 해소 완료. Wave 1(8개 병렬) + Wave 2(4개 병렬) + Wave 3(검증) 실행. dispatcher 스킬 기반 worktree 격리 병렬 실행 검증됨.
+Self-Configure 전환 Phase 1~3 완료. 신규 파일 생성(llms.txt, AGENTS.md, prompts/, CLAUDE.md 분리), 소스 재배치(.claude/ → .hxsk/), 빌드 인프라 삭제, 문서 갱신 완료.
 
 ---
 

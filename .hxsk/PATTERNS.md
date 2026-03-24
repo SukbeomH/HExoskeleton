@@ -9,6 +9,7 @@
 - `.hxsk/`에서 `templates/`, `examples/`, `STATE.md`, `PATTERNS.md`만 git 추적. 나머지는 런타임 데이터로 gitignore
 - Agent-Skill 래핑: Skill은 How, Agent는 When/With What. `.hxsk/skills/` + `.hxsk/agents/`
 - **외부 종속성 없음**: 순수 bash 스크립트 + 네이티브 Claude Code 도구만 사용
+- **Self-Configure 배포**: llms.txt + AGENTS.md + setup 프롬프트. 빌드 스크립트 없음, 레포 = 배포
 
 ## Memory System
 - **저장**: `bash scripts/md-store-memory.sh <title> <content> [tags] [type]` (→ `.hxsk/hooks/` canonical로 위임)
@@ -37,4 +38,4 @@
 ---
 
 *Last updated: 2026-03-24*
-*Items: 16/20*
+*Items: 17/20*
