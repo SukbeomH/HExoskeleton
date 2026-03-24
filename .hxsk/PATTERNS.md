@@ -11,8 +11,8 @@
 - **외부 종속성 없음**: 순수 bash 스크립트 + 네이티브 Claude Code 도구만 사용
 
 ## Memory System
-- **저장**: `bash scripts/md-store-memory.sh <title> <content> [tags] [type]`
-- **검색**: `bash scripts/md-recall-memory.sh <query> [path] [limit] [mode]`
+- **저장**: `bash scripts/md-store-memory.sh <title> <content> [tags] [type]` (→ `.claude/hooks/` canonical로 위임)
+- **검색**: `bash scripts/md-recall-memory.sh <query> [path] [limit] [mode]` (→ `.claude/hooks/` canonical로 위임)
 - **A-Mem 필드**: `keywords`, `contextual_description`, `related` (2-hop 검색용)
 - **중복 방지**: 동일 title → `[SKIP:DUPLICATE]` 반환
 - **스키마**: `.hxsk/memories/_schema/` (JSON Schema + type-relations.yaml)
@@ -36,5 +36,5 @@
 
 ---
 
-*Last updated: 2026-03-06*
+*Last updated: 2026-03-24*
 *Items: 16/20*
