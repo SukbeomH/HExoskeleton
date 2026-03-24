@@ -98,6 +98,7 @@ logs_llm/
 !.hxsk/examples/
 !.hxsk/STATE.md
 !.hxsk/PATTERNS.md
+!.hxsk/issues/
 *.pre-compact.bak
 
 # Agent memory (ephemeral)
