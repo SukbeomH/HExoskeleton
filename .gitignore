@@ -99,6 +99,7 @@ logs_llm/
 !.hxsk/STATE.md
 !.hxsk/PATTERNS.md
 !.hxsk/issues/
+!.hxsk/skills/
 *.pre-compact.bak
 
 # Agent memory (ephemeral)
