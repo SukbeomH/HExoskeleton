@@ -13,6 +13,7 @@ AI 에이전트 기반 개발을 위한 경량 프로젝트 보일러플레이�
 - **.claude/** — Agent/Skill/Hook 설정 (single source of truth)
 - **.hxsk/** — Working docs (`SPEC/PLAN/DECISIONS/STATE.md`), `memories/`, `reports/`, `research/`
 - **scripts/** — Utility scripts (md-store-memory.sh, md-recall-memory.sh 등)
+- **docs/** — 프로젝트 문서 (빌드, 훅, 스킬, 워크플로우, 컨벤션 가이드)
 
 ### Agent-Skill 래핑 구조
 - **Skill** (`.claude/skills/{name}/SKILL.md`): "어떻게(How)" — 재사용 가능한 실행 절차
@@ -76,6 +77,12 @@ make build                    # Build all targets (plugin, antigravity, opencode
 - **WebFetch 순차 실행**: 병렬 fetch 금지. 병렬 호출 시 "Sibling tool call errored" 발생
 - **Atomic Commit**: 태스크당 하나의 커밋. 논리적 단위 유지
 - **Discovery Levels**: L1=CLAUDE.md (요약) → L2=skills/SKILL.md (상세) → L3=.hxsk/research/ (출처/벤치마크)
+
+## Compaction Rules
+압축 시 반드시 보존:
+- `.hxsk/.track-modifications.log` 변경 파일 목록
+- 현재 SPEC.md 목표 및 활성 PLAN.md 태스크
+- 이 세션의 메모리 검색 결과와 아키텍처 결정사항
 
 ## Prompt Maintenance Rules
 
