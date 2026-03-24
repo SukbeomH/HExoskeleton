@@ -179,9 +179,9 @@ Source Components:
 - [x] CI 경로 트리거 확대
 - [x] Discovery Level 용어 충돌
 
-**잔여:**
-- [ ] `detect-language.sh` 빌드 타겟 미포함 (executor/handoff에서 텍스트 참조만)
-- [ ] `build-opencode.sh`에 `python3 convert-hooks-to-plugins.py` 잔존 (OpenCode TS 플러그인 변환용)
+**잔여 (의도적 보류):**
+- [ ] `detect-language.sh` 빌드 타겟 미포함 — handoff/executor/bootstrap 스킬에서 source 참조하나 범용 유틸이므로 빌드 복사 불필요
+- [ ] `build-opencode.sh`의 `python3 convert-hooks-to-plugins.py` — OpenCode TS 플러그인 변환에 실제 사용 중, 제거 시 빌드 실패
 
 ---
 
