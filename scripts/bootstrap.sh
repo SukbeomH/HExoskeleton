@@ -77,25 +77,25 @@ else
     report_fail "npm" "not found — https://nodejs.org/"
 fi
 
-# uv
+# uv (optional — Python 프로젝트에서만 필요)
 if command -v uv &>/dev/null; then
     UV_VER=$(uv --version 2>/dev/null | awk '{print $2}')
     report_pass "uv" "${UV_VER}"
 else
-    report_fail "uv" "not found — curl -LsSf https://astral.sh/uv/install.sh | sh"
+    report_skip "uv" "not found — only needed for Python projects"
 fi
 
-# Python >= 3.11
+# Python 3 (보안 훅에서 사용 — 선택적)
 if command -v python3 &>/dev/null; then
     PY_VER=$(python3 --version | awk '{print $2}')
     PY_MINOR=$(echo "$PY_VER" | cut -d. -f2)
     if [[ "$PY_MINOR" -ge 11 ]]; then
         report_pass "Python" "${PY_VER}"
     else
-        report_fail "Python" "${PY_VER} (>= 3.11 required)"
+        report_warn "Python" "${PY_VER} (>= 3.11 recommended)"
     fi
 else
-    report_fail "Python" "not found — https://www.python.org/"
+    report_warn "Python" "not found — security hooks (file-protect, bash-guard) unavailable"
 fi
 
 # qlty CLI

@@ -206,6 +206,9 @@ tags:
 
 ## Type Relations (Ontology)
 
+> **Note:** 아래 검색 체인은 설계 레퍼런스이며, 현재 자동 구현되지 않음.
+> `md-recall-memory.sh`의 2-hop 검색은 `related` 필드 기반이며, 체인 자동 순회는 미구현.
+
 `.hxsk/memories/_schema/type-relations.yaml`에서 14개 타입 간 관계 정의:
 
 | Relation | 의미 | 예시 |

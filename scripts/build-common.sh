@@ -68,16 +68,62 @@ verify_count() {
 
 # verify_json <json_path>
 # Validates JSON file and increments BUILD_ERRORS on failure
+# Pure bash: non-empty check + first-char check + jq/awk bracket balance
 verify_json() {
     local json_path="$1"
     local label
     label="$(basename "$json_path")"
 
-    if python3 -c "import json; json.load(open('${json_path}'))" 2>/dev/null; then
-        echo "  [OK] ${label}"
-    else
-        echo "  [FAIL] ${label} invalid"
+    # Check file is non-empty
+    if [ ! -s "$json_path" ]; then
+        echo "  [FAIL] ${label} empty or missing"
         BUILD_ERRORS=$((BUILD_ERRORS + 1))
+        return
+    fi
+
+    # Check first non-whitespace character is { or [
+    local first_char
+    first_char="$(sed 's/^[[:space:]]*//' "$json_path" | head -c1)"
+    if [[ "$first_char" != "{" && "$first_char" != "[" ]]; then
+        echo "  [FAIL] ${label} invalid (bad start character)"
+        BUILD_ERRORS=$((BUILD_ERRORS + 1))
+        return
+    fi
+
+    # Deep validation: prefer jq, fallback to awk bracket balance
+    if command -v jq &>/dev/null; then
+        if jq empty "$json_path" 2>/dev/null; then
+            echo "  [OK] ${label}"
+        else
+            echo "  [FAIL] ${label} invalid"
+            BUILD_ERRORS=$((BUILD_ERRORS + 1))
+        fi
+    else
+        # awk bracket balance check (outside strings)
+        local balanced
+        balanced="$(awk '
+        BEGIN { depth=0; in_str=0 }
+        {
+            for (i=1; i<=length($0); i++) {
+                c = substr($0, i, 1)
+                if (in_str) {
+                    if (c == "\\" ) { i++; continue }
+                    if (c == "\"") in_str=0
+                    continue
+                }
+                if (c == "\"") { in_str=1; continue }
+                if (c == "{" || c == "[") depth++
+                if (c == "}" || c == "]") depth--
+            }
+        }
+        END { print depth }
+        ' "$json_path")"
+        if [ "$balanced" -eq 0 ]; then
+            echo "  [OK] ${label}"
+        else
+            echo "  [FAIL] ${label} invalid (unbalanced brackets)"
+            BUILD_ERRORS=$((BUILD_ERRORS + 1))
+        fi
     fi
 }
 
@@ -121,3 +167,20 @@ print_build_result() {
 # --- Global error/warning counters ---
 BUILD_ERRORS=0
 BUILD_WARNINGS=0
+
+# extract_frontmatter_field <file> <field>
+extract_frontmatter_field() {
+    local file="$1"
+    local field="$2"
+    awk -v fld="$field" '
+        BEGIN { in_fm=0 }
+        NR==1 && /^---/ { in_fm=1; next }
+        in_fm && /^---/ { exit }
+        in_fm && $0 ~ "^" fld ":" {
+            sub("^" fld ":[ ]*", "")
+            gsub(/^"|"$/, "")
+            print
+            exit
+        }
+    ' "$file"
+}

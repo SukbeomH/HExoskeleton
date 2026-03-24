@@ -491,7 +491,9 @@ echo "  [+] GEMINI.md ($(wc -c < "$ANTIGRAVITY/GEMINI.md" | tr -d ' ') chars)"
 echo ""
 echo "[Phase 6] Copying utility scripts (selective)..."
 
-# Copy memory scripts + security guard scripts
+# Copy memory scripts + security guard scripts ONLY
+# Antigravity IDE는 event hooks를 지원하지 않으므로 (rules/security-guard.md로 대체)
+# 실행 가능한 유틸리티 스크립트만 복사한다 (5개: 메모리2 + 보안2 + 파서1)
 SCRIPT_COUNT=0
 for script in md-recall-memory.sh md-store-memory.sh _json_parse.sh bash-guard.py file-protect.py; do
     src="$BOILERPLATE/.claude/hooks/$script"
@@ -717,8 +719,8 @@ skill_count=$(find "$ANTIGRAVITY/.agent/skills" -mindepth 1 -maxdepth 1 -type d 
 workflow_count=$(find "$ANTIGRAVITY/.agent/workflows" -name "*.md" | wc -l | tr -d ' ')
 rules_count=$(find "$ANTIGRAVITY/.agent/rules" -name "*.md" | wc -l | tr -d ' ')
 
-verify_count "Skills" "$skill_count" 18
-verify_count "Workflows" "$workflow_count" 15
+verify_count "Skills" "$skill_count" 19
+verify_count "Workflows" "$workflow_count" 17
 verify_count "Rules" "$rules_count" 6
 
 # --- Frontmatter compliance (check only within --- fences) ---
@@ -835,6 +837,16 @@ if [ "$wf_too_short" -eq 0 ] && [ "$wf_no_desc" -eq 0 ]; then
     echo "  [OK] All workflows have description and substantive content"
 else
     BUILD_WARNINGS=$((BUILD_WARNINGS + wf_too_short + wf_no_desc))
+fi
+
+# [JSON Validity] — Antigravity uses markdown rules, no JSON config files
+echo ""
+echo "[Content Validity]"
+if [ -f "$ANTIGRAVITY/GEMINI.md" ] && [ -s "$ANTIGRAVITY/GEMINI.md" ]; then
+    echo "  [OK] GEMINI.md non-empty ($(wc -c < "$ANTIGRAVITY/GEMINI.md" | tr -d ' ') chars)"
+else
+    echo "  [FAIL] GEMINI.md empty or missing"
+    BUILD_ERRORS=$((BUILD_ERRORS + 1))
 fi
 
 # --- Summary ---

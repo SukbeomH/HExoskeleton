@@ -11,8 +11,8 @@
 - **외부 종속성 없음**: 순수 bash 스크립트 + 네이티브 Claude Code 도구만 사용
 
 ## Memory System
-- **저장**: `bash scripts/md-store-memory.sh <title> <content> [tags] [type]`
-- **검색**: `bash scripts/md-recall-memory.sh <query> [path] [limit] [mode]`
+- **저장**: `bash scripts/md-store-memory.sh <title> <content> [tags] [type]` (→ `.claude/hooks/` canonical로 위임)
+- **검색**: `bash scripts/md-recall-memory.sh <query> [path] [limit] [mode]` (→ `.claude/hooks/` canonical로 위임)
 - **A-Mem 필드**: `keywords`, `contextual_description`, `related` (2-hop 검색용)
 - **중복 방지**: 동일 title → `[SKIP:DUPLICATE]` 반환
 - **스키마**: `.hxsk/memories/_schema/` (JSON Schema + type-relations.yaml)
@@ -20,6 +20,7 @@
 ## Conventions
 - 커밋: atomic, conventional format. PR 통해 master 병합 (protected branch)
 - 스킬 2단계 로딩: `## Quick Reference` 섹션(5줄)으로 빠른 컨텍스트 제공
+- **Discovery Level** vs **문서 계층**: Discovery Level(L0-L3)은 planner의 연구 깊이, 문서 계층(L1-L3)은 프롬프트 문서 레이어
 
 ## Gotchas
 - 메모리 검색은 Grep → Glob 순서 (broad → narrow)
@@ -35,5 +36,5 @@
 
 ---
 
-*Last updated: 2026-03-06*
-*Items: 15/20*
+*Last updated: 2026-03-24*
+*Items: 16/20*

@@ -13,20 +13,10 @@ main() {
     # JSON 파싱 추상화 로드
     source "$HOOK_DIR/_json_parse.sh"
 
-    # 1. PATTERNS.md 로드 (핵심 패턴, 2KB 제한)
-    PATTERNS_FILE="$HXSK_DIR/PATTERNS.md"
-    if [ -f "$PATTERNS_FILE" ]; then
-        PATTERNS_CONTENT=$(head -60 "$PATTERNS_FILE" 2>/dev/null || true)
-        if [ -n "$PATTERNS_CONTENT" ]; then
-            CONTEXT_PARTS+=("## Codebase Patterns (from .hxsk/PATTERNS.md)")
-            CONTEXT_PARTS+=("$PATTERNS_CONTENT")
-        fi
-    fi
-
-    # 2. CURRENT.md 로드 (현재 세션 컨텍스트)
+    # 1. CURRENT.md 로드 (현재 세션 컨텍스트)
     CURRENT_FILE="$HXSK_DIR/CURRENT.md"
     if [ -f "$CURRENT_FILE" ]; then
-        CURRENT_CONTENT=$(cat "$CURRENT_FILE" 2>/dev/null || true)
+        CURRENT_CONTENT=$(head -15 "$CURRENT_FILE" 2>/dev/null || true)
         if [ -n "$CURRENT_CONTENT" ] && ! grep -q "^<!-- Current task ID" "$CURRENT_FILE"; then
             CONTEXT_PARTS+=("")
             CONTEXT_PARTS+=("## Current Session Context (from .hxsk/CURRENT.md)")
@@ -34,10 +24,10 @@ main() {
         fi
     fi
 
-    # 3. STATE.md 로드 (상위 80줄)
+    # 2. STATE.md 로드 (상위 30줄)
     STATE_FILE="$HXSK_DIR/STATE.md"
     if [ -f "$STATE_FILE" ]; then
-        STATE_CONTENT=$(head -80 "$STATE_FILE" 2>/dev/null || true)
+        STATE_CONTENT=$(head -30 "$STATE_FILE" 2>/dev/null || true)
         if [ -n "$STATE_CONTENT" ]; then
             CONTEXT_PARTS+=("")
             CONTEXT_PARTS+=("## HXSK State (from .hxsk/STATE.md)")
@@ -45,7 +35,7 @@ main() {
         fi
     fi
 
-    # 4. Git 미커밋 변경사항 요약
+    # 3. Git 미커밋 변경사항 요약
     GIT_STATUS=$(git -C "$PROJECT_DIR" status --short 2>/dev/null || true)
     if [ -n "$GIT_STATUS" ]; then
         FILE_COUNT=$(echo "$GIT_STATUS" | wc -l | tr -d ' ')
@@ -54,7 +44,7 @@ main() {
         CONTEXT_PARTS+=("$GIT_STATUS")
     fi
 
-    # 5. 최근 커밋 3개
+    # 4. 최근 커밋 3개
     RECENT_COMMITS=$(git -C "$PROJECT_DIR" log --oneline -3 2>/dev/null || true)
     if [ -n "$RECENT_COMMITS" ]; then
         CONTEXT_PARTS+=("")
@@ -62,8 +52,8 @@ main() {
         CONTEXT_PARTS+=("$RECENT_COMMITS")
     fi
 
-    # 6. Memory Recall (파일 기반 메모리에서 최근 프로젝트 메모리)
-    MEMORY_OUTPUT=$("$HOOK_DIR/md-recall-memory.sh" "project context" "$PROJECT_DIR" 5 2>/dev/null || true)
+    # 5. Memory Recall (파일 기반 메모리에서 최근 프로젝트 메모리)
+    MEMORY_OUTPUT=$("$HOOK_DIR/md-recall-memory.sh" "project context" "$PROJECT_DIR" 3 2>/dev/null || true)
     if [ -n "$MEMORY_OUTPUT" ]; then
         CONTEXT_PARTS+=("")
         CONTEXT_PARTS+=("## Recent Memory Context")
