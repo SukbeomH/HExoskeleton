@@ -19,3 +19,8 @@ Key constraints:
 - Always use `scripts/merge-worktrees.sh` for merging
 - Escalate merge conflicts as new issues
 - Use `run_in_background: true` for parallel dispatch within a wave
+
+Agent Boundaries (CLAUDE.md 준수):
+- Always: merge 전 각 worktree의 변경사항 리뷰
+- Ask First: 3+ 모듈 영향 시 사용자 확인 요청
+- Never: 사용자 승인 없이 master 브랜치 직접 push
