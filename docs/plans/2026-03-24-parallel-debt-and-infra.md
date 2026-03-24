@@ -17,19 +17,19 @@ Wave 1 (독립 — 병렬 가능):
   WKT-A: scripts/build-common.sh
   WKT-B: CLAUDE.md
   WKT-C: scripts/bootstrap.sh
-  WKT-D: .claude/hooks/session-start.sh
+  WKT-D: .hxsk/hooks/session-start.sh
   WKT-E: .claude/settings.json
   WKT-F: [신규] .hxsk/issues/, scripts/issue-*.sh
 
 Wave 2 (Wave 1 의존 — 병렬 가능):
   WKT-G: scripts/build-plugin.sh        ← depends_on: [WKT-A]
   WKT-H: scripts/build-opencode.sh      ← depends_on: [WKT-A]
-  WKT-I: [신규] .claude/skills/dispatcher/, .claude/agents/dispatcher.md
+  WKT-I: [신규] .hxsk/skills/dispatcher/, .hxsk/agents/dispatcher.md
                                          ← depends_on: [WKT-F]
 
 Wave 3 (Wave 2 의존 — 병렬 가능):
   WKT-J: [신규] scripts/merge-worktrees.sh
-  WKT-K: .claude/skills/executor/SKILL.md ← depends_on: [WKT-I]
+  WKT-K: .hxsk/skills/executor/SKILL.md ← depends_on: [WKT-I]
 
 Wave 4 (순차):
   통합 빌드 검증 + 문서 갱신
@@ -215,7 +215,7 @@ git commit -m "fix(bootstrap): python3/uv를 선택적 의존성으로 변경"
 ### Task WKT-D: `session-start.sh` — 토큰 경량화 (T1)
 
 **Files:**
-- Modify: `.claude/hooks/session-start.sh`
+- Modify: `.hxsk/hooks/session-start.sh`
 
 **Step 1: 중복 로드 제거 + 출력 축소**
 
@@ -253,13 +253,13 @@ git commit -m "fix(bootstrap): python3/uv를 선택적 의존성으로 변경"
 
 **Step 2: 검증**
 
-Run: `CLAUDE_PROJECT_DIR=. bash .claude/hooks/session-start.sh 2>/dev/null | wc -c`
+Run: `CLAUDE_PROJECT_DIR=. bash .hxsk/hooks/session-start.sh 2>/dev/null | wc -c`
 Expected: 이전 대비 40~60% 감소
 
 **Step 3: Commit**
 
 ```bash
-git add .claude/hooks/session-start.sh
+git add .hxsk/hooks/session-start.sh
 git commit -m "perf(hooks): session-start 토큰 40-60% 경량화"
 ```
 
@@ -468,8 +468,8 @@ echo "[Phase 4b] Transforming hooks..."
             if (found) print
         }
     ' "$BOILERPLATE/.claude/settings.json" \
-    | sed 's|"\$CLAUDE_PROJECT_DIR"/\.claude/hooks/|${CLAUDE_PLUGIN_ROOT}/scripts/|g' \
-    | sed "s|\"\\$CLAUDE_PROJECT_DIR\"/\\.claude/hooks/|\${CLAUDE_PLUGIN_ROOT}/scripts/|g"
+    | sed 's|"\$CLAUDE_PROJECT_DIR"/\.hxsk/hooks/|${CLAUDE_PLUGIN_ROOT}/scripts/|g' \
+    | sed "s|\"\\$CLAUDE_PROJECT_DIR\"/\\.hxsk/hooks/|\${CLAUDE_PLUGIN_ROOT}/scripts/|g"
     echo '}'
 } > "$PLUGIN/hooks/hooks.json"
 echo "  [+] Created hooks.json with transformed paths"
@@ -653,8 +653,8 @@ git commit -m "refactor(build): build-opencode.sh .mcp.json 변환에서 python3
 
 **depends_on:** [WKT-F]
 **Files:**
-- Create: `.claude/skills/dispatcher/SKILL.md`
-- Create: `.claude/agents/dispatcher.md`
+- Create: `.hxsk/skills/dispatcher/SKILL.md`
+- Create: `.hxsk/agents/dispatcher.md`
 
 **Step 1: Dispatcher Skill 작성**
 
@@ -774,7 +774,7 @@ Key constraints:
 **Step 3: Commit**
 
 ```bash
-git add .claude/skills/dispatcher/SKILL.md .claude/agents/dispatcher.md
+git add .hxsk/skills/dispatcher/SKILL.md .hxsk/agents/dispatcher.md
 git commit -m "feat(infra): dispatcher skill + agent — wave 기반 병렬 실행"
 ```
 
@@ -863,7 +863,7 @@ git commit -m "feat(infra): merge-worktrees.sh — subagent 워크트리 병합 
 
 **depends_on:** [WKT-I]
 **Files:**
-- Modify: `.claude/skills/executor/SKILL.md` (Step 3에 Pattern D 추가)
+- Modify: `.hxsk/skills/executor/SKILL.md` (Step 3에 Pattern D 추가)
 
 **Step 1: Pattern D 추가 (line 77 뒤)**
 
@@ -894,7 +894,7 @@ Check PLAN.md for execution mode:
 **Step 3: Commit**
 
 ```bash
-git add .claude/skills/executor/SKILL.md
+git add .hxsk/skills/executor/SKILL.md
 git commit -m "feat(executor): Pattern D — wave 기반 병렬 실행 지원"
 ```
 
@@ -918,7 +918,7 @@ Expected: 출력 없음
 
 **Step 3: hooks.json 변환 검증**
 
-Run: `grep -c '\.claude/hooks/' hxsk-plugin/hooks/hooks.json`
+Run: `grep -c '\.hxsk/hooks/' hxsk-plugin/hooks/hooks.json`
 Expected: `0`
 
 **Step 4: 신규 인프라 검증**

@@ -42,7 +42,7 @@ Wave 3 (검증):
 
 **Addresses:** M2 (Agent 도구 미선언)
 **Files:**
-- Modify: `.claude/agents/executor.md:4`
+- Modify: `.hxsk/agents/executor.md:4`
 
 **Step 1: tools에 Agent 추가**
 
@@ -54,13 +54,13 @@ Pattern D(병렬 wave 실행)에 `Agent(isolation: "worktree")`가 필요하므�
 
 **Step 2: 검증**
 
-Run: `grep 'tools:' .claude/agents/executor.md`
+Run: `grep 'tools:' .hxsk/agents/executor.md`
 Expected: `tools: ["Read", "Write", "Edit", "Bash", "Grep", "Glob", "Agent"]`
 
 **Step 3: Commit**
 
 ```bash
-git add .claude/agents/executor.md
+git add .hxsk/agents/executor.md
 git commit -m "fix(executor): Agent 도구 선언 추가 — Pattern D 실행 가능"
 ```
 
@@ -70,7 +70,7 @@ git commit -m "fix(executor): Agent 도구 선언 추가 — Pattern D 실행 �
 
 **Addresses:** M9 (Bash 도구 미선언)
 **Files:**
-- Modify: `.claude/agents/planner.md:4`
+- Modify: `.hxsk/agents/planner.md:4`
 
 **Step 1: tools에 Bash 추가**
 
@@ -82,13 +82,13 @@ tools: ["Read", "Grep", "Glob", "Bash"]
 
 **Step 2: 검증**
 
-Run: `grep 'tools:' .claude/agents/planner.md`
+Run: `grep 'tools:' .hxsk/agents/planner.md`
 Expected: `tools: ["Read", "Grep", "Glob", "Bash"]`
 
 **Step 3: Commit**
 
 ```bash
-git add .claude/agents/planner.md
+git add .hxsk/agents/planner.md
 git commit -m "fix(planner): Bash 도구 선언 추가 — 메모리 검색 가능"
 ```
 
@@ -98,7 +98,7 @@ git commit -m "fix(planner): Bash 도구 선언 추가 — 메모리 검색 가�
 
 **Addresses:** M10 (Agent Boundaries 미적용)
 **Files:**
-- Modify: `.claude/agents/dispatcher.md`
+- Modify: `.hxsk/agents/dispatcher.md`
 
 **Step 1: Agent Boundaries 참조 추가**
 
@@ -114,13 +114,13 @@ Agent Boundaries (CLAUDE.md 준수):
 
 **Step 2: 검증**
 
-Run: `grep -c 'Ask First' .claude/agents/dispatcher.md`
+Run: `grep -c 'Ask First' .hxsk/agents/dispatcher.md`
 Expected: `1`
 
 **Step 3: Commit**
 
 ```bash
-git add .claude/agents/dispatcher.md
+git add .hxsk/agents/dispatcher.md
 git commit -m "fix(dispatcher): Agent Boundaries 프로토콜 적용"
 ```
 
@@ -130,7 +130,7 @@ git commit -m "fix(dispatcher): Agent Boundaries 프로토콜 적용"
 
 **Addresses:** M3 (`.gemini/GEMINI.md`, `browser_subagent`, `run_command` 참조)
 **Files:**
-- Modify: `.claude/skills/empirical-validation/SKILL.md`
+- Modify: `.hxsk/skills/empirical-validation/SKILL.md`
 
 **Step 1: Quick Reference의 도구 참조를 Claude Code 네이티브 도구로 교체**
 
@@ -178,13 +178,13 @@ git commit -m "fix(dispatcher): Agent Boundaries 프로토콜 적용"
 
 **Step 4: 검증**
 
-Run: `grep -cE 'browser_subagent|run_command|\.gemini' .claude/skills/empirical-validation/SKILL.md`
+Run: `grep -cE 'browser_subagent|run_command|\.gemini' .hxsk/skills/empirical-validation/SKILL.md`
 Expected: `0`
 
 **Step 5: Commit**
 
 ```bash
-git add .claude/skills/empirical-validation/SKILL.md
+git add .hxsk/skills/empirical-validation/SKILL.md
 git commit -m "fix(empirical-validation): 존재하지 않는 도구/파일 참조 제거"
 ```
 
@@ -303,7 +303,7 @@ git commit -m "fix(build): opencode 빌드 expected counts 갱신"
 
 **Addresses:** M11 (pattern-discovery 죽은 코드), M16 (.context-save.log 무한 증가)
 **Files:**
-- Modify: `.claude/hooks/stop-context-save.sh`
+- Modify: `.hxsk/hooks/stop-context-save.sh`
 
 **Step 1: pattern-discovery 스캔 코드 제거 (line 118-136)**
 
@@ -325,16 +325,16 @@ git commit -m "fix(build): opencode 빌드 expected counts 갱신"
 
 **Step 3: 검증**
 
-Run: `bash -c 'grep -c "ACE Reflector\|pattern-discovery" .claude/hooks/stop-context-save.sh'`
+Run: `bash -c 'grep -c "ACE Reflector\|pattern-discovery" .hxsk/hooks/stop-context-save.sh'`
 Expected: `0`
 
-Run: `grep -c 'LOG_SIZE' .claude/hooks/stop-context-save.sh`
+Run: `grep -c 'LOG_SIZE' .hxsk/hooks/stop-context-save.sh`
 Expected: `1`
 
 **Step 4: Commit**
 
 ```bash
-git add .claude/hooks/stop-context-save.sh
+git add .hxsk/hooks/stop-context-save.sh
 git commit -m "fix(hooks): pattern-discovery 죽은 코드 제거, context-save.log 로테이션 추가"
 ```
 
@@ -383,7 +383,7 @@ git commit -m "fix(ci): 빌드 트리거 경로 확대 — scripts/**, .hxsk/exa
 
 **Addresses:** M13 (정의됐지만 사용되지 않는 검색 체인)
 **Files:**
-- Modify: `.claude/skills/memory-protocol/SKILL.md`
+- Modify: `.hxsk/skills/memory-protocol/SKILL.md`
 
 **Step 1: type relations 섹션에 미구현 상태 명시**
 
@@ -396,13 +396,13 @@ git commit -m "fix(ci): 빌드 트리거 경로 확대 — scripts/**, .hxsk/exa
 
 **Step 2: 검증**
 
-Run: `grep -c '설계 레퍼런스' .claude/skills/memory-protocol/SKILL.md`
+Run: `grep -c '설계 레퍼런스' .hxsk/skills/memory-protocol/SKILL.md`
 Expected: `1`
 
 **Step 3: Commit**
 
 ```bash
-git add .claude/skills/memory-protocol/SKILL.md
+git add .hxsk/skills/memory-protocol/SKILL.md
 git commit -m "docs(memory-protocol): type relations 미구현 상태 명시"
 ```
 
@@ -414,18 +414,18 @@ git commit -m "docs(memory-protocol): type relations 미구현 상태 명시"
 **Files:**
 - Modify: `scripts/_json_parse.sh`, `scripts/compact-context.sh`, `scripts/md-recall-memory.sh`, `scripts/md-store-memory.sh`, `scripts/organize-docs.sh` (5개 모두)
 
-**Step 1: `.claude/hooks/`를 canonical로 지정**
+**Step 1: `.hxsk/hooks/`를 canonical로 지정**
 
-`.claude/hooks/`가 canonical인 이유:
-- 빌드 스크립트(build-plugin, antigravity, opencode)가 모두 `.claude/hooks/`에서 복사
-- 훅 설정(settings.json)이 `.claude/hooks/` 경로 참조
+`.hxsk/hooks/`가 canonical인 이유:
+- 빌드 스크립트(build-plugin, antigravity, opencode)가 모두 `.hxsk/hooks/`에서 복사
+- 훅 설정(settings.json)이 `.hxsk/hooks/` 경로 참조
 - `scripts/`의 파일은 사실상 사용되지 않음 (CLAUDE.md에서 참조하지만 실제 호출은 hooks/)
 
 각 `scripts/` 파일을 1줄 래퍼로 교체:
 
 ```bash
 #!/usr/bin/env bash
-# Canonical location: .claude/hooks/$(basename "$0")
+# Canonical location: .hxsk/hooks/$(basename "$0")
 # This wrapper delegates to the canonical copy.
 exec "$(cd "$(dirname "$0")/../.claude/hooks" && pwd)/$(basename "$0")" "$@"
 ```
@@ -433,11 +433,11 @@ exec "$(cd "$(dirname "$0")/../.claude/hooks" && pwd)/$(basename "$0")" "$@"
 **Step 2: 5개 파일 모두 래퍼로 교체**
 
 각 파일에 대해 동일한 패턴:
-- `scripts/_json_parse.sh` → `.claude/hooks/_json_parse.sh`로 위임
-- `scripts/compact-context.sh` → `.claude/hooks/compact-context.sh`로 위임
-- `scripts/md-recall-memory.sh` → `.claude/hooks/md-recall-memory.sh`로 위임
-- `scripts/md-store-memory.sh` → `.claude/hooks/md-store-memory.sh`로 위임
-- `scripts/organize-docs.sh` → `.claude/hooks/organize-docs.sh`로 위임
+- `scripts/_json_parse.sh` → `.hxsk/hooks/_json_parse.sh`로 위임
+- `scripts/compact-context.sh` → `.hxsk/hooks/compact-context.sh`로 위임
+- `scripts/md-recall-memory.sh` → `.hxsk/hooks/md-recall-memory.sh`로 위임
+- `scripts/md-store-memory.sh` → `.hxsk/hooks/md-store-memory.sh`로 위임
+- `scripts/organize-docs.sh` → `.hxsk/hooks/organize-docs.sh`로 위임
 
 **Step 3: 검증**
 
@@ -448,7 +448,7 @@ Expected: 에러가 아닌 정상 출력 (래퍼가 canonical로 위임)
 
 ```bash
 git add scripts/_json_parse.sh scripts/compact-context.sh scripts/md-recall-memory.sh scripts/md-store-memory.sh scripts/organize-docs.sh
-git commit -m "refactor(scripts): 5개 중복 스크립트를 .claude/hooks/ canonical 위임 래퍼로 교체"
+git commit -m "refactor(scripts): 5개 중복 스크립트를 .hxsk/hooks/ canonical 위임 래퍼로 교체"
 ```
 
 ---
@@ -517,13 +517,13 @@ Expected: 3개 모두 `BUILD SUCCESSFUL`, WARN 0건
 
 **Step 2: 잔여 모순 확인**
 
-Run: `grep -cE 'browser_subagent|run_command|\.gemini' .claude/skills/empirical-validation/SKILL.md`
+Run: `grep -cE 'browser_subagent|run_command|\.gemini' .hxsk/skills/empirical-validation/SKILL.md`
 Expected: `0`
 
-Run: `grep 'tools:' .claude/agents/executor.md .claude/agents/planner.md .claude/agents/dispatcher.md`
+Run: `grep 'tools:' .hxsk/agents/executor.md .hxsk/agents/planner.md .hxsk/agents/dispatcher.md`
 Expected: executor에 Agent, planner에 Bash, dispatcher에 Agent Boundaries 포함
 
-Run: `grep -c 'pattern-discovery' .claude/hooks/stop-context-save.sh`
+Run: `grep -c 'pattern-discovery' .hxsk/hooks/stop-context-save.sh`
 Expected: `0`
 
 **Step 3: ARCHITECTURE.md 기술 부채 섹션 최종 갱신**
@@ -542,7 +542,7 @@ Expected: `0`
 - [x] empirical-validation 존재하지 않는 참조
 - [x] 빌드 expected counts 불일치 (3개 타겟)
 - [x] pattern-discovery 죽은 코드
-- [x] scripts/ ↔ .claude/hooks/ 중복 (canonical 위임)
+- [x] scripts/ ↔ .hxsk/hooks/ 중복 (canonical 위임)
 - [x] CI 경로 트리거 확대
 - [x] Discovery Level 용어 충돌
 

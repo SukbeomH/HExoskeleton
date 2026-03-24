@@ -53,14 +53,14 @@ Source Components:
 ### 1. Agent-Skill System (`.claude/`)
 
 - **Purpose:** AI 에이전트 행동 정의 및 스킬 절차 관리
-- **Location:** `.claude/agents/` (17 agents), `.claude/skills/` (19 skills)
+- **Location:** `.hxsk/agents/` (17 agents), `.hxsk/skills/` (19 skills)
 - **Pattern:** Skill = How (재사용 가능 절차), Agent = When/With What (오케스트레이션)
 - **Dependencies:** 없음 (순수 마크다운)
 
-### 2. Hook System (`.claude/hooks/`)
+### 2. Hook System (`.hxsk/hooks/`)
 
 - **Purpose:** Claude Code 이벤트 기반 자동화 (보안, 포매팅, 메모리)
-- **Location:** `.claude/hooks/` (17 scripts: sh + py)
+- **Location:** `.hxsk/hooks/` (17 scripts: sh + py)
 - **Events:** SessionStart, PreToolUse, PostToolUse, PreCompact, Stop, SubagentStop, SessionEnd
 - **Key Hooks:**
   - `file-protect.py` — 민감 파일(.env, .pem, credentials) 접근 차단
@@ -105,8 +105,8 @@ Source Components:
 ### 5b. Dispatcher System
 
 - **Purpose:** Wave 기반 이슈 병렬 실행 오케스트레이션
-- **Skill:** `.claude/skills/dispatcher/SKILL.md`
-- **Agent:** `.claude/agents/dispatcher.md`
+- **Skill:** `.hxsk/skills/dispatcher/SKILL.md`
+- **Agent:** `.hxsk/agents/dispatcher.md`
 - **Merge:** `scripts/merge-worktrees.sh`
 - **Pattern:** Wave N 내 이슈 → 병렬 worktree subagent → merge → Wave N+1
 - **File Ownership:** 같은 wave 내 이슈는 동일 파일 수정 금지
@@ -156,7 +156,7 @@ Source Components:
 ## Conventions
 
 - **Naming:** bash 스크립트 = kebab-case, 마크다운 = UPPER_CASE.md (working docs), lower_case.md (templates)
-- **Structure:** Agent-Skill 래핑 (`.claude/agents/` + `.claude/skills/`)
+- **Structure:** Agent-Skill 래핑 (`.hxsk/agents/` + `.hxsk/skills/`)
 - **Commits:** Atomic, conventional format (`feat:`, `fix:`, `refactor:` 등), PR 통해 master 병합
 - **Hooks:** `$CLAUDE_PROJECT_DIR` 변수 기반 경로, JSON hook config in `settings.json`
 - **Build:** `build-common.sh` 공통 함수 활용, 각 빌드 스크립트 독립적 실행 가능
@@ -175,7 +175,7 @@ Source Components:
 - [x] empirical-validation 존재하지 않는 참조
 - [x] 빌드 expected counts 불일치 (3개 타겟)
 - [x] pattern-discovery 죽은 코드
-- [x] scripts/ ↔ .claude/hooks/ 중복 (canonical 위임)
+- [x] scripts/ ↔ .hxsk/hooks/ 중복 (canonical 위임)
 - [x] CI 경로 트리거 확대
 - [x] Discovery Level 용어 충돌
 

@@ -7,7 +7,7 @@ trigger: "코드 품질 검사, 린트, 포맷팅 수정, shellcheck, shfmt, pre
 ## Quick Reference
 - **Lint**: `shellcheck *.sh` (shell script 정적 분석)
 - **Format**: `shfmt -w -i 4 *.sh` (shell script 포맷팅)
-- **Script**: `bash .claude/skills/clean/scripts/run_quality_checks.sh`
+- **Script**: `bash .hxsk/skills/clean/scripts/run_quality_checks.sh`
 - **Output**: `=== Clean Report ===` 형식, Overall CLEAN/ISSUES_REMAIN
 
 ---
@@ -30,7 +30,7 @@ Use this before committing or as a pre-execution quality gate.
 find . -name "*.sh" -exec shellcheck {} \;
 
 # 또는 스크립트 사용
-bash .claude/skills/clean/scripts/run_quality_checks.sh
+bash .hxsk/skills/clean/scripts/run_quality_checks.sh
 ```
 
 Report what was found:

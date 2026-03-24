@@ -252,7 +252,7 @@ fi
       "hooks": [
         {
           "type": "command",
-          "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/auto-format-py.sh",
+          "command": "\"$CLAUDE_PROJECT_DIR\"/.hxsk/hooks/auto-format-py.sh",
           "timeout": 30
         }
       ]

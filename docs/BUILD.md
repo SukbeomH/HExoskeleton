@@ -44,11 +44,11 @@ hxsk-plugin/
 
 1. **디렉토리 생성**: 플러그인 구조 생성
 2. **명령어 복사**: `.agent/workflows/*.md` → `commands/` (없으면 skills에서 자동 생성)
-3. **스킬 복사**: `.claude/skills/` → `skills/` + SKILL.md 경로 치환 (`scripts/md-*.sh` → `${CLAUDE_PLUGIN_ROOT}/scripts/md-*.sh`)
-4. **에이전트 복사**: `.claude/agents/` → `agents/`
+3. **스킬 복사**: `.hxsk/skills/` → `skills/` + SKILL.md 경로 치환 (`scripts/md-*.sh` → `${CLAUDE_PLUGIN_ROOT}/scripts/md-*.sh`)
+4. **에이전트 복사**: `.hxsk/agents/` → `agents/`
 5. **훅 변환**:
    - `settings.json` → `hooks/hooks.json`
-   - 경로 변환: `$CLAUDE_PROJECT_DIR/.claude/hooks/` → `${CLAUDE_PLUGIN_ROOT}/scripts/`
+   - 경로 변환: `$CLAUDE_PROJECT_DIR/.hxsk/hooks/` → `${CLAUDE_PLUGIN_ROOT}/scripts/`
 6. **MCP 변환** (선택적):
    - `.mcp.json` 존재 시만 처리
    - 순수 bash 모드에서는 `[SKIP]` 메시지 출력
@@ -126,7 +126,7 @@ antigravity-boilerplate/
 
 1. **디렉토리 생성**: `.agent/skills/`, `.agent/workflows/`, `.agent/rules/`
 2. **스킬 마이그레이션**:
-   - `.claude/skills/` → `.agent/skills/`
+   - `.hxsk/skills/` → `.agent/skills/`
    - YAML frontmatter의 `description` 필드 검증
 3. **워크플로우 복사**:
    - `.agent/workflows/` → `.agent/workflows/`
@@ -228,11 +228,11 @@ opencode-boilerplate/
 
 1. **디렉토리 생성**: `.opencode/agents/`, `.opencode/commands/`, `.opencode/skill/`
 2. **에이전트 마이그레이션** (핵심 기능):
-   - `.claude/agents/*.md` → `.opencode/agents/`
+   - `.hxsk/agents/*.md` → `.opencode/agents/`
    - **모델 필드 변환**: `opus` → `anthropic/claude-opus-4-20250514`
    - **도구 필드 변환**: `["Read", "Write"]` → YAML map `read: true, write: true`
    - CRLF 줄바꿈 자동 처리
-3. **스킬 복사**: `.claude/skills/` → `.opencode/skill/`
+3. **스킬 복사**: `.hxsk/skills/` → `.opencode/skill/`
 4. **워크플로우 복사**: `.agent/workflows/` → `.opencode/commands/`
 5. **opencode.json 생성**: 에이전트별 모델 설정 포함
 6. **MCP 변환**: `.mcp.json` → `.mcp.json`
@@ -301,10 +301,10 @@ cd /path/to/project && opencode
 
 | 보일러플레이트 | Claude Code Plugin | Antigravity |
 |---------------|-------------------|-------------|
-| `.claude/skills/` | `skills/` | `.agent/skills/` |
+| `.hxsk/skills/` | `skills/` | `.agent/skills/` |
 | `.agent/workflows/` | `commands/` | `.agent/workflows/` |
-| `.claude/agents/` | `agents/` | (내부 시스템) |
-| `.claude/hooks/` | `hooks/hooks.json` + `scripts/` | `.agent/rules/` |
+| `.hxsk/agents/` | `agents/` | (내부 시스템) |
+| `.hxsk/hooks/` | `hooks/hooks.json` + `scripts/` | `.agent/rules/` |
 | `CLAUDE.md` | (그대로) | `.agent/rules/*.md` |
 | `.mcp.json` | `.mcp.json` | `mcp-settings.json` |
 
@@ -406,7 +406,7 @@ brew install zsh  # 또는 apt install zsh
 
 ```bash
 # SKILL.md 파일 확인
-head -5 .claude/skills/*/SKILL.md
+head -5 .hxsk/skills/*/SKILL.md
 
 # 누락된 경우 추가
 # ---

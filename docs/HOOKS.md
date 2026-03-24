@@ -9,7 +9,7 @@ Claude Code의 **Hooks**는 특정 이벤트에 자동으로 응답하는 스크
 | 항목 | 설명 |
 |------|------|
 | **설정 파일** | `.claude/settings.json` |
-| **스크립트 위치** | `.claude/hooks/` |
+| **스크립트 위치** | `.hxsk/hooks/` |
 | **개수** | 17개 스크립트 |
 | **이벤트 종류** | SessionStart, PreToolUse, PostToolUse, PreCompact, Stop, SubagentStop, SessionEnd |
 
@@ -77,7 +77,7 @@ Claude Code의 **Hooks**는 특정 이벤트에 자동으로 응답하는 스크
         "hooks": [
           {
             "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/session-start.sh",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.hxsk/hooks/session-start.sh",
             "timeout": 10
           }
         ]
@@ -89,7 +89,7 @@ Claude Code의 **Hooks**는 특정 이벤트에 자동으로 응답하는 스크
         "hooks": [
           {
             "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/file-protect.py",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.hxsk/hooks/file-protect.py",
             "timeout": 5
           }
         ]
@@ -99,7 +99,7 @@ Claude Code의 **Hooks**는 특정 이벤트에 자동으로 응답하는 스크
         "hooks": [
           {
             "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/bash-guard.py",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.hxsk/hooks/bash-guard.py",
             "timeout": 5
           }
         ]
@@ -111,12 +111,12 @@ Claude Code의 **Hooks**는 특정 이벤트에 자동으로 응답하는 스크
         "hooks": [
           {
             "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/auto-format.sh",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.hxsk/hooks/auto-format.sh",
             "timeout": 30
           },
           {
             "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/track-modifications.sh",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.hxsk/hooks/track-modifications.sh",
             "timeout": 2
           }
         ]
@@ -128,7 +128,7 @@ Claude Code의 **Hooks**는 특정 이벤트에 자동으로 응답하는 스크
         "hooks": [
           {
             "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/pre-compact-save.sh",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.hxsk/hooks/pre-compact-save.sh",
             "timeout": 10
           }
         ]
@@ -139,12 +139,12 @@ Claude Code의 **Hooks**는 특정 이벤트에 자동으로 응답하는 스크
         "hooks": [
           {
             "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/post-turn-verify.sh",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.hxsk/hooks/post-turn-verify.sh",
             "timeout": 15
           },
           {
             "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/stop-context-save.sh",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.hxsk/hooks/stop-context-save.sh",
             "timeout": 10
           }
         ]
@@ -165,12 +165,12 @@ Claude Code의 **Hooks**는 특정 이벤트에 자동으로 응답하는 스크
         "hooks": [
           {
             "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/save-transcript.sh",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.hxsk/hooks/save-transcript.sh",
             "timeout": 10
           },
           {
             "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/save-session-changes.sh",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.hxsk/hooks/save-session-changes.sh",
             "timeout": 10
           }
         ]
@@ -222,7 +222,7 @@ Claude에게 프롬프트를 주입합니다.
 **역할**: 파일 기반 메모리 저장
 
 ```bash
-bash .claude/hooks/md-store-memory.sh \
+bash .hxsk/hooks/md-store-memory.sh \
   "<title>" \
   "<content>" \
   "[tags]" \
@@ -260,7 +260,7 @@ bash .claude/hooks/md-store-memory.sh \
 **역할**: 파일 기반 메모리 검색
 
 ```bash
-bash .claude/hooks/md-recall-memory.sh \
+bash .hxsk/hooks/md-recall-memory.sh \
   "<query>" \
   "[project_path]" \
   "[limit]" \

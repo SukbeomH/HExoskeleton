@@ -261,5 +261,5 @@ Glob(pattern: "*.{json,yaml,toml}")
 
 ```bash
 # 구조 스캔 (bash 스크립트 사용 가능)
-bash .claude/skills/codebase-mapper/scripts/scan_structure.sh
+bash .hxsk/skills/codebase-mapper/scripts/scan_structure.sh
 ```

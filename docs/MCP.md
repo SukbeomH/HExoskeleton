@@ -2,7 +2,7 @@
 
 > **참고**: v1.8.1부터 이 프로젝트는 **순수 bash 기반 메모리 시스템**을 사용합니다.
 > MCP 서버는 **선택적**이며, 추가 기능이 필요한 경우에만 설정합니다.
-> 기본 메모리 기능은 `.claude/hooks/md-store-memory.sh`와 `md-recall-memory.sh`로 제공됩니다.
+> 기본 메모리 기능은 `.hxsk/hooks/md-store-memory.sh`와 `md-recall-memory.sh`로 제공됩니다.
 
 **MCP (Model Context Protocol)**는 Claude Code와 외부 도구/서비스를 연결하는 프로토콜입니다.
 
