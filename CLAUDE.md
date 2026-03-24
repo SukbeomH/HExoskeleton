@@ -76,7 +76,7 @@ make build                    # Build all targets (plugin, antigravity, opencode
 - **3-Strike Rule**: 동일 접근 3회 연속 실패 시 반드시 전환 — 웹 검색, 공식 문서, 또는 fresh session
 - **WebFetch 순차 실행**: 병렬 fetch 금지. 병렬 호출 시 "Sibling tool call errored" 발생
 - **Atomic Commit**: 태스크당 하나의 커밋. 논리적 단위 유지
-- **Discovery Levels**: L1=CLAUDE.md (요약) → L2=skills/SKILL.md (상세) → L3=.hxsk/research/ (출처/벤치마크)
+- **문서 계층**: L1=CLAUDE.md (요약) → L2=skills/SKILL.md (상세) → L3=.hxsk/research/ (출처)
 
 ## Compaction Rules
 압축 시 반드시 보존:
