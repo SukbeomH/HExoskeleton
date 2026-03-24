@@ -1,7 +1,7 @@
 ---
 description: Creates executable phase plans with task breakdown, dependency analysis, and goal-backward verification. Use when decomposing work into structured HXSK plans.
 model: opus
-tools: ["Read", "Grep", "Glob"]
+tools: ["Read", "Grep", "Glob", "Bash"]
 ---
 
 # Planner Agent
