@@ -147,3 +147,4 @@ temp/
 *.bak
 settings.local.json
 .hxsk/.modified-this-session
+.worktrees/
