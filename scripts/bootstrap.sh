@@ -103,7 +103,7 @@ if command -v qlty &>/dev/null; then
     QLTY_VER=$(qlty --version 2>/dev/null || echo "installed")
     report_pass "qlty" "${QLTY_VER}"
 else
-    report_fail "qlty" "not found — curl -fsSL https://qlty.sh | sh"
+    report_warn "qlty" "not found — optional for code quality checks"
 fi
 
 # .hxsk/memories/ directory

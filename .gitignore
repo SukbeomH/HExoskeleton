@@ -99,6 +99,9 @@ logs_llm/
 !.hxsk/STATE.md
 !.hxsk/PATTERNS.md
 !.hxsk/issues/
+!.hxsk/skills/
+!.hxsk/agents/
+!.hxsk/hooks/
 *.pre-compact.bak
 
 # Agent memory (ephemeral)
@@ -107,11 +110,6 @@ logs_llm/
 
 # System prompt patching workspace (make patch-prompt)
 .patch-workspace/
-
-# Build outputs (make build - generated in CI)
-hxsk-plugin/
-antigravity-boilerplate/
-opencode-boilerplate/
 
 # External reference repos (not part of boilerplate core)
 awesome-claude-code/
@@ -147,3 +145,4 @@ temp/
 *.bak
 settings.local.json
 .hxsk/.modified-this-session
+.worktrees/

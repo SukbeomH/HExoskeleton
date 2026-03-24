@@ -12,7 +12,7 @@ trigger: "아키텍처 검토, 레이어 위반 확인, 순환 의존성, review
 
 ## Quick Reference
 - **순환 import**: `Grep(pattern: "from.*import", path: "src/")` → 그래프 분석
-- **복잡도 검사**: `bash .claude/skills/arch-review/scripts/check_complexity.sh`
+- **복잡도 검사**: `bash .hxsk/skills/arch-review/scripts/check_complexity.sh`
 - **레이어 검증**: UI → Service → Repository 순방향만 허용
 - **Severity**: LOW (log), MEDIUM (DECISIONS.md 기록), HIGH (block), CRITICAL (stop)
 - **Memory recall**: `md-recall-memory.sh "architecture"` 검색 후 일관성 확인
@@ -58,7 +58,7 @@ Grep(pattern: "from.*ui.*import|import.*ui", path: "src/repository/", output_mod
 
 복잡도 검사 (shellcheck 기반):
 ```bash
-bash .claude/skills/arch-review/scripts/check_complexity.sh
+bash .hxsk/skills/arch-review/scripts/check_complexity.sh
 ```
 
 ### Step 2: Verify Boundary Compliance

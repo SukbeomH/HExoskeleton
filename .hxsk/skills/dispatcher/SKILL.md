@@ -72,7 +72,6 @@ bash scripts/merge-worktrees.sh <worktree-path> <branch-name>
 ### Phase 4: Verify
 
 모든 merge 후 통합 검증:
-- `make build` 성공 확인
 - 변경된 파일의 영향 분석
 
 ## Dispatch Rules

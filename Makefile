@@ -5,8 +5,7 @@ SHELL := $(shell command -v bash)
 -include .env
 export
 
-.PHONY: status setup install-deps init-env check-deps clean \
-        build build-plugin build-antigravity build-opencode help
+.PHONY: status setup install-deps init-env check-deps help
 
 # ─────────────────────────────────────────────────────
 # Prerequisites Check
@@ -19,11 +18,7 @@ check-deps: ## Check required tools are installed
 # Installation
 # ─────────────────────────────────────────────────────
 
-install-qlty: ## Install Qlty CLI for code quality
-	@command -v qlty >/dev/null 2>&1 && echo "qlty already installed: $$(qlty --version 2>/dev/null)" || \
-		{ echo "Installing qlty..."; curl -fsSL https://qlty.sh | sh; }
-
-install-deps: check-deps install-qlty ## Install all external dependencies
+install-deps: check-deps ## Install all external dependencies
 	@echo ""
 	@echo "All dependencies installed."
 
@@ -67,35 +62,6 @@ setup: ## Full initial setup (install deps → env)
 	@echo ""
 	@echo "Next steps:"
 	@echo "  1. Run: /bootstrap to initialize HXSK workflow"
-
-# ─────────────────────────────────────────────────────
-# Build Targets
-# ─────────────────────────────────────────────────────
-
-build: build-plugin build-antigravity build-opencode ## Build all targets
-	@echo ""
-	@echo "========================================="
-	@echo "  All builds complete!"
-	@echo "========================================="
-	@echo "  - hxsk-plugin/             (Claude Code)"
-	@echo "  - antigravity-boilerplate/ (Antigravity IDE)"
-	@echo "  - opencode-boilerplate/    (OpenCode)"
-
-build-plugin: ## Build Claude Code plugin (hxsk-plugin/)
-	@bash scripts/build-plugin.sh
-
-build-antigravity: ## Build Antigravity workspace (antigravity-boilerplate/)
-	@bash scripts/build-antigravity.sh
-
-build-opencode: ## Build OpenCode workspace (opencode-boilerplate/)
-	@bash scripts/build-opencode.sh
-
-# ─────────────────────────────────────────────────────
-# Cleanup
-# ─────────────────────────────────────────────────────
-
-clean: ## Remove build artifacts
-	rm -rf hxsk-plugin/ antigravity-boilerplate/ opencode-boilerplate/
 
 # ─────────────────────────────────────────────────────
 # Help

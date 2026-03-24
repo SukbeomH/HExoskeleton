@@ -8,7 +8,7 @@ Claude Code의 **Workflows**는 슬래시 명령어(`/command`)로 호출되는 
 
 | 항목 | 설명 |
 |------|------|
-| **소스** | `.claude/agents/*.md` (빌드 시 워크플로우로 변환) |
+| **소스** | `.hxsk/agents/*.md` (빌드 시 워크플로우로 변환) |
 | **빌드 출력** | Plugin: `commands/`, Antigravity: `.agent/workflows/`, OpenCode: `.opencode/commands/` |
 | **호출 방식** | `/hxsk:<command>` 또는 `/<command>` |
 | **인자 전달** | `$ARGUMENTS` 변수로 전달 |
