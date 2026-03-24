@@ -25,7 +25,8 @@ mkdir -p "$PLUGIN"/references/issue-templates
 VERSION="1.0.0"
 MANIFEST="${BOILERPLATE}/.release-please-manifest.json"
 if [ -f "$MANIFEST" ]; then
-    VERSION=$(python3 -c "import json; m=json.load(open('$MANIFEST')); print(m.get('.', m.get('hxsk-plugin', '1.0.0')))")
+    VERSION=$(grep -oE '"[0-9]+\.[0-9]+\.[0-9]+"' "$MANIFEST" | head -1 | tr -d '"')
+    [ -z "$VERSION" ] && VERSION="1.0.0"
 fi
 
 # Create plugin.json manifest (minimal - default directories auto-discovered)
@@ -207,46 +208,43 @@ echo "[Phase 4b] Transforming hooks..."
 
 # Transform hooks from settings.json
 # Change: "$CLAUDE_PROJECT_DIR"/.claude/hooks/X -> ${CLAUDE_PLUGIN_ROOT}/scripts/X
-export BOILERPLATE
-python3 - "$BOILERPLATE" "$PLUGIN" << 'PYEOF'
-import json
-import re
-import sys
-
-boilerplate = sys.argv[1]
-plugin_dir = sys.argv[2]
-
-with open(f"{boilerplate}/.claude/settings.json", 'r') as f:
-    settings = json.load(f)
-
-hooks = settings.get('hooks', {})
-
-def transform_command(cmd):
-    # "$CLAUDE_PROJECT_DIR"/.claude/hooks/X -> ${CLAUDE_PLUGIN_ROOT}/scripts/X
-    pattern = r'"?\$CLAUDE_PROJECT_DIR"?/\.claude/hooks/([^"\s]+)'
-    replacement = r'${CLAUDE_PLUGIN_ROOT}/scripts/\1'
-    return re.sub(pattern, replacement, cmd)
-
-def transform_hooks_recursive(obj):
-    if isinstance(obj, dict):
-        for key, value in obj.items():
-            if key == 'command' and isinstance(value, str):
-                obj[key] = transform_command(value)
-            else:
-                transform_hooks_recursive(value)
-    elif isinstance(obj, list):
-        for item in obj:
-            transform_hooks_recursive(item)
-
-transform_hooks_recursive(hooks)
-
-# Wrap hooks in "hooks" key for plugin format
-output = {"hooks": hooks}
-
-output_path = f"{plugin_dir}/hooks/hooks.json"
-with open(output_path, 'w') as f:
-    json.dump(output, f, indent=2)
-PYEOF
+# Pure bash hooks.json transformation
+# Extract hooks object from settings.json, wrap in {"hooks": ...}
+awk '
+    BEGIN { depth=0; in_hooks=0; in_str=0; print "{\"hooks\":" }
+    /"hooks"[[:space:]]*:[[:space:]]*\{/ && !in_hooks {
+        in_hooks=1; depth=0
+        # Find the opening brace on this line
+        for (i=1; i<=length($0); i++) {
+            c = substr($0,i,1)
+            if (c == "\"") { in_str=!in_str; continue }
+            if (in_str) continue
+            if (c == "{") { depth++; if (depth==1) { print substr($0,i); break } }
+        }
+        next
+    }
+    in_hooks {
+        for (i=1; i<=length($0); i++) {
+            c = substr($0,i,1)
+            if (c == "\\") { i++; continue }
+            if (c == "\"") { in_str=!in_str; continue }
+            if (in_str) continue
+            if (c == "{") depth++
+            if (c == "}") {
+                depth--
+                if (depth == 0) {
+                    print substr($0, 1, i)
+                    in_hooks=0
+                    break
+                }
+            }
+        }
+        if (in_hooks) print
+    }
+    END { print "}" }
+' "$BOILERPLATE/.claude/settings.json" \
+| sed 's|\\"\$CLAUDE_PROJECT_DIR\\"/.claude/hooks/|${CLAUDE_PLUGIN_ROOT}/scripts/|g' \
+> "$PLUGIN/hooks/hooks.json"
 echo "  [+] Created hooks.json with transformed paths"
 
 # --- Phase 4c: Hook Scripts ---
@@ -265,37 +263,11 @@ echo "  [+] Copied ${HOOK_SCRIPTS_COUNT} hook scripts"
 echo ""
 echo "[Phase 5a] Creating MCP config..."
 if [ -f "$BOILERPLATE/.mcp.json" ]; then
-    # Transform graph-code args and remove servers requiring env vars
-    python3 - "$BOILERPLATE" "$PLUGIN" << 'PYEOF'
-import json
-import sys
-
-boilerplate = sys.argv[1]
-plugin_dir = sys.argv[2]
-
-with open(f"{boilerplate}/.mcp.json", 'r') as f:
-    mcp = json.load(f)
-
-# Transform graph-code args
-if 'mcpServers' in mcp and 'graph-code' in mcp['mcpServers']:
-    args = mcp['mcpServers']['graph-code'].get('args', [])
-    # Replace "." with "${CLAUDE_PROJECT_DIR:-.}"
-    mcp['mcpServers']['graph-code']['args'] = [
-        '${CLAUDE_PROJECT_DIR:-.}' if arg == '.' else arg
-        for arg in args
-    ]
-
-# Remove servers requiring environment variables (context7)
-if 'mcpServers' in mcp:
-    mcp['mcpServers'].pop('context7', None)
-
-# Remove non-standard fields
-mcp.pop('enable_tool_search', None)
-
-output_path = f"{plugin_dir}/.mcp.json"
-with open(output_path, 'w') as f:
-    json.dump(mcp, f, indent=2)
-PYEOF
+    sed \
+        -e 's|": "\."$|": "${CLAUDE_PROJECT_DIR:-.}"|' \
+        -e '/"context7"/,/}/d' \
+        -e '/"enable_tool_search"/d' \
+        "$BOILERPLATE/.mcp.json" > "$PLUGIN/.mcp.json"
     echo "  [+] Created .mcp.json with adjusted paths"
 else
     echo "  [SKIP] .mcp.json not found (pure bash mode)"
@@ -542,221 +514,95 @@ echo "  [+] Created scaffold-infra.sh"
 echo ""
 echo "[Phase 6c] Creating README.md..."
 # Generate README dynamically from actual build output
-python3 - "$PLUGIN" << 'READMEPY'
-import json, os, re, sys
+# --- Generate README (pure bash) ---
+PLUGIN_VERSION=$(grep -oE '"version"[[:space:]]*:[[:space:]]*"[^"]*"' \
+    "$PLUGIN/.claude-plugin/plugin.json" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')
 
-plugin_dir = sys.argv[1]
-
-# Read version
-with open(os.path.join(plugin_dir, ".claude-plugin", "plugin.json")) as f:
-    version = json.load(f).get("version", "0.0.0")
-
-# Collect commands with descriptions
-commands = []
-cmd_dir = os.path.join(plugin_dir, "commands")
-if os.path.isdir(cmd_dir):
-    for f in sorted(os.listdir(cmd_dir)):
-        if not f.endswith(".md"):
-            continue
-        name = f[:-3]
-        desc = ""
-        with open(os.path.join(cmd_dir, f)) as fh:
-            in_front = False
-            for line in fh:
-                if line.strip() == "---":
-                    in_front = not in_front
-                    continue
-                if in_front and line.startswith("description:"):
-                    desc = line.split(":", 1)[1].strip().strip('"')
-                    break
-        commands.append((name, desc))
+# Collect commands
+CMD_ROWS=""
+CMD_COUNT=0
+for f in "$PLUGIN/commands/"*.md; do
+    [ -f "$f" ] || continue
+    name=$(basename "${f%.md}")
+    desc=$(extract_frontmatter_field "$f" "description")
+    [ -z "$desc" ] && desc="Run ${name}"
+    CMD_ROWS="${CMD_ROWS}| \`/hxsk:${name}\` | ${desc} |
+"
+    CMD_COUNT=$((CMD_COUNT + 1))
+done
 
 # Collect skills
-skills = []
-skill_dir = os.path.join(plugin_dir, "skills")
-if os.path.isdir(skill_dir):
-    for d in sorted(os.listdir(skill_dir)):
-        skill_md = os.path.join(skill_dir, d, "SKILL.md")
-        if not os.path.isfile(skill_md):
-            continue
-        desc = ""
-        with open(skill_md) as fh:
-            in_front = False
-            for line in fh:
-                if line.strip() == "---":
-                    in_front = not in_front
-                    continue
-                if in_front and line.startswith("description:"):
-                    desc = line.split(":", 1)[1].strip().strip('"')
-                    break
-        skills.append((d, desc or f"Run {d} skill"))
+SKILL_ROWS=""
+SKILL_COUNT=0
+for d in "$PLUGIN/skills"/*/; do
+    [ -d "$d" ] || continue
+    name=$(basename "$d")
+    sm="$d/SKILL.md"
+    desc=""
+    [ -f "$sm" ] && desc=$(extract_frontmatter_field "$sm" "description")
+    [ -z "$desc" ] && desc="Run ${name} skill"
+    SKILL_ROWS="${SKILL_ROWS}| \`${name}\` | ${desc} |
+"
+    SKILL_COUNT=$((SKILL_COUNT + 1))
+done
 
 # Collect agents
-agents = []
-agent_dir = os.path.join(plugin_dir, "agents")
-if os.path.isdir(agent_dir):
-    for f in sorted(os.listdir(agent_dir)):
-        if not f.endswith(".md"):
-            continue
-        name = f[:-3]
-        desc = ""
-        with open(os.path.join(agent_dir, f)) as fh:
-            in_front = False
-            for line in fh:
-                if line.strip() == "---":
-                    in_front = not in_front
-                    continue
-                if in_front and line.startswith("description:"):
-                    desc = line.split(":", 1)[1].strip().strip('"')
-                    break
-        agents.append((name, desc or f"{name} agent"))
+AGENT_ROWS=""
+AGENT_COUNT=0
+for f in "$PLUGIN/agents/"*.md; do
+    [ -f "$f" ] || continue
+    name=$(basename "${f%.md}")
+    desc=$(extract_frontmatter_field "$f" "description")
+    [ -z "$desc" ] && desc="${name} agent"
+    AGENT_ROWS="${AGENT_ROWS}| \`${name}\` | ${desc} |
+"
+    AGENT_COUNT=$((AGENT_COUNT + 1))
+done
 
-# Build README
-readme = f"""# HExoskeleton for Claude Code
+cat > "$PLUGIN/README.md" << READMEEOF
+# HExoskeleton for Claude Code
 
-**Get Shit Done** v{version} — AI agent development methodology with pure bash-based memory system.
+**Get Shit Done** v${PLUGIN_VERSION} — AI agent development methodology with pure bash-based memory system.
 
 **외부 종속성 없음** — Node.js, Python 환경, MCP 서버 설치 없이 바로 사용 가능합니다.
 
 ## Installation
 
-```bash
-# Use with --plugin-dir flag
+\`\`\`bash
 claude --plugin-dir /path/to/hxsk-plugin
+\`\`\`
 
-# Or set a shell alias for convenience (~/.zshrc or ~/.bashrc)
-alias claude='claude --plugin-dir /path/to/hxsk-plugin'
-```
-
-### GitHub Release에서 설치
-
-```bash
-# 최신 버전
-VERSION=$(gh release view --json tagName -q .tagName | sed 's/hxsk-plugin-v//')
-curl -L "https://github.com/SukbeomH/LLM_Bolierplate_Pack/releases/latest/download/hxsk-plugin-${{VERSION}}.zip" -o hxsk-plugin.zip
-unzip hxsk-plugin.zip -d ~/.claude/plugins/hxsk
-```
-
-## Prerequisites
-
-- **Claude Code** CLI
-
-### Optional: MCP Servers
-
-MCP 서버는 **선택적**입니다. 기본 메모리 기능은 순수 bash 스크립트로 제공됩니다.
-
-| Server | Install | Role |
-|--------|---------|------|
-| code-graph-rag *(optional)* | `npm i -g @er77/code-graph-rag-mcp` | AST-based code analysis |
-| mcp-memory-service *(optional)* | `pipx install mcp-memory-service` | Semantic memory search |
-| context7 *(optional)* | Project `.mcp.json`에 직접 추가 | Library documentation lookup |
-
-## Memory System
-
-순수 bash 기반 메모리 시스템 (외부 종속성 없음):
-
-```bash
-# 메모리 저장
-bash scripts/md-store-memory.sh "제목" "내용" "태그1,태그2" "타입"
-
-# 메모리 검색
-bash scripts/md-recall-memory.sh "검색어" "." 5 compact
-```
-
-14개 메모리 타입: `architecture-decision`, `root-cause`, `debug-eliminated`, `session-summary` 등
-
-## Quick Start
-
-```bash
-/hxsk:init          # Initialize HXSK documents
-/hxsk:bootstrap     # Full project setup
-/hxsk:planner       # Create implementation plan
-/hxsk:executor      # Execute planned work
-/hxsk:verifier      # Verify completed work
-```
-
-## Commands ({len(commands)})
+## Commands (${CMD_COUNT})
 
 | Command | Description |
 |---------|-------------|
-"""
-
-for name, desc in commands:
-    readme += f"| `/hxsk:{name}` | {desc} |\n"
-
-readme += f"""
-## Skills ({len(skills)})
+${CMD_ROWS}
+## Skills (${SKILL_COUNT})
 
 | Skill | Description |
 |-------|-------------|
-"""
-
-for name, desc in skills:
-    readme += f"| `{name}` | {desc} |\n"
-
-readme += f"""
-## Agents ({len(agents)})
+${SKILL_ROWS}
+## Agents (${AGENT_COUNT})
 
 | Agent | Description |
 |-------|-------------|
-"""
-
-for name, desc in agents:
-    readme += f"| `{name}` | {desc} |\n"
-
-readme += """
-## HXSK Document Structure
-
-After `/hxsk:init`:
-
-```
-.hxsk/
-├── SPEC.md           # Project specification
-├── DECISIONS.md      # Architecture decision records
-├── JOURNAL.md        # Development journal
-├── ROADMAP.md        # Project roadmap
-├── PATTERNS.md       # Distilled learnings (2KB limit)
-├── STATE.md          # Current execution state
-├── TODO.md           # Task tracking
-├── STACK.md          # Technology stack
-├── CHANGELOG.md      # Change history
-├── templates/        # Document templates
-└── examples/         # Usage examples
-```
-
+${AGENT_ROWS}
 ## Hooks
 
 | Event | Action |
 |-------|--------|
 | **SessionStart** | Environment setup, status check |
-| **PreToolUse** | File protection (`file-protect.py`), bash guard (`bash-guard.py`) |
+| **PreToolUse** | File protection, bash guard |
 | **PostToolUse** | Auto-format, track modifications |
-| **PreCompact** | Save state before context compaction |
-| **Stop** | Index code changes, verify work, save context |
-| **SubagentStop** | Summarize findings, update PATTERNS.md |
+| **Stop** | Verify work, save context |
 | **SessionEnd** | Save transcript, session changes |
-
-## MCP Server Paths
-
-Plugin uses dynamic paths — no hardcoded absolute paths:
-
-| Variable | Resolves To |
-|----------|-------------|
-| `${CLAUDE_PROJECT_DIR:-.}` | Current project directory |
-| `${CLAUDE_PLUGIN_ROOT}` | Plugin installation directory |
-
-Memory DB: `${CLAUDE_PROJECT_DIR}/.agent/data/memory-service/memories.db` (project-isolated)
 
 ## License
 
 MIT
-"""
+READMEEOF
 
-with open(os.path.join(plugin_dir, "README.md"), "w") as f:
-    f.write(readme)
-
-print(f"  [+] Created README.md (v{version}, {len(commands)} commands, {len(skills)} skills, {len(agents)} agents)")
-READMEPY
+echo "  [+] Created README.md (v${PLUGIN_VERSION}, ${CMD_COUNT} commands, ${SKILL_COUNT} skills, ${AGENT_COUNT} agents)"
 
 # --- Phase 7: Clean up (no install scripts needed) ---
 echo ""
