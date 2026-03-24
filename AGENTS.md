@@ -32,12 +32,7 @@ SPEC.md → PLAN.md → EXECUTE → VERIFY. Working docs in `.hxsk/`
 | 타입별 필터: `.hxsk/memories/{type}/*.md` | Narrow filter |
 
 ### Storage Triggers
-| Trigger | Type |
-|---------|------|
-| Architecture decision | `architecture-decision` |
-| Bug root cause | `root-cause` |
-| Pattern discovered | `pattern-discovery` |
-| Session end | `session-summary` |
+Architecture decisions, bug root causes, patterns, session ends 등 발생 시 자동 저장. 상세: `.hxsk/skills/memory-protocol/SKILL.md`
 
 ## Validation
 
