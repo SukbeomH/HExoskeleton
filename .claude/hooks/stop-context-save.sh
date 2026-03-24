@@ -13,7 +13,6 @@ FLAG_FILE="$PROJECT_DIR/.hxsk/.modified-this-session"
 CURRENT_MD="$PROJECT_DIR/.hxsk/CURRENT.md"
 LOG_FILE="$PROJECT_DIR/.hxsk/.context-save.log"
 TRACK_LOG="$PROJECT_DIR/.hxsk/.track-modifications.log"
-PATTERNS_MD="$PROJECT_DIR/.hxsk/PATTERNS.md"
 
 # 플래그 파일 없으면 스킵
 [[ -f "$FLAG_FILE" ]] || exit 0
@@ -115,24 +114,12 @@ modifications_count: $MODIFICATIONS_COUNT"
             || echo "[$TS] Memory store failed" >> "$LOG_FILE"
     fi
 
-    # ── 3. ACE Reflector: pattern-discovery 힌트를 PATTERNS.md에 추가 ──
-    PATTERN_DIR="$PROJECT_DIR/.hxsk/memories/pattern-discovery"
-    if [[ -d "$PATTERN_DIR" ]]; then
-        # 오늘 생성된 pattern-discovery 메모리 확인
-        TODAY=$(date '+%Y-%m-%d')
-        for pfile in "$PATTERN_DIR/${TODAY}"_*.md; do
-            [[ -f "$pfile" ]] || continue
-            SLUG=$(basename "$pfile" .md)
-            # 이미 힌트가 있으면 스킵
-            if [[ -f "$PATTERNS_MD" ]] && grep -q "AUTO-HINT: $SLUG" "$PATTERNS_MD" 2>/dev/null; then
-                continue
-            fi
-            # PATTERNS.md 말미에 힌트 코멘트 추가
-            if [[ -f "$PATTERNS_MD" ]]; then
-                echo "<!-- AUTO-HINT: $SLUG -->" >> "$PATTERNS_MD"
-                echo "[$TS] Pattern hint added: $SLUG" >> "$LOG_FILE"
-            fi
-        done
+    # ── 3. .context-save.log 로테이션 (1MB 초과 시) ──
+    if [[ -f "$LOG_FILE" ]]; then
+        LOG_SIZE=$(wc -c < "$LOG_FILE" | tr -d ' ')
+        if [[ "$LOG_SIZE" -gt 1048576 ]]; then
+            mv "$LOG_FILE" "${LOG_FILE%.log}-$(date '+%Y%m').log"
+        fi
     fi
 
     # ── 4. track-modifications.log 초기화 ──
