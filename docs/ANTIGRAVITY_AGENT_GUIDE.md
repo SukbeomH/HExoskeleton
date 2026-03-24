@@ -302,9 +302,9 @@ description: 프로덕션 배포를 위한 전체 프로세스를 수행합니�
 
 | Claude Code | Antigravity | 비고 |
 |-------------|-------------|------|
-| `.claude/skills/<name>/SKILL.md` | `.agent/skills/<name>/SKILL.md` | 동일한 SKILL.md 형식 |
-| `.claude/agents/*.md` | 해당 없음 | Antigravity는 에이전트 정의 별도 관리 |
-| `.claude/hooks/` | 해당 없음 (IDE 내장) | Antigravity는 IDE에서 직접 관리 |
+| `.hxsk/skills/<name>/SKILL.md` | `.agent/skills/<name>/SKILL.md` | 동일한 SKILL.md 형식 |
+| `.hxsk/agents/*.md` | 해당 없음 | Antigravity는 에이전트 정의 별도 관리 |
+| `.hxsk/hooks/` | 해당 없음 (IDE 내장) | Antigravity는 IDE에서 직접 관리 |
 | `.claude/settings.json` | IDE 설정 | Antigravity는 GUI로 관리 |
 | `CLAUDE.md` | `.agent/rules/` 또는 전역 `~/.gemini/GEMINI.md` | 규칙 파일 |
 
@@ -339,7 +339,7 @@ description: 프로덕션 배포를 위한 전체 프로세스를 수행합니�
 
 기존 `.claude/` 구조에서 `.agent/` 구조로 마이그레이션 시:
 
-- [ ] `.claude/skills/` → `.agent/skills/` 복사
+- [ ] `.hxsk/skills/` → `.agent/skills/` 복사
 - [ ] SKILL.md frontmatter 형식 확인 (name, description 필수)
 - [ ] `CLAUDE.md` 내용을 `.agent/rules/`로 분리
 - [ ] 워크플로우 파일 생성 (필요 시)

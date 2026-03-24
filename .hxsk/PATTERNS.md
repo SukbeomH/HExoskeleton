@@ -7,12 +7,13 @@
 
 ## Architecture
 - `.hxsk/`에서 `templates/`, `examples/`, `STATE.md`, `PATTERNS.md`만 git 추적. 나머지는 런타임 데이터로 gitignore
-- Agent-Skill 래핑: Skill은 How, Agent는 When/With What. `.claude/skills/` + `.claude/agents/`
+- Agent-Skill 래핑: Skill은 How, Agent는 When/With What. `.hxsk/skills/` + `.hxsk/agents/`
 - **외부 종속성 없음**: 순수 bash 스크립트 + 네이티브 Claude Code 도구만 사용
+- **Self-Configure 배포**: llms.txt + AGENTS.md + setup 프롬프트. 빌드 스크립트 없음, 레포 = 배포
 
 ## Memory System
-- **저장**: `bash scripts/md-store-memory.sh <title> <content> [tags] [type]` (→ `.claude/hooks/` canonical로 위임)
-- **검색**: `bash scripts/md-recall-memory.sh <query> [path] [limit] [mode]` (→ `.claude/hooks/` canonical로 위임)
+- **저장**: `bash scripts/md-store-memory.sh <title> <content> [tags] [type]` (→ `.hxsk/hooks/` canonical로 위임)
+- **검색**: `bash scripts/md-recall-memory.sh <query> [path] [limit] [mode]` (→ `.hxsk/hooks/` canonical로 위임)
 - **A-Mem 필드**: `keywords`, `contextual_description`, `related` (2-hop 검색용)
 - **중복 방지**: 동일 title → `[SKIP:DUPLICATE]` 반환
 - **스키마**: `.hxsk/memories/_schema/` (JSON Schema + type-relations.yaml)
@@ -36,5 +37,7 @@
 
 ---
 
+> **로테이션**: 20개 도달 시 가장 오래되고 참조가 적은 패턴을 교체. 삭제 대신 `.hxsk/research/`로 아카이브.
+
 *Last updated: 2026-03-24*
-*Items: 16/20*
+*Items: 17/20*

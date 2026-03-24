@@ -8,7 +8,7 @@ Claude Code의 **Skills**는 Claude가 작업 컨텍스트를 기반으로 **자
 
 | 항목 | 설명 |
 |------|------|
-| **위치** | `.claude/skills/*/SKILL.md` |
+| **위치** | `.hxsk/skills/*/SKILL.md` |
 | **개수** | 17개 |
 | **호출 방식** | Claude가 작업 컨텍스트 기반으로 자율적 결정 |
 | **컨텍스트** | 메인 대화에서 실행 (컨텍스트 공유) |
@@ -61,7 +61,7 @@ Claude Code의 **Skills**는 Claude가 작업 컨텍스트를 기반으로 **자
 ### 디렉토리 구조
 
 ```
-.claude/skills/
+.hxsk/skills/
 ├── planner/
 │   ├── SKILL.md          # 스킬 정의 (필수)
 │   └── scripts/          # 보조 스크립트 (선택)
@@ -114,10 +114,10 @@ Rule 4: 아키텍처 변경 → 사용자 승인 요청 (STOP)
 **Memory Integration** (파일 기반):
 ```bash
 # 실행 전 과거 deviation 검색
-bash .claude/hooks/md-recall-memory.sh "deviation" "." 5 compact
+bash .hxsk/hooks/md-recall-memory.sh "deviation" "." 5 compact
 
 # deviation 발생 시 저장
-bash .claude/hooks/md-store-memory.sh \
+bash .hxsk/hooks/md-store-memory.sh \
   "Rule {N} - {description}" \
   "{details}" \
   "deviation,rule-{N},{phase-plan}" \
@@ -295,7 +295,7 @@ Output: JSON
 
 | 구분 | Skills | Agents |
 |------|--------|--------|
-| **정의 위치** | `.claude/skills/*/SKILL.md` | `.claude/agents/*.md` |
+| **정의 위치** | `.hxsk/skills/*/SKILL.md` | `.hxsk/agents/*.md` |
 | **호출 방식** | Claude가 자율적으로 결정 | Task 도구로 명시적 호출 |
 | **컨텍스트** | 메인 대화에서 실행 | 별도 서브프로세스 |
 | **용도** | 가벼운 전문 기능 | 복잡한 멀티스텝 작업 |

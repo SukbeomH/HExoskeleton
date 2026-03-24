@@ -4,93 +4,83 @@
 
 ## Overview
 
-HExoskeleton(HXSK)은 AI 에이전트 기반 개발을 위한 경량 보일러플레이트 프로젝트이다. 순수 bash 스크립트와 마크다운 파일만으로 구성되며, 외부 종속성이 없다. 핵심 산출물은 3개 타겟(Claude Code Plugin, Antigravity IDE, OpenCode)용 빌드 아티팩트이다.
+HExoskeleton(HXSK)은 AI 에이전트 기반 개발을 위한 경량 보일러플레이트 프로젝트이다. 순수 bash 스크립트와 마크다운 파일만으로 구성되며, 외부 종속성이 없다. **Self-Configure 모델**: 빌드 스크립트 없이 레포지토리 자체가 배포 단위. llms.txt + AGENTS.md + setup 프롬프트로 도입.
 
 ## System Diagram
 
 ```
-                         ┌─────────────────────────┐
-                         │      Hexoskeleton        │
-                         │    (Boilerplate Repo)     │
-                         └──────────┬──────────────┘
-                                    │
-                    ┌───────────────┼───────────────┐
-                    │               │               │
-              ┌─────▼─────┐  ┌─────▼─────┐  ┌─────▼──────┐
-              │ build-     │  │ build-     │  │ build-     │
-              │ plugin.sh  │  │ antigravity│  │ opencode.sh│
-              └─────┬──────┘  └─────┬──────┘  └─────┬──────┘
-                    │               │               │
-              ┌─────▼──────┐ ┌─────▼──────┐ ┌─────▼──────┐
-              │ hxsk-plugin│ │ antigravity-│ │ opencode-  │
-              │  (output)  │ │ boilerplate │ │ boilerplate│
-              └────────────┘ └────────────┘ └────────────┘
+                    ┌──────────────────────────┐
+                    │    GitHub Repository      │
+                    │   (= Distribution)        │
+                    └──────────┬───────────────┘
+                               │
+              ┌────────────────┼────────────────┐
+              │                │                │
+        ┌─────▼─────┐   ┌─────▼─────┐   ┌─────▼──────┐
+        │  llms.txt  │   │ AGENTS.md │   │  prompts/  │
+        │  (index)   │   │ (shared)  │   │  (setup)   │
+        └─────┬──────┘   └───────────┘   └────────────┘
+              │
+    ┌─────────┼─────────┐
+    │         │         │
+┌───▼───┐ ┌──▼──┐ ┌───▼────┐
+│skills/│ │hooks│ │agents/ │
+│INDEX  │ │INDEX│ │INDEX   │
+└───────┘ └─────┘ └────────┘
 
 Source Components:
-  .claude/                     .hxsk/
-  ├── agents/    (17 agents)   ├── templates/ (24 templates)
-  ├── skills/    (19 skills)   ├── examples/  (4 examples)
-  ├── hooks/     (17 hooks)    ├── issues/    (파일 기반 이슈)
-  └── settings.json            ├── STATE.md
-                               └── PATTERNS.md
+  .hxsk/                        docs/
+  ├── skills/  (19 skills)      ├── plans/
+  ├── agents/  (17 agents)      └── *.md (11 docs)
+  ├── hooks/   (17 hooks)
+  ├── templates/ (27)           prompts/
+  ├── examples/ (4)             ├── setup.md
+  ├── issues/                   └── setup-claude.md
+  └── INDEX files
 
-  scripts/ (15 files)          docs/
-  ├── build-*.sh (4 builds)    ├── plans/  (실행 계획)
-  ├── build-common.sh          └── *.md (11 docs)
-  ├── bootstrap.sh
-  ├── issue-{create,list}.sh
-  ├── merge-worktrees.sh
-  ├── md-{store,recall}-memory.sh
-  ├── detect-language.sh
-  ├── compact-context.sh
-  ├── organize-docs.sh
-  ├── convert-hooks-to-plugins.py
-  └── _json_parse.sh
+  scripts/ (10 utility scripts)
 ```
 
 ## Components
 
-### 1. Agent-Skill System (`.claude/`)
+### 1. Self-Configure System
+
+- **Purpose:** 레포지토리 = 배포. 빌드 스크립트 없이 에이전트 도구가 직접 설정
+- **llms.txt:** 프로젝트 구조 인덱스. 에이전트가 시작점으로 사용
+- **AGENTS.md:** 에이전트 공통 지침 (Codex, Gemini, OpenCode 등 에이전트 불문)
+- **prompts/:** `setup.md` (범용), `setup-claude.md` (Claude Code 전용) — 에이전트에 Setup 절차 제공
+- **CLAUDE.md:** Claude Code 전용 설정 (hooks, skills, compaction rules)
+
+### 2. Agent-Skill System (`.hxsk/`)
 
 - **Purpose:** AI 에이전트 행동 정의 및 스킬 절차 관리
-- **Location:** `.claude/agents/` (17 agents), `.claude/skills/` (19 skills)
+- **Location:** `.hxsk/agents/` (17 agents), `.hxsk/skills/` (19 skills)
 - **Pattern:** Skill = How (재사용 가능 절차), Agent = When/With What (오케스트레이션)
 - **Dependencies:** 없음 (순수 마크다운)
 
-### 2. Hook System (`.claude/hooks/`)
+### 3. Hook System (`.hxsk/hooks/`)
 
 - **Purpose:** Claude Code 이벤트 기반 자동화 (보안, 포매팅, 메모리)
-- **Location:** `.claude/hooks/` (17 scripts: sh + py)
+- **Location:** `.hxsk/hooks/` (17 scripts: sh + py)
 - **Events:** SessionStart, PreToolUse, PostToolUse, PreCompact, Stop, SubagentStop, SessionEnd
 - **Key Hooks:**
   - `file-protect.py` — 민감 파일(.env, .pem, credentials) 접근 차단
   - `bash-guard.py` — 파괴적 git 명령 + 패키지 관리자 불일치 차단
   - `stop-context-save.sh` — 세션 종료 시 자동 메모리 저장
-  - `session-start.sh` — 세션 시작 시 STATE.md, CURRENT.md, 메모리 로드 (PATTERNS.md 중복 제거됨)
+  - `session-start.sh` — 세션 시작 시 STATE.md, CURRENT.md, 메모리 로드
 
-### 3. Memory System (`.hxsk/memories/`)
+### 4. Memory System (`.hxsk/memories/`)
 
 - **Purpose:** 파일 기반 AI 에이전트 메모리 (A-Mem 확장)
 - **Location:** `.hxsk/memories/` (14개 타입 디렉토리 + `_schema/`)
 - **Tools:** `md-store-memory.sh`, `md-recall-memory.sh`
 - **Features:** 키워드 추출, contextual description, 2-hop 관계 검색, 중복 방지
 
-### 4. Build System (`scripts/`)
-
-- **Purpose:** 소스 → 3개 타겟 포맷 변환
-- **Location:** `scripts/build-*.sh`, `scripts/build-common.sh`
-- **Targets:**
-  - `hxsk-plugin/` — Claude Code Plugin (`.claude-plugin/plugin.json`)
-  - `antigravity-boilerplate/` — Google Antigravity IDE (`.agent/`, `GEMINI.md`)
-  - `opencode-boilerplate/` — OpenCode (`.opencode/`, `AGENTS.md`, `opencode.json`)
-- **Shared:** `build-common.sh` (init_build, verify_dirs/count/json, print_build_result)
-- **Verification:** 각 빌드 후 구조/카운트/변환/권한/JSON 검증
-
 ### 5. HXSK Document System (`.hxsk/`)
 
 - **Purpose:** GSD(Get Shit Done) 워크플로우 문서 관리
-- **Location:** `.hxsk/templates/` (24), `.hxsk/examples/` (4), `.hxsk/issues/` (이슈 레지스트리)
-- **Working Docs:** SPEC.md, PLAN.md, DECISIONS.md, STATE.md, PATTERNS.md, TODO.md, STACK.md
+- **Location:** `.hxsk/templates/` (27), `.hxsk/examples/` (4), `.hxsk/issues/` (이슈 레지스트리)
+- **Working Docs:** SPEC.md, PLAN.md, DECISIONS.md, STATE.md, PATTERNS.md, TODO.md
 - **Workflow (순차):** SPEC → PLAN → EXECUTE → VERIFY
 - **Workflow (병렬):** DISCOVER → ISSUE → DISPATCH(worktree subagent) → MERGE → VERIFY
 
@@ -105,61 +95,49 @@ Source Components:
 ### 5b. Dispatcher System
 
 - **Purpose:** Wave 기반 이슈 병렬 실행 오케스트레이션
-- **Skill:** `.claude/skills/dispatcher/SKILL.md`
-- **Agent:** `.claude/agents/dispatcher.md`
+- **Skill:** `.hxsk/skills/dispatcher/SKILL.md`
+- **Agent:** `.hxsk/agents/dispatcher.md`
 - **Merge:** `scripts/merge-worktrees.sh`
 - **Pattern:** Wave N 내 이슈 → 병렬 worktree subagent → merge → Wave N+1
 - **File Ownership:** 같은 wave 내 이슈는 동일 파일 수정 금지
 
-### 6. CI/CD (`.github/workflows/`)
-
-- **Purpose:** release-please 기반 자동 릴리즈 + 빌드 + 에셋 업로드
-- **Location:** `.github/workflows/release-plugin.yml`
-- **Flow:** master push → release-please → build (make build) → ZIP → GitHub Release 에셋
-- **Versioning:** `.release-please-manifest.json` (현재 v1.11.1)
-
 ## Data Flow
 
 ```
-1. 개발자 작업 (순차)
+1. Self-Configure (도입)
+   llms.txt → AGENTS.md 읽기 → prompts/setup.md 실행
+   ├── .hxsk/ 구조 탐색 (skills/, agents/, hooks/)
+   ├── CLAUDE.md 적용 (Claude Code 전용)
+   └── 프로젝트 설정 완료 — 빌드 불필요
+
+2. 개발자 작업 (순차)
    ├── SessionStart hook → STATE.md, CURRENT.md, 메모리 로드
    ├── PreToolUse hooks → 보안 검사 (file-protect, bash-guard)
    ├── PostToolUse hooks → auto-format, track-modifications
    └── Stop hook → CURRENT.md 생성, 세션 메모리 자동 저장
 
-2. 병렬 실행 (이슈 기반)
+3. 병렬 실행 (이슈 기반)
    Discovery → Issue 생성 (.hxsk/issues/)
    ├── Wave 할당 (파일 소유권 검증)
    ├── Wave N: Agent(isolation: "worktree") × N개 병렬
    ├── SubagentStop hook → 결과 요약
    ├── merge-worktrees.sh → 병합
    └── 통합 검증
-
-3. 빌드
-   Source (.claude/, .hxsk/) → build-*.sh → 3개 타겟 디렉토리
-   ├── 경로 변환 (CLAUDE_PROJECT_DIR → CLAUDE_PLUGIN_ROOT 등)
-   ├── Frontmatter 정리 (antigravity: 비표준 필드 제거)
-   └── 검증 (구조, 카운트, JSON, 권한)
-
-4. 릴리즈
-   master push → release-please PR → merge → build → ZIP → GitHub Release
 ```
 
 ## Integration Points
 
 | External Service | Type | Purpose |
 |------------------|------|---------|
-| GitHub Actions | CI/CD | 자동 빌드, 릴리즈, 에셋 업로드 |
-| release-please | Automation | Conventional commit 기반 버전 관리 |
-| Qlty CLI | Quality | 코드 품질 검사 (shellcheck 등) |
+| GitHub | Repository | 레포 = 배포. clone/fork로 도입 |
 
 ## Conventions
 
 - **Naming:** bash 스크립트 = kebab-case, 마크다운 = UPPER_CASE.md (working docs), lower_case.md (templates)
-- **Structure:** Agent-Skill 래핑 (`.claude/agents/` + `.claude/skills/`)
+- **Structure:** Agent-Skill 래핑 (`.hxsk/agents/` + `.hxsk/skills/`)
 - **Commits:** Atomic, conventional format (`feat:`, `fix:`, `refactor:` 등), PR 통해 master 병합
 - **Hooks:** `$CLAUDE_PROJECT_DIR` 변수 기반 경로, JSON hook config in `settings.json`
-- **Build:** `build-common.sh` 공통 함수 활용, 각 빌드 스크립트 독립적 실행 가능
+- **Distribution:** Self-configure — llms.txt 진입점, AGENTS.md 공통 지침, prompts/ 에이전트별 setup
 - **Skill loading:** 2단계 — `## Quick Reference` (5줄 요약) + 본문 (상세)
 
 ## Technical Debt
@@ -175,15 +153,22 @@ Source Components:
 - [x] empirical-validation 존재하지 않는 참조
 - [x] 빌드 expected counts 불일치 (3개 타겟)
 - [x] pattern-discovery 죽은 코드
-- [x] scripts/ ↔ .claude/hooks/ 중복 (canonical 위임)
+- [x] scripts/ ↔ .hxsk/hooks/ 중복 (canonical 위임)
 - [x] CI 경로 트리거 확대
 - [x] Discovery Level 용어 충돌
 
-**잔여 (의도적 보류):**
-- [ ] `detect-language.sh` 빌드 타겟 미포함 — handoff/executor/bootstrap 스킬에서 source 참조하나 범용 유틸이므로 빌드 복사 불필요
-- [ ] `build-opencode.sh`의 `python3 convert-hooks-to-plugins.py` — OpenCode TS 플러그인 변환에 실제 사용 중, 제거 시 빌드 실패
+**해소 완료 (2026-03-24, Self-Configure 전환):**
+- [x] 빌드 스크립트 5개 삭제 (build-plugin/antigravity/opencode/common.sh, convert-hooks-to-plugins.py)
+- [x] release-please + CI 워크플로우 삭제
+- [x] Makefile build 타겟 제거
+- [x] .gitignore 빌드 출력 항목 제거
+- [x] detect-language.sh 빌드 타겟 미포함 — 범용 유틸로 존속
+- [x] convert-hooks-to-plugins.py — 빌드 시스템과 함께 삭제
+
+**잔여:**
+없음
 
 ---
 
 *Generated: 2026-03-24*
-*Updated: 2026-03-24 — 병렬 실행 인프라, 이슈 레지스트리, 토큰 최적화 반영*
+*Updated: 2026-03-24 — Self-Configure 전환 완료. 빌드 파이프라인 제거, 레포 = 배포 모델 반영*

@@ -1,4 +1,3 @@
 #!/usr/bin/env bash
-# Canonical location: .claude/hooks/$(basename "$0")
-# This wrapper delegates to the canonical copy.
-exec "$(cd "$(dirname "$0")/../.claude/hooks" && pwd)/$(basename "$0")" "$@"
+# Canonical: .hxsk/hooks/_json_parse.sh
+exec "$(cd "$(dirname "$0")/../.hxsk/hooks" && pwd)/$(basename "$0")" "$@"

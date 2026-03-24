@@ -208,17 +208,11 @@ root-cause:
 
 ---
 
-## 스크립트 경로 전략
-
-메모리 스크립트는 `scripts/` 디렉토리를 **중립 경로**로 사용합니다.
-
-| 환경 | 실제 경로 | 방식 |
-|------|-----------|------|
-| 보일러플레이트 직접 사용 | `scripts/` → `../.claude/hooks/` | 심볼릭 링크 |
-| 플러그인(`hxsk-plugin`) | `${CLAUDE_PLUGIN_ROOT}/scripts/` | `build-plugin.sh` 자동 치환 |
-
-> **이유**: SKILL.md 내 `.claude/hooks/` 하드코딩 경로가 플러그인 환경에서 exit 127을 유발.
-> `scripts/` 중립 경로로 통일하여 두 환경 모두 호환. ([DECISION-001](.hxsk/DECISIONS.md) 참조)
+### 스크립트 경로
+메모리 스크립트의 canonical 위치는 `.hxsk/hooks/`입니다:
+- `bash .hxsk/hooks/md-store-memory.sh`
+- `bash .hxsk/hooks/md-recall-memory.sh`
+`scripts/` 디렉토리의 동명 파일은 `.hxsk/hooks/`로 위임하는 래퍼입니다.
 
 ---
 

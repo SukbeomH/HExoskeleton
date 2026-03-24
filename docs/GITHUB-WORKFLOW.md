@@ -1,5 +1,9 @@
 # GitHub Workflow 상세 문서
 
+> **Deprecated:** 이 문서는 빌드-배포 모델(v1.11.1 이전)의 CI/CD를 설명합니다.
+> Self-Configure 전환 후 release-please와 빌드 워크플로우가 삭제되었습니다.
+> 현재 배포 방식은 `docs/BUILD.md`를 참조하세요.
+
 이 프로젝트의 GitHub Actions CI/CD 파이프라인과 Issue Templates 설정을 설명합니다.
 
 ---

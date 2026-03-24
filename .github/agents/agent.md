@@ -37,7 +37,7 @@ You are a **Senior Staff Engineer** specialized in this project's architecture.
 | Directory | Purpose |
 |-----------|---------|
 | `.github/agents/` | This agent specification (6-Core) |
-| `.claude/skills/` | Modular skill definitions (SKILL.md) |
+| `.hxsk/skills/` | Modular skill definitions (SKILL.md) |
 | `.hxsk/` | HXSK documents (SPEC, ROADMAP, STATE, DECISIONS, phases/) |
 | `.hxsk/memories/` | File-based agent memory (14 type directories) |
 
@@ -159,10 +159,10 @@ make status
 
 | I want to... | Use... |
 |--------------|--------|
-| Save project knowledge | `bash .claude/hooks/md-store-memory.sh <title> <content> [tags] [type]` |
+| Save project knowledge | `bash .hxsk/hooks/md-store-memory.sh <title> <content> [tags] [type]` |
 | Search memories | `Grep(pattern: "query", path: ".hxsk/memories/")` |
 | Search by type | `Glob(pattern: ".hxsk/memories/{type}/*.md")` |
-| Recall memories | `bash .claude/hooks/md-recall-memory.sh <query>` |
+| Recall memories | `bash .hxsk/hooks/md-recall-memory.sh <query>` |
 | List all memories | `Glob(pattern: ".hxsk/memories/**/*.md")` |
 
 ### Memory Types (14)
@@ -338,4 +338,4 @@ Follow HXSK methodology for all tasks.
 > **Note**: This specification follows the extended 9-section structure.
 > - **Code Analysis**: 네이티브 Claude Code 도구(Grep, Glob, Read) + Python 스크립트
 > - **Memory System**: 파일 기반 `.hxsk/memories/` (14 type directories)
-> - **Claude Skills** (14): Methodology skills in `.claude/skills/` — arch-review, clean, codebase-mapper, commit, context-health-monitor, create-pr, debugger, empirical-validation, executor, impact-analysis, plan-checker, planner, pr-review, verifier
+> - **Claude Skills** (14): Methodology skills in `.hxsk/skills/` — arch-review, clean, codebase-mapper, commit, context-health-monitor, create-pr, debugger, empirical-validation, executor, impact-analysis, plan-checker, planner, pr-review, verifier
