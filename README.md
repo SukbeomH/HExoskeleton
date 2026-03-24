@@ -47,9 +47,7 @@ SPEC → PLAN → EXECUTE → VERIFY
 | [Skills](docs/SKILLS.md) | 18개 스킬 (트리거 조건, 도구 연동) |
 | [Hooks](docs/HOOKS.md) | 11개 훅 이벤트 (이벤트, 코드, 작동 예시) |
 | [Memory](docs/MEMORY.md) | 파일 기반 메모리 시스템 상세 |
-| [Build](docs/BUILD.md) | 빌드 가이드 (Claude Code Plugin, Antigravity, OpenCode) |
-| [GitHub Workflow](docs/GITHUB-WORKFLOW.md) | CI/CD 파이프라인 (release-please) |
-| [Antigravity Agent](docs/ANTIGRAVITY_AGENT_GUIDE.md) | Antigravity 에이전트 가이드 |
+| [Build](docs/BUILD.md) | Self-Configure 배포 가이드 |
 | [Linting](docs/LINTING.md) | 린팅 설정 가이드 |
 | [MCP](docs/MCP.md) | MCP 서버 통합 |
 | [Workflows](docs/WORKFLOWS.md) | 워크플로우 상세 |
@@ -61,17 +59,14 @@ SPEC → PLAN → EXECUTE → VERIFY
 
 ```
 .
-├── .claude/                   # Claude Code 설정 (Single Source of Truth)
-│   ├── agents/                # 서브에이전트 정의 (16)
-│   ├── skills/                # 스킬 정의 (18)
-│   ├── hooks/                 # 훅 스크립트 (11) + 유틸리티 (6)
+├── .claude/                   # Claude Code 설정
 │   └── settings.json          # 훅 설정
-├── .hxsk/                      # HXSK 작업 문서
+├── .hxsk/                     # HXSK 핵심 디렉토리 (Single Source of Truth)
+│   ├── skills/                # 스킬 정의 (18)
+│   ├── agents/                # 서브에이전트 정의 (16)
+│   ├── hooks/                 # 훅 스크립트 (11) + 유틸리티
 │   ├── STATE.md               # 현재 작업 상태 (git 추적)
-│   ├── PATTERNS.md            # 핵심 패턴/학습 (2KB, git 추적)
-│   ├── SPEC.md                # 프로젝트 명세
-│   ├── PLAN.md                # 실행 계획
-│   ├── DECISIONS.md           # 아키텍처 결정 기록
+│   ├── PATTERNS.md            # 핵심 패턴/학습 (git 추적)
 │   ├── memories/              # 파일 기반 메모리 (14 타입)
 │   │   ├── _schema/           # JSON Schema + 타입 관계
 │   │   ├── architecture-decision/
@@ -79,51 +74,48 @@ SPEC → PLAN → EXECUTE → VERIFY
 │   │   ├── session-summary/
 │   │   └── ...
 │   ├── templates/             # 문서 템플릿 (git 추적)
-│   └── examples/              # 예제 (git 추적)
-├── .github/                   # GitHub 설정
-│   ├── agents/                # GitHub Agent spec
-│   └── workflows/             # CI/CD (release-please)
+│   ├── examples/              # 예제 (git 추적)
+│   └── issues/                # 이슈 관리
+├── prompts/                   # Setup 프롬프트
+│   ├── setup.md               # 범용 setup 프롬프트
+│   └── setup-claude.md        # Claude Code 전용 setup 프롬프트
 ├── docs/                      # 상세 문서
-├── scripts/                   # 빌드 및 유틸리티 스크립트
-│   ├── build-plugin.sh        # HXSK 플러그인 빌드
-│   ├── build-antigravity.sh   # Antigravity 워크스페이스 빌드
-│   ├── build-opencode.sh      # OpenCode 워크스페이스 빌드
-│   ├── build-common.sh        # 빌드 공통 함수
+├── scripts/                   # 유틸리티 스크립트
 │   ├── bootstrap.sh           # 프로젝트 부트스트랩
+│   ├── verify-self-configure.sh # Self-Configure 검증
 │   ├── md-store-memory.sh     # 메모리 저장
 │   ├── md-recall-memory.sh    # 메모리 검색
-│   ├── detect-language.sh     # 언어 감지
-│   └── convert-hooks-to-plugins.py  # 훅→플러그인 변환
+│   └── detect-language.sh     # 언어 감지
 ├── Makefile                   # 개발 명령어
-└── CLAUDE.md                  # Claude Code 지침
+├── CLAUDE.md                  # Claude Code 지침
+├── AGENTS.md                  # 공통 에이전트 지침
+├── GEMINI.md                  # Gemini 지침
+└── llms.txt                   # LLM 진입점
 ```
 
 ---
 
 ## Quick Start
 
-### 1. Clone & Setup
+### 1. Self-Configure (Setup Prompt)
+
+새 프로젝트에 HExoskeleton을 적용하려면, 에이전트에게 setup 프롬프트를 전달합니다.
+
+```bash
+# Claude Code에서 — setup 프롬프트 실행
+# prompts/setup-claude.md 내용을 에이전트에 전달하면
+# 스킬, 훅, 문서 구조가 자동으로 구성됩니다.
+```
+
+또는 이 레포를 직접 사용:
 
 ```bash
 git clone https://github.com/SukbeomH/HExoskeleton.git
 cd HExoskeleton
-
-# HXSK 문서 초기화
 make setup
 ```
 
-### 2. Claude Code에서 사용
-
-```bash
-# 바로 사용 — 스킬이 자동 로드됨
-claude .
-
-# 또는 플러그인으로 배포 후 사용
-make build-plugin
-claude --plugin-dir ./hxsk-plugin
-```
-
-### 3. 워크플로우 시작
+### 2. 워크플로우 시작
 
 ```
 /bootstrap    # 프로젝트 분석 및 메모리 초기화
@@ -320,32 +312,13 @@ SPEC → PLAN → EXECUTE → VERIFY
 
 ---
 
-## 빌드
+## Self-Configure
 
-이 보일러플레이트를 다양한 형식으로 빌드할 수 있습니다.
+빌드 과정 없이 **setup 프롬프트**를 통해 새 프로젝트에 HXSK를 적용합니다.
 
-| 타겟 | 명령어 | 출력 |
-|------|--------|------|
-| Claude Code Plugin | `make build-plugin` | `hxsk-plugin/` |
-| Google Antigravity | `make build-antigravity` | `antigravity-boilerplate/` |
-| OpenCode | `make build-opencode` | `opencode-boilerplate/` |
-
-### 자동 릴리즈
-
-**release-please** 기반 GitHub Actions로 자동 릴리즈됩니다.
-
-```
-feat: 새 기능 추가 → push to master → Release PR 생성 → 머지 → 자동 릴리즈
-```
-
-### GitHub Release에서 설치
-
-```bash
-# 최신 버전
-VERSION=$(gh release view --json tagName -q .tagName | sed 's/hxsk-plugin-v//')
-curl -L "https://github.com/SukbeomH/LLM_Bolierplate_Pack/releases/latest/download/hxsk-plugin-${VERSION}.zip" -o hxsk-plugin.zip
-unzip hxsk-plugin.zip -d ~/.claude/plugins/hxsk
-```
+1. `prompts/setup.md` (범용) 또는 `prompts/setup-claude.md` (Claude Code 전용)를 에이전트에 전달
+2. 에이전트가 스킬, 훅, 문서 구조를 자동 구성
+3. `scripts/verify-self-configure.sh --all`로 검증
 
 ---
 
@@ -357,13 +330,9 @@ make help                   # 전체 명령어 목록
 
 | 명령어 | 설명 |
 |--------|------|
-| `make setup` | HXSK 문서 초기화 |
+| `make setup` | 전체 초기 설정 (의존성 확인 + 환경) |
 | `make status` | 환경 상태 확인 |
-| `make build` | 3개 빌드 아티팩트 생성 |
-| `make build-plugin` | Claude Code 플러그인 빌드 |
-| `make build-antigravity` | Antigravity 워크스페이스 빌드 |
-| `make build-opencode` | OpenCode 워크스페이스 빌드 |
-| `make clean` | 빌드 결과물 삭제 |
+| `make check-deps` | 필수 도구 설치 확인 |
 
 ---
 
@@ -373,7 +342,6 @@ make help                   # 전체 명령어 목록
 
 | 문서 | 설명 |
 |------|------|
-| [Plugins](https://code.claude.com/docs/en/plugins.md) | 플러그인 생성 가이드 |
 | [Hooks](https://code.claude.com/docs/en/hooks.md) | 이벤트 훅 설정 |
 | [Skills](https://code.claude.com/docs/en/skills.md) | 스킬 정의 및 활용 |
 | [Sub-agents](https://code.claude.com/docs/en/sub-agents.md) | 에이전트 frontmatter |
