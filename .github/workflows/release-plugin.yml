@@ -4,11 +4,11 @@ on:
   push:
     branches: [master]
     paths:
-      # Source files (build outputs generated in CI)
       - '.claude/**'
       - '.agent/**'
       - '.hxsk/templates/**'
-      - 'scripts/build-*.sh'
+      - '.hxsk/examples/**'
+      - 'scripts/**'
       - 'Makefile'
       - 'CLAUDE.md'
       - 'release-please-config.json'
