@@ -1,0 +1,31 @@
+# HExoskeleton
+
+> AI 에이전트 기반 개발 방법론. 순수 bash + 마크다운 기반, 외부 종속성 없음.
+> 어떤 코딩 에이전트든 이 문서를 읽고 프로젝트에 HXSK를 구성할 수 있습니다.
+
+## Setup
+- [Setup Prompt (범용)](prompts/setup.md): 어떤 에이전트든 이 프롬프트를 실행하면 HXSK 구성 완료
+- [Setup Prompt (Claude Code)](prompts/setup-claude.md): Claude Code 특화 구성
+
+## Agent Instructions
+- [AGENTS.md](AGENTS.md): 범용 에이전트 지침 (Copilot, Cursor, Windsurf, Devin 등)
+- [CLAUDE.md](CLAUDE.md): Claude Code 지침
+- [GEMINI.md](GEMINI.md): Gemini CLI 지침
+
+## Skills
+- [Skills Index](.hxsk/skills/INDEX.md): 19개 스킬 목록 + 설명
+
+## Hooks
+- [Hooks Index](.hxsk/hooks/INDEX.md): 17개 훅 스크립트 목록 (Claude Code 전용)
+
+## Agents
+- [Agents Index](.hxsk/agents/INDEX.md): 17개 에이전트 정의
+
+## Templates
+- [Templates](.hxsk/templates/): 24개 문서 템플릿
+
+## Optional
+- [Memory System](docs/MEMORY.md): 파일 기반 메모리 시스템 상세
+- [Workflow Guide](docs/WORKFLOWS.md): SPEC→PLAN→EXECUTE→VERIFY 워크플로우
+- [Skills Guide](docs/SKILLS.md): 스킬 상세 가이드
+- [Hooks Guide](docs/HOOKS.md): 훅 시스템 상세
