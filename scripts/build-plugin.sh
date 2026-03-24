@@ -626,10 +626,10 @@ template_count=$(ls "$PLUGIN/templates/hxsk/templates/"*.md 2>/dev/null | wc -l 
 echo "  Commands:  ${cmd_count}"
 [ "$cmd_count" -ge 1 ] || { echo "    [WARN] No commands found"; }
 
-verify_count "Skills" "$skill_count" 18
-verify_count "Agents" "$agent_count" 16
+verify_count "Skills" "$skill_count" 19
+verify_count "Agents" "$agent_count" 17
 verify_count "Scripts" "$script_count" 17
-verify_count "Templates" "$template_count" 22
+verify_count "Templates" "$template_count" 24
 
 # Transformation check
 echo ""
