@@ -1,80 +1,80 @@
 # Research Index
 
-> 리서치 문서 카탈로그. 각 카테고리별 문서와 핵심 결론 요약.
+> 리서치 문서 카탈로그. 각 카테고리별 문서, 상태, 핵심 결론 요약.
+>
+> **Status**: `active` 현행 유효 · `archived` 역사적 참고 · `superseded` 후속 결정으로 대체
 
-## memory-systems/ (8)
+## memory-systems/ (8) — all active
 
-메모리 아키텍처, 검색 최적화, 토큰 절감 관련 연구.
+현재 메모리 아키텍처의 이론적 기반. 모두 현행 유효.
 
-| 문서 | 날짜 | 핵심 결론 |
+| 문서 | 상태 | 핵심 결론 |
 |------|------|----------|
-| RESEARCH-a-mem-agentic-memory.md | 2026-02-04 | 7-속성 노트 + 2-hop 검색 채택, Memory Evolution 미채택 |
-| RESEARCH-nemori-self-organizing-agent-memory.md | 2026-02-04 | 중복 제거 + 이중 메모리 채택, Predict-Calibrate 미채택 |
-| RESEARCH-agentic-reasoning-token-optimization.md | 2026-02-04 | ReWOO 계획-실행 분리, EASYTOOL 2단계 로딩 채택 |
-| RESEARCH-ontology-for-llm-agents.md | 2026-02-04 | 14 타입 분류 + JSON Schema + type-relations.yaml |
-| RESEARCH-rlm-recursive-language-models.md | 2026-02-04 | Agent-Skill 래핑 구조, 재귀적 분할 채택 |
-| RESEARCH-context-compression-98.md | 2026-03-04 | 컨텍스트 압축 기법 분석 |
-| RESEARCH-hybrid-search-fts5-rrf.md | 2026-03-04 | FTS5 + RRF 하이브리드 검색 분석 |
-| RESEARCH-hxsk-applicability-hybrid-search-compression.md | 2026-03-04 | HXSK 적용 가능성 평가 |
+| RESEARCH-a-mem-agentic-memory.md | `active` | 7-속성 노트 + 2-hop 검색 채택, Memory Evolution 미채택 |
+| RESEARCH-nemori-self-organizing-agent-memory.md | `active` | 중복 제거 + 이중 메모리 채택, Predict-Calibrate 미채택 |
+| RESEARCH-agentic-reasoning-token-optimization.md | `active` | ReWOO 계획-실행 분리, EASYTOOL 2단계 로딩 채택 |
+| RESEARCH-ontology-for-llm-agents.md | `active` | 14 타입 분류 + JSON Schema + type-relations.yaml |
+| RESEARCH-rlm-recursive-language-models.md | `active` | Agent-Skill 래핑 구조, 재귀적 분할 채택 |
+| RESEARCH-context-compression-98.md | `active` | 컨텍스트 압축 기법 분석 |
+| RESEARCH-hybrid-search-fts5-rrf.md | `active` | FTS5 + RRF 하이브리드 검색 분석 (향후 최적화 후보) |
+| RESEARCH-hxsk-applicability-hybrid-search-compression.md | `active` | HXSK 적용 가능성 평가 |
 
 ## platform-integration/ (8)
 
-Claude Code, Antigravity, OpenCode 등 플랫폼 통합 연구.
-
-| 문서 | 날짜 | 핵심 결론 |
+| 문서 | 상태 | 핵심 결론 |
 |------|------|----------|
-| RESEARCH-everything-claude-code.md | 2026-01-28 | Claude Code 전체 기능 정리 (skills, hooks, agents) |
-| RESEARCH-awesome-claude-code.md | 2026-01-28 | 커뮤니티 리소스 큐레이션 |
-| RESEARCH-claude-code-as-mcp-server.md | 2026-01-29 | Claude Code MCP 서버 활용 평가 |
-| RESEARCH-google-antigravity-migration.md | 2026-01-29 | Antigravity IDE 마이그레이션 분석 |
-| RESEARCH-opencode-plugin-migration.md | 2026-01-30 | OpenCode 플러그인 호환성 조사 |
-| RESEARCH-agents-md-agentic-engineering-2026.md | 2026-03-04 | AGENTS.md 에이전틱 엔지니어링 트렌드 |
-| antigravity_doc_rules_and_workflows.md | 2026-02-19 | Antigravity 규칙/워크플로우 정리 |
-| antigravity_doc_skills.md | 2026-02-19 | Antigravity 스킬 문서 |
+| RESEARCH-everything-claude-code.md | `active` | Claude Code 전체 기능 정리 (skills, hooks, agents) |
+| RESEARCH-awesome-claude-code.md | `active` | 커뮤니티 리소스 큐레이션 |
+| RESEARCH-claude-code-as-mcp-server.md | `active` | Claude Code MCP 서버 활용 평가 |
+| RESEARCH-agents-md-agentic-engineering-2026.md | `active` | AGENTS.md 에이전틱 엔지니어링 트렌드 |
+| RESEARCH-google-antigravity-migration.md | `archived` | Antigravity IDE 마이그레이션 — 현재 비활성 플랫폼 |
+| RESEARCH-opencode-plugin-migration.md | `archived` | OpenCode 플러그인 호환성 — Claude Code 집중으로 후순위 |
+| antigravity_doc_rules_and_workflows.md | `archived` | Antigravity 규칙/워크플로우 스냅샷 |
+| antigravity_doc_skills.md | `archived` | Antigravity 스킬 문서 스냅샷 |
 
 ## deployment-strategy/ (6)
 
-플러그인 전환, 배포 모델, 안전 적용 관련 연구.
-
-| 문서 | 날짜 | 핵심 결론 |
+| 문서 | 상태 | 핵심 결론 |
 |------|------|----------|
-| RESEARCH-plugin-feasibility.md | 2026-01-28 | 플러그인 전환 가능성 분석 → Self-Configure로 최종 전환 |
-| RESEARCH-plugin-auto-release.md | 2026-01-29 | 자동 릴리즈 워크플로우 설계 |
-| RESEARCH-plugin-vs-safe-apply.md | 2026-01-28 | 플러그인 vs 안전 적용 비교 |
-| RESEARCH-boilerplate-safe-apply.md | 2026-01-28 | 기존 프로젝트 덮어쓰기 방지 방법론 |
-| RESEARCH-gsd-in-plugin.md | 2026-01-28 | .gsd/ 문서 체계의 플러그인 내장 분석 |
-| RESEARCH-code-as-specification.md | 2026-03-04 | 코드 = 스펙 접근법 분석 |
+| RESEARCH-code-as-specification.md | `active` | 코드 = 스펙 접근법, 문서/코드 균형 지침 |
+| RESEARCH-boilerplate-safe-apply.md | `archived` | 기존 프로젝트 덮어쓰기 방지 — Self-Configure로 해소 |
+| RESEARCH-plugin-feasibility.md | `superseded` | 플러그인 전환 분석 → Self-Configure 모델로 최종 결정 |
+| RESEARCH-plugin-auto-release.md | `superseded` | release-please 워크플로우 → 인프라 삭제로 무효 |
+| RESEARCH-plugin-vs-safe-apply.md | `superseded` | 플러그인 vs 안전 적용 비교 → Self-Configure로 무효 |
+| RESEARCH-gsd-in-plugin.md | `superseded` | .gsd/ 플러그인 내장 → .hxsk/ 전환 + Self-Configure로 무효 |
 
 ## language-support/ (3)
 
-다국어 지원, Python 종속성 분석.
-
-| 문서 | 날짜 | 핵심 결론 |
+| 문서 | 상태 | 핵심 결론 |
 |------|------|----------|
-| RESEARCH-multi-language-support.md | 2026-01-30 | 다국어 확장 실현 가능성 분석 |
-| RESEARCH-prior-art-multi-language.md | 2026-01-30 | 기존 다국어 감지/품질 도구 조사 |
-| RESEARCH-python-specific-audit.md | 2026-01-30 | Python 종속 항목 전수 조사 → 이후 제거 완료 |
+| RESEARCH-multi-language-support.md | `archived` | 다국어 확장 가능성 — 현재 bash+markdown 전용 |
+| RESEARCH-prior-art-multi-language.md | `archived` | 다국어 감지/품질 도구 선행 사례 |
+| RESEARCH-python-specific-audit.md | `superseded` | Python 종속 전수 조사 → Python 완전 제거로 목적 달성 |
 
-## tooling/ (2)
+## tooling/ (2) — all active
 
-CLI 도구, MCP vs CLI 비교.
-
-| 문서 | 날짜 | 핵심 결론 |
+| 문서 | 상태 | 핵심 결론 |
 |------|------|----------|
-| RESEARCH-bash-cli-tools-for-llm.md | 2026-01-30 | LLM 에이전트용 bash CLI 도구 조사 |
-| RESEARCH-mcp-vs-cli.md | 2026-03-04 | MCP vs CLI 트레이드오프 분석 |
+| RESEARCH-bash-cli-tools-for-llm.md | `active` | LLM 에이전트용 bash CLI 도구 조사 |
+| RESEARCH-mcp-vs-cli.md | `active` | MCP vs CLI 트레이드오프 → CLI(bash) 선택 근거 |
 
 ## architecture/ (3)
 
-아키텍처 결정, 엔트로피 관리, 보고서 가이드.
-
-| 문서 | 날짜 | 핵심 결론 |
+| 문서 | 상태 | 핵심 결론 |
 |------|------|----------|
-| RESEARCH-code-entropy-dependency-minimization.md | 2026-03-04 | 코드 엔트로피 + 종속성 최소화 원칙 |
-| solution_comparison_report_guide.md | 2026-03-04 | 솔루션 비교 보고서 작성 가이드 |
-| HOOK_ISSUE_REPORT.md | 2026-02-11 | 훅 이슈 리포트 |
+| RESEARCH-code-entropy-dependency-minimization.md | `active` | 코드 엔트로피 + 종속성 최소화 — 핵심 설계 원칙 |
+| solution_comparison_report_guide.md | `active` | 솔루션 비교 보고서 작성 프레임워크 |
+| HOOK_ISSUE_REPORT.md | `archived` | macOS 훅 실행 이슈 (2026-02-11, 일시적) |
 
 ---
 
+## 요약
+
+| 상태 | 개수 | 비율 |
+|------|------|------|
+| `active` | 18 | 60% |
+| `archived` | 7 | 23% |
+| `superseded` | 5 | 17% |
+
 *Total: 30 documents across 6 categories*
-*Restored from git history: 2026-03-25*
+*Updated: 2026-03-25 — status 태깅 완료*
