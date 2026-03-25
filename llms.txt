@@ -25,6 +25,10 @@
 ## Templates
 - [Templates](.hxsk/templates/): 24개 문서 템플릿
 
+## Architecture
+- [ARCHITECTURE.md](.hxsk/ARCHITECTURE.md): 시스템 아키텍처 + 기술 부채 현황
+- [Research Index](.hxsk/research/INDEX.md): 30개 리서치 문서 카탈로그 (6개 카테고리)
+
 ## Optional
 - [Memory System](docs/MEMORY.md): 파일 기반 메모리 시스템 상세
 - [Workflow Guide](docs/WORKFLOWS.md): SPEC→PLAN→EXECUTE→VERIFY 워크플로우
