@@ -1,6 +1,7 @@
 # 기술 부채 해소 + 토큰 최적화 + 이슈 기반 병렬 실행 구조 도입
 
-> **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
+> **Status:** ✅ 실행 완료 (2026-03-25)
+> **Deviations:** WKT-A/G/H는 Self-Configure 전환으로 OBSOLETE. Wave 4는 빌드 삭제에 맞게 검증 범위 축소.
 
 **Goal:** 3개 트랙(기술 부채, 토큰 최적화, 병렬 실행 인프라)을 wave 기반 병렬 실행으로 동시 처리한다.
 
