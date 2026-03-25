@@ -111,12 +111,19 @@ HExoskeleton은 **하나의 프로젝트를 여러 AI 에이전트가 동시에 
 - **Lock-in 없음** — 특정 에이전트에 종속되지 않습니다. 순수 마크다운 파일이므로 어떤 에이전트든 읽고 쓸 수 있습니다.
 - **동시 사용 가능** — 같은 프로젝트에서 Claude Code로 백엔드를, Cursor로 프론트엔드를 동시에 작업할 수 있습니다.
 
-### Setup
+### 에이전트별 지침 자동 로드
 
-```bash
-# 하나의 프로젝트에 여러 에이전트 지원 구성
-# 에이전트에게 아래 프롬프트를 전달하면 자동 구성됩니다
-```
+`AGENTS.md`를 각 에이전트의 자동 로드 경로에 심볼릭 링크로 연결합니다. 별도 옵션 없이 에이전트를 실행하면 자동으로 지침을 읽습니다.
+
+| 에이전트 | 지침 파일 | 자동 로드 경로 |
+|----------|----------|--------------|
+| Claude Code | `CLAUDE.md` | (루트에서 자동 로드) |
+| Gemini CLI | `GEMINI.md` | (루트에서 자동 로드) |
+| GitHub Copilot | `AGENTS.md` | `.github/copilot-instructions.md` → symlink |
+| Cursor | `AGENTS.md` | `.cursorrules` → symlink |
+| Windsurf | `AGENTS.md` | `.windsurfrules` → symlink |
+
+### Setup
 
 | 프롬프트 | 대상 | 설명 |
 |----------|------|------|
