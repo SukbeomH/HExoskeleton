@@ -2,20 +2,19 @@
 
 ## Current Position
 
-**Milestone:** Self-Configure 전환 완료
+**Milestone:** Self-Configure 전환 완료 + 안정화
 **Phase:** Complete
-**Status:** review pending
-**Branch:** feature/self-configure
+**Status:** idle
+**Branch:** master
 
 ## Last Action
 
-Self-Configure 전환 Phase 3 완료: 빌드 스크립트 5개 삭제, release-please + CI 워크플로우 삭제, Makefile build 타겟 제거, .gitignore 빌드 출력 항목 제거, 문서 전면 갱신.
+E2E 검증 통과 (93/93 PASS). README 재구성, 워크트리 전수 정리, gitignore 빌드 산출물 추가, STATE.md 동기화.
 
 ## Next Steps
 
-1. T20: End-to-End 검증 실행
-2. feature/self-configure → master PR 생성 및 merge
-3. 새 작업 정의 시 SPEC.md 작성
+1. `parallel-debt-and-infra` 플랜 실행 상태 확인 및 잔여 태스크 처리
+2. 새 작업 정의 시 SPEC.md 작성
 
 ## Active Decisions
 
@@ -37,8 +36,8 @@ None
 
 ## Session Context
 
-Self-Configure 전환 Phase 1~3 완료. 신규 파일 생성(llms.txt, AGENTS.md, prompts/, CLAUDE.md 분리), 소스 재배치(.claude/ → .hxsk/), 빌드 인프라 삭제, 문서 갱신 완료.
+Self-Configure 전환 완료 및 E2E 검증 통과. 워크트리 전수 정리, README 재구성 (구조 재배치 + 시각 개선), gitignore 보강.
 
 ---
 
-*Last updated: 2026-03-24*
+*Last updated: 2026-03-25*

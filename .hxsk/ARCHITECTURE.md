@@ -166,9 +166,9 @@ Source Components:
 - [x] convert-hooks-to-plugins.py — 빌드 시스템과 함께 삭제
 
 **잔여:**
-없음
+- [ ] `bootstrap.sh:90` python3 버전 체크 — hooks에 필요한 python3 확인용, 기능상 문제 없음
 
 ---
 
 *Generated: 2026-03-24*
-*Updated: 2026-03-24 — Self-Configure 전환 완료. 빌드 파이프라인 제거, 레포 = 배포 모델 반영*
+*Updated: 2026-03-25 — Wave 4 통합 검증 완료. parallel-debt-and-infra 플랜 종결*
