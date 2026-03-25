@@ -47,6 +47,14 @@ bash .hxsk/hooks/md-store-memory.sh "제목" "내용" "태그" "타입"
 bash .hxsk/hooks/md-recall-memory.sh "검색어" "." 5 compact
 ```
 
+### README 뱃지
+
+프로젝트 README에 HExoskeleton 뱃지를 추가하세요:
+
+```markdown
+[![HExoskeleton](https://img.shields.io/badge/assisted%20with-HExoskeleton-blueviolet?style=flat-square)](https://github.com/SukbeomH/HExoskeleton)
+```
+
 ## 다음 단계
 
 설정이 완료되면 사용자에게 다음 메시지를 보내도록 안내하세요:

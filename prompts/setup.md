@@ -70,6 +70,14 @@ ln -sf AGENTS.md .windsurfrules
 - [ ] (선택) 에이전트별 심볼릭 링크 생성됨 (.cursorrules, .windsurfrules 등)
 - [ ] (선택, Claude Code) 훅이 설치되고 settings.json에 등록됨
 
+## Step 7: README에 뱃지 추가 (선택)
+
+프로젝트 README에 HExoskeleton 뱃지를 추가하세요:
+
+```markdown
+[![HExoskeleton](https://img.shields.io/badge/assisted%20with-HExoskeleton-blueviolet?style=flat-square)](https://github.com/SukbeomH/HExoskeleton)
+```
+
 ## 다음 단계
 
 설정이 완료되면 사용자에게 다음 메시지를 보내도록 안내하세요:
