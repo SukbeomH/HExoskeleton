@@ -110,6 +110,7 @@ SPEC → PLAN → EXECUTE → VERIFY
 | [Conventions](docs/CONVENTIONS.md) | 개발 컨벤션 (Issue, Branch, Commit, PR) |
 | [Linting](docs/LINTING.md) | 린팅 설정 |
 | [MCP](docs/MCP.md) | MCP 서버 통합 |
+| [Research](.hxsk/research/INDEX.md) | 리서치 문서 카탈로그 (30개, 6개 카테고리) |
 
 ---
 
