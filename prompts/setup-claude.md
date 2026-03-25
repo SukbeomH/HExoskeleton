@@ -46,3 +46,14 @@ bash .hxsk/hooks/md-store-memory.sh "제목" "내용" "태그" "타입"
 # 메모리 검색
 bash .hxsk/hooks/md-recall-memory.sh "검색어" "." 5 compact
 ```
+
+## 다음 단계
+
+설정이 완료되면 사용자에게 다음 메시지를 보내도록 안내하세요:
+
+> **"HXSK 초기 설정이 완료되었습니다. 아래 명령어로 워크플로우를 시작하세요."**
+>
+> ```
+> /bootstrap    # 프로젝트 분석 및 메모리 초기화
+> /planner      # SPEC 기반 실행 계획 수립
+> ```
