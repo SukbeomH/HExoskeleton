@@ -12,6 +12,7 @@
   <a href="#quick-start">Quick Start</a> &middot;
   <a href="#왜-hexoskeleton인가">Why</a> &middot;
   <a href="#핵심-구성요소">Components</a> &middot;
+  <a href="#멀티-에이전트-하나의-프로젝트">Multi-Agent</a> &middot;
   <a href="#메모리-시스템">Memory</a> &middot;
   <a href="docs/">Docs</a>
 </p>
@@ -27,24 +28,11 @@
 
 ## Quick Start
 
-### 1. Setup Prompt로 새 프로젝트에 적용
-
-에이전트에게 setup 프롬프트를 전달하면 스킬, 훅, 문서 구조가 자동 구성됩니다.
-
-| 프롬프트 | 대상 | 설명 |
-|----------|------|------|
-| [setup-claude.md](prompts/setup-claude.md) | Claude Code | Claude Code 전용 setup |
-| [setup.md](prompts/setup.md) | 범용 | 다른 AI 에이전트용 setup |
-
-### 2. 또는 이 레포를 직접 사용
-
 ```bash
 git clone https://github.com/SukbeomH/HExoskeleton.git
 cd HExoskeleton
 make setup
 ```
-
-### 3. 워크플로우 시작
 
 ```
 SPEC → PLAN → EXECUTE → VERIFY
@@ -58,6 +46,12 @@ SPEC → PLAN → EXECUTE → VERIFY
 ```
 
 > **외부 종속성 없음** — Node.js, Python 환경, MCP 서버, 벡터 DB 불필요.
+> `make help`로 전체 명령어를 확인할 수 있습니다.
+
+<p align="center">
+  <img src="logo.gif" alt="HExoskeleton 워크플로우 데모" width="480" />
+  <br><sub>SPEC → PLAN → EXECUTE → VERIFY 워크플로우</sub>
+</p>
 
 ---
 
@@ -77,88 +71,16 @@ SPEC → PLAN → EXECUTE → VERIFY
 
 ---
 
-## 멀티 에이전트, 하나의 프로젝트
-
-HExoskeleton은 **하나의 프로젝트를 여러 AI 에이전트가 동시에 관리**할 수 있도록 설계되었습니다.
-
-```
-┌─────────────────────────────────────────────────────┐
-│                    프로젝트                           │
-│                                                     │
-│  ┌───────────┐  ┌───────────┐  ┌───────────┐       │
-│  │ Claude    │  │ Gemini    │  │ Cursor    │       │
-│  │ Code      │  │ CLI       │  │ Copilot   │       │
-│  │           │  │           │  │ Windsurf  │       │
-│  │ CLAUDE.md │  │ GEMINI.md │  │ AGENTS.md │       │
-│  └─────┬─────┘  └─────┬─────┘  └─────┬─────┘       │
-│        │               │               │             │
-│        └───────────────┼───────────────┘             │
-│                        ▼                             │
-│              ┌──────────────────┐                    │
-│              │     .hxsk/       │                    │
-│              │  (공유 워킹 상태)  │                    │
-│              │  STATE / SPEC    │                    │
-│              │  memories/       │                    │
-│              │  skills / hooks  │                    │
-│              └──────────────────┘                    │
-└─────────────────────────────────────────────────────┘
-```
-
-### 설계 의도
-
-- **에이전트 지침은 분리, 워킹 상태는 공유** — 각 에이전트는 자기 지침 파일(`CLAUDE.md`, `GEMINI.md`, `AGENTS.md`)만 읽지만, `.hxsk/`의 SPEC, STATE, 메모리, 패턴은 모두 공유합니다.
-- **에이전트 간 인수인계** — Claude Code로 디버깅하다가 Cursor로 UI 작업을 이어가도, `.hxsk/STATE.md`와 메모리가 컨텍스트를 유지합니다.
-- **Lock-in 없음** — 특정 에이전트에 종속되지 않습니다. 순수 마크다운 파일이므로 어떤 에이전트든 읽고 쓸 수 있습니다.
-- **동시 사용 가능** — 같은 프로젝트에서 Claude Code로 백엔드를, Cursor로 프론트엔드를 동시에 작업할 수 있습니다.
-
-### 에이전트별 지침 자동 로드
-
-`AGENTS.md`를 각 에이전트의 자동 로드 경로에 심볼릭 링크로 연결합니다. 별도 옵션 없이 에이전트를 실행하면 자동으로 지침을 읽습니다.
-
-| 에이전트 | 지침 파일 | 자동 로드 경로 |
-|----------|----------|--------------|
-| Claude Code | `CLAUDE.md` | (루트에서 자동 로드) |
-| Gemini CLI | `GEMINI.md` | (루트에서 자동 로드) |
-| GitHub Copilot | `AGENTS.md` | `.github/copilot-instructions.md` → symlink |
-| Cursor | `AGENTS.md` | `.cursorrules` → symlink |
-| Windsurf | `AGENTS.md` | `.windsurfrules` → symlink |
-
-### Setup
-
-| 프롬프트 | 대상 | 설명 |
-|----------|------|------|
-| [setup-claude.md](prompts/setup-claude.md) | Claude Code | 훅 + 스킬 + 메모리 전체 구성 |
-| [setup.md](prompts/setup.md) | 범용 | Copilot, Cursor, Gemini 등 — 스킬 + 문서 구성 |
-
-> 두 프롬프트를 **동시에 적용**할 수 있습니다. Claude Code 전용 훅은 `.claude/settings.json`에만 등록되므로 다른 에이전트에 영향을 주지 않습니다.
-
----
-
 ## 핵심 구성요소
 
 | 구성요소 | 개수 | 설명 | 상세 |
 |----------|------|------|------|
 | **Skills** | 18 | Claude가 자율 호출하는 기능 단위 (How) | [docs/SKILLS.md](docs/SKILLS.md) |
-| **Agents** | 16 | 스킬을 조합하는 서브에이전트 (When/With What) | [docs/AGENTS.md](docs/AGENTS.md) |
+| **Agents** | 17 | 스킬을 조합하는 서브에이전트 (When/With What) | [docs/AGENTS.md](docs/AGENTS.md) |
 | **Hooks** | 11 | 이벤트 기반 자동화 (가드레일, 상태 저장) | [docs/HOOKS.md](docs/HOOKS.md) |
 | **Memory** | 14 types | A-Mem 확장 파일 기반 메모리 (2-hop) | [docs/MEMORY.md](docs/MEMORY.md) |
 
-### Agent-Skill 아키텍처
-
-```
-┌─────────────────────────────────────────────────┐
-│  Agent (When / With What)                       │
-│  ┌───────────┐ ┌───────────┐ ┌───────────┐     │
-│  │  Skill A  │ │  Skill B  │ │  Skill C  │     │
-│  │  (How)    │ │  (How)    │ │  (How)    │     │
-│  └───────────┘ └───────────┘ └───────────┘     │
-└─────────────────────────────────────────────────┘
-```
-
-- **Skill**: 재사용 가능한 최소 기능 단위. 절차와 규칙을 정의.
-- **Agent**: 스킬을 탑재하고 오케스트레이션. 상황에 맞는 스킬을 자율 선택.
-
-### 문서
+**Skill**(How)과 **Agent**(When/With What)를 분리하여 유지보수성과 자율성을 동시에 확보합니다. Claude는 작업 성격을 인식하여 적절한 스킬을 자율 판단하고 호출합니다.
 
 | 문서 | 설명 |
 |------|------|
@@ -171,27 +93,64 @@ HExoskeleton은 **하나의 프로젝트를 여러 AI 에이전트가 동시에 
 
 ---
 
+## 멀티 에이전트, 하나의 프로젝트
+
+HExoskeleton은 **하나의 프로젝트를 여러 AI 에이전트가 동시에 관리**할 수 있도록 설계되었습니다. 에이전트 지침은 분리하되, 워킹 상태(`.hxsk/`)는 공유합니다.
+
+```
+┌─────────────────────────────────────────────────────┐
+│                    프로젝트                           │
+│                                                     │
+│  ┌───────────┐  ┌───────────┐  ┌───────────┐       │
+│  │ Claude    │  │ Gemini    │  │ Cursor    │       │
+│  │ CLAUDE.md │  │ GEMINI.md │  │ AGENTS.md │       │
+│  └─────┬─────┘  └─────┬─────┘  └─────┬─────┘       │
+│        └───────────────┼───────────────┘             │
+│                        ▼                             │
+│              ┌──────────────────┐                    │
+│              │     .hxsk/       │                    │
+│              │  STATE · SPEC    │                    │
+│              │  memories        │                    │
+│              │  skills · hooks  │                    │
+│              └──────────────────┘                    │
+└─────────────────────────────────────────────────────┘
+```
+
+- **에이전트 간 인수인계** — Claude Code로 디버깅 → Cursor로 UI 작업. `.hxsk/STATE.md`와 메모리가 컨텍스트 유지.
+- **Lock-in 없음** — 순수 마크다운이므로 어떤 에이전트든 읽고 쓸 수 있음.
+- **동시 사용** — 백엔드(Claude Code) + 프론트엔드(Cursor) 동시 작업 가능.
+
+### 에이전트별 자동 로드
+
+`AGENTS.md`를 각 에이전트의 자동 로드 경로에 심볼릭 링크로 연결합니다.
+
+| 에이전트 | 자동 로드 경로 | 방식 |
+|----------|--------------|------|
+| Claude Code | `CLAUDE.md` | 루트 자동 로드 |
+| Gemini CLI | `GEMINI.md` | 루트 자동 로드 |
+| GitHub Copilot | `.github/copilot-instructions.md` | → `AGENTS.md` symlink |
+| Cursor | `.cursorrules` | → `AGENTS.md` symlink |
+| Windsurf | `.windsurfrules` | → `AGENTS.md` symlink |
+
+### 새 프로젝트에 적용
+
+| 프롬프트 | 대상 | 설명 |
+|----------|------|------|
+| [setup-claude.md](prompts/setup-claude.md) | Claude Code | 훅 + 스킬 + 메모리 전체 구성 |
+| [setup.md](prompts/setup.md) | 범용 | Copilot, Cursor, Gemini 등 |
+
+> 두 프롬프트를 **동시에 적용**할 수 있습니다. Claude Code 전용 훅은 `.claude/settings.json`에만 등록되므로 다른 에이전트에 영향을 주지 않습니다.
+
+---
+
 ## 메모리 시스템
 
 순수 bash + 마크다운 파일 기반 에이전트 메모리. [A-Mem](https://arxiv.org/html/2502.12110v11), [Nemori](https://arxiv.org/html/2508.03341v3), ReWOO 논문의 핵심 개념을 파일 시스템 위에 구현했습니다.
-
-```
-┌──────────────┐     related     ┌──────────────┐
-│  Memory A    │ ──────────────→ │  Memory B    │
-│  (root-cause)│                 │  (pattern)   │
-└──────┬───────┘                 └──────┬───────┘
-       │            2-hop               │
-       └────────────────────────────────┘
-```
-
-### 특징
 
 - **2-Hop 그래프 검색** — `related` 필드로 메모리 간 연결, 관련 메모리까지 자동 추적
 - **중복 방지** — 동일 제목 저장 시 자동 스킵 (`[SKIP:DUPLICATE]`)
 - **토큰 최적화** — `compact` 모드로 제목 + 1줄 요약만 반환
 - **완전한 감사 추적** — 모든 메모리가 Markdown 파일, Git diff 가능
-
-### 사용법
 
 ```bash
 # 저장
@@ -204,17 +163,27 @@ bash scripts/md-recall-memory.sh "검색어" "." 5 compact
 bash scripts/md-recall-memory.sh "검색어" "." 5 compact 2
 ```
 
-### 메모리 타입 (14개)
+<details>
+<summary><strong>메모리 타입 (14개)</strong></summary>
 
-| 타입 | 용도 | | 타입 | 용도 |
-|------|------|-|------|------|
-| `architecture-decision` | 아키텍처 결정 | | `session-summary` | 세션 종료 요약 (자동) |
-| `root-cause` | 디버깅 근본 원인 | | `session-snapshot` | Pre-compact 스냅샷 |
-| `debug-eliminated` | 배제된 가설 | | `session-handoff` | 세션 인수인계 |
-| `debug-blocked` | 3-strike 차단 | | `health-event` | 컨텍스트 건강 이벤트 |
-| `pattern-discovery` | 발견된 패턴 | | `bootstrap` | 프로젝트 초기 설정 |
-| `deviation` | 계획 대비 이탈 | | `security-finding` | 보안 발견 사항 |
-| `execution-summary` | 실행 결과 요약 | | `general` | 기타 |
+| 타입 | 용도 |
+|------|------|
+| `architecture-decision` | 아키텍처 결정 사항 |
+| `root-cause` | 디버깅 근본 원인 |
+| `debug-eliminated` | 배제된 가설 |
+| `debug-blocked` | 3-strike 차단 |
+| `pattern-discovery` | 발견된 패턴/학습 |
+| `deviation` | 계획 대비 이탈 |
+| `execution-summary` | 실행 결과 요약 |
+| `session-summary` | 세션 종료 요약 (자동) |
+| `session-snapshot` | Pre-compact 스냅샷 |
+| `session-handoff` | 세션 인수인계 |
+| `health-event` | 컨텍스트 건강 이벤트 |
+| `bootstrap` | 프로젝트 초기 설정 |
+| `security-finding` | 보안 발견 사항 |
+| `general` | 기타 |
+
+</details>
 
 > 상세: [docs/MEMORY.md](docs/MEMORY.md)
 
@@ -224,33 +193,24 @@ bash scripts/md-recall-memory.sh "검색어" "." 5 compact 2
 
 ```
 .
-├── .claude/                   # Claude Code 설정
-│   └── settings.json          # 훅 설정
+├── CLAUDE.md                  # Claude Code 지침
+├── AGENTS.md                  # 공통 에이전트 지침
+├── GEMINI.md                  # Gemini 지침
+├── .cursorrules → AGENTS.md   # Cursor symlink
+├── .windsurfrules → AGENTS.md # Windsurf symlink
+├── llms.txt                   # LLM 진입점
+├── .claude/settings.json      # 훅 설정
 ├── .hxsk/                     # HXSK 핵심 (Single Source of Truth)
 │   ├── skills/                # 스킬 정의 (18)
-│   ├── agents/                # 서브에이전트 정의 (16)
+│   ├── agents/                # 서브에이전트 정의 (17)
 │   ├── hooks/                 # 훅 스크립트 (11) + 유틸리티
 │   ├── memories/              # 파일 기반 메모리 (14 타입)
+│   ├── research/              # 리서치 문서 (30개, 6 카테고리)
 │   ├── STATE.md               # 현재 작업 상태
 │   └── PATTERNS.md            # 핵심 패턴/학습
 ├── prompts/                   # Setup 프롬프트
 ├── docs/                      # 상세 문서
-├── scripts/                   # 유틸리티 스크립트
-├── CLAUDE.md                  # Claude Code 지침
-├── AGENTS.md                  # 공통 에이전트 지침
-├── GEMINI.md                  # Gemini 지침
-└── llms.txt                   # LLM 진입점
-```
-
----
-
-## Make 명령어
-
-```bash
-make help                   # 전체 명령어 목록
-make setup                  # 전체 초기 설정 (의존성 확인 + 환경)
-make status                 # 환경 상태 확인
-make check-deps             # 필수 도구 설치 확인
+└── scripts/                   # 유틸리티 스크립트
 ```
 
 ---
@@ -294,28 +254,11 @@ make check-deps             # 필수 도구 설치 확인
 - Predict-Calibrate (Nemori) — LLM 추가 호출 비용 대비 효용 불확실
 - Persistent REPL (RLM) — 현재 사용 사례에서 필요성 낮음
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│  최소 종속성 원칙                                             │
-│  외부 서비스 = 0 │ MCP 서버 = 선택적 │ 순수 bash + 마크다운    │
-└─────────────────────────────────────────────────────────────┘
-                              │
-        ┌─────────────────────┼─────────────────────┐
-        ▼                     ▼                     ▼
-   A-Mem 스타일          Nemori 스타일         토큰 최적화
-   연결 그래프           이중 메모리 분류       계획-실행 분리
-   2-hop 검색            중복 제거             적응적 탐색
-```
-
-> 상세 리서치 문서: `.hxsk/research/`
+> 상세 리서치 문서: [.hxsk/research/INDEX.md](.hxsk/research/INDEX.md)
 
 </details>
 
 ---
-
-<p align="center">
-  <img src="logo.gif" alt="HExoskeleton Demo" width="480" />
-</p>
 
 <p align="center">
   MIT License

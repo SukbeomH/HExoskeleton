@@ -69,3 +69,14 @@ ln -sf AGENTS.md .windsurfrules
 - [ ] (선택) 스킬이 에이전트 설정 디렉토리에 배치됨
 - [ ] (선택) 에이전트별 심볼릭 링크 생성됨 (.cursorrules, .windsurfrules 등)
 - [ ] (선택, Claude Code) 훅이 설치되고 settings.json에 등록됨
+
+## 다음 단계
+
+설정이 완료되면 사용자에게 다음 메시지를 보내도록 안내하세요:
+
+> **"HXSK 초기 설정이 완료되었습니다. 아래 명령어로 워크플로우를 시작하세요."**
+>
+> ```
+> /bootstrap    # 프로젝트 분석 및 메모리 초기화
+> /planner      # SPEC 기반 실행 계획 수립
+> ```
