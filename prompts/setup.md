@@ -38,7 +38,25 @@
 
 권장 필수 스킬: `planner`, `executor`, `verifier`, `memory-protocol`
 
-## Step 5: 훅 설치 (Claude Code만, 선택)
+## Step 5: 에이전트별 자동 로드 경로 연결
+
+`AGENTS.md`를 각 에이전트의 자동 로드 경로에 심볼릭 링크로 연결하세요:
+
+```bash
+# GitHub Copilot
+mkdir -p .github
+ln -sf ../AGENTS.md .github/copilot-instructions.md
+
+# Cursor
+ln -sf AGENTS.md .cursorrules
+
+# Windsurf
+ln -sf AGENTS.md .windsurfrules
+```
+
+이렇게 하면 별도 옵션 없이 에이전트를 실행해도 HXSK 지침이 자동 로드됩니다.
+
+## Step 6: 훅 설치 (Claude Code만, 선택)
 
 훅은 Claude Code에서만 동작합니다. 다른 에이전트는 AGENTS.md의 Agent Boundaries 규칙으로 대체됩니다.
 
@@ -49,4 +67,5 @@
 - [ ] 에이전트 지침 파일이 프로젝트 루트에 존재
 - [ ] `.hxsk/` 디렉토리에 SPEC.md, STATE.md, PATTERNS.md 존재
 - [ ] (선택) 스킬이 에이전트 설정 디렉토리에 배치됨
+- [ ] (선택) 에이전트별 심볼릭 링크 생성됨 (.cursorrules, .windsurfrules 등)
 - [ ] (선택, Claude Code) 훅이 설치되고 settings.json에 등록됨
