@@ -33,8 +33,8 @@ AI 에이전트에게 setup 프롬프트를 전달하면 자동으로 프로젝�
 
 | 프롬프트 | 대상 | 설명 |
 |----------|------|------|
-| [setup.md](prompts/setup.md) | 범용 | Copilot, Cursor, Gemini, Windsurf 등 |
-| [setup-claude.md](prompts/setup-claude.md) | Claude Code | 훅 + 스킬 + 메모리 전체 구성 |
+| [setup.md](.hxsk/prompts/setup.md) | 범용 | Copilot, Cursor, Gemini, Windsurf 등 |
+| [setup-claude.md](.hxsk/prompts/setup-claude.md) | Claude Code | 훅 + 스킬 + 메모리 전체 구성 |
 
 > **외부 종속성 없음** — 초기 설치/업데이트 자동 감지. `SPEC → PLAN → EXECUTE → VERIFY`
 
@@ -81,10 +81,10 @@ make setup
 
 | 구성요소 | 개수 | 설명 | 상세 |
 |----------|------|------|------|
-| **Skills** | 19 | Claude가 자율 호출하는 기능 단위 (How) | [docs/SKILLS.md](docs/SKILLS.md) |
-| **Agents** | 17 | 스킬을 조합하는 서브에이전트 (When/With What) | [docs/AGENTS.md](docs/AGENTS.md) |
-| **Hooks** | 17 | 이벤트 기반 자동화 (가드레일, 상태 저장) | [docs/HOOKS.md](docs/HOOKS.md) |
-| **Memory** | 14 types | A-Mem 확장 파일 기반 메모리 (2-hop) | [docs/MEMORY.md](docs/MEMORY.md) |
+| **Skills** | 19 | Claude가 자율 호출하는 기능 단위 (How) | [docs/SKILLS.md](.hxsk/docs/SKILLS.md) |
+| **Agents** | 17 | 스킬을 조합하는 서브에이전트 (When/With What) | [docs/AGENTS.md](.hxsk/docs/AGENTS.md) |
+| **Hooks** | 17 | 이벤트 기반 자동화 (가드레일, 상태 저장) | [docs/HOOKS.md](.hxsk/docs/HOOKS.md) |
+| **Memory** | 14 types | A-Mem 확장 파일 기반 메모리 (2-hop) | [docs/MEMORY.md](.hxsk/docs/MEMORY.md) |
 
 **Skill**(How)과 **Agent**(When/With What)를 분리하여 유지보수성과 자율성을 동시에 확보합니다.
 
@@ -94,11 +94,11 @@ make setup
 
 | 문서 | 설명 |
 |------|------|
-| [Build](docs/BUILD.md) | Self-Configure 배포 가이드 |
-| [Workflows](docs/WORKFLOWS.md) | 워크플로우 상세 |
-| [Conventions](docs/CONVENTIONS.md) | 개발 컨벤션 (Issue, Branch, Commit, PR) |
-| [Linting](docs/LINTING.md) | 린팅 설정 |
-| [MCP](docs/MCP.md) | MCP 서버 통합 |
+| [Build](.hxsk/docs/BUILD.md) | Self-Configure 배포 가이드 |
+| [Workflows](.hxsk/docs/WORKFLOWS.md) | 워크플로우 상세 |
+| [Conventions](.hxsk/docs/CONVENTIONS.md) | 개발 컨벤션 (Issue, Branch, Commit, PR) |
+| [Linting](.hxsk/docs/LINTING.md) | 린팅 설정 |
+| [MCP](.hxsk/docs/MCP.md) | MCP 서버 통합 |
 | [Research](.hxsk/research/INDEX.md) | 리서치 문서 카탈로그 (30개, 6개 카테고리) |
 
 </details>
@@ -161,13 +161,13 @@ HExoskeleton은 **하나의 프로젝트를 여러 AI 에이전트가 동시에 
 
 ```bash
 # 저장
-bash scripts/md-store-memory.sh "제목" "내용" "태그1,태그2" "타입"
+bash .hxsk/hooks/md-store-memory.sh "제목" "내용" "태그1,태그2" "타입"
 
 # 검색 (compact)
-bash scripts/md-recall-memory.sh "검색어" "." 5 compact
+bash .hxsk/hooks/md-recall-memory.sh "검색어" "." 5 compact
 
 # 2-hop 검색
-bash scripts/md-recall-memory.sh "검색어" "." 5 compact 2
+bash .hxsk/hooks/md-recall-memory.sh "검색어" "." 5 compact 2
 ```
 
 <details>
@@ -193,7 +193,7 @@ bash scripts/md-recall-memory.sh "검색어" "." 5 compact 2
 
 </details>
 
-> 상세: [docs/MEMORY.md](docs/MEMORY.md)
+> 상세: [docs/MEMORY.md](.hxsk/docs/MEMORY.md)
 
 ---
 
@@ -218,9 +218,9 @@ bash scripts/md-recall-memory.sh "검색어" "." 5 compact 2
 │   ├── research/              # 리서치 문서 (30개, 6 카테고리)
 │   ├── STATE.md               # 현재 작업 상태
 │   └── PATTERNS.md            # 핵심 패턴/학습
-├── prompts/                   # Setup 프롬프트
-├── docs/                      # 상세 문서
-└── scripts/                   # 유틸리티 스크립트
+│   ├── prompts/              # Setup 프롬프트
+│   ├── docs/                 # 상세 문서
+│   └── scripts/              # 유틸리티 스크립트
 ```
 
 </details>

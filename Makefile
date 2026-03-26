@@ -12,7 +12,7 @@ export
 # ─────────────────────────────────────────────────────
 
 check-deps: ## Check required tools are installed
-	@bash scripts/bootstrap.sh
+	@bash .hxsk/scripts/bootstrap.sh
 
 # ─────────────────────────────────────────────────────
 # Installation
