@@ -61,7 +61,7 @@ Claude Code의 **Agents**는 특정 작업에 특화된 서브프로세스입니
 
 | Agent | 파일 | 역할 | Capabilities |
 |-------|------|------|--------------|
-| `dispatcher` | `dispatcher.md` | Wave 기반 병렬 이슈 디스패치 | Agent, Read, Write, Bash, Grep, Glob |
+| `dispatcher` | `dispatcher.md` | MASTER/WORK 기반 6-Phase 병렬 오케스트레이션 (v2) | Agent, Read, Write, Bash, Grep, Glob |
 | `handoff` | `handoff.md` | 세션 핸드오프 자동화 (테스트→커밋→push→메모리) | Read, Write, Bash, Grep, Glob |
 
 ---

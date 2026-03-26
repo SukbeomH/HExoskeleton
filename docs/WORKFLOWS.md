@@ -76,6 +76,34 @@ Claude Code의 **Workflows**는 슬래시 명령어(`/command`)로 호출되는 
 
 ---
 
+## Dispatcher v2: 병렬 작업 워크플로우
+
+대규모 작업을 MASTER/WORK 마크다운 이슈로 분할하고, 워크트리에서 병렬 실행합니다.
+
+```
+PLAN.md/SPEC.md
+  ↓ Phase 1: SPLIT
+MASTER-{id}.md + WORK-{id}-{1..N}.md
+  ↓ Phase 2: BRANCH
+feat/master-{id}
+  ↓ Phase 3-5: Wave Loop
+  ┌─── Wave N ────────────────────┐
+  │  DISPATCH → TRACK → MERGE    │
+  │  (워크트리 병렬)  (상태 갱신) │
+  └───────────────────────────────┘
+  ↓ Phase 6: VERIFY → CLOSE
+master 머지 (사용자 승인 후)
+```
+
+- **MASTER 문서**: 마스터플랜 (works, wave_plan, progress, merge log)
+- **WORK 문서**: 개별 작업 (tasks, depends_on, files, side_effect_files)
+- **오케스트레이터만 쓰기**: 서브에이전트는 `git worktree list`로 메인 루트 resolve 후 읽기 전용
+- **이슈 문서**: `.hxsk/issues/` (git-untracked), 완료 후 `archive/`
+
+상세: `.hxsk/skills/dispatcher/SKILL.md` (v2.0.0)
+
+---
+
 ## 워크플로우 구조
 
 ### Frontmatter

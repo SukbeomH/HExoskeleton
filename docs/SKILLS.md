@@ -9,7 +9,7 @@ Claude Code의 **Skills**는 Claude가 작업 컨텍스트를 기반으로 **자
 | 항목 | 설명 |
 |------|------|
 | **위치** | `.hxsk/skills/*/SKILL.md` |
-| **개수** | 17개 |
+| **개수** | 19개 |
 | **호출 방식** | Claude가 작업 컨텍스트 기반으로 자율적 결정 |
 | **컨텍스트** | 메인 대화에서 실행 (컨텍스트 공유) |
 
@@ -26,7 +26,8 @@ Claude Code의 **Skills**는 Claude가 작업 컨텍스트를 기반으로 **자
 | `executor` | `executor/` | 계획 실행 + atomic commits | `/execute` 실행 시 |
 | `verifier` | `verifier/` | spec 대비 검증 + 증거 수집 | `/verify` 실행 시 |
 | `debugger` | `debugger/` | 체계적 디버깅 | 버그 조사 시 |
-| `bootstrap` | `bootstrap/` | 프로젝트 초기 설정 | 부트스트랩 요청 시 |
+| `bootstrap` | `bootstrap/` | 멱등 프로젝트 설정 (v5.0.0 — fresh/verify/update) | 부트스트랩/업데이트 요청 시 |
+| `dispatcher` | `dispatcher/` | MASTER/WORK 기반 6-Phase 병렬 오케스트레이션 (v2.0.0) | 병렬 실행/이슈 분할 요청 시 |
 
 ### 분석 스킬
 

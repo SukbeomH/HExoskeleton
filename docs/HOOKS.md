@@ -38,7 +38,7 @@ Claude Code의 **Hooks**는 특정 이벤트에 자동으로 응답하는 스크
 
 | 이벤트 | 스크립트 | 타입 | 기능 | 타임아웃 |
 |--------|----------|------|------|----------|
-| **SessionStart** | `session-start.sh` | command | HXSK STATE.md 로드, git status 주입 | 10s |
+| **SessionStart** | `session-start.sh` | command | source 기반 분기 로드 (startup=풀/resume=최소/compact=핵심) | 10s |
 | **PreToolUse** (Edit/Write/Read) | `file-protect.py` | command | .env, 시크릿 파일 보호 | 5s |
 | **PreToolUse** (Bash) | `bash-guard.py` | command | 위험한 명령어 차단 | 5s |
 | **PostToolUse** (Edit/Write) | `auto-format.sh` | command | Python 파일 자동 포맷 (ruff) | 30s |

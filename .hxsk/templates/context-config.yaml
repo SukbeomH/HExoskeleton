@@ -27,6 +27,19 @@ archive:
     retention_days: 30
     archive_format: "prd-{year}-{month}.json"
 
+# Memory retention policy (.hxsk/memories/)
+memory:
+  session-summary:
+    max_age_days: 30        # 30일 이상 → _archive/로 이동
+    max_files: 30           # 30개 초과 시 오래된 것부터 아카이브
+  session-snapshot:
+    max_age_days: 14        # 14일 이상 → 삭제 (임시 데이터)
+  execution-summary:
+    max_age_days: 60        # 60일 이상 → _archive/로 이동
+  # 아래 타입들은 수동 관리 (자동 정리 대상 아님)
+  # architecture-decision, root-cause, pattern-discovery, session-handoff,
+  # security-finding, general
+
 # Folder organization
 folders:
   reports: reports/      # REPORT-*.md auto-moved here
