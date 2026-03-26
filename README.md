@@ -28,14 +28,28 @@
 
 ## Quick Start
 
+AI 에이전트에게 setup 프롬프트를 전달하면 자동으로 프로젝트에 HXSK를 구성합니다.
+
+| 프롬프트 | 대상 | 설명 |
+|----------|------|------|
+| [setup.md](prompts/setup.md) | 범용 | Copilot, Cursor, Gemini, Windsurf 등 |
+| [setup-claude.md](prompts/setup-claude.md) | Claude Code | 훅 + 스킬 + 메모리 전체 구성 |
+
+> 초기 설치와 업데이트를 자동 감지합니다. 에이전트가 `.hxsk/.bootstrap-version`을 확인하고 필요한 작업만 수행합니다.
+
+```
+SPEC → PLAN → EXECUTE → VERIFY
+```
+
+> **외부 종속성 없음** — Node.js, Python 환경, MCP 서버, 벡터 DB 불필요.
+
+<details>
+<summary><strong>직접 코드를 받고 싶다면</strong></summary>
+
 ```bash
 git clone https://github.com/SukbeomH/HExoskeleton.git
 cd HExoskeleton
 make setup
-```
-
-```
-SPEC → PLAN → EXECUTE → VERIFY
 ```
 
 ```
@@ -45,13 +59,9 @@ SPEC → PLAN → EXECUTE → VERIFY
 /verifier     # 경험적 증거 기반 결과 검증
 ```
 
-> **외부 종속성 없음** — Node.js, Python 환경, MCP 서버, 벡터 DB 불필요.
-> `make help`로 전체 명령어를 확인할 수 있습니다.
+`make help`로 전체 명령어를 확인할 수 있습니다.
 
-<p align="center">
-  <img src="logo.gif" alt="HExoskeleton 워크플로우 데모" width="480" />
-  <br><sub>SPEC → PLAN → EXECUTE → VERIFY 워크플로우</sub>
-</p>
+</details>
 
 ---
 
@@ -134,12 +144,7 @@ HExoskeleton은 **하나의 프로젝트를 여러 AI 에이전트가 동시에 
 
 ### 새 프로젝트에 적용
 
-| 프롬프트 | 대상 | 설명 |
-|----------|------|------|
-| [setup-claude.md](prompts/setup-claude.md) | Claude Code | 훅 + 스킬 + 메모리 전체 구성 |
-| [setup.md](prompts/setup.md) | 범용 | Copilot, Cursor, Gemini 등 |
-
-> 두 프롬프트를 **동시에 적용**할 수 있습니다. Claude Code 전용 훅은 `.claude/settings.json`에만 등록되므로 다른 에이전트에 영향을 주지 않습니다.
+상단 [Quick Start](#quick-start)의 setup 프롬프트를 에이전트에게 전달하세요. 두 프롬프트를 **동시에 적용**할 수 있습니다. Claude Code 전용 훅은 `.claude/settings.json`에만 등록되므로 다른 에이전트에 영향을 주지 않습니다.
 
 ---
 
@@ -270,6 +275,13 @@ bash scripts/md-recall-memory.sh "검색어" "." 5 compact 2
 > 상세 리서치 문서: [.hxsk/research/INDEX.md](.hxsk/research/INDEX.md)
 
 </details>
+
+---
+
+<p align="center">
+  <img src="logo.gif" alt="HExoskeleton 워크플로우 데모" width="480" />
+  <br><sub>SPEC → PLAN → EXECUTE → VERIFY 워크플로우</sub>
+</p>
 
 ---
 
