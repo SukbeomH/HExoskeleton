@@ -249,10 +249,23 @@ bash scripts/md-recall-memory.sh "검색어" "." 5 compact 2
 | [ReWOO](https://github.com/weitianxin/Awesome-Agentic-Reasoning) | 계획-실행 분리 (5x 효율) | SPEC → PLAN → EXECUTE 분리 |
 | [RLM](https://arxiv.org/html/2512.24601v2) | Root/Sub-LLM 분리, 재귀적 분할 | Agent-Skill 래핑, Phase → Plan → Task |
 
+### 왜 에이전트 정의는 간결하게?
+
+에이전트 정의(`.hxsk/agents/*.md`)는 ~20-30줄로 유지하고, 절차적 상세는 스킬(`.hxsk/skills/*/SKILL.md`)에 위임합니다.
+
+| 근거 | 출처 |
+|------|------|
+| 시스템 프롬프트 ~1,800 토큰이 최적 구간, 이후 100토큰당 ~2.3% 성능 저하 | Anthropic 내부 테스트 (2차 출처) |
+| 2,500 토큰 초과 시 환각 34% 증가 | Microsoft/Stanford 연구 |
+| "가능한 가장 작은 고신호 토큰 집합" 권장 | [Anthropic Context Engineering Guide](https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents) |
+| 에이전트 트리거 정확도는 description 품질 > 길이 | [Claude Code Sub-agents Docs](https://code.claude.com/docs/en/sub-agents) |
+| 외부 파일 위임 패턴이 컨텍스트 오버플로 방지에 효과적 | Deep Agents 연구 |
+
 **채택하지 않은 것:**
 - Memory Evolution (A-Mem) — write-once로 감사 추적성 유지
 - Predict-Calibrate (Nemori) — LLM 추가 호출 비용 대비 효용 불확실
 - Persistent REPL (RLM) — 현재 사용 사례에서 필요성 낮음
+- 상세 에이전트 프롬프트 (100+줄) — 컨텍스트 예산 비효율, 스킬 위임으로 동등 성능 달성
 
 > 상세 리서치 문서: [.hxsk/research/INDEX.md](.hxsk/research/INDEX.md)
 

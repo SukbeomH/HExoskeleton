@@ -7,13 +7,14 @@ allowed-tools:
   - Grep
   - Glob
   - Bash
-trigger: "아키텍처 검토, 레이어 위반 확인, 순환 의존성, review architecture, check layer violations, before merging structural changes"
+trigger: "아키텍처 검토, 레이어 위반 확인, 순환 의존성, 설계 문서 검토, 설계 모순 검사, review architecture, check layer violations, before merging structural changes, design review, design contradiction check"
 ---
 
 ## Quick Reference
 - **순환 import**: `Grep(pattern: "from.*import", path: "src/")` → 그래프 분석
 - **복잡도 검사**: `bash .hxsk/skills/arch-review/scripts/check_complexity.sh`
 - **레이어 검증**: UI → Service → Repository 순방향만 허용
+- **설계 문서 검토**: 논리 모순, 실현 가능성, 엣지 케이스, 기존 시스템 호환성
 - **Severity**: LOW (log), MEDIUM (DECISIONS.md 기록), HIGH (block), CRITICAL (stop)
 - **Memory recall**: `md-recall-memory.sh "architecture"` 검색 후 일관성 확인
 
@@ -71,7 +72,32 @@ Cross-check against defined boundaries:
 | Circular deps | No cycles in call graph |
 | External calls | Only via approved adapters |
 
-### Step 3: Generate Report & Store Memory
+### Step 3: Design Document Review (설계 문서 검토)
+
+설계 문서(design doc, PLAN.md, SPEC.md 등)가 대상인 경우 아래 체크리스트를 수행:
+
+**논리적 일관성 검증:**
+- Phase/Step 간 순서 모순 여부 (순차 표기이나 실제 인터리브 필요 등)
+- 문서 내 동일 개념에 대한 상충 설명 (예: tracked vs untracked 혼용)
+- 의존성 규칙의 완전성 (순환, 다이아몬드, 다중 의존성 처리)
+
+**실현 가능성 검증:**
+- 명시된 도구/스크립트로 해당 작업이 실제 가능한지 (예: bash로 XML 파싱)
+- 기존 시스템과의 호환성 (변경 대상 파일 목록 누락 여부)
+- 전제 조건의 유효성 (gitignore 상태, 디렉토리 존재 여부 등)
+
+**엣지 케이스 검증:**
+- 장애/중단 시 복구 경로 존재 여부
+- 동시성 문제 (병렬 읽기/쓰기, 파일 잠금)
+- 사이드이펙트 경로 (lock 파일, 자동 생성 파일)
+
+**Severity 기준:**
+- 논리 모순 → HIGH (설계 수정 필수)
+- 실현 불가 → HIGH (대안 제시 필수)
+- 엣지 케이스 미처리 → MEDIUM (문서화 권장)
+- 네이밍/포맷 불일치 → LOW (로그)
+
+### Step 4: Generate Report & Store Memory
 
 Compile findings into a structured report.
 중요한 아키텍처 결정은 메모리에 저장:
