@@ -208,6 +208,28 @@ else
 fi
 
 # ─────────────────────────────────────────────────────
+# 5. Memory cleanup (session-summary, snapshot, execution-summary)
+# ─────────────────────────────────────────────────────
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+PROJECT_DIR="${CLAUDE_PROJECT_DIR:-.}"
+MEMORY_CLEANUP="$PROJECT_DIR/scripts/memory-cleanup.sh"
+
+if [[ -x "$MEMORY_CLEANUP" ]]; then
+    echo ""
+    echo "--- Memory Cleanup ---"
+    if [[ "$DRY_RUN" == true ]]; then
+        bash "$MEMORY_CLEANUP" --dry-run 2>/dev/null | grep -E '^\s*(Archived|Deleted|Kept|Total|Active|\[EMPTY\])' || true
+    else
+        bash "$MEMORY_CLEANUP" 2>/dev/null | grep -E '^\s*(Archived|Deleted|Kept|Total|Active|\[EMPTY\])' || true
+    fi
+else
+    echo ""
+    echo "--- Memory Cleanup ---"
+    echo "  [SKIP] scripts/memory-cleanup.sh not found"
+fi
+
+# ─────────────────────────────────────────────────────
 # Summary
 # ─────────────────────────────────────────────────────
 
