@@ -1,7 +1,7 @@
 # HExoskeleton (HXSK)
 
 > AI 에이전트 기반 개발 방법론. 순수 bash + 마크다운 기반, 외부 종속성 없음.
-> Setup: llms.txt 또는 prompts/setup.md 참조
+> Setup: llms.txt 또는 .hxsk/prompts/setup.md 참조
 
 ## Project Overview
 
@@ -12,9 +12,9 @@ AI 에이전트 기반 개발을 위한 경량 프로젝트 보일러플레이�
 ## Repository Layout
 
 - **.hxsk/** — 스킬, 에이전트 정의, 훅, 템플릿, 메모리, 이슈, working docs
-- **prompts/** — 에이전트별 setup 프롬프트
-- **scripts/** — 유틸리티 (이슈 관리, 언어 감지, 워크트리 merge)
-- **docs/** — 프로젝트 문서, 실행 계획
+- **.hxsk/prompts/** — 에이전트별 setup 프롬프트
+- **.hxsk/scripts/** — 유틸리티 (이슈 관리, 언어 감지, 워크트리 merge)
+- **.hxsk/docs/** — 프로젝트 문서, 실행 계획
 
 ## HXSK Workflow
 

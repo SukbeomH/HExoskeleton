@@ -72,7 +72,7 @@ uv init
 uv run pytest tests/
 
 # Check system prerequisites
-bash scripts/bootstrap.sh
+bash .hxsk/scripts/bootstrap.sh
 
 # Check environment status
 make status
