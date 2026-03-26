@@ -20,8 +20,8 @@
 <p align="center">
   <img src="https://img.shields.io/badge/dependencies-zero-brightgreen?style=flat-square" alt="Zero Dependencies" />
   <img src="https://img.shields.io/badge/stack-bash%20%2B%20markdown-blue?style=flat-square" alt="Bash + Markdown" />
-  <img src="https://img.shields.io/badge/agents-Claude%20%7C%20Gemini%20%7C%20Cursor%20%7C%20Copilot%20%7C%20Windsurf-blueviolet?style=flat-square" alt="Multi-Agent" />
-  <img src="https://img.shields.io/badge/skills-19%20%7C%20agents%2017%20%7C%20hooks%2017-orange?style=flat-square" alt="Components" />
+  <img src="https://img.shields.io/badge/multi--agent-5%20platforms-blueviolet?style=flat-square" alt="Multi-Agent" />
+  <img src="https://img.shields.io/badge/19%20skills%20%C2%B7%2017%20agents%20%C2%B7%2017%20hooks-orange?style=flat-square" alt="Components" />
   <img src="https://img.shields.io/github/license/SukbeomH/HExoskeleton?style=flat-square" alt="License" />
 </p>
 
@@ -36,13 +36,7 @@ AI 에이전트에게 setup 프롬프트를 전달하면 자동으로 프로젝�
 | [setup.md](prompts/setup.md) | 범용 | Copilot, Cursor, Gemini, Windsurf 등 |
 | [setup-claude.md](prompts/setup-claude.md) | Claude Code | 훅 + 스킬 + 메모리 전체 구성 |
 
-> 초기 설치와 업데이트를 자동 감지합니다. 에이전트가 `.hxsk/.bootstrap-version`을 확인하고 필요한 작업만 수행합니다.
-
-```
-SPEC → PLAN → EXECUTE → VERIFY
-```
-
-> **외부 종속성 없음** — Node.js, Python 환경, MCP 서버, 벡터 DB 불필요.
+> **외부 종속성 없음** — 초기 설치/업데이트 자동 감지. `SPEC → PLAN → EXECUTE → VERIFY`
 
 <details>
 <summary><strong>직접 코드를 받고 싶다면</strong></summary>
@@ -77,9 +71,9 @@ make setup
 | **메모리** | 파일 기반 2-Hop 그래프 검색 | 벡터 DB 유사도 검색 |
 | **감사(Audit)** | Git 추적 가능 (Markdown) | 블랙박스 |
 | **학습 곡선** | 낮음 (파일 수정 위주) | 높음 (SDK/API 학습 필요) |
-| **환경** | Claude Code 네이티브 최적화 | 범용, 별도 래퍼 필요 |
+| **환경** | 5개 에이전트 네이티브 지원 | 범용, 별도 래퍼 필요 |
 
-**핵심 원칙:** Claude Code의 네이티브 도구(`Grep`, `Glob`, `Read`)가 이미 강력한 검색 엔진입니다. 파일 시스템이 곧 데이터베이스입니다.
+**핵심 원칙:** 에이전트의 네이티브 도구(`Grep`, `Glob`, `Read`)가 이미 강력한 검색 엔진입니다. 파일 시스템이 곧 데이터베이스입니다.
 
 ---
 
@@ -92,7 +86,11 @@ make setup
 | **Hooks** | 17 | 이벤트 기반 자동화 (가드레일, 상태 저장) | [docs/HOOKS.md](docs/HOOKS.md) |
 | **Memory** | 14 types | A-Mem 확장 파일 기반 메모리 (2-hop) | [docs/MEMORY.md](docs/MEMORY.md) |
 
-**Skill**(How)과 **Agent**(When/With What)를 분리하여 유지보수성과 자율성을 동시에 확보합니다. Claude는 작업 성격을 인식하여 적절한 스킬을 자율 판단하고 호출합니다.
+**Skill**(How)과 **Agent**(When/With What)를 분리하여 유지보수성과 자율성을 동시에 확보합니다.
+
+<details>
+<summary><strong>상세 문서</strong></summary>
+<br>
 
 | 문서 | 설명 |
 |------|------|
@@ -102,6 +100,8 @@ make setup
 | [Linting](docs/LINTING.md) | 린팅 설정 |
 | [MCP](docs/MCP.md) | MCP 서버 통합 |
 | [Research](.hxsk/research/INDEX.md) | 리서치 문서 카탈로그 (30개, 6개 카테고리) |
+
+</details>
 
 ---
 
@@ -197,7 +197,9 @@ bash scripts/md-recall-memory.sh "검색어" "." 5 compact 2
 
 ---
 
-## 디렉토리 구조
+<details>
+<summary><strong>디렉토리 구조</strong></summary>
+<br>
 
 ```
 .
@@ -221,9 +223,11 @@ bash scripts/md-recall-memory.sh "검색어" "." 5 compact 2
 └── scripts/                   # 유틸리티 스크립트
 ```
 
----
+</details>
 
-## 참고 문서
+<details>
+<summary><strong>참고 문서</strong></summary>
+<br>
 
 | 구분 | 링크 | 설명 |
 |------|------|------|
@@ -232,6 +236,8 @@ bash scripts/md-recall-memory.sh "검색어" "." 5 compact 2
 | Claude Code | [Sub-agents](https://code.claude.com/docs/en/sub-agents.md) | 에이전트 frontmatter |
 | Community | [awesome-claude-code](https://github.com/hesreallyhim/awesome-claude-code) | Claude Code 리소스 큐레이션 |
 | Community | [awesome-mcp-servers](https://github.com/punkpeye/awesome-mcp-servers) | MCP 서버 목록 |
+
+</details>
 
 ---
 
@@ -281,10 +287,6 @@ bash scripts/md-recall-memory.sh "검색어" "." 5 compact 2
 <p align="center">
   <img src="logo.gif" alt="HExoskeleton 워크플로우 데모" width="480" />
   <br><sub>SPEC → PLAN → EXECUTE → VERIFY 워크플로우</sub>
-</p>
-
----
-
-<p align="center">
+  <br><br>
   MIT License
 </p>
