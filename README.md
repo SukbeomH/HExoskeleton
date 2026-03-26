@@ -45,6 +45,7 @@ SPEC → PLAN → EXECUTE → VERIFY
 
 <details>
 <summary><strong>직접 코드를 받고 싶다면</strong></summary>
+<br>
 
 ```bash
 git clone https://github.com/SukbeomH/HExoskeleton.git
@@ -52,14 +53,14 @@ cd HExoskeleton
 make setup
 ```
 
-```
-/bootstrap    # 프로젝트 분석 및 메모리 초기화
-/planner      # SPEC 기반 실행 계획 수립
-/executor     # 계획 실행 (atomic commits)
-/verifier     # 경험적 증거 기반 결과 검증
-```
+| 명령어 | 설명 |
+|--------|------|
+| `/bootstrap` | 프로젝트 분석 및 메모리 초기화 |
+| `/planner` | SPEC 기반 실행 계획 수립 |
+| `/executor` | 계획 실행 (atomic commits) |
+| `/verifier` | 경험적 증거 기반 결과 검증 |
 
-`make help`로 전체 명령어를 확인할 수 있습니다.
+> `make help`로 전체 명령어를 확인할 수 있습니다.
 
 </details>
 
@@ -170,23 +171,24 @@ bash scripts/md-recall-memory.sh "검색어" "." 5 compact 2
 
 <details>
 <summary><strong>메모리 타입 (14개)</strong></summary>
+<br>
 
-| 타입 | 용도 |
-|------|------|
-| `architecture-decision` | 아키텍처 결정 사항 |
-| `root-cause` | 디버깅 근본 원인 |
-| `debug-eliminated` | 배제된 가설 |
-| `debug-blocked` | 3-strike 차단 |
-| `pattern-discovery` | 발견된 패턴/학습 |
-| `deviation` | 계획 대비 이탈 |
-| `execution-summary` | 실행 결과 요약 |
-| `session-summary` | 세션 종료 요약 (자동) |
-| `session-snapshot` | Pre-compact 스냅샷 |
-| `session-handoff` | 세션 인수인계 |
-| `health-event` | 컨텍스트 건강 이벤트 |
-| `bootstrap` | 프로젝트 초기 설정 |
-| `security-finding` | 보안 발견 사항 |
-| `general` | 기타 |
+| 카테고리 | 타입 | 용도 |
+|----------|------|------|
+| **디버깅** | `root-cause` | 근본 원인 분석 |
+| | `debug-eliminated` | 배제된 가설 |
+| | `debug-blocked` | 3-strike 차단 |
+| **아키텍처** | `architecture-decision` | 아키텍처 결정 사항 |
+| | `pattern-discovery` | 발견된 패턴/학습 |
+| **실행** | `execution-summary` | 실행 결과 요약 |
+| | `deviation` | 계획 대비 이탈 |
+| **세션** | `session-summary` | 세션 종료 요약 (자동) |
+| | `session-snapshot` | Pre-compact 스냅샷 |
+| | `session-handoff` | 세션 인수인계 |
+| **시스템** | `health-event` | 컨텍스트 건강 이벤트 |
+| | `bootstrap` | 프로젝트 초기 설정 |
+| | `security-finding` | 보안 발견 사항 |
+| | `general` | 기타 |
 
 </details>
 
@@ -234,45 +236,42 @@ bash scripts/md-recall-memory.sh "검색어" "." 5 compact 2
 
 <details>
 <summary><strong>설계 배경 (Design Rationale)</strong></summary>
+<br>
 
 현재 아키텍처는 최신 에이전트 메모리 및 추론 최적화 연구들을 분석하고 선택적으로 적용한 결과입니다.
 
-### 왜 순수 bash + 마크다운인가?
+#### 왜 순수 bash + 마크다운인가?
 
-| 대안 | 장점 | 채택하지 않은 이유 |
-|------|------|-------------------|
-| 벡터 DB (Qdrant, Weaviate) | 의미적 유사도 검색 | 외부 서비스 의존, 설정 복잡도 증가 |
-| MCP 서버 | 표준화된 인터페이스 | 추가 프로세스 필요, 네트워크 오버헤드 |
-| SQLite/JSON | 구조화된 쿼리 | 파일 수준 가독성 저하, Git diff 불가 |
+| 대안 | 채택하지 않은 이유 |
+|------|-------------------|
+| 벡터 DB (Qdrant, Weaviate) | 외부 서비스 의존, 설정 복잡도 증가 |
+| MCP 서버 | 추가 프로세스 필요, 네트워크 오버헤드 |
+| SQLite/JSON | 파일 수준 가독성 저하, Git diff 불가 |
 
-### 연구 기반
+#### 연구 기반
 
-| 출처 | 채택한 것 | 적용 |
-|------|----------|------|
-| [A-Mem](https://arxiv.org/html/2502.12110v11) | 7-속성 노트, Link Generation, 그래프 탐색, 토큰 절감 | frontmatter 필드, `related`, 2-hop 검색, compact 모드 |
-| [Nemori](https://arxiv.org/html/2508.03341v3) | Episodic+Semantic 이중 메모리, 중복 제거, 서사화 | 타입 분리, `[SKIP:DUPLICATE]`, contextual_description |
-| [ReWOO](https://github.com/weitianxin/Awesome-Agentic-Reasoning) | 계획-실행 분리 (5x 효율) | SPEC → PLAN → EXECUTE 분리 |
-| [RLM](https://arxiv.org/html/2512.24601v2) | Root/Sub-LLM 분리, 재귀적 분할 | Agent-Skill 래핑, Phase → Plan → Task |
+| 출처 | 적용 |
+|------|------|
+| [A-Mem](https://arxiv.org/html/2502.12110v11) | frontmatter 필드, `related`, 2-hop 검색, compact 모드 |
+| [Nemori](https://arxiv.org/html/2508.03341v3) | 타입 분리, `[SKIP:DUPLICATE]`, contextual_description |
+| [ReWOO](https://github.com/weitianxin/Awesome-Agentic-Reasoning) | SPEC → PLAN → EXECUTE 분리 |
+| [RLM](https://arxiv.org/html/2512.24601v2) | Agent-Skill 래핑, Phase → Plan → Task |
 
-### 왜 에이전트 정의는 간결하게?
+#### 왜 에이전트 정의는 간결하게?
 
-에이전트 정의(`.hxsk/agents/*.md`)는 ~20-30줄로 유지하고, 절차적 상세는 스킬(`.hxsk/skills/*/SKILL.md`)에 위임합니다.
+에이전트 정의(`.hxsk/agents/*.md`)는 ~20-30줄로 유지하고, 절차적 상세는 스킬에 위임합니다.
 
 | 근거 | 출처 |
 |------|------|
-| 시스템 프롬프트 ~1,800 토큰이 최적 구간, 이후 100토큰당 ~2.3% 성능 저하 | Anthropic 내부 테스트 (2차 출처) |
+| 시스템 프롬프트 ~1,800 토큰이 최적 구간 | Anthropic 내부 테스트 (2차 출처) |
 | 2,500 토큰 초과 시 환각 34% 증가 | Microsoft/Stanford 연구 |
-| "가능한 가장 작은 고신호 토큰 집합" 권장 | [Anthropic Context Engineering Guide](https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents) |
-| 에이전트 트리거 정확도는 description 품질 > 길이 | [Claude Code Sub-agents Docs](https://code.claude.com/docs/en/sub-agents) |
-| 외부 파일 위임 패턴이 컨텍스트 오버플로 방지에 효과적 | Deep Agents 연구 |
+| "가장 작은 고신호 토큰 집합" 권장 | [Anthropic Context Engineering Guide](https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents) |
+| description 품질 > 길이 | [Claude Code Sub-agents Docs](https://code.claude.com/docs/en/sub-agents) |
+| 외부 파일 위임 패턴 | Deep Agents 연구 |
 
-**채택하지 않은 것:**
-- Memory Evolution (A-Mem) — write-once로 감사 추적성 유지
-- Predict-Calibrate (Nemori) — LLM 추가 호출 비용 대비 효용 불확실
-- Persistent REPL (RLM) — 현재 사용 사례에서 필요성 낮음
-- 상세 에이전트 프롬프트 (100+줄) — 컨텍스트 예산 비효율, 스킬 위임으로 동등 성능 달성
+**채택하지 않은 것:** Memory Evolution (A-Mem), Predict-Calibrate (Nemori), Persistent REPL (RLM), 상세 에이전트 프롬프트 (100+줄)
 
-> 상세 리서치 문서: [.hxsk/research/INDEX.md](.hxsk/research/INDEX.md)
+> 상세: [.hxsk/research/INDEX.md](.hxsk/research/INDEX.md)
 
 </details>
 
