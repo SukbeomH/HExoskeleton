@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # Compact context files to maintain size limits
-# Usage: bash scripts/compact-context.sh [--dry-run]
+# Usage: bash .hxsk/hooks/compact-context.sh [--dry-run]
 #
 # Actions:
 # 1. Prune PATTERNS.md to 20 items / 2KB
@@ -213,7 +213,7 @@ fi
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_DIR="${CLAUDE_PROJECT_DIR:-.}"
-MEMORY_CLEANUP="$PROJECT_DIR/scripts/memory-cleanup.sh"
+MEMORY_CLEANUP="$PROJECT_DIR/.hxsk/scripts/memory-cleanup.sh"
 
 if [[ -x "$MEMORY_CLEANUP" ]]; then
     echo ""

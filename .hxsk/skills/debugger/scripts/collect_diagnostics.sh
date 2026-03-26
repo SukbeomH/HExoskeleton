@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # Collect system and project diagnostic information for debugging.
-# Usage: bash scripts/collect_diagnostics.sh [project_root]
+# Usage: bash .hxsk/skills/debugger/scripts/collect_diagnostics.sh [project_root]
 
 set -o errexit
 set -o nounset

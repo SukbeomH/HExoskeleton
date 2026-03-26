@@ -171,7 +171,7 @@ Each persona reviews independently, producing findings with severity classificat
 
 ## Convention Compliance Check
 
-PR 리뷰 시 `docs/CONVENTIONS.md` 기반으로 추가 검증:
+PR 리뷰 시 `.hxsk/docs/CONVENTIONS.md` 기반으로 추가 검증:
 
 **PR 범위 검증**:
 - 변경 목적이 2개 이상 혼합되어 있지 않은가?

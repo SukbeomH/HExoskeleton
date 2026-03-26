@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # Organize .hxsk documents into appropriate folders
-# Usage: bash scripts/organize-docs.sh [--dry-run]
+# Usage: bash .hxsk/hooks/organize-docs.sh [--dry-run]
 #
 # Actions:
 # 1. Move REPORT-*.md to reports/

@@ -130,7 +130,7 @@ test(phase-1.3): add integration tests for auth flow
 - **No period** at the end of the subject line
 - **Issue linking**: 이슈를 닫는 커밋에는 `Resolved #N` 포함
 
-> 상세 컨벤션: `docs/CONVENTIONS.md` 섹션 4 참조
+> 상세 컨벤션: `.hxsk/docs/CONVENTIONS.md` 섹션 4 참조
 
 ---
 

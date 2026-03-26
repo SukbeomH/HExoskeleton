@@ -86,7 +86,7 @@ Parse:
   - Validate file ownership within wave (same-wave plans MUST NOT modify same files)
   - Dispatch wave items as parallel subagents (`Agent` tool, `isolation: "worktree"`)
   - Wait for all subagents to complete
-  - Review results and merge worktrees (`bash scripts/merge-worktrees.sh`)
+  - Review results and merge worktrees (`bash .hxsk/scripts/merge-worktrees.sh`)
 - After all waves: run overall verification
 - Use `dispatcher` skill for detailed orchestration protocol
 
@@ -259,7 +259,7 @@ If results found, Read the matching files and review past deviations to anticipa
 After applying any deviation rule (Rules 1-4), persist it:
 
 ```bash
-bash scripts/md-store-memory.sh \
+bash .hxsk/scripts/md-store-memory.sh \
   "Rule {N} - {description}" \
   "{details of what was found, what was fixed, and why}" \
   "deviation,rule-{N},{phase-plan}" \
@@ -271,7 +271,7 @@ bash scripts/md-store-memory.sh \
 After writing SUMMARY.md, store an execution summary memory for cross-session learning:
 
 ```bash
-bash scripts/md-store-memory.sh \
+bash .hxsk/scripts/md-store-memory.sh \
   "Plan {phase-plan} Summary" \
   "{tasks completed, deviations applied, verification results}" \
   "execution,{phase-plan}" \
@@ -475,7 +475,7 @@ Phase 단위로 checkpoint commit을 생성하여 partial achievement를 방지�
 4. **STATE.md 업데이트**: 현재 phase 진행 상태 기록
 
 ```bash
-source scripts/detect-language.sh
+source .hxsk/scripts/detect-language.sh
 RUNNER=$(detect_test_runner)
 PKG=$(detect_pkg_manager)
 TEST_CMD=$(get_test_cmd "$RUNNER" "$PKG")
@@ -510,7 +510,7 @@ PRD 파일은 직접 편집하거나 메모리 시스템을 통해 기록:
 
 ```bash
 # 실행 결과 메모리에 저장
-bash scripts/md-store-memory.sh \
+bash .hxsk/scripts/md-store-memory.sh \
   "Execution: Plan 1.2" \
   "Task 완료. Commit: abc1234" \
   "execution,summary,phase-1" \
@@ -530,7 +530,7 @@ git commit -m "feat(1-2): implement user authentication"
 COMMIT_HASH=$(git rev-parse --short HEAD)
 
 # 3. 메모리에 실행 결과 저장
-bash scripts/md-store-memory.sh "Plan 1.2 Complete" "Commit: $COMMIT_HASH" "execution" "execution-summary"
+bash .hxsk/scripts/md-store-memory.sh "Plan 1.2 Complete" "Commit: $COMMIT_HASH" "execution" "execution-summary"
 ```
 
 ### PRD File Structure
@@ -649,5 +649,5 @@ Grep(pattern: "<task id=", path: ".hxsk/phases/", output_mode: "content")
 Grep(pattern: "status:.*done|status:.*completed", path: ".hxsk/", output_mode: "files_with_matches")
 
 # 실행 결과 메모리 저장
-bash scripts/md-store-memory.sh "Execution: {plan}" "{summary}" "execution,summary" "execution-summary"
+bash .hxsk/scripts/md-store-memory.sh "Execution: {plan}" "{summary}" "execution,summary" "execution-summary"
 ```

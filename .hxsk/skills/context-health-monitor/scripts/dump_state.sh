@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # Dump current context state to .hxsk/STATE.md for recovery and session continuity.
-# Usage: bash scripts/dump_state.sh [--task "description"] [--attempts "list"] [--hypothesis "text"]
+# Usage: bash .hxsk/skills/context-health-monitor/scripts/dump_state.sh [--task "description"] [--attempts "list"] [--hypothesis "text"]
 
 set -o errexit
 set -o nounset

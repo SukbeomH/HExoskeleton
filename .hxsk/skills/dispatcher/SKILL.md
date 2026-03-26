@@ -50,14 +50,14 @@ PLAN.md 또는 SPEC.md를 읽고 MASTER/WORK 이슈 문서를 생성한다.
 
 1. **MASTER 생성**
    ```bash
-   bash scripts/issue-create.sh master "<플랜 제목>"
+   bash .hxsk/scripts/issue-create.sh master "<플랜 제목>"
    ```
 
 2. **Work 분할** — AI 에이전트가 PLAN의 task를 겹치지 않는 Work 단위로 분할
    - 각 Work에 files, side_effect_files 명시
    - depends_on으로 의존성 명시 (같은 MASTER 내만)
    ```bash
-   bash scripts/issue-create.sh work <master-id> "<title>" <wave> "<depends_on>" "<files>" "<side_effect_files>"
+   bash .hxsk/scripts/issue-create.sh work <master-id> "<title>" <wave> "<depends_on>" "<files>" "<side_effect_files>"
    ```
 
 3. **Wave 자동 배정** (위상 정렬)
@@ -149,7 +149,7 @@ Rules:
 완료된 워크트리를 메인 이슈 브랜치에 순차 머지한다.
 
 ```bash
-bash scripts/merge-worktrees.sh <worktree-path> <branch-name>
+bash .hxsk/scripts/merge-worktrees.sh <worktree-path> <branch-name>
 ```
 
 1. **머지 실행** — Wave 내 Work을 순차 처리

@@ -109,7 +109,7 @@ ln -sf AGENTS.md .windsurfrules
 ### Step 1: bootstrap 실행
 
 ```bash
-bash scripts/bootstrap.sh
+bash .hxsk/scripts/bootstrap.sh
 ```
 
 출력에서 다음 태그를 확인하세요:
@@ -128,7 +128,7 @@ bash scripts/bootstrap.sh
 ### Step 3: 확인
 
 ```bash
-bash scripts/bootstrap.sh
+bash .hxsk/scripts/bootstrap.sh
 ```
 
 모든 항목이 `[OK]`이면 업데이트 완료.

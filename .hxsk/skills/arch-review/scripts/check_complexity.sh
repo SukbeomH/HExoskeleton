@@ -2,7 +2,7 @@
 
 # Check code complexity metrics using ruff.
 # Reports functions exceeding complexity thresholds (McCabe ≤ 10, max-args ≤ 6).
-# Usage: bash scripts/check_complexity.sh [target_path]
+# Usage: bash .hxsk/skills/arch-review/scripts/check_complexity.sh [target_path]
 
 set -o errexit
 set -o nounset
