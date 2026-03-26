@@ -1,0 +1,127 @@
+name: Release Setup Prompts
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - '.hxsk/prompts/**'
+      - '.hxsk/scripts/bootstrap.sh'
+      - 'AGENTS.md'
+      - 'CLAUDE.md'
+      - 'GEMINI.md'
+      - 'llms.txt'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Get version from bootstrap
+        id: version
+        run: |
+          VERSION=$(grep '^BOOTSTRAP_VERSION=' .hxsk/scripts/bootstrap.sh | head -1 | sed 's/.*="//' | sed 's/"//')
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "tag=setup-v$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Check if release exists
+        id: check
+        run: |
+          if gh release view "setup-v${{ steps.version.outputs.version }}" >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build release notes
+        run: |
+          cat > /tmp/release-notes.md << 'HEADER'
+          ## Quick Start
+
+          에이전트에게 아래 프롬프트를 **복사하여 전달**하면 프로젝트에 HXSK를 자동 구성합니다.
+
+          ---
+
+          ### 범용 (Copilot, Cursor, Gemini, Windsurf 등)
+
+          <details>
+          <summary><strong>setup.md — 클릭하여 펼치고 복사</strong></summary>
+
+          HEADER
+
+          echo '```markdown' >> /tmp/release-notes.md
+          cat .hxsk/prompts/setup.md >> /tmp/release-notes.md
+          echo '```' >> /tmp/release-notes.md
+
+          cat >> /tmp/release-notes.md << 'MID'
+
+          </details>
+
+          ---
+
+          ### Claude Code
+
+          <details>
+          <summary><strong>setup-claude.md — 클릭하여 펼치고 복사</strong></summary>
+
+          MID
+
+          echo '```markdown' >> /tmp/release-notes.md
+          cat .hxsk/prompts/setup-claude.md >> /tmp/release-notes.md
+          echo '```' >> /tmp/release-notes.md
+
+          cat >> /tmp/release-notes.md << 'FOOTER'
+
+          </details>
+
+          ---
+
+          ### 첨부 파일
+
+          | 파일 | 설명 |
+          |------|------|
+          | `setup.md` | 범용 setup 프롬프트 |
+          | `setup-claude.md` | Claude Code setup 프롬프트 |
+          | `AGENTS.md` | 공통 에이전트 지침 |
+          | `CLAUDE.md` | Claude Code 지침 |
+          | `GEMINI.md` | Gemini CLI 지침 |
+          | `llms.txt` | LLM 진입점 (리소스 목록) |
+
+          > 초기 설치/업데이트를 자동 감지합니다. `.hxsk/.bootstrap-version`을 확인하고 필요한 작업만 수행.
+          FOOTER
+
+      - name: Create release
+        if: steps.check.outputs.exists == 'false'
+        run: |
+          gh release create "${{ steps.version.outputs.tag }}" \
+            --title "Setup v${{ steps.version.outputs.version }}" \
+            --notes-file /tmp/release-notes.md \
+            .hxsk/prompts/setup.md \
+            .hxsk/prompts/setup-claude.md \
+            AGENTS.md \
+            CLAUDE.md \
+            GEMINI.md \
+            llms.txt
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Update release
+        if: steps.check.outputs.exists == 'true'
+        run: |
+          gh release edit "${{ steps.version.outputs.tag }}" \
+            --notes-file /tmp/release-notes.md
+          gh release upload "${{ steps.version.outputs.tag }}" \
+            .hxsk/prompts/setup.md \
+            .hxsk/prompts/setup-claude.md \
+            AGENTS.md \
+            CLAUDE.md \
+            GEMINI.md \
+            llms.txt \
+            --clobber
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
