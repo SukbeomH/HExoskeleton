@@ -137,7 +137,7 @@ Keep under 70 characters.
 | develop → main (릴리즈) | **Merge commit** |
 | hotfix → main | **Merge commit** |
 
-> 상세 컨벤션: `docs/CONVENTIONS.md` 섹션 5 참조
+> 상세 컨벤션: `.hxsk/docs/CONVENTIONS.md` 섹션 5 참조
 
 ---
 
