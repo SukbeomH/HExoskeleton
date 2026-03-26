@@ -27,8 +27,13 @@
 | `feature/*` | 기능 개발 | - |
 | `bugfix/*` | 버그 수정 | - |
 | `release/*` | 릴리즈 준비 | (선택) |
+| `feat/master-{id}` | Dispatcher v2 이슈 브랜치 | - |
+| `feat/master-{id}/work-{seq}` | Dispatcher v2 워크트리 브랜치 | - |
 
 **Default Branch**: `develop` (또는 프로젝트 정책에 따라 `main`)
+
+> **Dispatcher v2**: 병렬 작업 시 `MASTER-{id}.md` → `WORK-{id}-{seq}.md` 문서로 관리.
+> 이슈 문서는 `.hxsk/issues/`에 저장 (git-untracked). 완료 후 `archive/`로 이동.
 
 > **간소화 옵션**: 소규모 프로젝트는 `main` + feature branch만으로 운영 가능.
 
