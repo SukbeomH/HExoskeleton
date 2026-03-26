@@ -2,7 +2,7 @@
 
 > AI 에이전트 기반 개발 방법론. 순수 bash + 마크다운 기반, 외부 종속성 없음.
 > 어떤 코딩 에이전트든 이 문서를 읽고 프로젝트에 HXSK를 구성할 수 있습니다.
-> Last Updated: 2026-03-24 · Format: llms.txt v1.0
+> Last Updated: 2026-03-26 · Format: llms.txt v1.0
 
 ## Setup
 - [Setup Prompt (범용)](prompts/setup.md): 어떤 에이전트든 이 프롬프트를 실행하면 HXSK 구성 완료
@@ -23,11 +23,11 @@
 - [Agents Index](.hxsk/agents/INDEX.md): 17개 에이전트 정의
 
 ## Templates
-- [Templates](.hxsk/templates/): 24개 문서 템플릿
+- [Templates](.hxsk/templates/): 30개 문서 템플릿
 
 ## Architecture
 - [ARCHITECTURE.md](.hxsk/ARCHITECTURE.md): 시스템 아키텍처 + 기술 부채 현황
-- [Research Index](.hxsk/research/INDEX.md): 30개 리서치 문서 카탈로그 (6개 카테고리)
+- [Research Index](.hxsk/research/INDEX.md): 30개 리서치 문서 카탈로그 (7개 카테고리)
 
 ## Optional
 - [Memory System](docs/MEMORY.md): 파일 기반 메모리 시스템 상세
