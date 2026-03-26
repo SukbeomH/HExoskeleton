@@ -75,9 +75,9 @@ SPEC → PLAN → EXECUTE → VERIFY
 
 | 구성요소 | 개수 | 설명 | 상세 |
 |----------|------|------|------|
-| **Skills** | 18 | Claude가 자율 호출하는 기능 단위 (How) | [docs/SKILLS.md](docs/SKILLS.md) |
+| **Skills** | 19 | Claude가 자율 호출하는 기능 단위 (How) | [docs/SKILLS.md](docs/SKILLS.md) |
 | **Agents** | 17 | 스킬을 조합하는 서브에이전트 (When/With What) | [docs/AGENTS.md](docs/AGENTS.md) |
-| **Hooks** | 11 | 이벤트 기반 자동화 (가드레일, 상태 저장) | [docs/HOOKS.md](docs/HOOKS.md) |
+| **Hooks** | 17 | 이벤트 기반 자동화 (가드레일, 상태 저장) | [docs/HOOKS.md](docs/HOOKS.md) |
 | **Memory** | 14 types | A-Mem 확장 파일 기반 메모리 (2-hop) | [docs/MEMORY.md](docs/MEMORY.md) |
 
 **Skill**(How)과 **Agent**(When/With What)를 분리하여 유지보수성과 자율성을 동시에 확보합니다. Claude는 작업 성격을 인식하여 적절한 스킬을 자율 판단하고 호출합니다.
@@ -201,9 +201,9 @@ bash scripts/md-recall-memory.sh "검색어" "." 5 compact 2
 ├── llms.txt                   # LLM 진입점
 ├── .claude/settings.json      # 훅 설정
 ├── .hxsk/                     # HXSK 핵심 (Single Source of Truth)
-│   ├── skills/                # 스킬 정의 (18)
+│   ├── skills/                # 스킬 정의 (19)
 │   ├── agents/                # 서브에이전트 정의 (17)
-│   ├── hooks/                 # 훅 스크립트 (11) + 유틸리티
+│   ├── hooks/                 # 훅 스크립트 (17)
 │   ├── memories/              # 파일 기반 메모리 (14 타입)
 │   ├── research/              # 리서치 문서 (30개, 6 카테고리)
 │   ├── STATE.md               # 현재 작업 상태
