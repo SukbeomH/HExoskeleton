@@ -1,0 +1,15 @@
+# .hxsk/.bootstrap-version — bootstrap 상태 추적 파일
+# bootstrap.sh가 자동 생성/갱신합니다. 수동 편집하지 마세요.
+
+# 마지막으로 실행된 bootstrap 버전
+version: "{VERSION}"
+
+# 마지막 실행 날짜 (YYYY-MM-DD)
+last_run: "{DATE}"
+
+# 설치된 컴포넌트 수
+components:
+  skills: 0
+  agents: 0
+  hooks: 0
+  memories: 0

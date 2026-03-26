@@ -1,7 +1,7 @@
 ---
 name: bootstrap
-description: Complete initial project setup -- system verification, memory initialization, codebase analysis
-version: 4.0.0
+description: "Idempotent project setup — fresh install, update, or verify via convergence engine"
+version: 5.0.0
 allowed-tools:
   - Read
   - Write
@@ -9,48 +9,72 @@ allowed-tools:
   - Bash
   - Grep
   - Glob
-trigger: "프로젝트 초기화, 프로젝트 셋업, 처음 설정, project setup, initialize project, after cloning"
+trigger: "프로젝트 초기화, 프로젝트 셋업, 처음 설정, 업데이트, 갱신, project setup, initialize project, after cloning, update, refresh"
 ---
 
 ## Quick Reference
-- **시작**: `bash scripts/bootstrap.sh` (필수 도구 검증: git, bash)
-- **메모리**: `.hxsk/memories/` 14개 타입 디렉토리 + `_schema/` 확인
-- **Output**: BOOTSTRAP STATUS REPORT (READY / NEEDS ATTENTION)
+- **시작**: `bash scripts/bootstrap.sh` (멱등 — 반복 실행 안전)
+- **모드**: fresh(초기) / verify(검증) / update(갱신) — `.hxsk/.bootstrap-version`으로 자동 감지
+- **Output**: `[NEW]` `[UPDATED]` `[OK]` `[PASS]` `[FAIL]` `[WARN]` `[SKIP]` 태그
+- **2-hop**: `[NEW]`/`[UPDATED]` 항목에 관련 컴포넌트 자동 표시
 - **메모리 저장**: `md-store-memory.sh` 로 `.hxsk/memories/bootstrap/`에 기록
 
 ---
 
 # Skill: Bootstrap
 
-> **Goal**: Perform complete initial project setup — system verification, memory directory initialization, and codebase analysis.
-> **Scope**: 순수 bash 스크립트 기반. 외부 종속성 없음.
+> **Goal**: Idempotent project setup — detect state, converge to target, report delta.
+> **Scope**: 순수 bash 스크립트 기반. 외부 종속성 없음. 모든 에이전트에서 실행 가능.
 
 <role>
-You are a bootstrap orchestrator. Your job is to take a freshly cloned HExoskeleton and make it fully operational.
+You are a bootstrap orchestrator. Your job is to make an HExoskeleton project fully operational,
+whether it's a fresh clone or an existing installation being updated.
 
 **Core responsibilities:**
-- Verify system prerequisites (git, bash)
-- Initialize memory directory structure
-- Generate architecture documentation
+- Detect install mode (fresh / verify / update) via .hxsk/.bootstrap-version
+- Verify system prerequisites and project structure
+- Report changes with [NEW]/[UPDATED]/[OK] tags
+- Provide 2-hop context for new or changed components
 - Store bootstrap state in `.hxsk/memories/`
-- Report final status with actionable next steps
 </role>
 
 ---
 
 ## Procedure
 
+### Step 0: 모드 감지
+
+```bash
+test -f .hxsk/.bootstrap-version && echo "EXISTS" || echo "FRESH"
+```
+
+- **파일 없음** → 초기 설치 모드. Step 1~7 전체 실행.
+- **파일 있음** → `bash scripts/bootstrap.sh` 실행. 스크립트가 자동으로 verify/update 판별.
+  - 모든 항목 `[OK]` → 완료
+  - `[NEW]`/`[UPDATED]` 있음 → Step 6 (메모리 저장) + Step 7 (보고) 실행
+
+---
+
 ### Step 1: System Prerequisites Check
 
-Run the system dependency verification script:
+Run the idempotent convergence engine:
 
 ```bash
 bash scripts/bootstrap.sh
 ```
 
+**bootstrap.sh v5.0.0 출력 태그:**
+- `[NEW]` — 새로 생성된 컴포넌트 (↳ 관련: 2-hop 컨텍스트)
+- `[UPDATED]` — 변경 감지된 컴포넌트 (↳ 관련: 2-hop 컨텍스트)
+- `[OK]` — 변경 없음, 정상
+- `[PASS]` — 시스템 요구사항 충족
+- `[FAIL]` — 필수 요구사항 미충족
+- `[WARN]` — 선택 요구사항 미충족
+- `[SKIP]` — 해당 없음
+
 **If exit code 1:** STOP. Display the failing checks and provide installation instructions.
 
-**If exit code 0:** Record tool versions and continue.
+**If exit code 0:** Continue. `.hxsk/.bootstrap-version` 자동 생성/갱신됨.
 
 ---
 
@@ -67,6 +91,8 @@ else
 fi
 ```
 
+> bootstrap.sh가 이미 이 작업을 수행합니다. Step 1에서 `[NEW] .env`가 출력되었으면 건너뛰세요.
+
 ---
 
 ### Step 3: Memory Directory Verification
@@ -82,11 +108,7 @@ ls .hxsk/memories/ | wc -l  # 14 directories + _schema expected
 mkdir -p .hxsk/memories/{architecture-decision,root-cause,debug-eliminated,debug-blocked,health-event,session-handoff,execution-summary,deviation,pattern-discovery,bootstrap,session-summary,session-snapshot,security-finding,general,_schema}
 ```
 
-Verify schema files:
-```bash
-ls .hxsk/memories/_schema/
-# Expected: base.schema.json, type-relations.yaml, session-summary.schema.json, etc.
-```
+> bootstrap.sh가 이미 이 작업을 수행합니다. Step 1에서 `[NEW] .hxsk/memories/`가 출력되었으면 건너뛰세요.
 
 ---
 
@@ -99,15 +121,12 @@ Verify context management structure:
 ├── reports/           # Analysis reports (REPORT-*.md)
 ├── research/          # Research documents (RESEARCH-*.md)
 ├── archive/           # Monthly archives
+├── issues/archive/    # Completed issue archive
 ├── PATTERNS.md        # Core patterns (2KB limit)
 └── context-config.yaml # Cleanup rules
 ```
 
-**Verification:**
-```bash
-test -d .hxsk/reports && test -d .hxsk/research && test -d .hxsk/archive && echo "PASS" || echo "FAIL"
-test -f .hxsk/PATTERNS.md && echo "PASS" || echo "FAIL"
-```
+> bootstrap.sh가 자동 생성합니다.
 
 ---
 
@@ -122,7 +141,7 @@ Delegate to the `codebase-mapper` skill to analyze the project:
 
 ---
 
-### Step 6: Initial Memory
+### Step 6: Memory Storage
 
 Store the bootstrap record:
 
@@ -142,28 +161,21 @@ bash scripts/md-store-memory.sh \
 
 ### Step 7: Status Report
 
-Output the structured bootstrap status report:
+bootstrap.sh가 이미 구조화된 보고서를 출력합니다:
 
 ```
 ================================================================
- BOOTSTRAP STATUS REPORT
+ BOOTSTRAP v5.0.0
+ MODE: fresh | verify | update (vX.X.X → v5.0.0)
 ================================================================
-System Prerequisites:  {PASS|FAIL} (git, bash)
-Environment:           {PASS|FAIL} (.env configured)
-Memory Directory:      {PASS|FAIL} (.hxsk/memories/ — 14 types + _schema)
-Memory Schema:         {PASS|FAIL} (base.schema.json, type-relations.yaml)
-Context Structure:     {PASS|FAIL} (reports/, research/, archive/)
-Documentation:         {PASS|FAIL} (ARCHITECTURE.md, STACK.md)
-Memory Record:         {PASS|WARN} (bootstrap record stored)
-================================================================
- RESULT: READY / NEEDS ATTENTION
-================================================================
-Next: /plan | Start working on your project
+...
+ MODE: {mode}  |  PASS: N  FAIL: N  WARN: N  SKIP: N  NEW: N  UPDATED: N
+ RESULT: ALL REQUIRED CHECKS PASSED / FAILED
 ================================================================
 ```
 
-**READY** = All steps PASS (WARN is acceptable).
-**NEEDS ATTENTION** = Any step FAIL.
+**RESULT = PASSED** → 프로젝트 READY.
+**RESULT = FAILED** → NEEDS ATTENTION.
 
 ---
 
@@ -172,7 +184,7 @@ Next: /plan | Start working on your project
 | Error | Action |
 |-------|--------|
 | System prerequisite missing | STOP at Step 1. Print install commands |
-| Memory directory missing | Create directories automatically |
+| Memory directory missing | Auto-create (bootstrap.sh handles) |
 | Schema files missing | Copy from templates or create minimal versions |
 | codebase-mapper fails | FAIL the step, continue |
 | Memory store fails | WARN the step, continue |
@@ -181,5 +193,5 @@ Next: /plan | Start working on your project
 
 ## Scripts
 
-- `scripts/bootstrap.sh`: System dependency verification script (git, bash, memory structure)
+- `scripts/bootstrap.sh`: Idempotent convergence engine (fresh/verify/update 3-mode)
 - `scripts/detect-language.sh`: Language, package manager detection functions (optional)
