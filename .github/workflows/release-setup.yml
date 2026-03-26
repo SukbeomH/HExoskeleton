@@ -54,9 +54,9 @@ jobs:
 
           HEADER
 
-          echo '```markdown' >> /tmp/release-notes.md
+          echo '<pre><code>' >> /tmp/release-notes.md
           cat .hxsk/prompts/setup.md >> /tmp/release-notes.md
-          echo '```' >> /tmp/release-notes.md
+          echo '</code></pre>' >> /tmp/release-notes.md
 
           cat >> /tmp/release-notes.md << 'MID'
 
@@ -71,9 +71,9 @@ jobs:
 
           MID
 
-          echo '```markdown' >> /tmp/release-notes.md
+          echo '<pre><code>' >> /tmp/release-notes.md
           cat .hxsk/prompts/setup-claude.md >> /tmp/release-notes.md
-          echo '```' >> /tmp/release-notes.md
+          echo '</code></pre>' >> /tmp/release-notes.md
 
           cat >> /tmp/release-notes.md << 'FOOTER'
 
