@@ -99,6 +99,9 @@ logs_llm/
 !.hxsk/STATE.md
 !.hxsk/PATTERNS.md
 !.hxsk/issues/
+.hxsk/issues/MASTER-*.md
+.hxsk/issues/WORK-*.md
+.hxsk/issues/archive/
 !.hxsk/skills/
 !.hxsk/agents/
 !.hxsk/hooks/
