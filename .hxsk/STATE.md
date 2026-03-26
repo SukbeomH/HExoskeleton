@@ -2,20 +2,22 @@
 
 ## Current Position
 
-**Milestone:** Dispatcher v2 + 안정화
-**Phase:** Testing
-**Status:** active
+**Milestone:** .hxsk/ 경로 통합 + Setup v2 완료
+**Phase:** Complete
+**Status:** idle
 **Branch:** master
 
 ## Last Action
 
-Dispatcher v2 구현 완료 (#75). MASTER/WORK 마크다운 이슈 트래킹, 6-Phase Wave 루프 오케스트레이션, arch-review 설계 문서 검토 단계 추가, 에이전트 간결 프롬프트 컨벤션 근거 README 명시.
+.hxsk/ 경로 통합 완료. scripts/, docs/, prompts/를 .hxsk/ 하위로 이동 (#83).
+Setup v2 멱등 수렴 엔진 (#78), Dispatcher v2 (#75), 메모리 정리 자동화 (#80),
+docs 현행화 (#80), README 디자인 개선 (#81), CI 릴리즈 자동화 (#85).
+가상 프로젝트 E2E 전체 통과.
 
 ## Next Steps
 
-1. Dispatcher v2 실전 테스트 (MASTER → WORK 분할 → 워크트리 병렬 실행 → 머지 full cycle)
-2. 실전 테스트 피드백 반영
-3. 새 작업 정의 시 SPEC.md 작성
+1. 다른 프로젝트에 실제 적용 테스트
+2. 새 작업 정의 시 SPEC.md 작성
 
 ## Active Decisions
 
@@ -26,23 +28,22 @@ Dispatcher v2 구현 완료 (#75). MASTER/WORK 마크다운 이슈 트래킹, 6-
 | Agent 구조 | Skill(How) + Agent(When/With What) 래핑 | 2026-02-02 | .hxsk/ 전체 |
 | 외부 종속성 | 없음 (MCP, Python 환경 제거) | 2026-02-05 | 전체 시스템 |
 | 배포 모델 | Self-Configure (레포 = 배포, 빌드 없음) | 2026-03-24 | 전체 시스템 |
-| Dispatcher v2 | MASTER/WORK 이슈 트래킹 + 6-Phase Wave 루프 | 2026-03-26 | .hxsk/skills/dispatcher, .hxsk/agents/dispatcher, scripts/issue-*.sh |
+| 디렉토리 구조 | scripts/, docs/, prompts/ → .hxsk/ 하위 | 2026-03-26 | 전체 시스템 |
+| Dispatcher v2 | MASTER/WORK 이슈 트래킹 + 6-Phase Wave 루프 | 2026-03-26 | .hxsk/skills/dispatcher |
+| Setup v2 | 멱등 수렴 엔진 (fresh/verify/update) + 2-hop | 2026-03-26 | .hxsk/scripts/bootstrap.sh |
 | 에이전트 프롬프트 컨벤션 | 간결 유지 (~20-30줄), 상세는 SKILL.md 위임 | 2026-03-26 | .hxsk/agents/ 전체 |
-| 이슈 문서 쓰기 주체 | 오케스트레이터 단독 (서브에이전트 읽기 전용) | 2026-03-26 | dispatcher 워크플로우 |
-| 이슈 문서 저장 | .hxsk/issues/ (git-untracked, 절대경로 참조) | 2026-03-26 | .gitignore, dispatcher |
+| 이슈 문서 | .hxsk/issues/ (git-untracked, 오케스트레이터 단독 쓰기) | 2026-03-26 | dispatcher |
+| 메모리 정리 | session-summary 30d/30개, snapshot 14d, execution-summary 60d | 2026-03-26 | .hxsk/scripts/memory-cleanup.sh |
+| 릴리즈 | setup 프롬프트 자동 릴리즈 (setup-vX.X.X) | 2026-03-26 | .github/workflows/ |
 
 ## Blockers
 
 None
 
-## Concerns
-
-None
-
 ## Recent Commits
-eb3cb4f feat(dispatcher): v2 — MASTER/WORK 마크다운 이슈 트래킹 기반 6-Phase 오케스트레이션 (#75)
-50b60cc feat: setup 프롬프트에 'assisted with HExoskeleton' 뱃지 안내 추가 (#74)
-263e21a docs: README 가독성 개선 + setup 프롬프트에 다음 단계 안내 추가 (#73)
+67cf7c2 ci: master 머지 시 setup 프롬프트 자동 릴리즈 + 복사 가능 body (#85)
+a0f9d6e fix: E2E 잔여 정리 — 설계 문서 이동 + llms.txt 재생성 (#84)
+3f5ce8e refactor: scripts/, docs/, prompts/를 .hxsk/ 하위로 이동 (#83)
 
 ---
 
