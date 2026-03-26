@@ -28,8 +28,8 @@ cat > "$OUTPUT" << EOF
 > Last Updated: ${TODAY} · Format: llms.txt v1.0
 
 ## Setup
-- [Setup Prompt (범용)](prompts/setup.md): 어떤 에이전트든 이 프롬프트를 실행하면 HXSK 구성 완료
-- [Setup Prompt (Claude Code)](prompts/setup-claude.md): Claude Code 특화 구성
+- [Setup Prompt (범용)](.hxsk/prompts/setup.md): 어떤 에이전트든 이 프롬프트를 실행하면 HXSK 구성 완료
+- [Setup Prompt (Claude Code)](.hxsk/prompts/setup-claude.md): Claude Code 특화 구성
 
 ## Agent Instructions
 - [AGENTS.md](AGENTS.md): 범용 에이전트 지침 (Copilot, Cursor, Windsurf, Devin 등)
@@ -53,10 +53,10 @@ cat > "$OUTPUT" << EOF
 - [Research Index](.hxsk/research/INDEX.md): ${RESEARCH_COUNT}개 리서치 문서 카탈로그 (${RESEARCH_CATS}개 카테고리)
 
 ## Optional
-- [Memory System](docs/MEMORY.md): 파일 기반 메모리 시스템 상세
-- [Workflow Guide](docs/WORKFLOWS.md): SPEC→PLAN→EXECUTE→VERIFY 워크플로우
-- [Skills Guide](docs/SKILLS.md): 스킬 상세 가이드
-- [Hooks Guide](docs/HOOKS.md): 훅 시스템 상세
+- [Memory System](.hxsk/docs/MEMORY.md): 파일 기반 메모리 시스템 상세
+- [Workflow Guide](.hxsk/docs/WORKFLOWS.md): SPEC→PLAN→EXECUTE→VERIFY 워크플로우
+- [Skills Guide](.hxsk/docs/SKILLS.md): 스킬 상세 가이드
+- [Hooks Guide](.hxsk/docs/HOOKS.md): 훅 시스템 상세
 EOF
 
 echo "[GENERATED] ${OUTPUT} (Skills:${SKILL_COUNT} Hooks:${HOOK_COUNT} Agents:${AGENT_COUNT} Templates:${TEMPLATE_COUNT} Research:${RESEARCH_COUNT})"

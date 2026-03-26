@@ -1,6 +1,6 @@
 # HXSK Setup — Claude Code
 
-Claude Code 전용 구성 가이드입니다. 범용 setup은 `prompts/setup.md`를 참조하세요.
+Claude Code 전용 구성 가이드입니다. 범용 setup은 `.hxsk/prompts/setup.md`를 참조하세요.
 
 ## 상태 감지
 
@@ -84,7 +84,7 @@ bash .hxsk/hooks/md-recall-memory.sh "검색어" "." 5 compact
 ### Step 1: bootstrap 실행
 
 ```bash
-bash scripts/bootstrap.sh
+bash .hxsk/scripts/bootstrap.sh
 ```
 
 `[NEW]`/`[UPDATED]` 태그와 `↳ 관련:` 2-hop 컨텍스트를 확인하세요.
@@ -110,7 +110,7 @@ cp .hxsk/skills/{name}/SKILL.md .claude/skills/{name}/SKILL.md
 ### Step 3: 확인
 
 ```bash
-bash scripts/bootstrap.sh
+bash .hxsk/scripts/bootstrap.sh
 ```
 
 모든 항목이 `[OK]`이면 업데이트 완료.

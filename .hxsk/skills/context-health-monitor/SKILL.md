@@ -101,7 +101,7 @@ Grep(pattern: "3-strike|{issue}", path: ".hxsk/memories/health-event/", output_m
 ```
 
 ```bash
-bash scripts/md-store-memory.sh \
+bash .hxsk/scripts/md-store-memory.sh \
   "3-Strike: {issue}" \
   "{approaches tried, errors seen, current hypothesis}" \
   "health,3-strike,{component}" \
@@ -119,7 +119,7 @@ Grep(pattern: "circular|{approach}", path: ".hxsk/memories/health-event/", outpu
 ```
 
 ```bash
-bash scripts/md-store-memory.sh \
+bash .hxsk/scripts/md-store-memory.sh \
   "Circular: {approach}" \
   "{what repeated, why it looped}" \
   "health,circular,{component}" \
@@ -131,7 +131,7 @@ bash scripts/md-store-memory.sh \
 Persist session context for the next session:
 
 ```bash
-bash scripts/md-store-memory.sh \
+bash .hxsk/scripts/md-store-memory.sh \
   "Handoff: {reason}" \
   "{current state, recommendations for next session}" \
   "health,handoff" \

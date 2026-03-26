@@ -48,7 +48,7 @@ git diff --stat
 `scripts/detect-language.sh`의 함수를 활용하여 언어 비종속적으로 테스트를 실행합니다.
 
 ```bash
-source scripts/detect-language.sh
+source .hxsk/scripts/detect-language.sh
 RUNNER=$(detect_test_runner)
 PKG=$(detect_pkg_manager)
 TEST_CMD=$(get_test_cmd "$RUNNER" "$PKG")

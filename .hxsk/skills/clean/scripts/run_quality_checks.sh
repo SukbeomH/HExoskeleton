@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # Run code quality checks for shell scripts.
-# Usage: bash scripts/run_quality_checks.sh [--fix-only]
+# Usage: bash .hxsk/skills/clean/scripts/run_quality_checks.sh [--fix-only]
 
 set -o errexit
 set -o nounset

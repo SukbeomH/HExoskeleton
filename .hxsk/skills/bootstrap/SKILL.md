@@ -13,7 +13,7 @@ trigger: "프로젝트 초기화, 프로젝트 셋업, 처음 설정, 업데이�
 ---
 
 ## Quick Reference
-- **시작**: `bash scripts/bootstrap.sh` (멱등 — 반복 실행 안전)
+- **시작**: `bash .hxsk/scripts/bootstrap.sh` (멱등 — 반복 실행 안전)
 - **모드**: fresh(초기) / verify(검증) / update(갱신) — `.hxsk/.bootstrap-version`으로 자동 감지
 - **Output**: `[NEW]` `[UPDATED]` `[OK]` `[PASS]` `[FAIL]` `[WARN]` `[SKIP]` 태그
 - **2-hop**: `[NEW]`/`[UPDATED]` 항목에 관련 컴포넌트 자동 표시
@@ -49,7 +49,7 @@ test -f .hxsk/.bootstrap-version && echo "EXISTS" || echo "FRESH"
 ```
 
 - **파일 없음** → 초기 설치 모드. Step 1~7 전체 실행.
-- **파일 있음** → `bash scripts/bootstrap.sh` 실행. 스크립트가 자동으로 verify/update 판별.
+- **파일 있음** → `bash .hxsk/scripts/bootstrap.sh` 실행. 스크립트가 자동으로 verify/update 판별.
   - 모든 항목 `[OK]` → 완료
   - `[NEW]`/`[UPDATED]` 있음 → Step 6 (메모리 저장) + Step 7 (보고) 실행
 
@@ -60,7 +60,7 @@ test -f .hxsk/.bootstrap-version && echo "EXISTS" || echo "FRESH"
 Run the idempotent convergence engine:
 
 ```bash
-bash scripts/bootstrap.sh
+bash .hxsk/scripts/bootstrap.sh
 ```
 
 **bootstrap.sh v5.0.0 출력 태그:**
@@ -146,7 +146,7 @@ Delegate to the `codebase-mapper` skill to analyze the project:
 Store the bootstrap record:
 
 ```bash
-bash scripts/md-store-memory.sh \
+bash .hxsk/scripts/md-store-memory.sh \
   "Project Bootstrap" \
   "Bootstrap completed. System prerequisites verified. Memory initialized." \
   "bootstrap,init,setup" \

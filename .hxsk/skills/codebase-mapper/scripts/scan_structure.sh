@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # Scan project structure and output directory tree with statistics.
-# Usage: bash scripts/scan_structure.sh [project_root]
+# Usage: bash .hxsk/skills/codebase-mapper/scripts/scan_structure.sh [project_root]
 
 set -o errexit
 set -o nounset
