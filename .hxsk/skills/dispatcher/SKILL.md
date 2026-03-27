@@ -17,7 +17,7 @@ allowed-tools:
 - **출력**: 6-Phase 라이프사이클 (SPLIT → BRANCH → Wave Loop[DISPATCH → TRACK → MERGE] → VERIFY)
 - **Main Root**: `git worktree list | head -1 | awk '{print $1}'`
 - **규칙**: 같은 Wave 내 files + side_effect_files 겹침 금지
-- **Merge**: `scripts/merge-worktrees.sh` 사용
+- **Merge**: `.hxsk/scripts/merge-worktrees.sh` 사용
 
 # Dispatcher Skill v2
 

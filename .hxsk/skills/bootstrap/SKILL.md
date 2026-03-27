@@ -1,7 +1,7 @@
 ---
 name: bootstrap
 description: "Idempotent project setup — fresh install, update, or verify via convergence engine"
-version: 5.0.0
+version: 5.1.0
 allowed-tools:
   - Read
   - Write
@@ -63,7 +63,7 @@ Run the idempotent convergence engine:
 bash .hxsk/scripts/bootstrap.sh
 ```
 
-**bootstrap.sh v5.0.0 출력 태그:**
+**bootstrap.sh v5.1.0 출력 태그:**
 - `[NEW]` — 새로 생성된 컴포넌트 (↳ 관련: 2-hop 컨텍스트)
 - `[UPDATED]` — 변경 감지된 컴포넌트 (↳ 관련: 2-hop 컨텍스트)
 - `[OK]` — 변경 없음, 정상
@@ -165,8 +165,8 @@ bootstrap.sh가 이미 구조화된 보고서를 출력합니다:
 
 ```
 ================================================================
- BOOTSTRAP v5.0.0
- MODE: fresh | verify | update (vX.X.X → v5.0.0)
+ BOOTSTRAP v5.1.0
+ MODE: fresh | verify | update (vX.X.X → v5.1.0)
 ================================================================
 ...
  MODE: {mode}  |  PASS: N  FAIL: N  WARN: N  SKIP: N  NEW: N  UPDATED: N
