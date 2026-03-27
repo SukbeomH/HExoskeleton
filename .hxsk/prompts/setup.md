@@ -43,16 +43,31 @@ test -f .hxsk/.bootstrap-version && echo "UPDATE" || echo "FRESH"
 └── examples/     ← 사용 예시
 ```
 
-### Step 4: 스킬 설치 (선택)
+### Step 4: 스킬 설치
 
-`.hxsk/skills/INDEX.md`를 참조하여 필요한 스킬을 가져오세요.
+`.hxsk/skills/INDEX.md`를 참조하여 스킬을 가져오세요.
 
-**배치 경로** (에이전트별):
-- **Claude Code** → `.claude/skills/{name}/SKILL.md`
-- **Gemini CLI** → `.agent/skills/{name}/SKILL.md`
-- **기타** → 에이전트 문서에 따라 배치
+**필수 스킬** (반드시 설치):
 
-권장 필수 스킬: `bootstrap`, `planner`, `executor`, `verifier`, `memory-protocol`
+| 스킬 | 용도 |
+|------|------|
+| `bootstrap` | 프로젝트 초기화 + 업데이트 감지 |
+| `planner` | SPEC 기반 실행 계획 수립 |
+| `executor` | 계획 실행 (atomic commits) |
+| `verifier` | 경험적 증거 기반 검증 |
+| `memory-protocol` | 메모리 저장/검색 프로토콜 |
+
+**Claude Code 설치 방법:**
+```bash
+# .hxsk/skills/ 에서 .claude/skills/ 로 복사
+for skill in bootstrap planner executor verifier memory-protocol; do
+    mkdir -p .claude/skills/$skill
+    cp .hxsk/skills/$skill/SKILL.md .claude/skills/$skill/SKILL.md
+done
+```
+
+**Gemini CLI** → `.agent/skills/{name}/SKILL.md`에 배치
+**기타** → 에이전트 문서에 따라 배치
 
 > **주의**: `.hxsk/.bootstrap-version` 파일을 직접 생성하지 마세요. `bootstrap.sh`가 자동 생성합니다.
 
