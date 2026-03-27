@@ -4,7 +4,7 @@
 # Detects fresh install / verify / update mode via .hxsk/.bootstrap-version.
 # Checks required tools, environment, context structure, and reports delta.
 #
-# Usage: bash scripts/bootstrap.sh
+# Usage: bash .hxsk/scripts/bootstrap.sh
 #
 # Exit 0: All required checks pass
 # Exit 1: One or more required checks failed

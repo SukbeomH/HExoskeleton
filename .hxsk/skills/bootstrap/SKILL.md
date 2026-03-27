@@ -146,7 +146,7 @@ Delegate to the `codebase-mapper` skill to analyze the project:
 Store the bootstrap record:
 
 ```bash
-bash .hxsk/scripts/md-store-memory.sh \
+bash .hxsk/hooks/md-store-memory.sh \
   "Project Bootstrap" \
   "Bootstrap completed. System prerequisites verified. Memory initialized." \
   "bootstrap,init,setup" \
@@ -193,5 +193,5 @@ bootstrap.sh가 이미 구조화된 보고서를 출력합니다:
 
 ## Scripts
 
-- `scripts/bootstrap.sh`: Idempotent convergence engine (fresh/verify/update 3-mode)
-- `scripts/detect-language.sh`: Language, package manager detection functions (optional)
+- `.hxsk/scripts/bootstrap.sh`: Idempotent convergence engine (fresh/verify/update 3-mode)
+- `.hxsk/scripts/detect-language.sh`: Language, package manager detection functions (optional)
