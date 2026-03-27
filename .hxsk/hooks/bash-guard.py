@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Hook: PreToolUse (Bash) — 파괴적 명령 + 패키지 관리자 차단
 
-1. 파괴적 git 명령 차단 (push --force, reset --hard, checkout ., clean -f 등)
+1. 파괴적 git 명령 차단 (push --force, clean -f 등)
 2. 프로젝트 설정 기반 패키지 관리자 차단 (project-config.yaml 참조)
-3. Fallback: pip/poetry 차단 (uv 강제)
+3. config 없으면 차단 없음 (기본값 = 제한 없음)
 Exit code 2 = 차단 (stderr가 Claude에게 전달됨)
 Exit code 0 = 허용
 """
@@ -16,20 +16,22 @@ import sys
 # ── 파괴적 git 명령 패턴 ──
 DESTRUCTIVE_GIT = [
     (
-        r"git\s+push\s+.*--force",
+        r"git\s+push\s+.*--force\b(?!-with-lease)",
         "git push --force is blocked. Use --force-with-lease if absolutely necessary.",
     ),
     (
         r"git\s+push\s+-f\b",
         "git push -f is blocked. Use --force-with-lease if absolutely necessary.",
     ),
-    (r"git\s+reset\s+--hard", "git reset --hard is blocked. This discards all local changes."),
+    (
+        r"git\s+reset\s+--hard(?!\s+origin/)",
+        "git reset --hard is blocked without remote ref. Use 'git reset --hard origin/<branch>' for sync.",
+    ),
     (
         r"git\s+checkout\s+\.\s*$",
         "git checkout . is blocked. This discards all uncommitted changes.",
     ),
     (r"git\s+clean\s+-f", "git clean -f is blocked. This permanently deletes untracked files."),
-    (r"git\s+branch\s+-D\b", "git branch -D is blocked. Use -d (safe delete) instead."),
     (
         r"git\s+restore\s+\.\s*$",
         "git restore . is blocked. This discards all working tree changes.",
@@ -66,9 +68,6 @@ PKG_MANAGER_BLOCKS = {
     ],
 }
 
-# Fallback: uv 기본값
-DEFAULT_BLOCKS = PKG_MANAGER_BLOCKS["uv"]
-
 
 def load_pkg_manager():
     """project-config.yaml에서 package_manager.name 읽기"""
@@ -84,8 +83,6 @@ def load_pkg_manager():
     except OSError:
         return None
 
-    # package_manager 섹션의 name 값을 regex로 추출
-    # 예: package_manager:\n  name: uv
     match = re.search(
         r"package_manager:\s*\n\s+name:\s*[\"']?(\w+)[\"']?",
         content,
@@ -110,13 +107,13 @@ for pattern, message in DESTRUCTIVE_GIT:
         print(f"Blocked: {message}", file=sys.stderr)
         sys.exit(2)
 
-# 패키지 관리자 검사 (project-config.yaml 기반 → fallback)
+# 패키지 관리자 검사 (config가 있을 때만 차단)
 pkg_manager = load_pkg_manager()
-blocks = PKG_MANAGER_BLOCKS.get(pkg_manager, DEFAULT_BLOCKS) if pkg_manager else DEFAULT_BLOCKS
-
-for pattern, message in blocks:
-    if re.search(pattern, command):
-        print(f"Blocked: {message}", file=sys.stderr)
-        sys.exit(2)
+if pkg_manager:
+    blocks = PKG_MANAGER_BLOCKS.get(pkg_manager, [])
+    for pattern, message in blocks:
+        if re.search(pattern, command):
+            print(f"Blocked: {message}", file=sys.stderr)
+            sys.exit(2)
 
 sys.exit(0)
