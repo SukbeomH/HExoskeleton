@@ -127,7 +127,7 @@ bash .hxsk/hooks/md-recall-memory.sh "검색어" "." 5 compact
 
 - [ ] 에이전트 지침 파일이 프로젝트 루트에 존재
 - [ ] `.hxsk/` 디렉토리에 SPEC.md, STATE.md, PATTERNS.md 존재
-- [ ] (선택) 스킬이 에이전트 설정 디렉토리에 배치됨
+- [ ] 필수 스킬 5개가 에이전트 설정 디렉토리에 배치됨 (bootstrap, planner, executor, verifier, memory-protocol)
 - [ ] (선택) 에이전트별 심볼릭 링크 생성됨
 - [ ] (Claude Code) 훅이 `.claude/settings.json`에 등록됨
 - [ ] (Claude Code) 메모리 명령어 동작 확인
