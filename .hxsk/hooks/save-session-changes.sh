@@ -17,6 +17,9 @@ main() {
     CHANGELOG="$PROJECT_DIR/.hxsk/CHANGELOG.md"
     HOOK_DIR="$(cd "$(dirname "$0")" && pwd)"
 
+    # 세션 활성 마커 정리 (session-start.sh가 생성)
+    rm -f "$PROJECT_DIR/.hxsk/.session-active"
+
     # JSON 파싱 추상화 로드
     source "$HOOK_DIR/_json_parse.sh"
 

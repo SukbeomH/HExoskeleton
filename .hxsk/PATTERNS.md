@@ -12,8 +12,8 @@
 - **Self-Configure 배포**: llms.txt + AGENTS.md + setup 프롬프트. 빌드 스크립트 없음, 레포 = 배포
 
 ## Memory System
-- **저장**: `bash scripts/md-store-memory.sh <title> <content> [tags] [type]` (→ `.hxsk/hooks/` canonical로 위임)
-- **검색**: `bash scripts/md-recall-memory.sh <query> [path] [limit] [mode]` (→ `.hxsk/hooks/` canonical로 위임)
+- **저장**: `bash .hxsk/hooks/md-store-memory.sh <title> <content> [tags] [type]`
+- **검색**: `bash .hxsk/hooks/md-recall-memory.sh <query> [path] [limit] [mode]`
 - **A-Mem 필드**: `keywords`, `contextual_description`, `related` (2-hop 검색용)
 - **중복 방지**: 동일 title → `[SKIP:DUPLICATE]` 반환
 - **스키마**: `.hxsk/memories/_schema/` (JSON Schema + type-relations.yaml)
