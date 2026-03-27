@@ -24,11 +24,19 @@ MODE="fresh"
 OLD_VERSION=""
 
 if [[ -f "$VERSION_FILE" ]]; then
+    # YAML format: "version: X.X.X" or plain version "X.X.X"
     OLD_VERSION=$(grep '^version:' "$VERSION_FILE" 2>/dev/null | sed 's/^version: *//' | tr -d '"')
+    if [[ -z "$OLD_VERSION" ]]; then
+        # Fallback: 파일 첫 줄이 버전 번호일 수 있음 (비표준 포맷)
+        OLD_VERSION=$(head -1 "$VERSION_FILE" 2>/dev/null | tr -d '[:space:]"')
+    fi
     if [[ "$OLD_VERSION" = "$BOOTSTRAP_VERSION" ]]; then
         MODE="verify"
-    else
+    elif [[ -n "$OLD_VERSION" ]]; then
         MODE="update"
+    else
+        # 파싱 실패 — fresh로 취급
+        MODE="fresh"
     fi
 fi
 

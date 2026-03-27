@@ -52,7 +52,9 @@ test -f .hxsk/.bootstrap-version && echo "UPDATE" || echo "FRESH"
 - **Gemini CLI** → `.agent/skills/{name}/SKILL.md`
 - **기타** → 에이전트 문서에 따라 배치
 
-권장 필수 스킬: `planner`, `executor`, `verifier`, `memory-protocol`
+권장 필수 스킬: `bootstrap`, `planner`, `executor`, `verifier`, `memory-protocol`
+
+> **주의**: `.hxsk/.bootstrap-version` 파일을 직접 생성하지 마세요. `bootstrap.sh`가 자동 생성합니다.
 
 ### Step 5: 에이전트별 자동 로드 경로 연결
 
