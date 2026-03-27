@@ -34,11 +34,12 @@ Source Components:
   ├── agents/  (17 agents)      └── *.md (11 docs)
   ├── hooks/   (17 hooks)
   ├── templates/ (27)           prompts/
-  ├── examples/ (4)             ├── setup.md
-  ├── issues/                   └── setup-claude.md
-  └── INDEX files
+  ├── examples/ (4)             prompts/
+  ├── issues/                   └── setup.md (통합)
+  ├── scripts/ (8)
 
-  scripts/ (10 utility scripts)
+  ├── docs/ (11+)
+  └── INDEX files
 ```
 
 ## Components
@@ -48,7 +49,7 @@ Source Components:
 - **Purpose:** 레포지토리 = 배포. 빌드 스크립트 없이 에이전트 도구가 직접 설정
 - **llms.txt:** 프로젝트 구조 인덱스. 에이전트가 시작점으로 사용
 - **AGENTS.md:** 에이전트 공통 지침 (Codex, Gemini, OpenCode 등 에이전트 불문)
-- **prompts/:** `setup.md` (범용), `setup-claude.md` (Claude Code 전용) — 에이전트에 Setup 절차 제공
+- **.hxsk/prompts/:** `setup.md` (통합 — 모든 에이전트 지원, Claude Code 전용 섹션 포함)
 - **CLAUDE.md:** Claude Code 전용 설정 (hooks, skills, compaction rules)
 
 ### 2. Agent-Skill System (`.hxsk/`)

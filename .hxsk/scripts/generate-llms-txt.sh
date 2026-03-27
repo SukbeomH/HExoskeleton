@@ -28,8 +28,7 @@ cat > "$OUTPUT" << EOF
 > Last Updated: ${TODAY} · Format: llms.txt v1.0
 
 ## Setup
-- [Setup Prompt (범용)](.hxsk/prompts/setup.md): 어떤 에이전트든 이 프롬프트를 실행하면 HXSK 구성 완료
-- [Setup Prompt (Claude Code)](.hxsk/prompts/setup-claude.md): Claude Code 특화 구성
+- [Setup Prompt](.hxsk/prompts/setup.md): 어떤 에이전트든 이 프롬프트를 실행하면 HXSK 구성 완료 (Claude Code 포함)
 
 ## Agent Instructions
 - [AGENTS.md](AGENTS.md): 범용 에이전트 지침 (Copilot, Cursor, Windsurf, Devin 등)

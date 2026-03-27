@@ -44,10 +44,9 @@ jobs:
           ## Quick Start
 
           에이전트에게 아래 프롬프트를 **복사하여 전달**하면 프로젝트에 HXSK를 자동 구성합니다.
+          모든 에이전트(Claude Code, Gemini, Copilot, Cursor, Windsurf)를 하나의 프롬프트로 지원합니다.
 
           ---
-
-          ### 범용 (Copilot, Cursor, Gemini, Windsurf 등)
 
           <details>
           <summary><strong>setup.md — 클릭하여 펼치고 복사</strong></summary>
@@ -56,23 +55,6 @@ jobs:
 
           echo '<pre><code>' >> /tmp/release-notes.md
           cat .hxsk/prompts/setup.md >> /tmp/release-notes.md
-          echo '</code></pre>' >> /tmp/release-notes.md
-
-          cat >> /tmp/release-notes.md << 'MID'
-
-          </details>
-
-          ---
-
-          ### Claude Code
-
-          <details>
-          <summary><strong>setup-claude.md — 클릭하여 펼치고 복사</strong></summary>
-
-          MID
-
-          echo '<pre><code>' >> /tmp/release-notes.md
-          cat .hxsk/prompts/setup-claude.md >> /tmp/release-notes.md
           echo '</code></pre>' >> /tmp/release-notes.md
 
           cat >> /tmp/release-notes.md << 'FOOTER'
@@ -85,8 +67,7 @@ jobs:
 
           | 파일 | 설명 |
           |------|------|
-          | `setup.md` | 범용 setup 프롬프트 |
-          | `setup-claude.md` | Claude Code setup 프롬프트 |
+          | `setup.md` | 통합 setup 프롬프트 (모든 에이전트 지원) |
           | `AGENTS.md` | 공통 에이전트 지침 |
           | `CLAUDE.md` | Claude Code 지침 |
           | `GEMINI.md` | Gemini CLI 지침 |
@@ -102,7 +83,6 @@ jobs:
             --title "Setup v${{ steps.version.outputs.version }}" \
             --notes-file /tmp/release-notes.md \
             .hxsk/prompts/setup.md \
-            .hxsk/prompts/setup-claude.md \
             AGENTS.md \
             CLAUDE.md \
             GEMINI.md \
@@ -117,7 +97,6 @@ jobs:
             --notes-file /tmp/release-notes.md
           gh release upload "${{ steps.version.outputs.tag }}" \
             .hxsk/prompts/setup.md \
-            .hxsk/prompts/setup-claude.md \
             AGENTS.md \
             CLAUDE.md \
             GEMINI.md \
