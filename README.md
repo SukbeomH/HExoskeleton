@@ -31,7 +31,7 @@
 
 AI 에이전트에게 setup 프롬프트를 전달하면 자동으로 프로젝트에 HXSK를 구성합니다.
 
-**[setup.md](.hxsk/prompts/setup.md)** — 에이전트 유형을 자동 감지하여 Claude Code, Gemini, Copilot, Cursor, Windsurf 등 모두 지원합니다.
+**[setup.md](.hxsk/prompts/setup.md)** — 에이전트 유형별 분기 안내를 포함하여 Claude Code, Gemini, Copilot, Cursor, Windsurf 등에서 사용할 수 있습니다.
 
 > **외부 종속성 없음** — 초기 설치/업데이트 자동 감지. `SPEC → PLAN → EXECUTE → VERIFY`
 
