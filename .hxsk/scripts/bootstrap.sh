@@ -24,11 +24,13 @@ MODE="fresh"
 OLD_VERSION=""
 
 if [[ -f "$VERSION_FILE" ]]; then
-    # YAML format: "version: X.X.X" or plain version "X.X.X"
-    OLD_VERSION=$(grep '^version:' "$VERSION_FILE" 2>/dev/null | sed 's/^version: *//' | tr -d '"')
+    # YAML format: "version: X.X.X" — grep || true로 errexit 방지
+    OLD_VERSION=$(grep '^version:' "$VERSION_FILE" 2>/dev/null | sed 's/^version: *//' || true)
+    # 정규화: quotes, whitespace, CR 모두 제거
+    OLD_VERSION=$(echo "$OLD_VERSION" | tr -d '"[:space:]')
     if [[ -z "$OLD_VERSION" ]]; then
         # Fallback: 파일 첫 줄이 버전 번호일 수 있음 (비표준 포맷)
-        OLD_VERSION=$(head -1 "$VERSION_FILE" 2>/dev/null | tr -d '[:space:]"')
+        OLD_VERSION=$(head -1 "$VERSION_FILE" 2>/dev/null | tr -d '"[:space:]' || true)
     fi
     if [[ "$OLD_VERSION" = "$BOOTSTRAP_VERSION" ]]; then
         MODE="verify"
