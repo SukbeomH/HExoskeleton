@@ -4,14 +4,12 @@
 
 ## Step 0: 상태 감지
 
-먼저 설치 상태를 확인하세요:
-
 ```bash
 test -f .hxsk/.bootstrap-version && echo "UPDATE" || echo "FRESH"
 ```
 
-- **FRESH** (파일 없음) → 아래 "초기 설치" 경로를 따르세요 (Step 1~7)
-- **UPDATE** (파일 있음) → 아래 "업데이트" 경로를 따르세요
+- **FRESH** → 아래 "초기 설치" (Step 1~8)
+- **UPDATE** → 아래 "업데이트"
 
 ---
 
@@ -23,14 +21,17 @@ test -f .hxsk/.bootstrap-version && echo "UPDATE" || echo "FRESH"
 
 ### Step 2: 에이전트 지침 설정
 
-당신의 에이전트 유형에 맞는 지침 파일을 가져오세요:
-- **Claude Code** → `CLAUDE.md`를 프로젝트 루트에 저장
-- **Gemini CLI** → `GEMINI.md`를 프로젝트 루트에 저장
-- **기타** (Copilot, Cursor, Windsurf 등) → `AGENTS.md`를 프로젝트 루트에 저장
+당신의 에이전트 유형에 맞는 지침 파일을 프로젝트 루트에 저장하세요:
+
+| 에이전트 | 파일 |
+|----------|------|
+| Claude Code | `CLAUDE.md` |
+| Gemini CLI | `GEMINI.md` |
+| 기타 (Copilot, Cursor, Windsurf 등) | `AGENTS.md` |
 
 ### Step 3: HXSK 문서 구조 생성
 
-프로젝트에 `.hxsk/` 디렉토리를 만들고 working docs를 생성하세요:
+`.hxsk/` 디렉토리를 만들고 working docs를 생성하세요:
 
 ```
 .hxsk/
@@ -38,17 +39,17 @@ test -f .hxsk/.bootstrap-version && echo "UPDATE" || echo "FRESH"
 ├── STATE.md      ← 현재 상태 (필수)
 ├── PATTERNS.md   ← 학습된 패턴 (필수)
 ├── DECISIONS.md  ← 아키텍처 결정 기록
-├── templates/    ← 문서 템플릿 (llms.txt Templates 섹션에서 fetch)
-└── examples/     ← 사용 예시 (llms.txt Templates 섹션에서 fetch)
+├── templates/    ← 문서 템플릿 (llms.txt에서 fetch)
+└── examples/     ← 사용 예시
 ```
-
-`templates/INDEX.md`를 참조하여 필요한 템플릿만 선택적으로 가져오세요.
 
 ### Step 4: 스킬 설치 (선택)
 
-`skills/INDEX.md`를 참조하여 필요한 스킬만 가져오세요:
-- **Claude Code** → `.claude/skills/{name}/SKILL.md`에 배치
-- **Gemini CLI** → `.agent/skills/{name}/SKILL.md`에 배치
+`.hxsk/skills/INDEX.md`를 참조하여 필요한 스킬을 가져오세요.
+
+**배치 경로** (에이전트별):
+- **Claude Code** → `.claude/skills/{name}/SKILL.md`
+- **Gemini CLI** → `.agent/skills/{name}/SKILL.md`
 - **기타** → 에이전트 문서에 따라 배치
 
 권장 필수 스킬: `planner`, `executor`, `verifier`, `memory-protocol`
@@ -69,17 +70,37 @@ ln -sf AGENTS.md .cursorrules
 ln -sf AGENTS.md .windsurfrules
 ```
 
-이렇게 하면 별도 옵션 없이 에이전트를 실행해도 HXSK 지침이 자동 로드됩니다.
+### Step 6: 훅 설치 (Claude Code만)
 
-### Step 6: 훅 설치 (Claude Code만, 선택)
+> Claude Code가 아닌 에이전트는 이 단계를 건너뛰세요. AGENTS.md의 Agent Boundaries 규칙으로 대체됩니다.
 
-훅은 Claude Code에서만 동작합니다. 다른 에이전트는 AGENTS.md의 Agent Boundaries 규칙으로 대체됩니다.
+`.hxsk/hooks/INDEX.md`에서 훅 스크립트를 가져와 `.claude/settings.json`에 등록:
 
-`hooks/INDEX.md`를 참조하여 필요한 훅을 가져오고 `.claude/settings.json`에 등록하세요.
+```json
+{
+  "hooks": {
+    "SessionStart": [{"matcher": "startup|resume", "hooks": [{"type": "command", "command": "\"$CLAUDE_PROJECT_DIR\"/.hxsk/hooks/session-start.sh", "timeout": 10}]}],
+    "PreToolUse": [
+      {"matcher": "Edit|Write|Read", "hooks": [{"type": "command", "command": "\"$CLAUDE_PROJECT_DIR\"/.hxsk/hooks/file-protect.py", "timeout": 5}]},
+      {"matcher": "Bash", "hooks": [{"type": "command", "command": "\"$CLAUDE_PROJECT_DIR\"/.hxsk/hooks/bash-guard.py", "timeout": 5}]}
+    ]
+  }
+}
+```
 
-### Step 7: README에 뱃지 추가 (선택)
+### Step 7: 메모리 시스템 확인 (Claude Code만)
 
-프로젝트 README에 HExoskeleton 뱃지를 추가하세요:
+> Claude Code가 아닌 에이전트는 이 단계를 건너뛰세요.
+
+```bash
+# 메모리 저장
+bash .hxsk/hooks/md-store-memory.sh "제목" "내용" "태그" "타입"
+
+# 메모리 검색
+bash .hxsk/hooks/md-recall-memory.sh "검색어" "." 5 compact
+```
+
+### Step 8: README에 뱃지 추가 (선택)
 
 ```markdown
 [![HExoskeleton](https://img.shields.io/badge/assisted%20with-HExoskeleton-blueviolet?style=flat-square)](https://github.com/SukbeomH/HExoskeleton)
@@ -90,8 +111,9 @@ ln -sf AGENTS.md .windsurfrules
 - [ ] 에이전트 지침 파일이 프로젝트 루트에 존재
 - [ ] `.hxsk/` 디렉토리에 SPEC.md, STATE.md, PATTERNS.md 존재
 - [ ] (선택) 스킬이 에이전트 설정 디렉토리에 배치됨
-- [ ] (선택) 에이전트별 심볼릭 링크 생성됨 (.cursorrules, .windsurfrules 등)
-- [ ] (선택, Claude Code) 훅이 설치되고 settings.json에 등록됨
+- [ ] (선택) 에이전트별 심볼릭 링크 생성됨
+- [ ] (Claude Code) 훅이 `.claude/settings.json`에 등록됨
+- [ ] (Claude Code) 메모리 명령어 동작 확인
 
 ### 초기 설치 후 다음 단계
 
@@ -104,7 +126,7 @@ ln -sf AGENTS.md .windsurfrules
 
 ## 업데이트
 
-이전 설치가 감지되었습니다. 아래 절차로 업데이트하세요.
+이전 설치가 감지되었습니다.
 
 ### Step 1: bootstrap 실행
 
@@ -112,18 +134,20 @@ ln -sf AGENTS.md .windsurfrules
 bash .hxsk/scripts/bootstrap.sh
 ```
 
-출력에서 다음 태그를 확인하세요:
-- `[OK]` — 변경 없음, 정상
-- `[NEW]` — 새로 추가된 컴포넌트
-- `[UPDATED]` — 변경된 컴포넌트 (이전 → 현재 수치 표시)
-- `[UPDATED]` 항목에는 `↳ 관련:` 으로 연관 컴포넌트가 2-hop 검색으로 표시됩니다
+출력 태그:
+- `[OK]` — 변경 없음
+- `[NEW]` — 새로 추가됨
+- `[UPDATED]` — 변경됨 (↳ 관련: 2-hop 컨텍스트 표시)
 
 ### Step 2: 에이전트별 설정 갱신
 
 `[NEW]` 또는 `[UPDATED]`가 있는 경우:
-- 스킬이 추가/변경되었으면 → 에이전트 스킬 디렉토리 갱신
-- 훅이 추가/변경되었으면 → `.claude/settings.json` 갱신 (Claude Code만)
-- 에이전트 지침이 변경되었으면 → CLAUDE.md/GEMINI.md/AGENTS.md 갱신
+- 스킬 추가/변경 → 에이전트 스킬 디렉토리 갱신
+- 에이전트 지침 변경 → CLAUDE.md/GEMINI.md/AGENTS.md 갱신
+
+**Claude Code인 경우 추가로:**
+- 훅 변경 → `.claude/settings.json` 갱신
+- 스킬 변경 → `.claude/skills/{name}/SKILL.md` 복사
 
 ### Step 3: 확인
 
@@ -132,7 +156,3 @@ bash .hxsk/scripts/bootstrap.sh
 ```
 
 모든 항목이 `[OK]`이면 업데이트 완료.
-
-### 업데이트 후 다음 단계
-
-> **업데이트가 완료되었습니다. `[UPDATED]` 항목의 관련 컴포넌트를 확인하고 작업을 이어가세요.**
