@@ -28,7 +28,7 @@ layer1() {
 
     # 1.1 Core files existence
     echo "--- 1.1 Core Files ---"
-    for f in llms.txt AGENTS.md GEMINI.md CLAUDE.md prompts/setup.md prompts/setup-claude.md; do
+    for f in llms.txt AGENTS.md GEMINI.md CLAUDE.md .hxsk/prompts/setup.md; do
         if [ -f "$REPO_ROOT/$f" ]; then
             pass "$f exists"
         else

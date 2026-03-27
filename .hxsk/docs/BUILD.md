@@ -14,21 +14,20 @@
 | `AGENTS.md` | 범용 에이전트 지침 (Copilot, Cursor, Windsurf 등) |
 | `CLAUDE.md` | Claude Code 전용 설정 |
 | `GEMINI.md` | Gemini CLI 전용 설정 |
-| `prompts/setup.md` | 범용 setup 프롬프트 |
-| `prompts/setup-claude.md` | Claude Code 특화 프롬프트 |
+| `.hxsk/prompts/setup.md | 통합 setup 프롬프트 (모든 에이전트 지원) |
 
 ### 사용법
 
 사용자가 에이전트에게:
 1. 레포 URL 전달, 또는
-2. `prompts/setup.md` 내용 복붙
+2. `.hxsk/prompts/setup.md` 내용 복붙
 
 에이전트가 llms.txt를 따라가며 필요한 파일을 fetch하고 프로젝트에 배치합니다.
 
 ### 검증
 
 ```bash
-bash scripts/verify-self-configure.sh --all
+bash .hxsk/scripts/verify-self-configure.sh --all
 ```
 
 Layer 1 (정적 검증) + Layer 2 (시뮬레이션)을 실행합니다.

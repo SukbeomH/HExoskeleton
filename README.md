@@ -14,7 +14,7 @@
   <a href="#핵심-구성요소">Components</a> &middot;
   <a href="#멀티-에이전트-하나의-프로젝트">Multi-Agent</a> &middot;
   <a href="#메모리-시스템">Memory</a> &middot;
-  <a href="docs/">Docs</a>
+  <a href=".hxsk/docs/">Docs</a>
 </p>
 
 <p align="center">
@@ -143,7 +143,7 @@ HExoskeleton은 **하나의 프로젝트를 여러 AI 에이전트가 동시에 
 
 ### 새 프로젝트에 적용
 
-상단 [Quick Start](#quick-start)의 setup 프롬프트를 에이전트에게 전달하세요. 두 프롬프트를 **동시에 적용**할 수 있습니다. Claude Code 전용 훅은 `.claude/settings.json`에만 등록되므로 다른 에이전트에 영향을 주지 않습니다.
+상단 [Quick Start](#quick-start)의 setup 프롬프트를 에이전트에게 전달하세요. 하나의 프롬프트로 모든 에이전트를 지원하며, Claude Code 전용 훅은 `.claude/settings.json`에만 등록되므로 다른 에이전트에 영향을 주지 않습니다.
 
 ---
 
@@ -207,17 +207,18 @@ bash .hxsk/hooks/md-recall-memory.sh "검색어" "." 5 compact 2
 ├── .windsurfrules → AGENTS.md # Windsurf symlink
 ├── llms.txt                   # LLM 진입점
 ├── .claude/settings.json      # 훅 설정
-├── .hxsk/                     # HXSK 핵심 (Single Source of Truth)
-│   ├── skills/                # 스킬 정의 (19)
-│   ├── agents/                # 서브에이전트 정의 (17)
-│   ├── hooks/                 # 훅 스크립트 (17)
-│   ├── memories/              # 파일 기반 메모리 (14 타입)
-│   ├── research/              # 리서치 문서 (30개, 6 카테고리)
-│   ├── STATE.md               # 현재 작업 상태
-│   └── PATTERNS.md            # 핵심 패턴/학습
-│   ├── prompts/              # Setup 프롬프트
-│   ├── docs/                 # 상세 문서
-│   └── scripts/              # 유틸리티 스크립트
+└── .hxsk/                     # HXSK 핵심 (Single Source of Truth)
+    ├── skills/                # 스킬 정의 (19)
+    ├── agents/                # 서브에이전트 정의 (17)
+    ├── hooks/                 # 훅 스크립트 (17)
+    ├── scripts/               # 유틸리티 스크립트
+    ├── docs/                  # 상세 문서
+    ├── prompts/               # Setup 프롬프트 (통합)
+    ├── templates/             # 문서 템플릿
+    ├── memories/              # 파일 기반 메모리 (14 타입)
+    ├── research/              # 리서치 문서 (30개)
+    ├── STATE.md               # 현재 작업 상태
+    └── PATTERNS.md            # 핵심 패턴/학습
 ```
 
 </details>
