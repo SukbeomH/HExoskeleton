@@ -63,38 +63,14 @@ yarn-error.log*
 *.key
 secrets/
 
-# ─── HXSK ────────────────────────────────────────
-# 기본: .hxsk/ 전체 무시, 아래 예외만 추적
-.hxsk/*
-
-# 루트 문서 (working docs + 메타)
-!.hxsk/.bootstrap-version
-!.hxsk/STATE.md
-!.hxsk/PATTERNS.md
-!.hxsk/SPEC.md
-!.hxsk/ARCHITECTURE.md
-!.hxsk/CHANGELOG.md
-!.hxsk/DECISIONS.md
-!.hxsk/ROADMAP.md
-!.hxsk/STACK.md
-!.hxsk/TODO.md
-!.hxsk/VERIFICATION.md
-!.hxsk/CURRENT.md
-!.hxsk/JOURNAL.md
-
-# 하위 디렉토리 (코어 구성요소)
-!.hxsk/skills/
-!.hxsk/agents/
-!.hxsk/hooks/
-!.hxsk/templates/
-!.hxsk/examples/
-!.hxsk/scripts/
-!.hxsk/docs/
-!.hxsk/prompts/
-!.hxsk/research/
-!.hxsk/issues/
-
-# 이슈: MASTER/WORK는 런타임 생성 → 무시
+# ─── HXSK (런타임/임시 데이터만 무시) ────────────
+.hxsk/memories/
+.hxsk/archive/
+.hxsk/reports/
+.hxsk/.modified-this-session
+.hxsk/.session-active
+.hxsk/context-config.yaml
+.hxsk/prd-*.json
 .hxsk/issues/MASTER-*.md
 .hxsk/issues/WORK-*.md
 .hxsk/issues/archive/
