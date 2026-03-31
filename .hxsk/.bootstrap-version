@@ -1,0 +1,7 @@
+version: 5.0.1
+last_run: 2026-03-31
+components:
+  skills: 19
+  agents: 17
+  hooks: 17
+  memories: 15

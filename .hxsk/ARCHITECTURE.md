@@ -137,7 +137,7 @@ Source Components:
 - **Naming:** bash 스크립트 = kebab-case, 마크다운 = UPPER_CASE.md (working docs), lower_case.md (templates)
 - **Structure:** Agent-Skill 래핑 (`.hxsk/agents/` + `.hxsk/skills/`)
 - **Commits:** Atomic, conventional format (`feat:`, `fix:`, `refactor:` 등), PR 통해 master 병합
-- **Hooks:** `$CLAUDE_PROJECT_DIR` 변수 기반 경로, JSON hook config in `settings.json`
+- **Hooks:** 상대 경로(`.hxsk/hooks/...`) 기반, JSON hook config in `settings.json`. 스크립트 내부에서는 `${CLAUDE_PROJECT_DIR:-.}` fallback 사용
 - **Distribution:** Self-configure — llms.txt 진입점, AGENTS.md 공통 지침, prompts/ 에이전트별 setup
 - **Skill loading:** 2단계 — `## Quick Reference` (5줄 요약) + 본문 (상세)
 
