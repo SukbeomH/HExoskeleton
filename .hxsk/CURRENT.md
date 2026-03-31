@@ -1,28 +1,29 @@
 # Current Session Context
 
 ## Session Narrative
-> On 2026-03-31 13:40:47, the developer was working on the **fix/hook-paths-v5.0.1** branch, modifying 1 files across `.hxsk`. The recent work involved: fix: 버전 5.0.1 → 5.1.1 수정 (기존 5.1.0 기반).
+> On 2026-03-31 13:44:42, the developer was working on the **master** branch, modifying 0
+0 files across `the project`. The recent work involved: fix: 버전 5.0.1 → 5.1.1 수정 (기존 5.1.0 기반) (#98) (#94).
 
 ## Context Snapshot
-- **Active Task**: fix: 버전 5.0.1 → 5.1.1 수정 (기존 5.1.0 기반)
-- **Branch**: fix/hook-paths-v5.0.1
-- **Files Changed**: 1
-- **Last Updated**: 2026-03-31 13:40:47
+- **Active Task**: fix: 버전 5.0.1 → 5.1.1 수정 (기존 5.1.0 기반) (#98) (#94)
+- **Branch**: master
+- **Files Changed**: 0
+0
+- **Last Updated**: 2026-03-31 13:44:42
 
 ## Working Files
 ```
- M .hxsk/CURRENT.md
+No changes detected
 ```
 
 ## Recent Commits
 ```
-f8dcd86 fix: 버전 5.0.1 → 5.1.1 수정 (기존 5.1.0 기반)
-6aa702a chore: .hxsk 루트 working docs 8개 추적 시작 (#97)
-10ff9fd refactor(gitignore): .hxsk allowlist → blocklist 전환 (#96)
+c3b540a fix: 버전 5.0.1 → 5.1.1 수정 (기존 5.1.0 기반) (#98) (#94)
+cb4237c fix(hooks): v5.0.1 — 훅 경로 상대경로 전환 + 마이그레이션 프롬프트 (#93)
+6174e6d fix(setup): 완료 확인 체크리스트 스킬 항목을 필수로 변경 (#92)
 ```
 
 ## Diff Stats
 ```
- .hxsk/CURRENT.md | 21 ++++++++-------------
- 1 file changed, 8 insertions(+), 13 deletions(-)
+No diff available
 ```
