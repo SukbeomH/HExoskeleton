@@ -4,7 +4,7 @@
 
 ---
 
-### [2026-03-31] v5.0.1 — Hook 경로 수정
+### [2026-03-31] v5.1.1 — Hook 경로 수정 + gitignore 리팩토링
 
 **변경 파일**: 6개 | **Issue**: #001
 
@@ -17,7 +17,8 @@
 - `.hxsk/ARCHITECTURE.md` — Conventions 섹션 훅 경로 설명 수정
 - `.hxsk/prompts/setup.md` — Step 6 훅 설치 예시 상대 경로로 수정
 - `.hxsk/prompts/migrate-hook-paths.md` — 기존 프로젝트용 마이그레이션 프롬프트 신규
-- `.hxsk/.bootstrap-version` — 5.0.0 → 5.0.1
+- `.gitignore` — allowlist→blocklist 전환, 불필요 항목 정리
+- `.hxsk/.bootstrap-version` — 5.1.0 → 5.1.1
 
 ---
 
