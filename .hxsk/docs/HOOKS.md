@@ -77,7 +77,7 @@ Claude Code의 **Hooks**는 특정 이벤트에 자동으로 응답하는 스크
         "hooks": [
           {
             "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.hxsk/hooks/session-start.sh",
+            "command": ".hxsk/hooks/session-start.sh",
             "timeout": 10
           }
         ]
@@ -89,7 +89,7 @@ Claude Code의 **Hooks**는 특정 이벤트에 자동으로 응답하는 스크
         "hooks": [
           {
             "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.hxsk/hooks/file-protect.py",
+            "command": ".hxsk/hooks/file-protect.py",
             "timeout": 5
           }
         ]
@@ -99,7 +99,7 @@ Claude Code의 **Hooks**는 특정 이벤트에 자동으로 응답하는 스크
         "hooks": [
           {
             "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.hxsk/hooks/bash-guard.py",
+            "command": ".hxsk/hooks/bash-guard.py",
             "timeout": 5
           }
         ]
@@ -111,12 +111,12 @@ Claude Code의 **Hooks**는 특정 이벤트에 자동으로 응답하는 스크
         "hooks": [
           {
             "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.hxsk/hooks/auto-format.sh",
+            "command": ".hxsk/hooks/auto-format.sh",
             "timeout": 30
           },
           {
             "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.hxsk/hooks/track-modifications.sh",
+            "command": ".hxsk/hooks/track-modifications.sh",
             "timeout": 2
           }
         ]
@@ -128,7 +128,7 @@ Claude Code의 **Hooks**는 특정 이벤트에 자동으로 응답하는 스크
         "hooks": [
           {
             "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.hxsk/hooks/pre-compact-save.sh",
+            "command": ".hxsk/hooks/pre-compact-save.sh",
             "timeout": 10
           }
         ]
@@ -139,12 +139,12 @@ Claude Code의 **Hooks**는 특정 이벤트에 자동으로 응답하는 스크
         "hooks": [
           {
             "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.hxsk/hooks/post-turn-verify.sh",
+            "command": ".hxsk/hooks/post-turn-verify.sh",
             "timeout": 15
           },
           {
             "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.hxsk/hooks/stop-context-save.sh",
+            "command": ".hxsk/hooks/stop-context-save.sh",
             "timeout": 10
           }
         ]
@@ -165,12 +165,12 @@ Claude Code의 **Hooks**는 특정 이벤트에 자동으로 응답하는 스크
         "hooks": [
           {
             "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.hxsk/hooks/save-transcript.sh",
+            "command": ".hxsk/hooks/save-transcript.sh",
             "timeout": 10
           },
           {
             "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.hxsk/hooks/save-session-changes.sh",
+            "command": ".hxsk/hooks/save-session-changes.sh",
             "timeout": 10
           }
         ]
@@ -433,6 +433,10 @@ PreToolUse(Bash) → bash-guard.py 실행
 |------|------|
 | `CLAUDE_PROJECT_DIR` | 프로젝트 루트 디렉토리 |
 | `CLAUDE_PLUGIN_ROOT` | 플러그인 루트 (플러그인에서 사용 시) |
+
+> **주의**: `settings.json`의 `command` 경로에는 상대 경로(`.hxsk/hooks/...`)를 사용하세요.
+> `"$CLAUDE_PROJECT_DIR"`는 훅 러너가 확장하지 못할 수 있습니다.
+> 스크립트 내부에서는 `${CLAUDE_PROJECT_DIR:-.}` (fallback 포함) 패턴을 사용하세요.
 
 ---
 

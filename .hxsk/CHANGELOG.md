@@ -1,0 +1,378 @@
+# Changelog
+
+> Auto-maintained by SessionEnd hook. `.gsd/` 내부 변경은 제외됨.
+
+---
+
+### [2026-03-31] v5.0.1 — Hook 경로 수정
+
+**변경 파일**: 6개 | **Issue**: #001
+
+#### 배경 및 원인
+`.claude/settings.json`의 훅 command 경로에서 `"$CLAUDE_PROJECT_DIR"` 환경변수가 Claude Code 훅 러너에서 확장되지 않아 간헐적 `PreToolUse hook error` 발생.
+
+#### 수정 내용
+- `.claude/settings.json` — 모든 훅 command 경로를 상대 경로(`.hxsk/hooks/...`)로 변경 (11곳)
+- `.hxsk/docs/HOOKS.md` — settings.json 예시 코드 + 환경변수 주의사항 추가
+- `.hxsk/ARCHITECTURE.md` — Conventions 섹션 훅 경로 설명 수정
+- `.hxsk/prompts/setup.md` — Step 6 훅 설치 예시 상대 경로로 수정
+- `.hxsk/prompts/migrate-hook-paths.md` — 기존 프로젝트용 마이그레이션 프롬프트 신규
+- `.hxsk/.bootstrap-version` — 5.0.0 → 5.0.1
+
+---
+
+### [2026-02-05 15:15] Session: fa4bad97
+
+**변경 파일**: 36개
+**추가/삭제**: +387 / -1528
+
+#### 수정된 파일
+- .claude/agents/arch-review.md
+- .claude/agents/bootstrap.md
+- .claude/agents/context-health-monitor.md
+- .claude/agents/executor.md
+- .claude/agents/impact-analysis.md
+- .claude/agents/planner.md
+- .claude/hooks/mcp-recall-memory.sh
+- .claude/hooks/mcp-store-memory.sh
+- .claude/hooks/post-turn-index.sh
+- .claude/hooks/pre-compact-save.sh
+- .claude/hooks/session-start.sh
+- .claude/hooks/stop-context-save.sh
+- .claude/settings.json
+- .claude/skills/arch-review/SKILL.md
+- .claude/skills/bootstrap/SKILL.md
+- .claude/skills/context-health-monitor/SKILL.md
+- .claude/skills/debugger/SKILL.md
+- .claude/skills/executor/SKILL.md
+- .claude/skills/impact-analysis/SKILL.md
+- .claude/skills/memory-protocol/SKILL.md
+- .claude/skills/planner/SKILL.md
+- .github/agents/agent.md
+- .mcp.json
+- CLAUDE.md
+- Makefile
+- pyproject.toml
+- scripts/bootstrap.sh
+- scripts/index-codebase.sh
+- scripts/migrate-memories.py
+- tests/test_sample.py
+- uv.lock
+
+#### 새 파일
+- .claude/hooks/mcp-recall-memory.sh.deprecated
+- .claude/hooks/mcp-store-memory.sh.deprecated
+- .claude/hooks/md-recall-memory.sh
+- .claude/hooks/md-store-memory.sh
+- .claude/hooks/post-turn-index.sh.deprecated
+
+#### 삭제된 파일
+- .claude/hooks/mcp-recall-memory.sh
+- .claude/hooks/mcp-store-memory.sh
+- .claude/hooks/post-turn-index.sh
+- .mcp.json
+- scripts/index-codebase.sh
+- scripts/migrate-memories.py
+
+---
+
+
+### [2026-02-05 15:31] Session: 8037a162
+
+**변경 파일**: 44개
+**추가/삭제**: +624 / -1534
+
+#### 수정된 파일
+- .claude/agents/arch-review.md
+- .claude/agents/bootstrap.md
+- .claude/agents/context-health-monitor.md
+- .claude/agents/executor.md
+- .claude/agents/impact-analysis.md
+- .claude/agents/planner.md
+- .claude/hooks/mcp-recall-memory.sh
+- .claude/hooks/mcp-store-memory.sh
+- .claude/hooks/post-turn-index.sh
+- .claude/hooks/pre-compact-save.sh
+- .claude/hooks/session-start.sh
+- .claude/hooks/stop-context-save.sh
+- .claude/settings.json
+- .claude/skills/arch-review/SKILL.md
+- .claude/skills/bootstrap/SKILL.md
+- .claude/skills/clean/SKILL.md
+- .claude/skills/codebase-mapper/SKILL.md
+- .claude/skills/commit/SKILL.md
+- .claude/skills/context-health-monitor/SKILL.md
+- .claude/skills/create-pr/SKILL.md
+- .claude/skills/debugger/SKILL.md
+- .claude/skills/empirical-validation/SKILL.md
+- .claude/skills/executor/SKILL.md
+- .claude/skills/impact-analysis/SKILL.md
+- .claude/skills/memory-protocol/SKILL.md
+- .claude/skills/plan-checker/SKILL.md
+- .claude/skills/planner/SKILL.md
+- .claude/skills/pr-review/SKILL.md
+- .claude/skills/verifier/SKILL.md
+- .github/agents/agent.md
+- .mcp.json
+- CLAUDE.md
+- Makefile
+- pyproject.toml
+- scripts/bootstrap.sh
+- scripts/index-codebase.sh
+- scripts/migrate-memories.py
+- tests/test_sample.py
+- uv.lock
+
+#### 새 파일
+- .claude/hooks/mcp-recall-memory.sh.deprecated
+- .claude/hooks/mcp-store-memory.sh.deprecated
+- .claude/hooks/md-recall-memory.sh
+- .claude/hooks/md-store-memory.sh
+- .claude/hooks/post-turn-index.sh.deprecated
+
+#### 삭제된 파일
+- .claude/hooks/mcp-recall-memory.sh
+- .claude/hooks/mcp-store-memory.sh
+- .claude/hooks/post-turn-index.sh
+- .mcp.json
+- scripts/index-codebase.sh
+- scripts/migrate-memories.py
+
+---
+
+
+### [2026-02-20] PR #26 — 메모리 스크립트 경로 정규화 (방안 C)
+
+**변경 파일**: 15개 | **PR**: #26
+
+#### 배경 및 원인
+플러그인 환경(`autorag` 등)에서 `bash .claude/hooks/md-store-memory.sh` 실행 시 **exit 127** 발생.
+SKILL.md 내 경로가 보일러플레이트 구조(`.claude/hooks/`)에 하드코딩되어, 플러그인 설치 경로(`.claude/plugins/gsd/scripts/`)와 불일치.
+
+#### 수정된 파일
+- `.claude/skills/` 8개 SKILL.md — `bash .claude/hooks/md-*.sh` → `bash scripts/md-*.sh` (33곳)
+- `.claude/hooks/pre-compact-save.sh` — `COMPACT_SCRIPT` 경로를 `dirname "$0"` 기반 자기참조로 수정
+- `scripts/build-plugin.sh` — Phase 3 치환 로직 + Phase 8 검증 추가
+- `scripts/md-store-memory.sh`, `scripts/md-recall-memory.sh`, `scripts/_json_parse.sh` — 심볼릭 링크 신규 생성
+- `CLAUDE.md`, `.gsd/PATTERNS.md` — 문서 경로 업데이트
+
+#### 개선 사항
+- 보일러플레이트 직접 사용: 심볼릭 링크로 기존 동작 유지
+- 플러그인 빌드: `scripts/` → `${CLAUDE_PLUGIN_ROOT}/scripts/` 자동 치환
+- 빌드 검증 강화: Phase 8에 `.claude/hooks/` 잔존 여부 체크 추가
+
+---
+
+### [2026-02-19 13:49] Session: 1b5a5395
+
+**변경 파일**: 1개
+**추가/삭제**: +1 / -0
+
+#### 수정된 파일
+- CLAUDE.md
+
+---
+
+
+### [2026-02-20 15:01] Session: 4b4dcb1f
+
+**변경 파일**: 124개
+**추가/삭제**: +0 / -0
+
+#### 새 파일
+- gsd-plugin/.claude-plugin/plugin.json
+- gsd-plugin/README.md
+- gsd-plugin/agents/arch-review.md
+- gsd-plugin/agents/bootstrap.md
+- gsd-plugin/agents/clean.md
+- gsd-plugin/agents/codebase-mapper.md
+- gsd-plugin/agents/commit.md
+- gsd-plugin/agents/context-health-monitor.md
+- gsd-plugin/agents/create-pr.md
+- gsd-plugin/agents/debugger.md
+- gsd-plugin/agents/executor.md
+- gsd-plugin/agents/impact-analysis.md
+- gsd-plugin/agents/plan-checker.md
+- gsd-plugin/agents/planner.md
+- gsd-plugin/agents/pr-review.md
+- gsd-plugin/agents/verifier.md
+- gsd-plugin/commands/arch-review.md
+- gsd-plugin/commands/bootstrap.md
+- gsd-plugin/commands/clean.md
+- gsd-plugin/commands/codebase-mapper.md
+- gsd-plugin/commands/commit.md
+- gsd-plugin/commands/context-health-monitor.md
+- gsd-plugin/commands/create-pr.md
+- gsd-plugin/commands/debugger.md
+- gsd-plugin/commands/empirical-validation.md
+- gsd-plugin/commands/executor.md
+- gsd-plugin/commands/impact-analysis.md
+- gsd-plugin/commands/init.md
+- gsd-plugin/commands/memory-protocol.md
+- gsd-plugin/commands/plan-checker.md
+- gsd-plugin/commands/planner.md
+- gsd-plugin/commands/pr-review.md
+- gsd-plugin/commands/verifier.md
+- gsd-plugin/hooks/hooks.json
+- gsd-plugin/references/CLAUDE.md
+- gsd-plugin/references/Makefile
+- gsd-plugin/references/env.example
+- gsd-plugin/references/github-agent.md
+- gsd-plugin/references/gitignore.txt
+- gsd-plugin/references/issue-templates/bug_report.yml
+- gsd-plugin/references/issue-templates/config.yml
+- gsd-plugin/references/issue-templates/feature_request.yml
+- gsd-plugin/references/vscode-extensions.json
+- gsd-plugin/references/vscode-settings.json
+- gsd-plugin/scripts/_json_parse.sh
+- gsd-plugin/scripts/auto-format.sh
+- gsd-plugin/scripts/bash-guard.py
+- gsd-plugin/scripts/compact-context.sh
+- gsd-plugin/scripts/file-protect.py
+- gsd-plugin/scripts/md-recall-memory.sh
+- gsd-plugin/scripts/md-store-memory.sh
+- gsd-plugin/scripts/organize-docs.sh
+- gsd-plugin/scripts/post-turn-verify.sh
+- gsd-plugin/scripts/pre-compact-save.sh
+- gsd-plugin/scripts/save-session-changes.sh
+- gsd-plugin/scripts/save-transcript.sh
+- gsd-plugin/scripts/scaffold-gsd.sh
+- gsd-plugin/scripts/scaffold-infra.sh
+- gsd-plugin/scripts/session-start.sh
+- gsd-plugin/scripts/stop-context-save.sh
+- gsd-plugin/scripts/track-modifications.sh
+- gsd-plugin/skills/arch-review/SKILL.md
+- gsd-plugin/skills/arch-review/scripts/check_complexity.sh
+- gsd-plugin/skills/bootstrap/SKILL.md
+- gsd-plugin/skills/clean/SKILL.md
+- gsd-plugin/skills/clean/scripts/run_quality_checks.sh
+- gsd-plugin/skills/codebase-mapper/SKILL.md
+- gsd-plugin/skills/codebase-mapper/scripts/scan_structure.sh
+- gsd-plugin/skills/commit/SKILL.md
+- gsd-plugin/skills/context-health-monitor/SKILL.md
+- gsd-plugin/skills/context-health-monitor/scripts/dump_state.sh
+- gsd-plugin/skills/create-pr/SKILL.md
+- gsd-plugin/skills/debugger/SKILL.md
+- gsd-plugin/skills/debugger/scripts/collect_diagnostics.sh
+- gsd-plugin/skills/empirical-validation/SKILL.md
+- gsd-plugin/skills/executor/SKILL.md
+- gsd-plugin/skills/impact-analysis/SKILL.md
+- gsd-plugin/skills/memory-protocol/SKILL.md
+- gsd-plugin/skills/plan-checker/SKILL.md
+- gsd-plugin/skills/planner/SKILL.md
+- gsd-plugin/skills/pr-review/SKILL.md
+- gsd-plugin/skills/pr-review/scripts/extract_pr_diff.sh
+- gsd-plugin/skills/verifier/SKILL.md
+- gsd-plugin/skills/verifier/scripts/check_artifacts.sh
+- gsd-plugin/templates/gsd/CHANGELOG.md
+- gsd-plugin/templates/gsd/DECISIONS.md
+- gsd-plugin/templates/gsd/JOURNAL.md
+- gsd-plugin/templates/gsd/PATTERNS.md
+- gsd-plugin/templates/gsd/ROADMAP.md
+- gsd-plugin/templates/gsd/SPEC.md
+- gsd-plugin/templates/gsd/STACK.md
+- gsd-plugin/templates/gsd/STATE.md
+- gsd-plugin/templates/gsd/TODO.md
+- gsd-plugin/templates/gsd/examples/cross-platform.md
+- gsd-plugin/templates/gsd/examples/quick-reference.md
+- gsd-plugin/templates/gsd/examples/workflow-example.md
+- gsd-plugin/templates/gsd/templates/DEBUG.md
+- gsd-plugin/templates/gsd/templates/PLAN.md
+- gsd-plugin/templates/gsd/templates/RESEARCH.md
+- gsd-plugin/templates/gsd/templates/SUMMARY.md
+- gsd-plugin/templates/gsd/templates/UAT.md
+- gsd-plugin/templates/gsd/templates/VERIFICATION.md
+- gsd-plugin/templates/gsd/templates/architecture.md
+- gsd-plugin/templates/gsd/templates/context-config.yaml
+- gsd-plugin/templates/gsd/templates/context.md
+- gsd-plugin/templates/gsd/templates/current.md
+- gsd-plugin/templates/gsd/templates/decisions.md
+- gsd-plugin/templates/gsd/templates/discovery.md
+- gsd-plugin/templates/gsd/templates/journal.md
+- gsd-plugin/templates/gsd/templates/milestone.md
+- gsd-plugin/templates/gsd/templates/patterns.md
+- gsd-plugin/templates/gsd/templates/phase-summary.md
+- gsd-plugin/templates/gsd/templates/project-config.yaml
+- gsd-plugin/templates/gsd/templates/project.md
+- gsd-plugin/templates/gsd/templates/requirements.md
+- gsd-plugin/templates/gsd/templates/roadmap.md
+- gsd-plugin/templates/gsd/templates/spec.md
+- gsd-plugin/templates/gsd/templates/sprint.md
+- gsd-plugin/templates/gsd/templates/stack.md
+- gsd-plugin/templates/gsd/templates/state.md
+- gsd-plugin/templates/gsd/templates/todo.md
+- gsd-plugin/templates/gsd/templates/user-setup.md
+- logo.mp4
+- logo.png
+
+---
+
+
+### [2026-03-05 11:32] Session: 817df819
+
+**변경 파일**: 2개
+**추가/삭제**: +37 / -0
+
+#### 수정된 파일
+- .claude/skills/executor/SKILL.md
+
+#### 새 파일
+- .claude/skills/handoff/SKILL.md
+
+---
+
+
+### [2026-03-11 15:49] Session: 2a02d78f
+
+**변경 파일**: 1개
+**추가/삭제**: +0 / -0
+
+#### 새 파일
+- docs/PLUGIN-REGISTRATION.md
+
+---
+
+
+### [2026-03-24 13:12] Session: 99dfb92a
+
+**변경 파일**: 12개
+**추가/삭제**: +0 / -0
+
+#### 새 파일
+- .claude/worktrees/agent-a1140817/
+- .claude/worktrees/agent-a1f6868a/
+- .claude/worktrees/agent-a2683ea2/
+- .claude/worktrees/agent-a4a2afac/
+- .claude/worktrees/agent-a4a3f06e/
+- .claude/worktrees/agent-a59ada2e/
+- .claude/worktrees/agent-a6d2372d/
+- .claude/worktrees/agent-a7ca556c/
+- .claude/worktrees/agent-a9a81c13/
+- .claude/worktrees/agent-ab60f139/
+- .claude/worktrees/agent-abf5a6f8/
+- .claude/worktrees/agent-ae39195b/
+
+---
+
+
+### [2026-03-24 14:50] Session: 7ecfdecc
+
+**변경 파일**: 12개
+**추가/삭제**: +0 / -0
+
+#### 새 파일
+- .claude/worktrees/agent-a1140817/
+- .claude/worktrees/agent-a1f6868a/
+- .claude/worktrees/agent-a2683ea2/
+- .claude/worktrees/agent-a4a2afac/
+- .claude/worktrees/agent-a4a3f06e/
+- .claude/worktrees/agent-a59ada2e/
+- .claude/worktrees/agent-a6d2372d/
+- .claude/worktrees/agent-a7ca556c/
+- .claude/worktrees/agent-a9a81c13/
+- .claude/worktrees/agent-ab60f139/
+- .claude/worktrees/agent-abf5a6f8/
+- .claude/worktrees/agent-ae39195b/
+
+---
+

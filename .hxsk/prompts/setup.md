@@ -96,10 +96,10 @@ ln -sf AGENTS.md .windsurfrules
 ```json
 {
   "hooks": {
-    "SessionStart": [{"matcher": "startup|resume", "hooks": [{"type": "command", "command": "\"$CLAUDE_PROJECT_DIR\"/.hxsk/hooks/session-start.sh", "timeout": 10}]}],
+    "SessionStart": [{"matcher": "startup|resume", "hooks": [{"type": "command", "command": ".hxsk/hooks/session-start.sh", "timeout": 10}]}],
     "PreToolUse": [
-      {"matcher": "Edit|Write|Read", "hooks": [{"type": "command", "command": "\"$CLAUDE_PROJECT_DIR\"/.hxsk/hooks/file-protect.py", "timeout": 5}]},
-      {"matcher": "Bash", "hooks": [{"type": "command", "command": "\"$CLAUDE_PROJECT_DIR\"/.hxsk/hooks/bash-guard.py", "timeout": 5}]}
+      {"matcher": "Edit|Write|Read", "hooks": [{"type": "command", "command": ".hxsk/hooks/file-protect.py", "timeout": 5}]},
+      {"matcher": "Bash", "hooks": [{"type": "command", "command": ".hxsk/hooks/bash-guard.py", "timeout": 5}]}
     ]
   }
 }
