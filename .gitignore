@@ -1,10 +1,8 @@
 # ═══════════════════════════════════════════════════
-# Developer Boilerplate .gitignore
+# HExoskeleton .gitignore
 # ═══════════════════════════════════════════════════
 
-# ─────────────────────────────────────────────────────
-# OS & IDE
-# ─────────────────────────────────────────────────────
+# ─── OS & IDE ─────────────────────────────────────
 .DS_Store
 Thumbs.db
 .cursor/
@@ -13,9 +11,7 @@ Thumbs.db
 *.swp
 *.swo
 
-# ─────────────────────────────────────────────────────
-# Python
-# ─────────────────────────────────────────────────────
+# ─── Python ───────────────────────────────────────
 venv/
 .venv/
 __pycache__/
@@ -48,9 +44,7 @@ htmlcov/
 .tox/
 .nox/
 
-# ─────────────────────────────────────────────────────
-# Node.js
-# ─────────────────────────────────────────────────────
+# ─── Node.js ─────────────────────────────────────
 node_modules/
 .next/
 .nuxt/
@@ -60,9 +54,7 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# ─────────────────────────────────────────────────────
-# Environment & Secrets
-# ─────────────────────────────────────────────────────
+# ─── Environment & Secrets ───────────────────────
 .env
 .env.local
 .env.*.local
@@ -71,62 +63,55 @@ yarn-error.log*
 *.key
 secrets/
 
-# ─────────────────────────────────────────────────────
-# Project
-# ─────────────────────────────────────────────────────
-
-# code-graph-rag index data (regenerated on demand)
-.code-graph-rag/
-.graph-index/
-vectors.db*
-
-# Integrated Agent Data & Logs
-.agent/data/
-.agent/logs/
-
-# Legacy/External Local Logs (Symlinked or specific)
-.logs/
-logs_llm/
-*.log
-
-# Session transcripts (saved by SessionEnd hook)
-.sessions/*.jsonl
-
-# GSD — 핵심 문서와 templates/examples만 버전 관리
+# ─── HXSK ────────────────────────────────────────
+# 기본: .hxsk/ 전체 무시, 아래 예외만 추적
 .hxsk/*
-!.hxsk/templates/
-!.hxsk/examples/
+
+# 루트 문서 (working docs + 메타)
+!.hxsk/.bootstrap-version
 !.hxsk/STATE.md
 !.hxsk/PATTERNS.md
-!.hxsk/issues/
-.hxsk/issues/MASTER-*.md
-.hxsk/issues/WORK-*.md
-.hxsk/issues/archive/
+!.hxsk/SPEC.md
+!.hxsk/ARCHITECTURE.md
+!.hxsk/CHANGELOG.md
+!.hxsk/DECISIONS.md
+!.hxsk/ROADMAP.md
+!.hxsk/STACK.md
+!.hxsk/TODO.md
+!.hxsk/VERIFICATION.md
+!.hxsk/CURRENT.md
+!.hxsk/JOURNAL.md
+
+# 하위 디렉토리 (코어 구성요소)
 !.hxsk/skills/
 !.hxsk/agents/
 !.hxsk/hooks/
-!.hxsk/research/
+!.hxsk/templates/
+!.hxsk/examples/
 !.hxsk/scripts/
 !.hxsk/docs/
 !.hxsk/prompts/
-*.pre-compact.bak
+!.hxsk/research/
+!.hxsk/issues/
 
-# Agent memory (ephemeral)
+# 이슈: MASTER/WORK는 런타임 생성 → 무시
+.hxsk/issues/MASTER-*.md
+.hxsk/issues/WORK-*.md
+.hxsk/issues/archive/
+
+# ─── Session & Logs ──────────────────────────────
+.sessions/*.jsonl
+*.log
+
+# ─── Agent Memory (ephemeral) ────────────────────
 .agent/memory.jsonl
 **/memory.jsonl
 
-# System prompt patching workspace (make patch-prompt)
-.patch-workspace/
+# ─── Worktrees ───────────────────────────────────
+.worktrees/
+.claude/worktrees/
 
-# External reference repos (not part of boilerplate core)
-awesome-claude-code/
-claude-code-tips/
-everything-claude-code/
-ralph/
-
-# ─────────────────────────────────────────────────────
-# Database
-# ─────────────────────────────────────────────────────
+# ─── Database ────────────────────────────────────
 *.db
 *.db-shm
 *.db-wal
@@ -135,27 +120,15 @@ ralph/
 *.sqlite3
 surreal.db/
 
-# ─────────────────────────────────────────────────────
-# Build artifacts
-# ─────────────────────────────────────────────────────
+# ─── Build Artifacts ─────────────────────────────
 *.a
 *.o
 *.dll
 *.dylib
 
-# ─────────────────────────────────────────────────────
-# Miscellaneous
-# ─────────────────────────────────────────────────────
+# ─── Miscellaneous ───────────────────────────────
 tmp/
 temp/
 *.tmp
 *.bak
 settings.local.json
-.hxsk/.modified-this-session
-.worktrees/
-.claude/worktrees/
-
-# Build artifacts
-antigravity-boilerplate/
-hxsk-plugin/
-opencode-boilerplate/
