@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.hxsk/hooks/session-start.sh",
+            "command": ".hxsk/hooks/session-start.sh",
             "timeout": 10
           }
         ]
@@ -18,7 +18,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.hxsk/hooks/file-protect.py",
+            "command": ".hxsk/hooks/file-protect.py",
             "timeout": 5
           }
         ]
@@ -28,7 +28,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.hxsk/hooks/bash-guard.py",
+            "command": ".hxsk/hooks/bash-guard.py",
             "timeout": 5
           }
         ]
@@ -40,12 +40,12 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.hxsk/hooks/auto-format.sh",
+            "command": ".hxsk/hooks/auto-format.sh",
             "timeout": 30
           },
           {
             "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.hxsk/hooks/track-modifications.sh",
+            "command": ".hxsk/hooks/track-modifications.sh",
             "timeout": 2
           }
         ]
@@ -55,7 +55,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.hxsk/hooks/track-modifications.sh",
+            "command": ".hxsk/hooks/track-modifications.sh",
             "timeout": 2
           }
         ]
@@ -67,7 +67,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.hxsk/hooks/pre-compact-save.sh",
+            "command": ".hxsk/hooks/pre-compact-save.sh",
             "timeout": 10
           }
         ]
@@ -78,12 +78,12 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.hxsk/hooks/post-turn-verify.sh",
+            "command": ".hxsk/hooks/post-turn-verify.sh",
             "timeout": 15
           },
           {
             "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.hxsk/hooks/stop-context-save.sh",
+            "command": ".hxsk/hooks/stop-context-save.sh",
             "timeout": 10
           }
         ]
@@ -104,12 +104,12 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.hxsk/hooks/save-transcript.sh",
+            "command": ".hxsk/hooks/save-transcript.sh",
             "timeout": 10
           },
           {
             "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.hxsk/hooks/save-session-changes.sh",
+            "command": ".hxsk/hooks/save-session-changes.sh",
             "timeout": 10
           }
         ]
