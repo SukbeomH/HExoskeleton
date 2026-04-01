@@ -166,10 +166,18 @@ Source Components:
 - [x] detect-language.sh 빌드 타겟 미포함 — 범용 유틸로 존속
 - [x] convert-hooks-to-plugins.py — 빌드 시스템과 함께 삭제
 
+**해소 완료 (2026-04-01, v5.1.1):**
+- [x] `$CLAUDE_PROJECT_DIR` 훅 경로 미확장 → 상대 경로 전환
+- [x] setup.md 훅 이벤트 5개 누락 → 전체 8개 반영
+- [x] setup.md 에이전트 복사 단계 누락 → Step 4에 추가
+- [x] bootstrap.sh `count_*` pipefail 충돌 → `mkdir -p` guard
+- [x] bootstrap.sh memories 빈 디렉토리 스킵 → 누락 타입 개별 보충
+- [x] .gitignore allowlist(23예외) → blocklist(10규칙) 전환
+
 **잔여:**
 - [ ] `bootstrap.sh:90` python3 버전 체크 — hooks에 필요한 python3 확인용, 기능상 문제 없음
 
 ---
 
 *Generated: 2026-03-24*
-*Updated: 2026-03-25 — Wave 4 통합 검증 완료. parallel-debt-and-infra 플랜 종결*
+*Updated: 2026-04-01 — v5.1.1 설치 완성도 개선 + 훅 경로 수정*
