@@ -43,9 +43,9 @@ test -f .hxsk/.bootstrap-version && echo "UPDATE" || echo "FRESH"
 └── examples/     ← 사용 예시
 ```
 
-### Step 4: 스킬 설치
+### Step 4: 스킬 및 에이전트 설치
 
-`.hxsk/skills/INDEX.md`를 참조하여 스킬을 가져오세요.
+`.hxsk/skills/INDEX.md`를 참조하여 스킬을, `.hxsk/agents/INDEX.md`를 참조하여 에이전트를 가져오세요.
 
 **필수 스킬** (반드시 설치):
 
@@ -59,14 +59,21 @@ test -f .hxsk/.bootstrap-version && echo "UPDATE" || echo "FRESH"
 
 **Claude Code 설치 방법:**
 ```bash
-# .hxsk/skills/ 에서 .claude/skills/ 로 복사
+# 스킬: .hxsk/skills/ → .claude/skills/
 for skill in bootstrap planner executor verifier memory-protocol; do
     mkdir -p .claude/skills/$skill
     cp .hxsk/skills/$skill/SKILL.md .claude/skills/$skill/SKILL.md
 done
+
+# 에이전트: .hxsk/agents/*.md → .claude/agents/ (INDEX.md 제외)
+mkdir -p .claude/agents
+for agent in .hxsk/agents/*.md; do
+    [[ "$(basename "$agent")" == "INDEX.md" ]] && continue
+    cp "$agent" .claude/agents/
+done
 ```
 
-**Gemini CLI** → `.agent/skills/{name}/SKILL.md`에 배치
+**Gemini CLI** → `.agent/skills/{name}/SKILL.md`, `.agent/agents/{name}.md`에 배치
 **기타** → 에이전트 문서에 따라 배치
 
 > **주의**: `.hxsk/.bootstrap-version` 파일을 직접 생성하지 마세요. `bootstrap.sh`가 자동 생성합니다.
@@ -96,10 +103,37 @@ ln -sf AGENTS.md .windsurfrules
 ```json
 {
   "hooks": {
-    "SessionStart": [{"matcher": "startup|resume", "hooks": [{"type": "command", "command": ".hxsk/hooks/session-start.sh", "timeout": 10}]}],
+    "SessionStart": [
+      {"matcher": "startup|resume", "hooks": [{"type": "command", "command": ".hxsk/hooks/session-start.sh", "timeout": 10}]}
+    ],
     "PreToolUse": [
       {"matcher": "Edit|Write|Read", "hooks": [{"type": "command", "command": ".hxsk/hooks/file-protect.py", "timeout": 5}]},
       {"matcher": "Bash", "hooks": [{"type": "command", "command": ".hxsk/hooks/bash-guard.py", "timeout": 5}]}
+    ],
+    "PostToolUse": [
+      {"matcher": "Edit|Write", "hooks": [
+        {"type": "command", "command": ".hxsk/hooks/auto-format.sh", "timeout": 30},
+        {"type": "command", "command": ".hxsk/hooks/track-modifications.sh", "timeout": 2}
+      ]},
+      {"matcher": "Bash", "hooks": [{"type": "command", "command": ".hxsk/hooks/track-modifications.sh", "timeout": 2}]}
+    ],
+    "PreCompact": [
+      {"matcher": "auto|manual", "hooks": [{"type": "command", "command": ".hxsk/hooks/pre-compact-save.sh", "timeout": 10}]}
+    ],
+    "Stop": [
+      {"hooks": [
+        {"type": "command", "command": ".hxsk/hooks/post-turn-verify.sh", "timeout": 15},
+        {"type": "command", "command": ".hxsk/hooks/stop-context-save.sh", "timeout": 10}
+      ]}
+    ],
+    "SubagentStop": [
+      {"hooks": [{"type": "prompt", "prompt": "## SubagentStop\n- 핵심 결과 2-3문장 요약\n- 코드 변경 시: `touch .hxsk/.modified-this-session`\n- 재사용 패턴 발견 시: PATTERNS.md에 추가 검토\n- 스킬 본문을 결과에 복제하지 말 것"}]}
+    ],
+    "SessionEnd": [
+      {"hooks": [
+        {"type": "command", "command": ".hxsk/hooks/save-transcript.sh", "timeout": 10},
+        {"type": "command", "command": ".hxsk/hooks/save-session-changes.sh", "timeout": 10}
+      ]}
     ]
   }
 }
@@ -127,9 +161,11 @@ bash .hxsk/hooks/md-recall-memory.sh "검색어" "." 5 compact
 
 - [ ] 에이전트 지침 파일이 프로젝트 루트에 존재
 - [ ] `.hxsk/` 디렉토리에 SPEC.md, STATE.md, PATTERNS.md 존재
+- [ ] SPEC.md에 프로젝트 실제 내용 반영 (플레이스홀더 `{...}` 가 남아있으면 안 됨)
 - [ ] 필수 스킬 5개가 에이전트 설정 디렉토리에 배치됨 (bootstrap, planner, executor, verifier, memory-protocol)
+- [ ] 에이전트 정의 파일이 에이전트 설정 디렉토리에 배치됨
 - [ ] (선택) 에이전트별 심볼릭 링크 생성됨
-- [ ] (Claude Code) 훅이 `.claude/settings.json`에 등록됨
+- [ ] (Claude Code) 훅 **8개 이벤트** 모두 `.claude/settings.json`에 등록됨 (SessionStart, PreToolUse, PostToolUse, PreCompact, Stop, SubagentStop, SessionEnd)
 - [ ] (Claude Code) 메모리 명령어 동작 확인
 
 ### 초기 설치 후 다음 단계
