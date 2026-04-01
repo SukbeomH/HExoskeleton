@@ -223,17 +223,22 @@ fi
 echo ""
 echo "--- HXSK Structure ---"
 
-# Memory directories
-if [[ -d ".hxsk/memories" ]]; then
-    MEM_COUNT=$(count_memories)
-    if [[ "$MODE" = "fresh" ]]; then
-        report_new ".hxsk/memories/" "${MEM_COUNT} type directories"
-    else
-        report_ok ".hxsk/memories/" "${MEM_COUNT} type directories"
+# Memory directories — 존재 여부와 무관하게 누락 타입 보충
+MEMORY_TYPES=(architecture-decision root-cause debug-eliminated debug-blocked health-event session-handoff execution-summary deviation pattern-discovery bootstrap session-summary session-snapshot security-finding general _schema)
+CREATED_MEM=0
+for mtype in "${MEMORY_TYPES[@]}"; do
+    if [[ ! -d ".hxsk/memories/$mtype" ]]; then
+        mkdir -p ".hxsk/memories/$mtype"
+        ((CREATED_MEM++)) || true
     fi
+done
+MEM_COUNT=$(count_memories)
+if [[ "$CREATED_MEM" -gt 0 ]]; then
+    report_new ".hxsk/memories/" "created ${CREATED_MEM} missing types (total: ${MEM_COUNT})"
+elif [[ "$MODE" = "fresh" ]]; then
+    report_new ".hxsk/memories/" "${MEM_COUNT} type directories"
 else
-    mkdir -p .hxsk/memories/{architecture-decision,root-cause,debug-eliminated,debug-blocked,health-event,session-handoff,execution-summary,deviation,pattern-discovery,bootstrap,session-summary,session-snapshot,security-finding,general,_schema}
-    report_new ".hxsk/memories/" "created (14 types + _schema)"
+    report_ok ".hxsk/memories/" "${MEM_COUNT} type directories"
 fi
 
 # Context directories

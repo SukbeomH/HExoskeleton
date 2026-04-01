@@ -120,6 +120,16 @@ Claude Code의 **Hooks**는 특정 이벤트에 자동으로 응답하는 스크
             "timeout": 2
           }
         ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".hxsk/hooks/track-modifications.sh",
+            "timeout": 2
+          }
+        ]
       }
     ],
     "PreCompact": [
@@ -155,7 +165,7 @@ Claude Code의 **Hooks**는 특정 이벤트에 자동으로 응답하는 스크
         "hooks": [
           {
             "type": "prompt",
-            "prompt": "Subagent task completed. If significant findings..."
+            "prompt": "## SubagentStop\n- 핵심 결과 2-3문장 요약\n- 코드 변경 시: `touch .hxsk/.modified-this-session`\n- 재사용 패턴 발견 시: PATTERNS.md에 추가 검토\n- 스킬 본문을 결과에 복제하지 말 것"
           }
         ]
       }
