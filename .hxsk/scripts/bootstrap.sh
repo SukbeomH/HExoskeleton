@@ -17,7 +17,7 @@ set -o pipefail
 # Version & Mode Detection
 # ─────────────────────────────────────────────────────
 
-BOOTSTRAP_VERSION="5.1.0"
+BOOTSTRAP_VERSION="5.1.1"
 VERSION_FILE=".hxsk/.bootstrap-version"
 HOOK_DIR=".hxsk/hooks"
 MODE="fresh"
@@ -108,11 +108,11 @@ report_context() {
     fi
 }
 
-# 컴포넌트 수 세기
-count_skills() { find .hxsk/skills -name "SKILL.md" 2>/dev/null | wc -l | tr -d ' '; }
-count_agents() { find .hxsk/agents -name "*.md" -not -name "INDEX.md" 2>/dev/null | wc -l | tr -d ' '; }
-count_hooks()  { find .hxsk/hooks -name "*.sh" -o -name "*.py" 2>/dev/null | wc -l | tr -d ' '; }
-count_memories() { find .hxsk/memories -mindepth 1 -maxdepth 1 -type d -not -name "_schema" 2>/dev/null | wc -l | tr -d ' '; }
+# 컴포넌트 수 세기 (mkdir -p guard: 디렉토리 부재 시 pipefail 방지)
+count_skills()   { mkdir -p .hxsk/skills;   find .hxsk/skills -name "SKILL.md" 2>/dev/null | wc -l | tr -d ' '; }
+count_agents()   { mkdir -p .hxsk/agents;   find .hxsk/agents -name "*.md" -not -name "INDEX.md" 2>/dev/null | wc -l | tr -d ' '; }
+count_hooks()    { mkdir -p .hxsk/hooks;    find .hxsk/hooks -name "*.sh" -o -name "*.py" 2>/dev/null | wc -l | tr -d ' '; }
+count_memories() { mkdir -p .hxsk/memories; find .hxsk/memories -mindepth 1 -maxdepth 1 -type d -not -name "_schema" 2>/dev/null | wc -l | tr -d ' '; }
 
 # ─────────────────────────────────────────────────────
 # Header
