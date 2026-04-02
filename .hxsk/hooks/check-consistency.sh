@@ -230,6 +230,235 @@ if [[ -f "$VERSION_FILE" ]]; then
     fi
 fi
 
+# ─── 7. Agent frontmatter 필수 필드 ───────────────
+
+echo ""
+echo "=== Agent/Skill frontmatter ==="
+
+MISSING_FM=0
+# Agent: description, tools 필수
+for agent_file in "$HXSK_DIR/agents/"*.md; do
+    [[ ! -f "$agent_file" ]] && continue
+    bn=$(basename "$agent_file")
+    [[ "$bn" == "INDEX.md" ]] && continue
+    # frontmatter 영역 (첫 --- ~ 두번째 ---)
+    FM=$(sed -n '/^---$/,/^---$/p' "$agent_file" 2>/dev/null)
+    if [[ -z "$FM" ]]; then
+        fail "Agent $bn: frontmatter missing"
+        ((MISSING_FM++)) || true
+        continue
+    fi
+    if ! echo "$FM" | grep -q 'description:'; then
+        fail "Agent $bn: description field missing"
+        ((MISSING_FM++)) || true
+    fi
+    if ! echo "$FM" | grep -q 'tools:'; then
+        fail "Agent $bn: tools field missing"
+        ((MISSING_FM++)) || true
+    fi
+done
+
+# Skill: frontmatter with name + description
+for skill_dir in "$HXSK_DIR/skills/"*/; do
+    skill_file="$skill_dir/SKILL.md"
+    [[ ! -f "$skill_file" ]] && continue
+    sn=$(basename "$skill_dir")
+    FM=$(sed -n '/^---$/,/^---$/p' "$skill_file" 2>/dev/null)
+    if [[ -z "$FM" ]]; then
+        # frontmatter 없는 스킬은 경고만
+        warn "Skill $sn: no frontmatter"
+        continue
+    fi
+    if ! echo "$FM" | grep -q 'description:'; then
+        fail "Skill $sn: description field missing"
+        ((MISSING_FM++)) || true
+    fi
+done
+
+if [[ "$MISSING_FM" -eq 0 ]]; then
+    pass "Agent/Skill frontmatter fields OK"
+fi
+
+# ─── 8. Hook 실행 권한 + shebang ─────────────────
+
+echo ""
+echo "=== Hook 실행 권한 + shebang ==="
+
+PERM_FAIL=0
+while IFS= read -r hook_file; do
+    [[ -z "$hook_file" ]] && continue
+    bn=$(basename "$hook_file")
+    # 실행 권한 확인
+    if [[ ! -x "$hook_file" ]]; then
+        fail "$bn: not executable (chmod +x needed)"
+        ((PERM_FAIL++)) || true
+    fi
+    # shebang 확인
+    FIRST_LINE=$(head -1 "$hook_file")
+    case "$bn" in
+        *.sh)
+            if [[ "$FIRST_LINE" != "#!/usr/bin/env bash" && "$FIRST_LINE" != "#!/bin/bash" ]]; then
+                fail "$bn: bad shebang '$FIRST_LINE'"
+                ((PERM_FAIL++)) || true
+            fi
+            ;;
+        *.py)
+            if [[ "$FIRST_LINE" != "#!/usr/bin/env python3" ]]; then
+                fail "$bn: bad shebang '$FIRST_LINE'"
+                ((PERM_FAIL++)) || true
+            fi
+            ;;
+    esac
+done < <(find "$HXSK_DIR/hooks" \( -name "*.sh" -o -name "*.py" \) 2>/dev/null)
+
+if [[ "$PERM_FAIL" -eq 0 ]]; then
+    pass "Hook permissions + shebangs OK"
+fi
+
+# ─── 9. 심볼릭 링크 유효성 ───────────────────────
+
+echo ""
+echo "=== Symlink validity ==="
+
+LINK_FAIL=0
+for link in "$PROJECT_DIR/.cursorrules" "$PROJECT_DIR/.windsurfrules" "$PROJECT_DIR/.github/copilot-instructions.md"; do
+    if [[ -L "$link" ]]; then
+        TARGET=$(readlink "$link")
+        # 절대/상대 경로 해석
+        if [[ "$TARGET" == /* ]]; then
+            RESOLVED="$TARGET"
+        else
+            RESOLVED="$(dirname "$link")/$TARGET"
+        fi
+        if [[ ! -e "$RESOLVED" ]]; then
+            fail "Symlink $(basename "$link") -> $TARGET (broken)"
+            ((LINK_FAIL++)) || true
+        else
+            pass "Symlink $(basename "$link") -> $TARGET"
+        fi
+    fi
+    # 심볼릭 링크가 없으면 무시 (선택 사항)
+done
+
+if [[ "$LINK_FAIL" -eq 0 && "$(find "$PROJECT_DIR" -maxdepth 1 -name ".cursorrules" -o -name ".windsurfrules" 2>/dev/null | wc -l | tr -d ' ')" -eq 0 ]]; then
+    warn "No agent symlinks found (optional)"
+fi
+
+# ─── 10. 템플릿 플레이스홀더 잔존 ────────────────
+
+echo ""
+echo "=== Placeholder detection ==="
+
+PH_FAIL=0
+# working docs에서 플레이스홀더 패턴 검색 (templates/ 제외)
+for wdoc in "$HXSK_DIR/SPEC.md" "$HXSK_DIR/STATE.md" "$HXSK_DIR/DECISIONS.md" "$HXSK_DIR/ROADMAP.md"; do
+    [[ ! -f "$wdoc" ]] && continue
+    bn=$(basename "$wdoc")
+    # {Goal 1}, {Brief description} 등 — ${VAR} 환경변수 패턴 제외
+    PLACEHOLDERS=$(grep -n '{[A-Z]' "$wdoc" 2>/dev/null | grep -v '\$\{' | grep -v '```' | head -3 || true)
+    if [[ -n "$PLACEHOLDERS" ]]; then
+        fail "$bn: placeholder found — $(echo "$PLACEHOLDERS" | head -1)"
+        ((PH_FAIL++)) || true
+    fi
+done
+
+if [[ "$PH_FAIL" -eq 0 ]]; then
+    pass "No template placeholders in working docs"
+fi
+
+# ─── 11. 메모리 타입 디렉토리 커버리지 ────────────
+
+echo ""
+echo "=== Memory type coverage ==="
+
+REQUIRED_TYPES="architecture-decision root-cause debug-eliminated debug-blocked health-event session-handoff execution-summary deviation pattern-discovery bootstrap session-summary session-snapshot security-finding general"
+MEM_MISSING=0
+for mtype in $REQUIRED_TYPES; do
+    if [[ ! -d "$HXSK_DIR/memories/$mtype" ]]; then
+        fail "Memory type missing: $mtype"
+        ((MEM_MISSING++)) || true
+    fi
+done
+
+if [[ "$MEM_MISSING" -eq 0 ]]; then
+    pass "Memory types: all 14 present"
+fi
+
+# ─── 12. 데드 에이전트/스킬 탐지 ─────────────────
+
+echo ""
+echo "=== Dead component detection ==="
+
+DEAD_COUNT=0
+# 모든 참조 가능 파일을 하나의 검색 풀로 결합
+SEARCH_FILES=$(find "$PROJECT_DIR" -maxdepth 1 -name "*.md" 2>/dev/null; echo "$HXSK_DIR/skills/"*/SKILL.md; echo "$HXSK_DIR/agents/"*.md; find "$HXSK_DIR/docs" -name "*.md" 2>/dev/null)
+
+for agent_file in "$HXSK_DIR/agents/"*.md; do
+    [[ ! -f "$agent_file" ]] && continue
+    bn=$(basename "$agent_file" .md)
+    [[ "$bn" == "INDEX" ]] && continue
+    # INDEX.md 이외의 파일에서 에이전트명이 참조되는지
+    REF_COUNT=$(grep -rl "$bn" $SEARCH_FILES 2>/dev/null | grep -v "INDEX.md" | grep -v "$agent_file" | wc -l | tr -d ' ')
+    if [[ "$REF_COUNT" -eq 0 ]]; then
+        warn "Agent '$bn' referenced nowhere (possible dead component)"
+        ((DEAD_COUNT++)) || true
+    fi
+done
+
+for skill_dir in "$HXSK_DIR/skills/"*/; do
+    [[ ! -d "$skill_dir" ]] && continue
+    sn=$(basename "$skill_dir")
+    REF_COUNT=$(grep -rl "$sn" $SEARCH_FILES 2>/dev/null | grep -v "INDEX.md" | grep -v "$skill_dir" | wc -l | tr -d ' ')
+    if [[ "$REF_COUNT" -eq 0 ]]; then
+        warn "Skill '$sn' referenced nowhere (possible dead component)"
+        ((DEAD_COUNT++)) || true
+    fi
+done
+
+if [[ "$DEAD_COUNT" -eq 0 ]]; then
+    pass "No dead agents/skills detected"
+else
+    pass "Dead component scan: $DEAD_COUNT warnings"
+fi
+
+# ─── 13. set -euo pipefail 일관성 ────────────────
+
+echo ""
+echo "=== Strict mode (set -euo pipefail) ==="
+
+STRICT_FAIL=0
+while IFS= read -r sh_file; do
+    [[ -z "$sh_file" ]] && continue
+    bn=$(basename "$sh_file")
+    # _json_parse.sh 같은 라이브러리 파일은 제외
+    [[ "$bn" == _* ]] && continue
+    if ! grep -q 'set -o errexit\|set -euo\|set -e' "$sh_file" 2>/dev/null; then
+        warn "$bn: no strict mode (set -e/errexit)"
+        ((STRICT_FAIL++)) || true
+    fi
+done < <(find "$HXSK_DIR/hooks" -name "*.sh" 2>/dev/null; find "$HXSK_DIR/scripts" -name "*.sh" 2>/dev/null)
+
+if [[ "$STRICT_FAIL" -eq 0 ]]; then
+    pass "All shell scripts use strict mode"
+fi
+
+# ─── 14. settings.json JSON 문법 ─────────────────
+
+echo ""
+echo "=== settings.json JSON syntax ==="
+
+if [[ -f "$SETTINGS" ]]; then
+    if command -v python3 &>/dev/null; then
+        if python3 -m json.tool < "$SETTINGS" >/dev/null 2>&1; then
+            pass "settings.json: valid JSON"
+        else
+            fail "settings.json: invalid JSON syntax"
+        fi
+    else
+        warn "python3 not found — JSON validation skipped"
+    fi
+fi
+
 # ─── Summary ──────────────────────────────────────
 
 echo ""
