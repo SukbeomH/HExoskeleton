@@ -6,7 +6,7 @@
 |-------|-------------|-------|------|
 | arch-review | Validates architectural rules and ensures design quality | opus | `agents/arch-review.md` |
 | bootstrap | Complete initial project setup -- deps verification, directory setup, codebase analysis, and memory initialization | sonnet | `agents/bootstrap.md` |
-| clean | Runs all code quality tools (ruff, mypy) and auto-fixes issues | haiku | `agents/clean.md` |
+| clean | Runs code quality checks (shellcheck, shfmt) and auto-fixes issues | haiku | `agents/clean.md` |
 | codebase-mapper | Analyzes existing codebases to understand structure, patterns, and technical debt | sonnet | `agents/codebase-mapper.md` |
 | commit | Analyzes diffs, splits logical changes, creates conventional emoji commits | haiku | `agents/commit.md` |
 | context-health-monitor | Monitors context complexity and triggers state dumps before quality degrades | haiku | `agents/context-health-monitor.md` |

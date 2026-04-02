@@ -94,7 +94,7 @@ If matches found, review past root causes and eliminated hypotheses to avoid rep
 When a hypothesis is disproved, persist it to prevent future sessions from re-investigating:
 
 ```bash
-bash .hxsk/scripts/md-store-memory.sh \
+bash .hxsk/hooks/md-store-memory.sh \
   "Eliminated: {hypothesis}" \
   "{evidence that disproved this hypothesis}" \
   "debug,eliminated,{component}" \
@@ -106,7 +106,7 @@ bash .hxsk/scripts/md-store-memory.sh \
 When the root cause is identified, persist the full finding:
 
 ```bash
-bash .hxsk/scripts/md-store-memory.sh \
+bash .hxsk/hooks/md-store-memory.sh \
   "Root Cause: {cause}" \
   "{evidence, fix applied, verification result}" \
   "debug,root-cause,{component}" \
@@ -120,7 +120,7 @@ If related to a past bug, use tag encoding to link them (`related:{slug}`).
 When the 3-strike rule activates, persist the blocked state for the next session:
 
 ```bash
-bash .hxsk/scripts/md-store-memory.sh \
+bash .hxsk/hooks/md-store-memory.sh \
   "Blocked: {issue}" \
   "{approaches tried, errors seen, remaining hypotheses}" \
   "debug,blocked,3-strike" \
@@ -356,4 +356,4 @@ QUESTION: {what's needed from user}
 
 ## Scripts
 
-- `scripts/collect_diagnostics.sh`: Gather system info, runtime versions, git status, dependencies, and Docker state
+(없음 — Bash, Read, Grep 등 에이전트 네이티브 도구로 직접 수행)

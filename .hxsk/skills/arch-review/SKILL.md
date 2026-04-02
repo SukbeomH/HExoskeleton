@@ -12,7 +12,7 @@ trigger: "아키텍처 검토, 레이어 위반 확인, 순환 의존성, 설계
 
 ## Quick Reference
 - **순환 import**: `Grep(pattern: "from.*import", path: "src/")` → 그래프 분석
-- **복잡도 검사**: `bash .hxsk/skills/arch-review/scripts/check_complexity.sh`
+- **복잡도 검사**: `shellcheck` + `Grep` 기반 분석
 - **레이어 검증**: UI → Service → Repository 순방향만 허용
 - **설계 문서 검토**: 논리 모순, 실현 가능성, 엣지 케이스, 기존 시스템 호환성
 - **Severity**: LOW (log), MEDIUM (DECISIONS.md 기록), HIGH (block), CRITICAL (stop)
@@ -32,7 +32,7 @@ trigger: "아키텍처 검토, 레이어 위반 확인, 순환 의존성, 설계
 아키텍처 리뷰 전 과거 결정 사항을 recall하여 일관성을 검증한다:
 
 ```bash
-bash .hxsk/scripts/md-recall-memory.sh "architecture" "." 5 compact
+bash .hxsk/hooks/md-recall-memory.sh "architecture" "." 5 compact
 ```
 
 또는 네이티브 도구:
@@ -59,7 +59,7 @@ Grep(pattern: "from.*ui.*import|import.*ui", path: "src/repository/", output_mod
 
 복잡도 검사 (shellcheck 기반):
 ```bash
-bash .hxsk/skills/arch-review/scripts/check_complexity.sh
+shellcheck .hxsk/hooks/*.sh 2>&1 || true
 ```
 
 ### Step 2: Verify Boundary Compliance
@@ -103,7 +103,7 @@ Compile findings into a structured report.
 중요한 아키텍처 결정은 메모리에 저장:
 
 ```bash
-bash .hxsk/scripts/md-store-memory.sh \
+bash .hxsk/hooks/md-store-memory.sh \
   "Architecture Decision: {title}" \
   "{context and decision}" \
   "architecture,decision" \
@@ -143,4 +143,4 @@ bash .hxsk/scripts/md-store-memory.sh \
 
 ## Scripts
 
-- `scripts/check_complexity.sh`: Check shell script complexity via shellcheck
+(없음 — shellcheck, Grep, Glob 등 에이전트 네이티브 도구로 직접 수행)

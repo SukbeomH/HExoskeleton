@@ -1,5 +1,5 @@
 ---
-description: Runs all code quality tools (ruff, mypy) and auto-fixes issues. Use before commits or as a pre-execution quality gate.
+description: Runs code quality checks (shellcheck, shfmt) and auto-fixes issues. Use before commits or as a pre-execution quality gate.
 model: haiku
 tools: ["Read", "Write", "Edit", "Bash", "Grep", "Glob"]
 ---
@@ -10,12 +10,12 @@ tools: ["Read", "Write", "Edit", "Bash", "Grep", "Glob"]
 
 ## 탑재 Skills
 
-- `clean` — 핵심 코드 품질 로직 (ruff, mypy, pytest 실행 및 자동 수정)
+- `clean` — 셸 스크립트 품질 검사 (shellcheck, shfmt)
 
 ## 오케스트레이션
 
 1. `clean` skill로 순차 실행:
-   - Ruff Lint + Fix → Ruff Format → Mypy → Pytest
+   - shellcheck → shfmt → 프로젝트 린터 (있으면)
 2. 자동 수정 불가 항목은 file:line 참조와 함께 수정 제안 출력
 
 ## 출력 형식

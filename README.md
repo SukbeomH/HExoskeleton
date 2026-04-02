@@ -318,7 +318,7 @@ make setup
     ├── scripts/               # 유틸리티 (bootstrap, issue, merge)
     ├── docs/                  # 상세 문서 (11)
     ├── prompts/               # Setup + 마이그레이션 프롬프트
-    ├── templates/             # 문서 템플릿 (27)
+    ├── templates/             # 문서 템플릿 (30)
     ├── memories/              # 파일 기반 메모리 (14 타입)
     ├── research/              # 연구 문서 (30개, 7개 카테고리)
     ├── issues/                # 파일 기반 이슈 레지스트리
