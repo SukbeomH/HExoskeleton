@@ -75,7 +75,7 @@ TEST_CMD=$(get_test_cmd "$RUNNER" "$PKG")
 `md-store-memory.sh`로 세션 인수인계 정보를 저장합니다.
 
 ```bash
-scripts/md-store-memory.sh \
+bash .hxsk/hooks/md-store-memory.sh \
   "Session Handoff: <session-goal>" \
   "<content>" \
   "handoff,session,<scope-tags>" \
