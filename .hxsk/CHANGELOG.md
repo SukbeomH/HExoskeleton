@@ -4,6 +4,27 @@
 
 ---
 
+### [2026-04-02] v5.2.0 — 정합성 자동 검증 + pre-PR 자동화 + 문서 체계화
+
+#### 신규
+- `check-consistency.sh` — 14개 포인트 정합성 자동 검증 훅 (INDEX, frontmatter, 경로, 버전, 링크, 카운트, 권한, 심볼릭, 메모리, 데드 컴포넌트, strict mode, JSON)
+- `pre-pr-check.sh` — PR 전 8개 영역 자동 검증 (버전 동기화, CHANGELOG, GitHub 릴리즈, 카운트)
+- `pr-check.yml` — PR 생성 시 CI에서 정합성 + pre-PR 검증 자동 실행
+
+#### 개선
+- `setup.md` — settings.json 전체 8개 이벤트 + 에이전트 복사 단계 추가
+- `bootstrap.sh` — count_* mkdir -p guard + memories 누락 타입 개별 보충
+- `release-setup.yml` — 릴리즈 노트에 CHANGELOG 자동 추출 + setup.md HTML 복사 블럭
+- README — 설계 사상 + 핵심 개념 6가지 체계화 전면 리라이트
+
+#### 수정
+- 7개 스킬 경로 `.hxsk/scripts/md-*` → `.hxsk/hooks/md-*`
+- 5개 스킬 플러그인 시대 누락 스크립트 참조 제거
+- clean 에이전트 설명 ruff/mypy → shellcheck/shfmt
+- dispatcher 에이전트 경로 `.hxsk/scripts/` 접두사 추가
+
+---
+
 ### [2026-03-31] v5.1.1 — Hook 경로 수정 + gitignore 리팩토링
 
 **변경 파일**: 6개 | **Issue**: #001
