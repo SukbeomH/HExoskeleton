@@ -1,0 +1,19 @@
+name: PR Consistency Check
+
+on:
+  pull_request:
+    branches: [master]
+
+jobs:
+  consistency:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run consistency check
+        run: bash .hxsk/hooks/check-consistency.sh
+
+      - name: Run pre-PR check
+        run: bash .hxsk/hooks/pre-pr-check.sh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
