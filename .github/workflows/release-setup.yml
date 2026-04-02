@@ -4,6 +4,7 @@ on:
   push:
     branches: [master]
     paths:
+      - '.hxsk/.bootstrap-version'
       - '.hxsk/prompts/**'
       - '.hxsk/scripts/bootstrap.sh'
       - 'AGENTS.md'
