@@ -40,41 +40,61 @@ jobs:
 
       - name: Build release notes
         run: |
-          cat > /tmp/release-notes.md << 'HEADER'
-          ## Quick Start
+          VERSION="${{ steps.version.outputs.version }}"
 
-          에이전트에게 아래 프롬프트를 **복사하여 전달**하면 프로젝트에 HXSK를 자동 구성합니다.
-          모든 에이전트(Claude Code, Gemini, Copilot, Cursor, Windsurf)를 하나의 프롬프트로 지원합니다.
+          # CHANGELOG에서 현재 버전 엔트리 추출
+          CHANGELOG_ENTRY=$(sed -n "/### .*v${VERSION}/,/^### /{ /^### .*v${VERSION}/d; /^### /d; p; }" .hxsk/CHANGELOG.md 2>/dev/null | head -30)
 
-          ---
+          # setup.md 내용을 HTML 이스케이프 (< > & 를 변환)
+          SETUP_ESCAPED=$(sed 's/&/\&amp;/g; s/</\&lt;/g; s/>/\&gt;/g' .hxsk/prompts/setup.md)
 
-          <details>
-          <summary><strong>setup.md — 클릭하여 펼치고 복사</strong></summary>
+          # 릴리즈 노트 조립
+          {
+            echo "## Quick Start"
+            echo ""
+            echo "에이전트에게 아래 프롬프트를 **복사하여 전달**하면 프로젝트에 HXSK를 자동 구성합니다."
+            echo "모든 에이전트(Claude Code, Gemini, Copilot, Cursor, Windsurf)를 하나의 프롬프트로 지원합니다."
 
-          HEADER
+            # CHANGELOG 엔트리
+            if [[ -n "$CHANGELOG_ENTRY" ]]; then
+              echo ""
+              echo "---"
+              echo ""
+              echo "## Changes in v${VERSION}"
+              echo ""
+              echo "$CHANGELOG_ENTRY"
+            fi
 
-          echo '<pre><code>' >> /tmp/release-notes.md
-          cat .hxsk/prompts/setup.md >> /tmp/release-notes.md
-          echo '</code></pre>' >> /tmp/release-notes.md
-
-          cat >> /tmp/release-notes.md << 'FOOTER'
-
-          </details>
-
-          ---
-
-          ### 첨부 파일
-
-          | 파일 | 설명 |
-          |------|------|
-          | `setup.md` | 통합 setup 프롬프트 (모든 에이전트 지원) |
-          | `AGENTS.md` | 공통 에이전트 지침 |
-          | `CLAUDE.md` | Claude Code 지침 |
-          | `GEMINI.md` | Gemini CLI 지침 |
-          | `llms.txt` | LLM 진입점 (리소스 목록) |
-
-          > 초기 설치/업데이트를 자동 감지합니다. `.hxsk/.bootstrap-version`을 확인하고 필요한 작업만 수행.
-          FOOTER
+            echo ""
+            echo "---"
+            echo ""
+            echo "## setup.md"
+            echo ""
+            echo "아래 코드 블럭을 복사하여 에이전트에게 전달하세요."
+            echo ""
+            echo "<details>"
+            echo "<summary><strong>setup.md 전체 내용 (클릭하여 펼치기)</strong></summary>"
+            echo ""
+            echo "<pre>"
+            echo "$SETUP_ESCAPED"
+            echo "</pre>"
+            echo ""
+            echo "</details>"
+            echo ""
+            echo "---"
+            echo ""
+            echo "### 첨부 파일"
+            echo ""
+            echo "| 파일 | 설명 |"
+            echo "|------|------|"
+            echo "| \`setup.md\` | 통합 setup 프롬프트 (모든 에이전트 지원) |"
+            echo "| \`AGENTS.md\` | 공통 에이전트 지침 |"
+            echo "| \`CLAUDE.md\` | Claude Code 지침 |"
+            echo "| \`GEMINI.md\` | Gemini CLI 지침 |"
+            echo "| \`llms.txt\` | LLM 진입점 (리소스 목록) |"
+            echo ""
+            echo "> v${VERSION} · 초기 설치/업데이트를 자동 감지합니다."
+          } > /tmp/release-notes.md
 
       - name: Create release
         if: steps.check.outputs.exists == 'false'
