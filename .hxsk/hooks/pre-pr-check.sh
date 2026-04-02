@@ -227,6 +227,111 @@ else
     warn "check-consistency.sh not found or not executable"
 fi
 
+# ─── 9. 버전업 추천 (Conventional Commits 분석) ──
+
+echo ""
+echo "=== Version recommendation ==="
+
+BASE_BRANCH="origin/master"
+if [[ -n "$FILE_VER" ]] && git rev-parse "$BASE_BRANCH" &>/dev/null 2>&1; then
+    COMMITS=$(git log --oneline "$BASE_BRANCH"...HEAD 2>/dev/null || true)
+
+    if [[ -z "$COMMITS" ]]; then
+        pass "No new commits — no version change needed"
+    else
+        # Conventional Commits 분석
+        # BREAKING CHANGE / feat! / fix! → major
+        # feat: → minor
+        # fix: / refactor: / perf: / docs: / ci: / chore: → patch
+        HAS_BREAKING=false
+        HAS_FEAT=false
+        HAS_FIX=false
+        FEAT_COUNT=0
+        FIX_COUNT=0
+        OTHER_COUNT=0
+
+        while IFS= read -r line; do
+            [[ -z "$line" ]] && continue
+            # 커밋 해시 제거 (첫 단어)
+            MSG="${line#* }"
+
+            # BREAKING CHANGE 감지
+            if echo "$MSG" | grep -qiE 'BREAKING|!:'; then
+                HAS_BREAKING=true
+            fi
+
+            # 타입 분류
+            TYPE=$(echo "$MSG" | grep -oE '^(feat|fix|refactor|perf|docs|ci|chore|test|style|build|revert)' || true)
+            case "$TYPE" in
+                feat)
+                    HAS_FEAT=true
+                    ((FEAT_COUNT++)) || true
+                    ;;
+                fix|refactor|perf)
+                    HAS_FIX=true
+                    ((FIX_COUNT++)) || true
+                    ;;
+                docs|ci|chore|test|style|build|revert)
+                    ((OTHER_COUNT++)) || true
+                    ;;
+                *)
+                    # 비표준 커밋도 patch로 간주
+                    ((OTHER_COUNT++)) || true
+                    ;;
+            esac
+        done <<< "$COMMITS"
+
+        # 현재 버전 파싱
+        CUR_MAJOR=$(echo "$FILE_VER" | cut -d. -f1)
+        CUR_MINOR=$(echo "$FILE_VER" | cut -d. -f2)
+        CUR_PATCH=$(echo "$FILE_VER" | cut -d. -f3)
+
+        # 추천 버전 계산
+        if $HAS_BREAKING; then
+            REC_VER="$((CUR_MAJOR + 1)).0.0"
+            REASON="BREAKING CHANGE detected"
+            BUMP="major"
+        elif $HAS_FEAT; then
+            REC_VER="${CUR_MAJOR}.$((CUR_MINOR + 1)).0"
+            REASON="${FEAT_COUNT} feat commit(s)"
+            BUMP="minor"
+        elif $HAS_FIX; then
+            REC_VER="${CUR_MAJOR}.${CUR_MINOR}.$((CUR_PATCH + 1))"
+            REASON="${FIX_COUNT} fix/refactor commit(s)"
+            BUMP="patch"
+        else
+            REC_VER=""
+            REASON="${OTHER_COUNT} docs/ci/chore commit(s) only"
+            BUMP="none"
+        fi
+
+        # 커밋 요약
+        TOTAL=$((FEAT_COUNT + FIX_COUNT + OTHER_COUNT))
+        echo "  Commits: $TOTAL (feat:$FEAT_COUNT fix:$FIX_COUNT other:$OTHER_COUNT)"
+
+        if [[ "$BUMP" == "none" ]]; then
+            pass "No version bump needed — $REASON"
+        elif [[ -n "$REC_VER" && "$FILE_VER" == "$REC_VER" ]]; then
+            pass "Version $FILE_VER matches recommendation ($BUMP: $REASON)"
+        elif [[ -n "$REC_VER" && "$FILE_VER" != "$REC_VER" ]]; then
+            # 현재 버전이 추천보다 높으면 OK (이미 올렸을 수 있음)
+            if [[ "$FILE_VER" > "$REC_VER" ]]; then
+                pass "Version $FILE_VER >= recommended $REC_VER ($BUMP: $REASON)"
+            else
+                warn "Version bump recommended: $FILE_VER -> $REC_VER ($BUMP: $REASON)"
+                echo ""
+                echo "  To apply:"
+                echo "    1. .hxsk/.bootstrap-version   → version: $REC_VER"
+                echo "    2. .hxsk/scripts/bootstrap.sh → BOOTSTRAP_VERSION=\"$REC_VER\""
+                echo "    3. .hxsk/CHANGELOG.md         → ### [$(date '+%Y-%m-%d')] v$REC_VER entry"
+                echo "    4. llms.txt                   → HXSK v$REC_VER"
+            fi
+        fi
+    fi
+else
+    warn "Version or base branch not available — skip recommendation"
+fi
+
 # ─── Summary ──────────────────────────────────────
 
 echo ""
