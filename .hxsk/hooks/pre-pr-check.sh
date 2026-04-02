@@ -81,7 +81,8 @@ fi
 echo ""
 echo "=== Git status ==="
 
-UNCOMMITTED=$(git -C "$PROJECT_DIR" status --short 2>/dev/null | grep -v '^??' | wc -l | tr -d ' ')
+UNCOMMITTED=$(git -C "$PROJECT_DIR" status --short 2>/dev/null | grep -v '^??' || true)
+UNCOMMITTED=$(echo "$UNCOMMITTED" | grep -c . 2>/dev/null || echo "0")
 if [[ "$UNCOMMITTED" -eq 0 ]]; then
     pass "No uncommitted changes"
 else

@@ -1,6 +1,6 @@
 # Hooks Index
 
-> 17 hook scripts. Claude Code only -- other agents use AGENTS.md rules instead.
+> 19 hook scripts. Claude Code only -- other agents use AGENTS.md rules instead.
 
 | Hook | Event | Purpose | File |
 |------|-------|---------|------|
@@ -20,4 +20,6 @@
 | md-recall-memory.sh | (utility) | Recall memory (2-hop) | `hooks/md-recall-memory.sh` |
 | scaffold-hxsk.sh | (utility) | Scaffold HXSK documents | `hooks/scaffold-hxsk.sh` |
 | scaffold-infra.sh | (utility) | Compare infra files | `hooks/scaffold-infra.sh` |
+| check-consistency.sh | (utility) | Code/doc/skill/agent consistency check (14 points) | `hooks/check-consistency.sh` |
+| pre-pr-check.sh | (utility) | Pre-PR validation + version recommendation | `hooks/pre-pr-check.sh` |
 | _json_parse.sh | (library) | JSON parse abstraction | `hooks/_json_parse.sh` |
