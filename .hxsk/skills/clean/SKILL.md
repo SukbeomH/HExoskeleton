@@ -7,7 +7,7 @@ trigger: "코드 품질 검사, 린트, 포맷팅 수정, shellcheck, shfmt, pre
 ## Quick Reference
 - **Lint**: `shellcheck *.sh` (shell script 정적 분석)
 - **Format**: `shfmt -w -i 4 *.sh` (shell script 포맷팅)
-- **Script**: `bash .hxsk/skills/clean/scripts/run_quality_checks.sh`
+- **Script**: `shellcheck` + `shfmt` 직접 실행
 - **Output**: `=== Clean Report ===` 형식, Overall CLEAN/ISSUES_REMAIN
 
 ---
@@ -29,8 +29,8 @@ Use this before committing or as a pre-execution quality gate.
 # 모든 shell 스크립트 린트
 find . -name "*.sh" -exec shellcheck {} \;
 
-# 또는 스크립트 사용
-bash .hxsk/skills/clean/scripts/run_quality_checks.sh
+# shfmt 포맷팅
+shfmt -w -i 4 .hxsk/hooks/*.sh
 ```
 
 Report what was found:
@@ -95,4 +95,4 @@ go install mvdan.cc/sh/v3/cmd/shfmt@latest
 
 ## Scripts
 
-- `scripts/run_quality_checks.sh`: Run shellcheck and shfmt with structured report output
+(없음 — shellcheck, shfmt 등 에이전트 네이티브 도구로 직접 수행)

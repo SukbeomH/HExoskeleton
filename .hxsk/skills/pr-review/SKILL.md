@@ -212,4 +212,4 @@ gh pr review <PR> --approve --body "<review>"
 
 ## Scripts
 
-- `scripts/extract_pr_diff.sh`: Extract PR diff and metadata for review. Supports PR number or branch name
+(없음 — `gh pr diff`, `gh pr view` 등 에이전트 네이티브 도구로 직접 수행)

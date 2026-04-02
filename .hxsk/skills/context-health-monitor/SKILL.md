@@ -101,7 +101,7 @@ Grep(pattern: "3-strike|{issue}", path: ".hxsk/memories/health-event/", output_m
 ```
 
 ```bash
-bash .hxsk/scripts/md-store-memory.sh \
+bash .hxsk/hooks/md-store-memory.sh \
   "3-Strike: {issue}" \
   "{approaches tried, errors seen, current hypothesis}" \
   "health,3-strike,{component}" \
@@ -119,7 +119,7 @@ Grep(pattern: "circular|{approach}", path: ".hxsk/memories/health-event/", outpu
 ```
 
 ```bash
-bash .hxsk/scripts/md-store-memory.sh \
+bash .hxsk/hooks/md-store-memory.sh \
   "Circular: {approach}" \
   "{what repeated, why it looped}" \
   "health,circular,{component}" \
@@ -131,7 +131,7 @@ bash .hxsk/scripts/md-store-memory.sh \
 Persist session context for the next session:
 
 ```bash
-bash .hxsk/scripts/md-store-memory.sh \
+bash .hxsk/hooks/md-store-memory.sh \
   "Handoff: {reason}" \
   "{current state, recommendations for next session}" \
   "health,handoff" \
@@ -247,5 +247,4 @@ This skill integrates with:
 
 ## Scripts
 
-- `scripts/dump_state.sh`: Dump current context state to .hxsk/STATE.md with git info, task status, and recommendations
-- `scripts/compact-context.sh`: Archive old entries, prune PATTERNS.md to 2KB limit
+- `.hxsk/hooks/compact-context.sh`: Archive old entries, prune PATTERNS.md to 2KB limit
