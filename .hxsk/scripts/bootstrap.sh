@@ -311,6 +311,27 @@ else
 fi
 
 # ─────────────────────────────────────────────────────
+# Hook Permissions (Auto-fix)
+# ─────────────────────────────────────────────────────
+
+echo ""
+echo "--- Hook Permissions ---"
+
+PERM_FIXED=0
+while IFS= read -r hook_file; do
+    [[ -z "$hook_file" ]] && continue
+    if [[ ! -x "$hook_file" ]]; then
+        chmod +x "$hook_file"
+        report_updated "$(basename "$hook_file")" "chmod +x applied"
+        ((PERM_FIXED++)) || true
+    fi
+done < <(find "$HOOK_DIR" \( -name "*.sh" -o -name "*.py" \) 2>/dev/null)
+
+if [[ "$PERM_FIXED" -eq 0 ]]; then
+    report_ok "Hook permissions" "all executable"
+fi
+
+# ─────────────────────────────────────────────────────
 # Prompt Patch (Optional)
 # ─────────────────────────────────────────────────────
 
