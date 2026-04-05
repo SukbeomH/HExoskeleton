@@ -11,6 +11,9 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
+FIX_MODE=false
+[[ "${1:-}" == "--fix" ]] && FIX_MODE=true
+
 PROJECT_DIR="${CLAUDE_PROJECT_DIR:-.}"
 HXSK_DIR="$PROJECT_DIR/.hxsk"
 FAIL=0
@@ -288,10 +291,15 @@ PERM_FAIL=0
 while IFS= read -r hook_file; do
     [[ -z "$hook_file" ]] && continue
     bn=$(basename "$hook_file")
-    # 실행 권한 확인
+    # 실행 권한 확인 + --fix 시 자동 수정
     if [[ ! -x "$hook_file" ]]; then
-        fail "$bn: not executable (chmod +x needed)"
-        ((PERM_FAIL++)) || true
+        if $FIX_MODE; then
+            chmod +x "$hook_file"
+            pass "$bn: chmod +x applied (auto-fixed)"
+        else
+            fail "$bn: not executable (chmod +x needed — use --fix to auto-repair)"
+            ((PERM_FAIL++)) || true
+        fi
     fi
     # shebang 확인
     FIRST_LINE=$(head -1 "$hook_file")
