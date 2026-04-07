@@ -394,7 +394,7 @@ echo "=== Dead component detection ==="
 
 DEAD_COUNT=0
 # 모든 참조 가능 파일을 하나의 검색 풀로 결합
-SEARCH_FILES=$(find "$PROJECT_DIR" -maxdepth 1 -name "*.md" 2>/dev/null; echo "$HXSK_DIR/skills/"*/SKILL.md; echo "$HXSK_DIR/agents/"*.md; find "$HXSK_DIR/docs" -name "*.md" 2>/dev/null)
+SEARCH_FILES=$(find "$PROJECT_DIR" -maxdepth 1 -name "*.md" 2>/dev/null || true; find "$HXSK_DIR/skills" -name "SKILL.md" 2>/dev/null || true; find "$HXSK_DIR/agents" -name "*.md" 2>/dev/null || true; find "$HXSK_DIR/docs" -name "*.md" 2>/dev/null || true)
 
 for agent_file in "$HXSK_DIR/agents/"*.md; do
     [[ ! -f "$agent_file" ]] && continue
