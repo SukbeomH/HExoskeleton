@@ -20,7 +20,7 @@
   <img src="https://img.shields.io/badge/dependencies-zero-brightgreen?style=flat-square" alt="Zero Dependencies" />
   <img src="https://img.shields.io/badge/stack-bash%20%2B%20markdown-blue?style=flat-square" alt="Bash + Markdown" />
   <img src="https://img.shields.io/badge/multi--agent-5%20platforms-blueviolet?style=flat-square" alt="Multi-Agent" />
-  <img src="https://img.shields.io/badge/v5.1.1%20%C2%B7%2019%20skills%20%C2%B7%2017%20agents%20%C2%B7%2017%20hooks-orange?style=flat-square" alt="Components" />
+  <img src="https://img.shields.io/badge/v5.2.1%20%C2%B7%2019%20skills%20%C2%B7%2017%20agents%20%C2%B7%2020%20hooks-orange?style=flat-square" alt="Components" />
   <img src="https://img.shields.io/github/license/SukbeomH/HExoskeleton?style=flat-square" alt="License" />
 </p>
 
@@ -146,7 +146,7 @@ HExoskeleton은 세 가지 관찰에서 출발합니다.
 
 ### 2. 8-Event Hook 생명주기
 
-Claude Code의 훅 시스템으로 에이전트 행동을 자동화합니다. 7개 이벤트, 17개 스크립트.
+Claude Code의 훅 시스템으로 에이전트 행동을 자동화합니다. 7개 이벤트, 20개 스크립트.
 
 ```
 SessionStart ──→ [작업 수행] ──→ SessionEnd
@@ -314,7 +314,7 @@ make setup
 └── .hxsk/                     # Single Source of Truth
     ├── skills/                # 스킬 정의 (19) — How
     ├── agents/                # 에이전트 정의 (17) — When/With What
-    ├── hooks/                 # 훅 스크립트 (17) — 자동화
+    ├── hooks/                 # 훅 스크립트 (20) — 자동화
     ├── scripts/               # 유틸리티 (bootstrap, issue, merge)
     ├── docs/                  # 상세 문서 (11)
     ├── prompts/               # Setup + 마이그레이션 프롬프트
@@ -341,6 +341,10 @@ make setup
 | [ReWOO](https://github.com/weitianxin/Awesome-Agentic-Reasoning) | SPEC → PLAN → EXECUTE 분리 | 전체 프레임워크 |
 | [RLM](https://arxiv.org/html/2512.24601v2) | Agent-Skill 래핑, Phase → Plan → Task | Persistent REPL |
 | [Anthropic](https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents) | 간결한 에이전트 정의, 외부 파일 위임 | — |
+| [Superpowers](https://github.com/obra/superpowers) | Iron Laws, Gate Functions, 합리화 테이블 패턴 분석 | 스킬 TDD, 2단계 리뷰 (중기 적용) |
+| [Meincke et al. (2025)](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=5357179) | Authority 기반 Iron Laws 설계 근거 (N=28,000, 준수율 33%→72%) | — |
+| [Sharma et al. (ICLR 2024)](https://arxiv.org/abs/2310.13548) | 합리화 테이블의 이론적 근거 (RLHF 아첨 메커니즘) | — |
+| [SkillReducer (2026)](https://arxiv.org/abs/2603.29919) | CSO 패턴 — description 트리거 최적화 (55K 스킬 분석) | — |
 
 > 상세: [.hxsk/research/INDEX.md](.hxsk/research/INDEX.md)
 
@@ -358,6 +362,40 @@ make setup
 | [Conventions](.hxsk/docs/CONVENTIONS.md) | 개발 컨벤션 (Issue, Branch, Commit, PR) |
 | [Build](.hxsk/docs/BUILD.md) | Self-Configure 배포 가이드 |
 | [Research](.hxsk/research/INDEX.md) | 30개 연구 문서 카탈로그 |
+
+---
+
+## 로드맵
+
+[Superpowers 분석](.hxsk/research/superpowers-analysis.md)과 [근거 논문 리서치](.hxsk/research/superpowers-references.md), [Claude Code 품질 저하 완화 분석](.hxsk/research/claude-code-quality-mitigation.md)을 기반으로 한 개선 계획입니다.
+
+### Phase 1: 규율 강화 (즉시 적용)
+
+에이전트의 규칙 우회·허위 완료·읽기 건너뛰기를 프롬프트 레벨에서 차단합니다.
+
+| 항목 | 내용 | 근거 |
+|------|------|------|
+| **Iron Laws** | `NO EDIT WITHOUT READ FIRST`, `NO COMPLETION WITHOUT VERIFICATION`, `NO WRITE TO EXISTING FILES` | Meincke+ 2025: Authority 기법으로 준수율 33%→72% |
+| **합리화 테이블** | 허위 완료(5항목), Read 건너뛰기(4항목), 파일 덮어쓰기(3항목) | Sharma+ ICLR 2024: RLHF 아첨 메커니즘 차단 |
+| **CSO 적용** | 19개 스킬 description을 트리거 조건만으로 최적화 | SkillReducer 2026: 48% 압축 + 2.8% 품질 향상 |
+| **Ultrathink 트리거** | 아키텍처 결정·디버깅·리팩토링 시 깊은 thinking 명시 요청 | Anthropic: adaptive thinking under-allocation 대응 |
+
+### Phase 2: 검증 체계 고도화 (중기)
+
+| 항목 | 내용 | 근거 |
+|------|------|------|
+| **Gate Function 스킬** | 5단계 게이트 (IDENTIFY→RUN→READ→VERIFY→CLAIM) | Anthropic harness blog: 허위 완료 선언 제거 |
+| **보조 문서 시스템** | 스킬당 심화 .md (프롬프트 템플릿, 안티패턴, 기법 가이드) | Superpowers: 스킬당 2-3개 보조 문서 패턴 |
+| **2단계 리뷰** | spec-reviewer(스펙 준수) + code-reviewer(코드 품질) 분리 | Anthropic multi-agent: 전문 역할 분리로 90%+ 향상 |
+| **PreToolUse 훅 강화** | Edit/Write 도구 사용 시 조건부 thinking 요청 주입 | Context rot 방지, 도구 사용 전 검증 |
+
+### Phase 3: 스킬 품질 보증 (장기)
+
+| 항목 | 내용 | 근거 |
+|------|------|------|
+| **스킬 TDD** | 서브에이전트로 스킬 없이 압박 시나리오 실행 → 스킬 작성 → 재검증 | Superpowers writing-skills: RED→GREEN→REFACTOR |
+| **서브에이전트 프롬프트 템플릿** | implementer, reviewer 등 역할별 표준 템플릿 | Superpowers: 컨텍스트 격리 + 구조화된 지시 |
+| **합리화 테이블 자동 갱신** | 실제 우회 패턴 수집 → 테이블 업데이트 사이클 | 모델 업데이트 시 행동 변화 추적 |
 
 ---
 
