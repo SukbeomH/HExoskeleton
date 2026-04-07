@@ -115,6 +115,11 @@
             "type": "command",
             "command": ".hxsk/hooks/stop-context-save.sh",
             "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": ".hxsk/hooks/collect-rationalization.sh",
+            "timeout": 5
           }
         ]
       }
