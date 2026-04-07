@@ -71,7 +71,7 @@ HExoskeleton은 세 가지 관찰에서 출발합니다.
     │         │         │
 ┌───▼───┐ ┌──▼──┐ ┌───▼────┐
 │skills/│ │hooks│ │agents/ │
-│  19   │ │ 17  │ │  17    │
+│  20   │ │ 24  │ │  18    │
 └───────┘ └─────┘ └────────┘
 ```
 
@@ -141,12 +141,12 @@ HExoskeleton은 세 가지 관찰에서 출발합니다.
 
 | 구성요소 | 개수 | 위치 | 상세 |
 |----------|------|------|------|
-| **Skills** | 19 | `.hxsk/skills/` | [docs/SKILLS.md](.hxsk/docs/SKILLS.md) |
-| **Agents** | 17 | `.hxsk/agents/` | [docs/AGENTS.md](.hxsk/docs/AGENTS.md) |
+| **Skills** | 20 | `.hxsk/skills/` | [docs/SKILLS.md](.hxsk/docs/SKILLS.md) |
+| **Agents** | 18 | `.hxsk/agents/` | [docs/AGENTS.md](.hxsk/docs/AGENTS.md) |
 
 ### 2. 8-Event Hook 생명주기
 
-Claude Code의 훅 시스템으로 에이전트 행동을 자동화합니다. 7개 이벤트, 20개 스크립트.
+Claude Code의 훅 시스템으로 에이전트 행동을 자동화합니다. 7개 이벤트, 24개 스크립트.
 
 ```
 SessionStart ──→ [작업 수행] ──→ SessionEnd
@@ -312,15 +312,15 @@ make setup
 ├── llms.txt                   # LLM 진입점 (Self-Configure 시작)
 ├── .claude/settings.json      # 훅 설정 (8개 이벤트)
 └── .hxsk/                     # Single Source of Truth
-    ├── skills/                # 스킬 정의 (19) — How
-    ├── agents/                # 에이전트 정의 (17) — When/With What
-    ├── hooks/                 # 훅 스크립트 (20) — 자동화
+    ├── skills/                # 스킬 정의 (20) — How
+    ├── agents/                # 에이전트 정의 (18) — When/With What
+    ├── hooks/                 # 훅 스크립트 (24) — 자동화
     ├── scripts/               # 유틸리티 (bootstrap, issue, merge)
-    ├── docs/                  # 상세 문서 (11)
+    ├── docs/                  # 상세 문서 (23)
     ├── prompts/               # Setup + 마이그레이션 프롬프트
-    ├── templates/             # 문서 템플릿 (30)
+    ├── templates/             # 문서 템플릿 (32)
     ├── memories/              # 파일 기반 메모리 (14 타입)
-    ├── research/              # 연구 문서 (30개, 7개 카테고리)
+    ├── research/              # 연구 문서 (33개, 7개 카테고리)
     ├── issues/                # 파일 기반 이슈 레지스트리
     ├── STATE.md               # 현재 작업 상태
     ├── SPEC.md                # 프로젝트 명세
@@ -362,7 +362,7 @@ make setup
 | [Workflows](.hxsk/docs/WORKFLOWS.md) | SPEC→PLAN→EXECUTE→VERIFY |
 | [Conventions](.hxsk/docs/CONVENTIONS.md) | 개발 컨벤션 (Issue, Branch, Commit, PR) |
 | [Build](.hxsk/docs/BUILD.md) | Self-Configure 배포 가이드 |
-| [Research](.hxsk/research/INDEX.md) | 33개 연구 문서 카탈로그 |
+| [Research](.hxsk/research/INDEX.md) | 33개 연구 문서, 7개 카테고리 |
 
 ---
 
