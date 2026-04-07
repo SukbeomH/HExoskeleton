@@ -401,7 +401,8 @@ for agent_file in "$HXSK_DIR/agents/"*.md; do
     bn=$(basename "$agent_file" .md)
     [[ "$bn" == "INDEX" ]] && continue
     # INDEX.md 이외의 파일에서 에이전트명이 참조되는지
-    REF_COUNT=$(grep -rl "$bn" $SEARCH_FILES 2>/dev/null | grep -v "INDEX.md" | grep -v "$agent_file" | wc -l | tr -d ' ')
+    REF_COUNT=$(echo "$SEARCH_FILES" | xargs grep -rl "$bn" 2>/dev/null | grep -v "INDEX.md" | grep -v "$agent_file" | wc -l | tr -d ' \n' || true)
+    REF_COUNT="${REF_COUNT:-0}"
     if [[ "$REF_COUNT" -eq 0 ]]; then
         warn "Agent '$bn' referenced nowhere (possible dead component)"
         ((DEAD_COUNT++)) || true
@@ -411,7 +412,8 @@ done
 for skill_dir in "$HXSK_DIR/skills/"*/; do
     [[ ! -d "$skill_dir" ]] && continue
     sn=$(basename "$skill_dir")
-    REF_COUNT=$(grep -rl "$sn" $SEARCH_FILES 2>/dev/null | grep -v "INDEX.md" | grep -v "$skill_dir" | wc -l | tr -d ' ')
+    REF_COUNT=$(echo "$SEARCH_FILES" | xargs grep -rl "$sn" 2>/dev/null | grep -v "INDEX.md" | grep -v "$skill_dir" | wc -l | tr -d ' \n' || true)
+    REF_COUNT="${REF_COUNT:-0}"
     if [[ "$REF_COUNT" -eq 0 ]]; then
         warn "Skill '$sn' referenced nowhere (possible dead component)"
         ((DEAD_COUNT++)) || true
