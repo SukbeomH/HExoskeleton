@@ -1,6 +1,6 @@
 ---
 name: arch-review
-description: Validates architectural rules and ensures design quality
+description: "Use when structural changes affect 3+ modules, before merging architecture-level PRs"
 version: 4.0.0
 allowed-tools:
   - Read

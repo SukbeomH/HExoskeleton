@@ -1,6 +1,6 @@
 ---
 name: plan-checker
-description: Validates plans before execution to catch issues early
+description: "Use before executing a plan, when reviewing PLAN.md for completeness and feasibility"
 trigger: "플랜 검증, 계획 점검, PLAN.md 검사, validate plan, check plan before execution"
 ---
 

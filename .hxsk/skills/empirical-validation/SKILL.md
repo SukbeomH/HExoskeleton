@@ -1,6 +1,6 @@
 ---
 name: empirical-validation
-description: Requires proof before marking work complete — no "trust me, it works"
+description: "Use when claiming work is complete, before committing, or when verifying any change actually works"
 trigger: "경험적 검증, 실행 결과 확인, 증거 기반 확인, prove it works, empirical proof, validate with output"
 ---
 
@@ -81,21 +81,77 @@ npm run build
 # Bad: "Build should work now"
 ```
 
-## Forbidden Phrases
+## Gate Function — 완료 선언 전 필수
 
-Never use these as justification for completion:
-- "This should work"
-- "The code looks correct"
-- "I've made similar changes before"
-- "Based on my understanding"
-- "It follows the pattern"
+⚠️ 완료, 성공, 통과를 주장하기 전에 반드시 5단계를 거친다.
+
+1. **IDENTIFY** — 이 주장을 증명하는 명령은 무엇인가?
+2. **RUN** — 해당 명령을 전체 실행 (부분 실행, 이전 결과 재사용 금지)
+3. **READ** — 출력 전체 확인. exit code 확인. 실패 수 카운트
+4. **VERIFY** — 출력이 주장을 확인하는가? (부분 통과 ≠ 전체 통과)
+5. **CLAIM** — 4단계 모두 통과 시에만 주장 가능
+
+### 검증 유형별 필수 증거
+
+| 주장 | 필요 증거 | 불충분 |
+|------|----------|--------|
+| "테스트 통과" | 테스트 출력: 0 failures | 이전 실행, "통과할 것 같다" |
+| "버그 수정" | 원래 증상 재테스트 | 코드 변경됨, 수정 추정 |
+| "빌드 성공" | 빌드 명령 출력: exit 0 | "에러 없어 보인다" |
+| "파일 생성" | ls/cat으로 존재+내용 확인 | Write 도구 사용했으므로 |
+
+## 합리화 테이블
+
+### 허위 완료
+
+| 변명 | 현실 |
+|------|------|
+| "잘 돌아갈 것 같다" | 검증 명령을 실행하라 |
+| "확신한다" | 확신 ≠ 증거 |
+| "린터 통과했다" | 린터 ≠ 컴파일러 ≠ 테스트 |
+| "에이전트가 성공 보고했다" | 독립적으로 검증하라 |
+| "코드 변경이 명확하다" | 명확한 변경도 깨진다 |
+
+### Read 건너뛰기
+
+| 변명 | 현실 |
+|------|------|
+| "이미 파일 내용을 안다" | 다른 에이전트/사용자가 수정했을 수 있다 |
+| "단순한 변경이다" | 단순한 변경이 가장 많이 깨진다 |
+| "방금 읽었다" | "방금"이 몇 턴 전일 수 있다. 다시 읽어라 |
+| "전체 파일 덮어쓰기가 빠르다" | 덮어쓰기는 다른 변경을 날린다. Edit을 써라 |
+
+### 작업 중단
+
+| 변명 | 현실 |
+|------|------|
+| "이건 불가능하다" | 3가지 다른 접근을 시도했는가? |
+| "시간이 너무 오래 걸린다" | 사용자에게 보고하고 판단을 맡겨라 |
+| "다음 세션에서 하자" | 현재 컨텍스트가 가장 풍부하다. 지금 시도하라 |
+
+## Thinking Budget
+
+깊은 추론이 필요한 상황에서 명시적으로 깊은 thinking을 요청한다.
+
+### 필수 (항상 깊은 thinking)
+- 아키텍처 결정 — 3+ 모듈에 영향을 미치는 변경
+- 디버깅 근본 원인 분석 — 에러 재현 후 원인 추적
+- 리팩토링 임팩트 분석 — 삭제/이동 전 의존성 파악
+- 머지 충돌 해결 — 양쪽 변경의 의도 파악
+- 보안 관련 코드 — 인증, 권한, 입력 검증
+
+### 조건부 (복잡도에 따라)
+- 5+ 파일 동시 변경 — 상호 의존성 추론
+- 테스트 실패 원인 불명 — 에러 메시지가 모호
+- 사용자가 "왜?"라고 물을 때 — 설명에 깊은 이해 필요
 
 ## Integration
 
 This skill integrates with:
 - `/verify` — Primary workflow using this skill
 - `/execute` — Must validate before marking tasks complete
-- `CLAUDE.md` Validation 섹션 — 경험적 증거 기반 검증 원칙
+- `CLAUDE.md` Validation + Thinking Budget 섹션
+- `AGENTS.md` Iron Laws — 이 스킬의 상세 절차를 구현
 
 ## Failure Handling
 

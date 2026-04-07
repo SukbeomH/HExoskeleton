@@ -1,6 +1,6 @@
 ---
 name: handoff
-description: Session handoff workflow — status check, test, commit, memory store, summary output
+description: "Use at session end, when switching contexts, or when another agent will continue the work"
 trigger: "세션 종료, 핸드오프, session end, handoff, 인수인계, wrap up session"
 allowed-tools:
   - Read

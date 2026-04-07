@@ -1,6 +1,6 @@
 ---
 name: debugger
-description: Systematic debugging with persistent state and fresh context advantages
+description: "Use when encountering bugs, test failures, or unexpected behavior before proposing fixes"
 trigger: "버그 디버깅, 오류 원인 찾기, 에러 추적, root cause, unexpected behavior, bug investigation"
 allowed-tools:
   - Read

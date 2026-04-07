@@ -1,6 +1,6 @@
 ---
 name: verifier
-description: Validates implemented work against spec requirements with empirical evidence
+description: "Use after implementation is complete, before marking a phase done, to verify against SPEC.md"
 trigger: "구현 검증, 완료 확인, 페이즈 검증, verify implementation, check phase completion, validate against spec"
 ---
 

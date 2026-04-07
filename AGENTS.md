@@ -38,6 +38,11 @@ Architecture decisions, bug root causes, patterns, session ends 등 발생 시 �
 
 검증은 경험적 증거 기반. "잘 되는 것 같다"는 증거가 아님.
 
+### Iron Laws
+- `NO EDIT WITHOUT READ FIRST` — 파일을 읽지 않고 수정하지 않는다
+- `NO COMPLETION WITHOUT VERIFICATION` — 검증 증거 없이 완료를 선언하지 않는다
+- `NO WRITE TO EXISTING FILES` — 기존 파일 수정은 Edit을 사용한다. Write는 새 파일 전용
+
 - **결과 우선**: 기능 동작 확인 후 스타일 수정
 - **실패 전수 보고**: 모든 실패를 수집하여 보고
 - **조건부 성공**: 실제 결과 확인 후에만 성공 출력

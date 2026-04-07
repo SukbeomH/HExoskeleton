@@ -54,8 +54,32 @@ else
         [[ "$f" == *.py ]] && PY_CHANGES="$PY_CHANGES $f"
     done
     PY_CHANGES=$(echo "$PY_CHANGES" | xargs)
-    [[ -z "$PY_CHANGES" ]] && exit 0
-    cd "$PROJECT_DIR" && uv run ruff check --no-fix $PY_CHANGES >/dev/null 2>&1 || true
+    [[ -n "$PY_CHANGES" ]] && cd "$PROJECT_DIR" && uv run ruff check --no-fix $PY_CHANGES >/dev/null 2>&1 || true
+fi
+
+# ─────────────────────────────────────────────────────
+# 완료 검증 게이트 — 코드 변경 시 검증 명령 실행 여부 확인
+# Iron Law: NO COMPLETION WITHOUT VERIFICATION
+# ─────────────────────────────────────────────────────
+
+HXSK_DIR="$PROJECT_DIR/.hxsk"
+TRACK_LOG="$HXSK_DIR/.track-modifications.log"
+
+# stdin에서 에이전트 출력 읽기 (Stop 훅은 stop_hook_result 수신)
+AGENT_OUTPUT=""
+if [ ! -t 0 ]; then
+    AGENT_OUTPUT=$(cat 2>/dev/null || true)
+fi
+
+# 완료 키워드 탐지 (최종 완료 패턴만 — 중간 보고 제외)
+COMPLETION_KEYWORDS="(완료했습니다|완료됐습니다|모두 완료|all done|all tests pass|successfully completed)"
+if echo "$AGENT_OUTPUT" | grep -qiE "$COMPLETION_KEYWORDS"; then
+    # 코드 변경이 있는데 Bash(test/build) 실행 이력이 없으면 경고
+    BASH_RUNS=$(grep -c "Bash" "$TRACK_LOG" 2>/dev/null || echo "0")
+    if [[ "$BASH_RUNS" -eq 0 && -n "$CHANGED_FILES" ]]; then
+        echo "⚠️ 완료를 선언했으나 검증 명령(test/build) 실행 증거가 없습니다." >&2
+        echo "   Iron Law: NO COMPLETION WITHOUT VERIFICATION" >&2
+    fi
 fi
 
 exit 0

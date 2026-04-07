@@ -1,6 +1,6 @@
 ---
 name: planner
-description: Creates executable phase plans with task breakdown, dependency analysis, and goal-backward verification
+description: "Use when a SPEC.md exists and implementation planning is needed, before writing code"
 trigger: "플랜 작성, 계획 수립, 태스크 분해, create plan, break down tasks, make PLAN.md"
 ---
 
