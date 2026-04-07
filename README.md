@@ -354,6 +354,7 @@ make setup
 
 | 문서 | 설명 |
 |------|------|
+| [**Design Philosophy**](.hxsk/docs/DESIGN-PHILOSOPHY.md) | **설계 철학 — 9가지 원칙, 작성 규칙, 연구 근거, 방향성** |
 | [Skills](.hxsk/docs/SKILLS.md) | 19개 스킬 상세 |
 | [Agents](.hxsk/docs/AGENTS.md) | 17개 에이전트 상세 |
 | [Hooks](.hxsk/docs/HOOKS.md) | 훅 시스템 + settings.json 전체 예시 |
@@ -361,7 +362,7 @@ make setup
 | [Workflows](.hxsk/docs/WORKFLOWS.md) | SPEC→PLAN→EXECUTE→VERIFY |
 | [Conventions](.hxsk/docs/CONVENTIONS.md) | 개발 컨벤션 (Issue, Branch, Commit, PR) |
 | [Build](.hxsk/docs/BUILD.md) | Self-Configure 배포 가이드 |
-| [Research](.hxsk/research/INDEX.md) | 30개 연구 문서 카탈로그 |
+| [Research](.hxsk/research/INDEX.md) | 33개 연구 문서 카탈로그 |
 
 ---
 
