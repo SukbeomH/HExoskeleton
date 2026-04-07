@@ -91,7 +91,8 @@ fi
 
 # ─── 4. 브랜치가 master가 아닌지 ─────────────────
 
-BRANCH=$(git -C "$PROJECT_DIR" branch --show-current 2>/dev/null || echo "unknown")
+# CI에서는 GITHUB_HEAD_REF (PR 소스 브랜치), 로컬에서는 git branch
+BRANCH="${GITHUB_HEAD_REF:-$(git -C "$PROJECT_DIR" branch --show-current 2>/dev/null || echo "unknown")}"
 if [[ "$BRANCH" == "master" || "$BRANCH" == "main" ]]; then
     fail "On $BRANCH branch — create a feature branch first"
 else
