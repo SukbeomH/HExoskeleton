@@ -23,6 +23,14 @@
 - 4개 핵심 스킬에 **Cross-skill 의존성 마커** 추가 (REQUIRED/RECOMMENDED)
 - 2개 스킬에 **보조 문서** 추가 (anti-patterns.md, root-cause-tracing.md)
 - `session-start.sh` — read-history.log 초기화 추가
+- `skill-testing` 스킬 — RED→GREEN→REFACTOR 사이클, 압박 시나리오 4유형, 메타 테스트
+- `subagent-implementer.md` / `subagent-reviewer.md` — 서브에이전트 프롬프트 템플릿 표준화
+- `collect-rationalization.sh` — Stop 훅, 합리화 시그널 15패턴 + Iron Law 위반 자동 수집
+- `rationalization-update-guide.md` — 합리화 테이블 갱신 프로세스 가이드
+- `pre-pr-check.sh` — GITHUB_HEAD_REF로 PR 소스 브랜치 정확 감지 (오탐 수정)
+
+#### 수정
+- `check-consistency.sh` — dead component 탐지 grep exit code + wc 멀티라인 처리
 
 #### 연구
 - `superpowers-analysis.md` — Superpowers 플러그인 14개 스킬, 10가지 패턴 분석
