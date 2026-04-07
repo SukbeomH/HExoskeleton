@@ -1,6 +1,6 @@
 # Skills Index
 
-> 19 skills available. Agents fetch only what they need.
+> 20 skills available. Agents fetch only what they need.
 
 | Skill | Description | Path |
 |-------|-------------|------|
@@ -21,5 +21,6 @@
 | plan-checker | Validates plans before execution to catch issues early | `skills/plan-checker/SKILL.md` |
 | planner | Creates executable phase plans with task breakdown, dependency analysis, and goal-backward verification | `skills/planner/SKILL.md` |
 | pr-review | Multi-persona code review (Dev, QA, Security, Arch, DevOps, UX) with severity triage and actionable feedback | `skills/pr-review/SKILL.md` |
+| skill-testing | TDD for skills — pressure scenarios with subagents to verify skills change agent behavior | `skills/skill-testing/SKILL.md` |
 | verifier | Validates implemented work against spec requirements with empirical evidence | `skills/verifier/SKILL.md` |
 | write-report | Writes structured solution comparison reports for non-technical decision makers using weighted scoring frameworks | `skills/write-report/SKILL.md` |
