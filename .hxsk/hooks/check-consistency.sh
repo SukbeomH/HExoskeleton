@@ -383,13 +383,15 @@ REQUIRED_TYPES="architecture-decision root-cause debug-eliminated debug-blocked 
 MEM_MISSING=0
 for mtype in $REQUIRED_TYPES; do
     if [[ ! -d "$HXSK_DIR/memories/$mtype" ]]; then
-        fail "Memory type missing: $mtype"
+        warn "Memory type missing: $mtype (created at runtime)"
         ((MEM_MISSING++)) || true
     fi
 done
 
 if [[ "$MEM_MISSING" -eq 0 ]]; then
     pass "Memory types: all 14 present"
+else
+    warn "Memory dirs are gitignored — created at bootstrap, not in CI"
 fi
 
 # ─── 12. 데드 에이전트/스킬 탐지 ─────────────────
