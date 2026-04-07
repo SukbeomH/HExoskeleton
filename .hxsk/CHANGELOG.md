@@ -4,6 +4,19 @@
 
 ---
 
+### [2026-04-07] v5.2.1 — CI 안정화 + 버전 동기화 가드레일
+
+#### 수정
+- `check-consistency.sh` — memory type 검증 fail → warn 전환 (gitignore 대상, CI 미존재)
+- `.bootstrap-version` — 5.2.0 → 5.2.1 동기화
+- `actions/checkout` v4 → v6 (Node.js 20 deprecation 대응)
+
+#### 신규
+- `dependabot.yml` — GitHub Actions 버전 자동 업데이트 (월 1회)
+- `pre-commit-version-check.sh` — bootstrap.sh ↔ .bootstrap-version 버전 불일치 커밋 차단
+
+---
+
 ### [2026-04-02] v5.2.0 — 정합성 자동 검증 + pre-PR 자동화 + 문서 체계화
 
 #### 신규
