@@ -1,6 +1,6 @@
 ---
 name: impact-analysis
-description: Analyzes change impact before code modifications to prevent regression
+description: "Use before refactoring, deleting code, or modifying shared modules to assess blast radius"
 version: 4.0.0
 allowed-tools:
   - Read

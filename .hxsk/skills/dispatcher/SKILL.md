@@ -1,6 +1,6 @@
 ---
 name: dispatcher
-description: "MASTER/WORK 기반 6-Phase 병렬 이슈 오케스트레이션 — PLAN → 분할 → 워크트리 병렬 실행 → 머지"
+description: "Use when facing 5+ independent tasks that can be parallelized across worktrees"
 version: 2.0.0
 trigger: "dispatch|병렬 실행|wave 실행|이슈 배정|이슈 분할|work split|parallel issue|마스터플랜"
 allowed-tools:

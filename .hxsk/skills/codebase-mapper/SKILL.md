@@ -1,6 +1,6 @@
 ---
 name: codebase-mapper
-description: Analyzes existing codebases to understand structure, patterns, and technical debt
+description: "Use when onboarding to a new codebase, before major refactoring, or when asked about project structure"
 trigger: "코드베이스 분석, 프로젝트 구조 파악, 아키텍처 문서화, 기술 부채 조사, analyze codebase, map structure, onboarding"
 ---
 

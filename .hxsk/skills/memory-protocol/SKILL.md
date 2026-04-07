@@ -1,6 +1,6 @@
 ---
 name: memory-protocol
-description: Memory operation rules — file-based recall/store protocol, field requirements, type registry
+description: "Use when storing or retrieving project knowledge, after architecture decisions, bug fixes, or session ends"
 version: 4.0.0
 trigger: "메모리 저장, 과거 기록 검색, 메모리 조회, store memory, recall memory, search past decisions"
 allowed-tools:

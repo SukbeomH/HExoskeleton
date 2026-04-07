@@ -1,6 +1,6 @@
 ---
 name: executor
-description: Executes HXSK plans with atomic commits, deviation handling, checkpoint protocols, and state management
+description: "Use when executing a written PLAN.md, implementing tasks with atomic commits"
 trigger: "플랜 실행, 계획 실행, PLAN.md 실행, execute plan, start implementation"
 allowed-tools:
   - Read

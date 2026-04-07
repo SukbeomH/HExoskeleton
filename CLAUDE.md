@@ -29,6 +29,10 @@ CLAUDE.md, SKILL.md, Agent 정의 파일을 수정할 때:
 - L1(CLAUDE.md): 포함=검색 순서/트리거/제약, 제외=예시/포맷/스키마. ≤120줄
 - Skill/Agent: Quick Reference ≤5줄, 기존 패턴 참조
 
+## Thinking Budget
+깊은 추론이 필요한 작업(아키텍처 결정, 디버깅 근본 원인, 리팩토링 임팩트) 시
+`empirical-validation` 스킬의 Thinking Budget 섹션 참조.
+
 ## Agent Boundaries (Claude Code Specific)
 ### Never
 - `--dangerously-skip-permissions` 사용 금지

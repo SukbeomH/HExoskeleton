@@ -40,6 +40,9 @@ main() {
         # .session-active 마커 생성
         touch "$HXSK_DIR/.session-active" 2>/dev/null || true
 
+        # Read history 초기화 (read-before-edit 훅 연동)
+        : > "$HXSK_DIR/.read-history.log" 2>/dev/null || true
+
         # 1. CURRENT.md 로드
         CURRENT_FILE="$HXSK_DIR/CURRENT.md"
         if [ -f "$CURRENT_FILE" ]; then
