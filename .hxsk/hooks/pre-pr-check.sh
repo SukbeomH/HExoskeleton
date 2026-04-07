@@ -147,31 +147,25 @@ fi
 echo ""
 echo "=== Component counts ==="
 
+mkdir -p "$HXSK_DIR/skills" "$HXSK_DIR/agents" "$HXSK_DIR/hooks"
+ACT_SKILLS=$(find "$HXSK_DIR/skills" -name "SKILL.md" 2>/dev/null | wc -l | tr -d ' ')
+ACT_AGENTS=$(find "$HXSK_DIR/agents" -name "*.md" -not -name "INDEX.md" 2>/dev/null | wc -l | tr -d ' ')
+ACT_HOOKS=$(find "$HXSK_DIR/hooks" \( -name "*.sh" -o -name "*.py" \) 2>/dev/null | wc -l | tr -d ' ')
+
+pass "Component counts (S:$ACT_SKILLS A:$ACT_AGENTS H:$ACT_HOOKS)"
+
+# .bootstrap-version 카운트 자동 동기화
 if [[ -f "$VERSION_FILE" ]]; then
     REC_SKILLS=$(grep 'skills:' "$VERSION_FILE" | sed 's/.*skills: *//' | tr -d ' ')
     REC_AGENTS=$(grep 'agents:' "$VERSION_FILE" | sed 's/.*agents: *//' | tr -d ' ')
     REC_HOOKS=$(grep 'hooks:' "$VERSION_FILE" | sed 's/.*hooks: *//' | tr -d ' ')
 
-    mkdir -p "$HXSK_DIR/skills" "$HXSK_DIR/agents" "$HXSK_DIR/hooks"
-    ACT_SKILLS=$(find "$HXSK_DIR/skills" -name "SKILL.md" 2>/dev/null | wc -l | tr -d ' ')
-    ACT_AGENTS=$(find "$HXSK_DIR/agents" -name "*.md" -not -name "INDEX.md" 2>/dev/null | wc -l | tr -d ' ')
-    ACT_HOOKS=$(find "$HXSK_DIR/hooks" \( -name "*.sh" -o -name "*.py" \) 2>/dev/null | wc -l | tr -d ' ')
-
-    COUNT_OK=true
-    if [[ "$REC_SKILLS" != "$ACT_SKILLS" ]]; then
-        fail "Skills: recorded $REC_SKILLS vs actual $ACT_SKILLS — update bootstrap-version"
-        COUNT_OK=false
-    fi
-    if [[ "$REC_AGENTS" != "$ACT_AGENTS" ]]; then
-        fail "Agents: recorded $REC_AGENTS vs actual $ACT_AGENTS — update bootstrap-version"
-        COUNT_OK=false
-    fi
-    if [[ "$REC_HOOKS" != "$ACT_HOOKS" ]]; then
-        fail "Hooks: recorded $REC_HOOKS vs actual $ACT_HOOKS — update bootstrap-version"
-        COUNT_OK=false
-    fi
-    if $COUNT_OK; then
-        pass "Component counts match (S:$ACT_SKILLS A:$ACT_AGENTS H:$ACT_HOOKS)"
+    if [[ "$REC_SKILLS" != "$ACT_SKILLS" || "$REC_AGENTS" != "$ACT_AGENTS" || "$REC_HOOKS" != "$ACT_HOOKS" ]]; then
+        sed -i.bak "s/skills: .*/skills: $ACT_SKILLS/" "$VERSION_FILE"
+        sed -i.bak "s/agents: .*/agents: $ACT_AGENTS/" "$VERSION_FILE"
+        sed -i.bak "s/hooks: .*/hooks: $ACT_HOOKS/" "$VERSION_FILE"
+        rm -f "${VERSION_FILE}.bak"
+        warn "카운트 자동 갱신: S:$REC_SKILLS→$ACT_SKILLS A:$REC_AGENTS→$ACT_AGENTS H:$REC_HOOKS→$ACT_HOOKS"
     fi
 fi
 

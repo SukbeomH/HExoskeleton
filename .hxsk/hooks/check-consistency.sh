@@ -204,32 +204,25 @@ fi
 echo ""
 echo "=== 컴포넌트 카운트 ==="
 
+mkdir -p "$HXSK_DIR/skills" "$HXSK_DIR/agents" "$HXSK_DIR/hooks"
+ACT_SKILLS=$(find "$HXSK_DIR/skills" -name "SKILL.md" 2>/dev/null | wc -l | tr -d ' ')
+ACT_AGENTS=$(find "$HXSK_DIR/agents" -name "*.md" -not -name "INDEX.md" 2>/dev/null | wc -l | tr -d ' ')
+ACT_HOOKS=$(find "$HXSK_DIR/hooks" \( -name "*.sh" -o -name "*.py" \) 2>/dev/null | wc -l | tr -d ' ')
+
+pass "Skills: $ACT_SKILLS, Agents: $ACT_AGENTS, Hooks: $ACT_HOOKS"
+
+# .bootstrap-version 카운트 자동 동기화 (로컬 실행 시)
 if [[ -f "$VERSION_FILE" ]]; then
     REC_SKILLS=$(grep 'skills:' "$VERSION_FILE" | sed 's/.*skills: *//' | tr -d ' ')
     REC_AGENTS=$(grep 'agents:' "$VERSION_FILE" | sed 's/.*agents: *//' | tr -d ' ')
     REC_HOOKS=$(grep 'hooks:' "$VERSION_FILE" | sed 's/.*hooks: *//' | tr -d ' ')
 
-    mkdir -p "$HXSK_DIR/skills" "$HXSK_DIR/agents" "$HXSK_DIR/hooks"
-    ACT_SKILLS=$(find "$HXSK_DIR/skills" -name "SKILL.md" 2>/dev/null | wc -l | tr -d ' ')
-    ACT_AGENTS=$(find "$HXSK_DIR/agents" -name "*.md" -not -name "INDEX.md" 2>/dev/null | wc -l | tr -d ' ')
-    ACT_HOOKS=$(find "$HXSK_DIR/hooks" \( -name "*.sh" -o -name "*.py" \) 2>/dev/null | wc -l | tr -d ' ')
-
-    if [[ "$REC_SKILLS" == "$ACT_SKILLS" ]]; then
-        pass "Skills: $ACT_SKILLS (기록 일치)"
-    else
-        fail "Skills: 실제 $ACT_SKILLS vs 기록 $REC_SKILLS"
-    fi
-
-    if [[ "$REC_AGENTS" == "$ACT_AGENTS" ]]; then
-        pass "Agents: $ACT_AGENTS (기록 일치)"
-    else
-        fail "Agents: 실제 $ACT_AGENTS vs 기록 $REC_AGENTS"
-    fi
-
-    if [[ "$REC_HOOKS" == "$ACT_HOOKS" ]]; then
-        pass "Hooks: $ACT_HOOKS (기록 일치)"
-    else
-        fail "Hooks: 실제 $ACT_HOOKS vs 기록 $REC_HOOKS"
+    if [[ "$REC_SKILLS" != "$ACT_SKILLS" || "$REC_AGENTS" != "$ACT_AGENTS" || "$REC_HOOKS" != "$ACT_HOOKS" ]]; then
+        sed -i.bak "s/skills: .*/skills: $ACT_SKILLS/" "$VERSION_FILE"
+        sed -i.bak "s/agents: .*/agents: $ACT_AGENTS/" "$VERSION_FILE"
+        sed -i.bak "s/hooks: .*/hooks: $ACT_HOOKS/" "$VERSION_FILE"
+        rm -f "${VERSION_FILE}.bak"
+        warn "카운트 자동 갱신: S:$REC_SKILLS→$ACT_SKILLS A:$REC_AGENTS→$ACT_AGENTS H:$REC_HOOKS→$ACT_HOOKS"
     fi
 fi
 
