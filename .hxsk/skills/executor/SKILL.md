@@ -637,6 +637,13 @@ One task = one commit. Always.
 ### ✅ Verification before done
 Run verify step. Confirm done criteria. Then commit.
 
+## 관련 스킬
+
+- **REQUIRED**: `empirical-validation` — 태스크 완료 전 Gate Function으로 검증
+- **REQUIRED**: `commit` — atomic commit 프로토콜
+- **RECOMMENDED**: `plan-checker` — 실행 전 계획 유효성 검증
+- **RECOMMENDED**: `memory-protocol` — 실행 결과/이탈 기록
+
 ## 네이티브 도구 활용
 
 PLAN.md 파싱과 상태 관리는 네이티브 도구로 수행:

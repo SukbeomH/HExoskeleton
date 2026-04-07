@@ -430,6 +430,12 @@ gaps: [...]  # If gaps_found
 - [ ] VERIFICATION.md created
 - [ ] Results returned to orchestrator
 
+## 관련 스킬
+
+- **REQUIRED**: `empirical-validation` — Gate Function 5단계로 완료 검증
+- **RECOMMENDED**: `memory-protocol` — 검증 결과를 메모리에 저장
+- **RECOMMENDED**: `impact-analysis` — 검증 범위 결정 시 영향 분석 참조
+
 ## 네이티브 도구 활용
 
 Stub 탐지와 아티팩트 검증은 네이티브 도구로 수행:

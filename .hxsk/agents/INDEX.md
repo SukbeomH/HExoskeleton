@@ -1,6 +1,6 @@
 # Agents Index
 
-> 17 agent definitions. Agents mount skills and orchestrate execution.
+> 18 agent definitions. Agents mount skills and orchestrate execution.
 
 | Agent | Description | Model | File |
 |-------|-------------|-------|------|
@@ -19,5 +19,6 @@
 | plan-checker | Validates plans before execution to catch issues early | sonnet | `agents/plan-checker.md` |
 | planner | Creates executable phase plans with task breakdown and dependency analysis | opus | `agents/planner.md` |
 | pr-review | Multi-persona code review (Dev, QA, Security, Arch, DevOps, UX) with severity triage | opus | `agents/pr-review.md` |
+| spec-reviewer | Validates implementation against SPEC.md — checks what was built matches what was requested | sonnet | `agents/spec-reviewer.md` |
 | verifier | Validates implemented work against spec requirements with empirical evidence | sonnet | `agents/verifier.md` |
 | write-report | Writes structured solution comparison reports for non-technical decision makers | sonnet | `agents/write-report.md` |
