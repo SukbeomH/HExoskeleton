@@ -145,6 +145,12 @@ npm run build
 - 테스트 실패 원인 불명 — 에러 메시지가 모호
 - 사용자가 "왜?"라고 물을 때 — 설명에 깊은 이해 필요
 
+## 관련 스킬
+
+- **REQUIRED**: `memory-protocol` — 검증 결과(성공/실패)를 메모리에 저장
+- **RECOMMENDED**: `context-health-monitor` — 3+ 검증 실패 시 건강 이벤트 기록
+- **RECOMMENDED**: `debugger` — 검증 실패 시 근본 원인 분석 전환
+
 ## Integration
 
 This skill integrates with:

@@ -17,7 +17,7 @@ set -o pipefail
 # Version & Mode Detection
 # ─────────────────────────────────────────────────────
 
-BOOTSTRAP_VERSION="5.2.1"
+BOOTSTRAP_VERSION="5.3.0"
 VERSION_FILE=".hxsk/.bootstrap-version"
 HOOK_DIR=".hxsk/hooks"
 MODE="fresh"

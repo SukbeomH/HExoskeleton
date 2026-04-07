@@ -354,6 +354,12 @@ PROGRESS: {what's been done}
 QUESTION: {what's needed from user}
 ```
 
+## 관련 스킬
+
+- **REQUIRED**: `empirical-validation` — 수정 후 경험적 증거로 검증
+- **REQUIRED**: `memory-protocol` — 근본 원인, 배제된 가설을 메모리에 저장
+- **RECOMMENDED**: `impact-analysis` — 수정 전 영향 범위 분석
+
 ## Scripts
 
 (없음 — Bash, Read, Grep 등 에이전트 네이티브 도구로 직접 수행)

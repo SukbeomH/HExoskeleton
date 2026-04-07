@@ -4,6 +4,34 @@
 
 ---
 
+### [2026-04-07] v5.3.0 — 에이전트 규율 강화 + 연구 기반 설계 문서화
+
+#### 신규
+- **Iron Laws** 3개 — AGENTS.md에 비타협 규칙 (NO EDIT w/o READ, NO CLAIM w/o VERIFY, NO WRITE to exist)
+- **합리화 테이블** 12항목 — empirical-validation 스킬에 허위 완료/Read 건너뛰기/작업 중단 차단
+- **Gate Function** 5단계 — IDENTIFY→RUN→READ→VERIFY→CLAIM 완료 검증 게이트
+- **Thinking Budget** — 깊은 추론 필요 상황 트리거 (CLAUDE.md + empirical-validation)
+- `read-before-edit.py` — PreToolUse 훅, Read 없이 Edit 차단 (Iron Law 인프라 강제)
+- `track-read-history.py` — PostToolUse 훅, Read 이력 기록
+- `write-guard.py` — PreToolUse 훅, 기존 파일 Write 차단
+- `spec-reviewer` 에이전트 — 스펙 준수 리뷰 (2단계 리뷰 Step 1)
+- `DESIGN-PHILOSOPHY.md` — 9가지 설계 원칙, 작성 규칙, 연구 근거, 방향성
+
+#### 개선
+- 15개 SKILL.md description **CSO 최적화** — 트리거 조건만 기재 (SkillReducer 2026 기반)
+- `post-turn-verify.sh` — 완료 키워드 감지 시 검증 명령 이력 확인 게이트 추가
+- 4개 핵심 스킬에 **Cross-skill 의존성 마커** 추가 (REQUIRED/RECOMMENDED)
+- 2개 스킬에 **보조 문서** 추가 (anti-patterns.md, root-cause-tracing.md)
+- `session-start.sh` — read-history.log 초기화 추가
+
+#### 연구
+- `superpowers-analysis.md` — Superpowers 플러그인 14개 스킬, 10가지 패턴 분석
+- `superpowers-references.md` — 7패턴 × 20개 학술/산업 출처
+- `claude-code-quality-mitigation.md` — GitHub #42796 품질 저하 완화 분석
+- README 연구 기반 테이블에 5개 출처 추가, 3-Phase 로드맵
+
+---
+
 ### [2026-04-07] v5.2.1 — CI 안정화 + 버전 동기화 가드레일
 
 #### 수정

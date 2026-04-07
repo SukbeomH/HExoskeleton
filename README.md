@@ -20,7 +20,7 @@
   <img src="https://img.shields.io/badge/dependencies-zero-brightgreen?style=flat-square" alt="Zero Dependencies" />
   <img src="https://img.shields.io/badge/stack-bash%20%2B%20markdown-blue?style=flat-square" alt="Bash + Markdown" />
   <img src="https://img.shields.io/badge/multi--agent-5%20platforms-blueviolet?style=flat-square" alt="Multi-Agent" />
-  <img src="https://img.shields.io/badge/v5.2.1%20%C2%B7%2019%20skills%20%C2%B7%2017%20agents%20%C2%B7%2020%20hooks-orange?style=flat-square" alt="Components" />
+  <img src="https://img.shields.io/badge/v5.3.0%20%C2%B7%2019%20skills%20%C2%B7%2018%20agents%20%C2%B7%2023%20hooks-orange?style=flat-square" alt="Components" />
   <img src="https://img.shields.io/github/license/SukbeomH/HExoskeleton?style=flat-square" alt="License" />
 </p>
 
