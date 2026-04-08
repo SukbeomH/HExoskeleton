@@ -1,9 +1,9 @@
-# Session Handoff — 2026-04-07
+# Session Handoff — 2026-04-07~08
 
 ## 세션 요약
 
-v5.2.1 CI 안정화 → Superpowers 리서치 → 3-Phase 로드맵 설계·구현 완료.
-PR 12개 (#107~#118), 미해결 0건.
+v5.2.1 CI 안정화 → Superpowers 리서치 → 3-Phase 로드맵 설계·구현 완료 → 슬래시 커맨드 자동 등록 → CrosspointFork/QuanTrade 배포.
+PR 15개 (#107~#121), 미해결 0건.
 
 ## 완료된 작업
 
@@ -33,19 +33,38 @@ PR 12개 (#107~#118), 미해결 0건.
 - collect-rationalization.sh 수집 훅 + 갱신 가이드
 - pre-PR check 브랜치 오탐 수정, dead component grep 수정
 
+### 추가 작업 (2026-04-08)
+
+- **슬래시 커맨드 자동 등록** (PR #121): bootstrap.sh가 .hxsk/skills/ → .claude/skills/ 심볼릭 링크 생성
+- **CrosspointFork 배포**: v5.3.0 fresh install (PASS 10, FAIL 0)
+- **QuanTrade 배포**: v5.1.0 → v5.3.0 update (PASS 22, FAIL 0), 훅 13→24 정리
+- **README 카운트 정합성** (PR #120): 6건 불일치 수정
+- **pre-PR check 오탐 수정** (PR #117): GITHUB_HEAD_REF 사용
+- **릴리즈 노트 갱신**: setup-v5.3.0 Phase 1~3 전체 반영
+
 ## 현재 상태
 
 - **버전**: v5.3.0
 - **컴포넌트**: 20 skills · 18 agents · 24 hooks
 - **CI**: 전부 PASS
 - **미해결**: 0건
+- **배포**: Hexoskeleton(소스), CrosspointFork, QuanTrade 모두 v5.3.0
 
 ## 다음 세션 권장 작업
 
 1. **합리화 로그 모니터링** — `.hxsk/.rationalization-patterns.log` 축적 시 테이블 갱신
 2. **skill-testing 실전 적용** — 기존 스킬 1-2개에 압박 시나리오 실행하여 프레임워크 검증
-3. **README 배지 업데이트** — 20 skills · 24 hooks 반영 (현재 23 hooks로 표기)
-4. **DESIGN-PHILOSOPHY.md 반영** — Phase 3 항목 추가
+3. **bootstrap.sh 구버전 호환** — v5.1.0 이하 플랫 .bootstrap-version 자동 변환 로직 추가
+4. **setup.md 릴리즈 갱신** — 최신 setup.md를 릴리즈 첨부에 반영
+
+## 발견된 이슈 (해결됨)
+
+| 이슈 | 원인 | 해결 |
+|------|------|------|
+| CI 연쇄 실패 (#107~#110) | 수동 동기화 포인트 3곳 (버전, CHANGELOG, 카운트) | 카운트 자동 동기화 구현 |
+| pre-PR check "On master" 오탐 | actions/checkout이 base 브랜치 체크아웃 | GITHUB_HEAD_REF 사용 |
+| dead component grep 크래시 | set -e + grep 매칭 0건 = exit 1 | || true + 기본값 처리 |
+| bootstrap 구버전 호환 실패 | v5.1.0 .bootstrap-version이 플랫 형식 | YAML 수동 변환 (자동화 미구현) |
 
 ## 주요 파일 변경 추적
 
