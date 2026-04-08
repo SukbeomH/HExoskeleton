@@ -83,9 +83,13 @@ secrets/
 .agent/memory.jsonl
 **/memory.jsonl
 
+# ─── Claude Code Runtime (bootstrap.sh 자동 생성) ──
+.claude/skills/
+.claude/agents/
+.claude/worktrees/
+
 # ─── Worktrees ───────────────────────────────────
 .worktrees/
-.claude/worktrees/
 
 # ─── Database ────────────────────────────────────
 *.db

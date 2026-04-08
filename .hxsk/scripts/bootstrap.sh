@@ -332,6 +332,48 @@ if [[ "$PERM_FIXED" -eq 0 ]]; then
 fi
 
 # ─────────────────────────────────────────────────────
+# Claude Code Slash Commands (Symlink .hxsk → .claude)
+# ─────────────────────────────────────────────────────
+
+echo ""
+echo "--- Claude Code Slash Commands ---"
+
+CLAUDE_SKILLS_DIR=".claude/skills"
+CLAUDE_AGENTS_DIR=".claude/agents"
+LINK_COUNT=0
+
+mkdir -p "$CLAUDE_SKILLS_DIR" "$CLAUDE_AGENTS_DIR"
+
+# Skills → .claude/skills/ (심볼릭 링크)
+for skill_dir in ".hxsk/skills/"*/; do
+    [[ ! -d "$skill_dir" ]] && continue
+    skill_name=$(basename "$skill_dir")
+    target="$CLAUDE_SKILLS_DIR/$skill_name"
+    if [[ ! -L "$target" && ! -d "$target" ]]; then
+        ln -sfn "../../.hxsk/skills/$skill_name" "$target"
+        ((LINK_COUNT++)) || true
+    fi
+done
+
+# Agents → .claude/agents/ (심볼릭 링크)
+for agent_file in ".hxsk/agents/"*.md; do
+    [[ ! -f "$agent_file" ]] && continue
+    bn=$(basename "$agent_file")
+    [[ "$bn" == "INDEX.md" ]] && continue
+    target="$CLAUDE_AGENTS_DIR/$bn"
+    if [[ ! -L "$target" && ! -f "$target" ]]; then
+        ln -sf "../../.hxsk/agents/$bn" "$target"
+        ((LINK_COUNT++)) || true
+    fi
+done
+
+if [[ "$LINK_COUNT" -gt 0 ]]; then
+    report_new "Slash commands" "${LINK_COUNT} symlinks created"
+else
+    report_ok "Slash commands" "all linked"
+fi
+
+# ─────────────────────────────────────────────────────
 # Prompt Patch (Optional)
 # ─────────────────────────────────────────────────────
 

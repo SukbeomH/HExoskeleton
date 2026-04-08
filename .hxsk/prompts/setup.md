@@ -59,19 +59,23 @@ test -f .hxsk/.bootstrap-version && echo "UPDATE" || echo "FRESH"
 
 **Claude Code 설치 방법:**
 ```bash
-# 스킬: .hxsk/skills/ → .claude/skills/
-for skill in bootstrap planner executor verifier memory-protocol; do
-    mkdir -p .claude/skills/$skill
-    cp .hxsk/skills/$skill/SKILL.md .claude/skills/$skill/SKILL.md
+# 스킬: .hxsk/skills/ → .claude/skills/ (심볼릭 링크 — 원본 수정 시 자동 반영)
+mkdir -p .claude/skills
+for skill_dir in .hxsk/skills/*/; do
+    skill_name=$(basename "$skill_dir")
+    ln -sfn "../../.hxsk/skills/$skill_name" ".claude/skills/$skill_name"
 done
 
 # 에이전트: .hxsk/agents/*.md → .claude/agents/ (INDEX.md 제외)
 mkdir -p .claude/agents
 for agent in .hxsk/agents/*.md; do
     [[ "$(basename "$agent")" == "INDEX.md" ]] && continue
-    cp "$agent" .claude/agents/
+    ln -sf "../../.hxsk/agents/$(basename "$agent")" ".claude/agents/$(basename "$agent")"
 done
 ```
+
+> 심볼릭 링크를 사용하므로 `.hxsk/`의 스킬/에이전트 수정이 `.claude/`에 즉시 반영됩니다.
+> 모든 스킬이 `/skill-name` 슬래시 커맨드로 자동 등록됩니다.
 
 **Gemini CLI** → `.agent/skills/{name}/SKILL.md`, `.agent/agents/{name}.md`에 배치
 **기타** → 에이전트 문서에 따라 배치
