@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://gsd.local/schemas/memory/session-summary",
+  "title": "Session Summary Memory Schema",
+  "description": "세션 요약 메모리 스키마 (Nemori 서사 형태)",
+  "allOf": [
+    { "$ref": "base.schema.json" }
+  ],
+  "properties": {
+    "type": { "const": "session-summary" },
+    "branch": {
+      "type": "string",
+      "description": "작업 브랜치"
+    },
+    "files_changed": {
+      "type": "integer",
+      "description": "변경된 파일 수",
+      "minimum": 0
+    },
+    "narrative": {
+      "type": "string",
+      "description": "Nemori: 3인칭 서사 형태 요약"
+    },
+    "key_insight": {
+      "type": "string",
+      "description": "세션에서 가장 중요한 학습"
+    }
+  },
+  "required": ["title", "tags", "type", "created"]
+}

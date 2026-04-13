@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://gsd.local/schemas/memory/architecture-decision",
+  "title": "Architecture Decision Memory Schema",
+  "description": "아키텍처 결정 메모리 스키마 (ADR 스타일)",
+  "allOf": [
+    { "$ref": "base.schema.json" }
+  ],
+  "properties": {
+    "type": { "const": "architecture-decision" },
+    "context": {
+      "type": "string",
+      "description": "결정이 필요한 배경/상황"
+    },
+    "decision": {
+      "type": "string",
+      "description": "내린 결정"
+    },
+    "rationale": {
+      "type": "string",
+      "description": "결정 근거"
+    },
+    "alternatives": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "고려한 대안들"
+    },
+    "consequences": {
+      "type": "string",
+      "description": "결정의 결과/영향"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["proposed", "accepted", "deprecated", "superseded"],
+      "description": "결정 상태"
+    }
+  },
+  "required": ["title", "tags", "type", "created"]
+}

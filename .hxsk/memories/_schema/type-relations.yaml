@@ -1,0 +1,131 @@
+# Memory Type Relations Schema
+# Based on Ontology research for structured reasoning
+# Defines relationships between 14 memory types
+
+version: "1.0"
+
+types:
+  architecture-decision:
+    description: "아키텍처 결정 사항"
+    primary_tags: [arch, decision]
+    relations:
+      informs: [pattern-discovery, execution-summary]
+      validates: [deviation]
+      precedes: [root-cause]  # 결정이 잘못되면 버그 발생
+
+  root-cause:
+    description: "디버깅 근본 원인"
+    primary_tags: [debug, root-cause]
+    relations:
+      resolves: [debug-eliminated, debug-blocked]
+      prevents: [health-event]
+      generates: [pattern-discovery]
+
+  debug-eliminated:
+    description: "배제된 가설"
+    primary_tags: [debug, eliminated]
+    relations:
+      contributes_to: [root-cause]
+      informs: [session-handoff]
+
+  debug-blocked:
+    description: "3-strike로 차단된 조사"
+    primary_tags: [debug, blocked, 3-strike]
+    relations:
+      requires: [session-handoff]
+      triggers: [health-event]
+
+  health-event:
+    description: "컨텍스트 건강 이벤트"
+    primary_tags: [health, context]
+    relations:
+      triggers: [session-handoff]
+      informs: [pattern-discovery]
+
+  session-handoff:
+    description: "세션 인수인계 정보"
+    primary_tags: [handoff, session]
+    relations:
+      continues_from: [session-summary, session-snapshot]
+      references: [debug-blocked, health-event]
+
+  execution-summary:
+    description: "실행 결과 요약"
+    primary_tags: [execution, summary]
+    relations:
+      follows: [deviation]
+      validates: [architecture-decision]
+      generates: [pattern-discovery]
+
+  deviation:
+    description: "계획 대비 이탈"
+    primary_tags: [deviation, plan]
+    relations:
+      affects: [execution-summary]
+      may_invalidate: [architecture-decision]
+
+  pattern-discovery:
+    description: "발견된 패턴/학습"
+    primary_tags: [pattern, learning]
+    relations:
+      derived_from: [root-cause, execution-summary, health-event]
+      informs: [architecture-decision]
+
+  bootstrap:
+    description: "프로젝트 초기 설정 기록"
+    primary_tags: [bootstrap, setup]
+    relations:
+      precedes: [architecture-decision]
+
+  session-summary:
+    description: "세션 종료 요약"
+    primary_tags: [session, auto]
+    relations:
+      enables: [session-handoff]
+      references: [execution-summary]
+
+  session-snapshot:
+    description: "Pre-compact 스냅샷"
+    primary_tags: [session-snapshot, pre-compact]
+    relations:
+      enables: [session-handoff]
+
+  security-finding:
+    description: "보안 발견 사항"
+    primary_tags: [security, finding]
+    relations:
+      may_generate: [root-cause]
+      informs: [architecture-decision]
+
+  general:
+    description: "기타"
+    primary_tags: []
+    relations:
+      can_link_to: [any]
+
+# Relation type definitions
+relation_types:
+  resolves: "문제를 해결함 (A resolves B → B의 문제가 A로 해결됨)"
+  informs: "정보를 제공함 (A informs B → A가 B 결정에 영향)"
+  triggers: "이벤트를 유발함 (A triggers B → A 발생 시 B 생성)"
+  precedes: "선행 관계 (A precedes B → A가 먼저 발생)"
+  validates: "검증함 (A validates B → A가 B의 정확성 확인)"
+  generates: "생성함 (A generates B → A로부터 B 도출)"
+  contributes_to: "기여함 (A contributes_to B → A가 B 발견에 기여)"
+  requires: "필요함 (A requires B → A 발생 시 B 필수)"
+  follows: "후행 관계 (A follows B → B 이후에 A 발생)"
+  affects: "영향을 미침 (A affects B → A가 B 상태 변경)"
+  references: "참조함 (A references B → A가 B 내용 언급)"
+  enables: "가능하게 함 (A enables B → A가 B 수행 가능하게)"
+  derived_from: "도출됨 (A derived_from B → A가 B에서 추출)"
+  may_invalidate: "무효화할 수 있음 (A may_invalidate B → A가 B를 무효화 가능)"
+  may_generate: "생성할 수 있음 (A may_generate B → A가 B 생성 가능)"
+  continues_from: "연속됨 (A continues_from B → A가 B를 이어감)"
+  can_link_to: "연결 가능 (모든 타입과 연결 가능)"
+
+# Usage notes for search optimization
+search_hints:
+  debugging_chain: [debug-blocked, debug-eliminated, root-cause, pattern-discovery]
+  architecture_chain: [bootstrap, architecture-decision, pattern-discovery]
+  session_chain: [session-snapshot, session-summary, session-handoff]
+  execution_chain: [deviation, execution-summary, pattern-discovery]

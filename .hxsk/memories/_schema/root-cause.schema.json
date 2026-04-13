@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://gsd.local/schemas/memory/root-cause",
+  "title": "Root Cause Memory Schema",
+  "description": "디버깅 근본 원인 메모리 스키마",
+  "allOf": [
+    { "$ref": "base.schema.json" }
+  ],
+  "properties": {
+    "type": { "const": "root-cause" },
+    "symptom": {
+      "type": "string",
+      "description": "관찰된 증상"
+    },
+    "cause": {
+      "type": "string",
+      "description": "근본 원인"
+    },
+    "fix": {
+      "type": "string",
+      "description": "적용된 수정"
+    },
+    "verification": {
+      "type": "string",
+      "description": "검증 방법/결과"
+    },
+    "affected_files": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "영향받은 파일 목록"
+    }
+  },
+  "required": ["title", "tags", "type", "created"]
+}
