@@ -86,12 +86,30 @@ EOF
     fi
 
     if [[ "$FILE_COUNT" -ge 1 ]]; then
+        # ── 중복 스킵: 최근 session-summary가 동일 지문이면 저장 생략 ──
+        # 지문 = HEAD 커밋 해시 + 변경 파일 수 + 수정 횟수
+        SUMMARY_DIR="$PROJECT_DIR/.hxsk/memories/session-summary"
+        HEAD_HASH=$(git -C "$PROJECT_DIR" rev-parse --short HEAD 2>/dev/null || echo "nohead")
+        CUR_FINGERPRINT="${HEAD_HASH}|${FILE_COUNT}|${MODIFICATIONS_COUNT}"
+        LATEST=$(ls -t "$SUMMARY_DIR"/*.md 2>/dev/null | head -1)
+        if [[ -n "$LATEST" ]]; then
+            LAST_FINGERPRINT=$(grep -m1 '^fingerprint:' "$LATEST" 2>/dev/null | sed 's/^fingerprint: //')
+            if [[ "$CUR_FINGERPRINT" == "$LAST_FINGERPRINT" ]]; then
+                echo "[$TS] Memory store skipped (same fingerprint: $CUR_FINGERPRINT)" >> "$LOG_FILE"
+                rm -f "$TRACK_LOG"
+                exit 0
+            fi
+        fi
+
         # CURRENT.md가 있으면 풍부한 content 사용, 없으면 fallback
         if [[ -f "$CURRENT_MD" ]]; then
             MEMORY_CONTENT=$(head -30 "$CURRENT_MD" 2>/dev/null || true)
         else
             MEMORY_CONTENT="On $TS, the developer worked on the $BRANCH branch, modifying $FILE_COUNT files. $(echo "$RECENT_COMMITS" | head -1)"
         fi
+        # 지문 라인 추가 (다음 실행의 중복 감지용)
+        MEMORY_CONTENT="${MEMORY_CONTENT}
+fingerprint: $CUR_FINGERPRINT"
         # modifications_count 추가
         MEMORY_CONTENT="${MEMORY_CONTENT}
 modifications_count: $MODIFICATIONS_COUNT"
@@ -124,6 +142,16 @@ modifications_count: $MODIFICATIONS_COUNT"
 
     # ── 4. track-modifications.log 초기화 ──
     rm -f "$TRACK_LOG"
+
+    # ── 5. session-summary 누적 시 자동 prune (150개 초과 시) ──
+    SUMMARY_DIR="$PROJECT_DIR/.hxsk/memories/session-summary"
+    if [[ -d "$SUMMARY_DIR" ]]; then
+        COUNT=$(ls -1 "$SUMMARY_DIR"/*.md 2>/dev/null | wc -l | tr -d ' ')
+        if [[ "$COUNT" -gt 150 ]]; then
+            bash "$PROJECT_DIR/.hxsk/scripts/prune-memories.sh" 30 \
+                >> "$LOG_FILE" 2>&1 || true
+        fi
+    fi
 ) &
 
 exit 0
