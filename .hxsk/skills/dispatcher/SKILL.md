@@ -121,6 +121,36 @@ Rules:
 - 커밋 메시지 형식: feat({WORK_ID}): {내용}
 - files + side_effect_files 범위 밖 파일 수정 금지
 - 완료/실패 시 exit
+
+## LESSONS-LEARNED 참조 (REQUIRED)
+
+실행 전 관련 패턴 조회:
+```bash
+bash .hxsk/hooks/md-recall-memory.sh "{WORK_ID} {task description}" \
+  ".hxsk/memories/lessons-learned" 5 compact
+```
+해당 A/B/C/D/E 패턴 확인 후 동일 실수 방지.
+
+## Self-Review (REQUIRED)
+
+완료 보고 전 아래 표를 명시적으로 작성:
+
+| 카테고리 | 확인 항목 | 결과 |
+|---|---|---|
+| A | docstring ↔ 구현 일치 | PASS / FAIL |
+| B | real path 테스트 포함 | PASS / FAIL |
+| C | cross_phase_invariants 위반 없음 | PASS / FAIL |
+| D | resource cleanup 존재 | PASS / FAIL |
+| E | 미사용 entity 없음 | PASS / FAIL |
+
+## Ambiguity Log (REQUIRED)
+
+PLAN.md에 없는 결정을 내린 경우 각각 기록:
+DECISION: {무엇을 결정}
+REASON:   {왜 그렇게 결정}
+ALT:      {고려한 다른 옵션}
+
+결정이 없었다면: DECISION LOG: none
 ```
 
 ---
