@@ -24,6 +24,15 @@
     "key_insight": {
       "type": "string",
       "description": "세션에서 가장 중요한 학습"
+    },
+    "fingerprint": {
+      "type": "string",
+      "description": "중복 스킵용 지문 (HEAD 해시|diff 내용 해시)"
+    },
+    "modifications_count": {
+      "type": "integer",
+      "description": "세션 내 track-modifications.log 누적 수정 횟수",
+      "minimum": 0
     }
   },
   "required": ["title", "tags", "type", "created"]

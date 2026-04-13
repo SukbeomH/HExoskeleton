@@ -52,6 +52,5 @@ keywords:
 - `stop-context-save.sh`: 지문 기반 중복 저장 스킵
 
 ## References
-- PR: #123
-- Commits: 267f30d, ccefed5, 4562bf1, 55f75fb
+- PR: #123 (merge commit에서 전체 변경 이력 확인)
 - Date: 2026-04-13

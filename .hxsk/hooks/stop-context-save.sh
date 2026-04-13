@@ -86,11 +86,15 @@ EOF
     fi
 
     if [[ "$FILE_COUNT" -ge 1 ]]; then
-        # ── 중복 스킵: 최근 session-summary가 동일 지문이면 저장 생략 ──
-        # 지문 = HEAD 커밋 해시 + 변경 파일 수 + 수정 횟수
+        # ── 중복 스킵: 실 변경 내용이 이전과 동일하면 저장 생략 ──
+        # 지문 = HEAD 해시 + git status + diff stat 요약의 해시
+        # (MODIFICATIONS_COUNT는 단조 증가해 같은 diff에도 값이 달라져 부적합)
         SUMMARY_DIR="$PROJECT_DIR/.hxsk/memories/session-summary"
         HEAD_HASH=$(git -C "$PROJECT_DIR" rev-parse --short HEAD 2>/dev/null || echo "nohead")
-        CUR_FINGERPRINT="${HEAD_HASH}|${FILE_COUNT}|${MODIFICATIONS_COUNT}"
+        DIFF_SIG=$(printf '%s\n%s\n' "$MODIFIED" "$DIFF_STAT" | md5 2>/dev/null \
+            || printf '%s\n%s\n' "$MODIFIED" "$DIFF_STAT" | md5sum 2>/dev/null | awk '{print $1}' \
+            || echo "nomd5")
+        CUR_FINGERPRINT="${HEAD_HASH}|${DIFF_SIG}"
         LATEST=$(ls -t "$SUMMARY_DIR"/*.md 2>/dev/null | head -1)
         if [[ -n "$LATEST" ]]; then
             LAST_FINGERPRINT=$(grep -m1 '^fingerprint:' "$LATEST" 2>/dev/null | sed 's/^fingerprint: //')
