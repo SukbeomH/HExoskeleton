@@ -97,6 +97,20 @@ types:
       may_generate: [root-cause]
       informs: [architecture-decision]
 
+  lessons-learned:
+    description: "PR 리뷰/실행 중 발견된 반복 패턴 (A-E 카테고리)"
+    primary_tags: [lessons-learned, pattern]
+    subcategories:
+      A-doc-drift: "코드↔문서 drift (docstring, plan 불일치)"
+      B-test-quality: "테스트 품질 (mock-only, resource close 누락)"
+      C-state-sync: "상태 동기화/의미론 (invariant 위반, timing 오류)"
+      D-lifecycle: "Resource/Lifecycle (thread safety, cleanup 누락)"
+      E-compat: "Forward-compat (미사용 param, dead weight)"
+    relations:
+      derived_from: [deviation, root-cause]
+      informs: [pattern-discovery, architecture-decision]
+      prevents: [deviation]
+
   general:
     description: "기타"
     primary_tags: []
@@ -129,3 +143,4 @@ search_hints:
   architecture_chain: [bootstrap, architecture-decision, pattern-discovery]
   session_chain: [session-snapshot, session-summary, session-handoff]
   execution_chain: [deviation, execution-summary, pattern-discovery]
+  quality_chain: [lessons-learned, pattern-discovery, architecture-decision]
