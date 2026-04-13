@@ -5,7 +5,7 @@
 #   bash .hxsk/scripts/prune-memories.sh [RETENTION_DAYS]
 #
 # 동작:
-#   1. RETENTION_DAYS(기본 30일) 초과 파일을 _archive/YYYY-MM/{tier}/로 이동
+#   1. RETENTION_DAYS(기본 30일) 초과 파일을 _retained/YYYY-MM/{tier}/로 이동
 #   2. 대상: local-tier (gitignore 대상). shared-tier는 건드리지 않음
 #   3. 월별 롤업 파일(YYYY-MM_rollup.md) 생성 — 커밋 해시·파일 수 요약
 #
@@ -15,7 +15,7 @@ set -uo pipefail
 
 PROJECT_DIR="${CLAUDE_PROJECT_DIR:-$(pwd)}"
 MEM_DIR="$PROJECT_DIR/.hxsk/memories"
-ARCHIVE_DIR="$MEM_DIR/_archive"
+ARCHIVE_DIR="$MEM_DIR/_retained"
 RETENTION_DAYS="${1:-30}"
 
 # local-tier만 정리 (shared-tier는 git으로 관리)

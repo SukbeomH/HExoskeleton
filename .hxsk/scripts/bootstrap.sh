@@ -408,6 +408,7 @@ fi
 if git rev-parse --git-dir >/dev/null 2>&1; then
     if ! git config --get merge.ours.driver >/dev/null 2>&1; then
         git config merge.ours.driver true
+        echo "[bootstrap] Registered git merge driver: merge.ours.driver=true (required by .gitattributes)"
     fi
 fi
 

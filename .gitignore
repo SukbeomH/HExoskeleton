@@ -75,7 +75,7 @@ secrets/
 .hxsk/memories/bootstrap/
 .hxsk/memories/general/
 .hxsk/memories/deviation/
-.hxsk/memories/_archive/
+.hxsk/memories/_retained/
 # Shared (git-tracked): architecture-decision, root-cause, pattern-discovery,
 # security-finding, execution-summary, _schema — 명시적으로 무시하지 않음
 
