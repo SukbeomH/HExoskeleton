@@ -31,7 +31,7 @@ L1 문서(CLAUDE.md, AGENTS.md, README.md) + 전체 .md 파일을 실제 프로�
 규칙 ID    | 검사 내용                                | 대상              | 상태
 -----------|------------------------------------------|-------------------|--------
 LINK-01    | .md 파일 내 상대 링크 유효성               | 전체 .md          | 구현됨
-LINK-02    | 앵커 링크(#section) 유효성                 | 전체 .md          | 미구현(후속)
+LINK-02    | 앵커 링크(#section) 유효성                 | 전체 .md          | 구현됨
 INDEX-01   | INDEX.md 목록 vs 실제 파일 차집합           | skills/, agents/, research/ | 구현됨
 COUNT-01   | README 카운트 숫자 vs 실제 파일/항목 수      | README.md         | 구현됨
 REF-01     | CLAUDE.md/AGENTS.md 경로 참조 유효성        | L1 문서           | 구현됨
@@ -39,7 +39,7 @@ ORPHAN-01  | 어떤 INDEX/문서에서도 참조되지 않는 고아 파일  | �
 DUP-01     | 동일 파일명이 여러 위치에 존재               | 전체 .md          | 구현됨
 ```
 
-> **LINK-02**는 초기 릴리스 스코프에서 제외. 본격 앵커 검사는 후속 PR에서 추가 예정 — 각 `.md`의 `## 헤딩`을 수집한 후 `#anchor` 링크와 교차 검증 필요.
+> **LINK-02 구현 노트**: 각 `.md`의 `## 헤딩`을 수집해 GitHub Markdown slug 규칙(소문자 + 공백 → hyphen + 특수문자 제거)으로 근사 후 `#anchor` 링크와 교차 검증. basename 기반 매칭 + `/tmp` 캐시로 bash 3(macOS 기본)에서도 동작.
 
 ### 설계 원칙
 
