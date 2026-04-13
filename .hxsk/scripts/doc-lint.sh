@@ -55,11 +55,35 @@ should_run() {
     [[ -z "$RULE_ARG" ]] || [[ "$RULE_ARG" == "$1" ]]
 }
 
-# Collect all .md files (exclude .git, follow no symlinks)
-mapfile -t ALL_MD < <(find . -name "*.md" -not -path "./.git/*" -not -path "./node_modules/*" -not -type l | sort)
+# Collect all .md files (exclude .git, follow no symlinks, skip gitignored runtime dirs)
+mapfile -t ALL_MD < <(
+    find . -name "*.md" \
+        -not -path "./.git/*" \
+        -not -path "./node_modules/*" \
+        -not -path "./.hxsk/memories/*" \
+        -not -path "./.hxsk/archive/*" \
+        -not -path "./.hxsk/reports/*" \
+        -not -type l | sort
+)
+
+# Gitignored 상태 파일 제외 (훅이 재생성 — orphan 의미 없음)
+GITIGNORED_FILES="./.hxsk/CURRENT.md ./.hxsk/STATE.md ./.hxsk/JOURNAL.md ./.hxsk/SESSION_HANDOFF.md"
+declare -a FILTERED_MD=()
+for md in "${ALL_MD[@]}"; do
+    skip=0
+    for ign in $GITIGNORED_FILES; do
+        [[ "$md" == "$ign" ]] && skip=1 && break
+    done
+    [[ $skip -eq 0 ]] && FILTERED_MD+=("$md")
+done
+ALL_MD=("${FILTERED_MD[@]}")
 
 # Directories excluded from orphan detection (no INDEX, managed differently)
-ORPHAN_EXCLUDE_DIRS="./.hxsk/memories ./.hxsk/templates ./.hxsk/archive ./.hxsk/issues ./.hxsk/examples ./docs/plans"
+# research/는 INDEX 있지만 각 문서 plain-text로만 언급하므로 별도 exclude
+ORPHAN_EXCLUDE_DIRS="./.hxsk/memories ./.hxsk/templates ./.hxsk/archive ./.hxsk/issues ./.hxsk/examples ./docs/plans ./.hxsk/docs/plans ./.hxsk/reports ./.hxsk/research"
+
+# Directories excluded from LINK-01 (과거 계획 문서/research 링크는 역사적 기록으로 허용)
+LINK_EXCLUDE_DIRS="./.hxsk/docs/plans ./docs/plans ./.hxsk/research"
 
 # ─────────────────────────────────────────────────────
 # LINK-01: 상대 링크 유효성
@@ -71,6 +95,16 @@ rule_link_01() {
     local broken_list=()
 
     for md in "${ALL_MD[@]}"; do
+        # LINK_EXCLUDE_DIRS는 검사 스킵 (역사적 기록)
+        local skip_file=0
+        for exc_dir in $LINK_EXCLUDE_DIRS; do
+            if [[ "$md" == "${exc_dir}"/* ]]; then
+                skip_file=1
+                break
+            fi
+        done
+        [[ $skip_file -eq 1 ]] && continue
+
         local dir
         dir="$(dirname "$md")"
 
@@ -84,6 +118,8 @@ rule_link_01() {
             [[ -z "$link" ]] && continue
             [[ "$link" =~ ^https?:// ]] && continue
             [[ "$link" =~ ^mailto: ]] && continue
+            # Skip template variables (e.g. ${CLAUDE_PLUGIN_ROOT}/path)
+            [[ "$link" =~ \$\{ ]] && continue
 
             # Strip anchor (file.md#section → file.md)
             local file_part="${link%%#*}"
@@ -133,14 +169,31 @@ rule_index_01() {
         local index_file="$dir/INDEX.md"
 
         # Extract referenced .md files from INDEX.md
+        # 3가지 형식 모두 지원: [text](path.md), `path.md`, 또는 plain filename.md
         local indexed_str
-        indexed_str=$(grep -oE '\([^)]+\.md[^)]*\)' "$index_file" 2>/dev/null | \
-            sed 's/^(//;s/)$//' | sed 's/#.*//' | sort -u || true)
+        indexed_str=$({
+            grep -oE '\([^)]+\.md[^)]*\)' "$index_file" 2>/dev/null | \
+                sed 's/^(//;s/)$//' | sed 's/#.*//'
+            grep -oE '`[^`]+\.md`' "$index_file" 2>/dev/null | \
+                sed 's/^`//;s/`$//'
+            grep -oE '[A-Za-z0-9_.-]+\.md' "$index_file" 2>/dev/null
+        } | sort -u || true)
 
         # Actual .md files in directory (excluding INDEX.md itself)
+        # SKILL.md가 있는 하위 디렉토리는 SKILL.md만 대표 — 같은 dir의 보조 문서는 제외
         local actual_str
-        actual_str=$(find "$dir" -name "*.md" -not -name "INDEX.md" 2>/dev/null | \
-            sed "s|^$dir/||" | sort || true)
+        actual_str=$({
+            find "$dir" -name "*.md" -not -name "INDEX.md" 2>/dev/null | \
+                while IFS= read -r f; do
+                    fdir="$(dirname "$f")"
+                    fbase="$(basename "$f")"
+                    # 같은 sub-dir에 SKILL.md가 있고 본인은 SKILL.md가 아니면 보조 문서
+                    if [[ -f "$fdir/SKILL.md" && "$fbase" != "SKILL.md" ]]; then
+                        continue
+                    fi
+                    echo "$f"
+                done
+        } | sed "s|^$dir/||" | sort || true)
 
         [[ -z "$actual_str" ]] && continue
 
@@ -304,13 +357,19 @@ rule_orphan_01() {
     local orphan_items=""
 
     # Build a set of all referenced .md basenames across the project
+    # 3가지 형식 지원: [text](path), `path`, plain filename
     local combined_refs
-    combined_refs=$(cat "${ALL_MD[@]}" 2>/dev/null | \
-        grep -oE '\([^)]+\.md[^)]*\)' | sed 's/^(//;s/)$//' | sed 's/#.*//' | \
-        xargs -I{} basename {} 2>/dev/null; \
+    combined_refs=$({
         cat "${ALL_MD[@]}" 2>/dev/null | \
-        grep -oE '`[^`]*\.md`' | sed 's/^`//;s/`$//' | \
-        xargs -I{} basename {} 2>/dev/null) || true
+            grep -oE '\([^)]+\.md[^)]*\)' | sed 's/^(//;s/)$//' | sed 's/#.*//' | \
+            xargs -I{} basename {} 2>/dev/null
+        cat "${ALL_MD[@]}" 2>/dev/null | \
+            grep -oE '`[^`]*\.md`' | sed 's/^`//;s/`$//' | \
+            xargs -I{} basename {} 2>/dev/null
+        cat "${ALL_MD[@]}" 2>/dev/null | \
+            grep -oE '[A-Za-z0-9_.-]+\.md' | \
+            xargs -I{} basename {} 2>/dev/null
+    }) || true
     combined_refs=$(echo "$combined_refs" | sort -u)
 
     for md in "${ALL_MD[@]}"; do
@@ -370,9 +429,15 @@ rule_dup_01() {
 
     while IFS= read -r name; do
         [[ -z "$name" ]] && continue
-        # Expected duplicates
+        # Expected duplicates — 의도적 중복은 스킵
         case "$name" in
-            INDEX.md|CHANGELOG.md|SKILL.md) continue ;;
+            INDEX.md|CHANGELOG.md|SKILL.md|README.md) continue ;;
+            # AGENTS.md: 루트는 AGENT CLI 진입, .hxsk/docs/는 상세 문서 — 의도적 분리
+            AGENTS.md) continue ;;
+            # VERIFICATION.md: templates/ 는 템플릿, .hxsk/ 는 실 인스턴스 — 템플릿 시스템 구조
+            VERIFICATION.md) continue ;;
+            # write-report.md: agents/는 에이전트 정의, examples/는 사용 예시 — 의도적 구분
+            write-report.md) continue ;;
         esac
 
         local locations
