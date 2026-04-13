@@ -63,6 +63,16 @@ Parse:
 - Verification criteria
 - Success criteria
 
+### Cross-Phase Invariants 파싱
+
+`cross_phase_invariants.inherit + new` 필드를 읽어 내재화.
+실행 중 코드/로직이 이 조건을 위반하면 → **즉시 Rule 4 (아키텍처 체크포인트) 적용**.
+
+위반 신호:
+- 이전 phase 테스트가 현재 코드에서 실패
+- 명시된 불변 조건과 반대되는 로직 추가
+- semantic 제약 (e.g. "status=='Y' ⟺ state ∈ {...}") 파괴
+
 ### Step 3: Determine Execution Pattern
 
 **Pattern A: Fully autonomous (no checkpoints)**
@@ -258,12 +268,23 @@ If results found, Read the matching files and review past deviations to anticipa
 
 After applying any deviation rule (Rules 1-4), persist it:
 
+#### Deviation → A/B/C/D/E 카테고리 분류
+
+| Rule | 기본 카테고리 | 저장 경로 |
+|------|------|------|
+| Rule 1 (Bug fix) | C (semantic) 또는 D (lifecycle) | `lessons-learned/C-state-sync` 또는 `lessons-learned/D-lifecycle` |
+| Rule 2 (Missing Critical) | B (test) 또는 D (lifecycle) | `lessons-learned/B-test-quality` 또는 `lessons-learned/D-lifecycle` |
+| Rule 3 (Blocking) | D (lifecycle) 또는 A (doc) | `lessons-learned/D-lifecycle` 또는 `lessons-learned/A-doc-drift` |
+| Rule 4 (Architecture) | C (state sync) | `lessons-learned/C-state-sync` |
+
+저장 시 타입 파라미터를 카테고리 경로로 지정:
+
 ```bash
 bash .hxsk/hooks/md-store-memory.sh \
-  "Rule {N} - {description}" \
-  "{details of what was found, what was fixed, and why}" \
-  "deviation,rule-{N},{phase-plan}" \
-  "deviation"
+  "Lesson {카테고리}: {description}" \
+  "{deviation 상세: 무엇을 발견했고, 무엇을 수정했고, 왜}" \
+  "lessons-learned,category-{A|B|C|D|E},{phase-plan}" \
+  "lessons-learned/{카테고리 디렉토리}"   # 예: lessons-learned/B-test-quality
 ```
 
 ### Post-Execution: Store Execution Summary
