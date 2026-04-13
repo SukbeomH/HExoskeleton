@@ -20,7 +20,7 @@
   <img src="https://img.shields.io/badge/dependencies-zero-brightgreen?style=flat-square" alt="Zero Dependencies" />
   <img src="https://img.shields.io/badge/stack-bash%20%2B%20markdown-blue?style=flat-square" alt="Bash + Markdown" />
   <img src="https://img.shields.io/badge/multi--agent-5%20platforms-blueviolet?style=flat-square" alt="Multi-Agent" />
-  <img src="https://img.shields.io/badge/v5.3.0%20%C2%B7%2020%20skills%20%C2%B7%2018%20agents%20%C2%B7%2024%20hooks-orange?style=flat-square" alt="Components" />
+  <img src="https://img.shields.io/badge/v5.3.0%20%C2%B7%2021%20skills%20%C2%B7%2018%20agents%20%C2%B7%2025%20hooks-orange?style=flat-square" alt="Components" />
   <img src="https://img.shields.io/github/license/SukbeomH/HExoskeleton?style=flat-square" alt="License" />
 </p>
 
@@ -141,12 +141,12 @@ HExoskeleton은 세 가지 관찰에서 출발합니다.
 
 | 구성요소 | 개수 | 위치 | 상세 |
 |----------|------|------|------|
-| **Skills** | 20 | `.hxsk/skills/` | [docs/SKILLS.md](.hxsk/docs/SKILLS.md) |
+| **Skills** | 21 | `.hxsk/skills/` | [docs/SKILLS.md](.hxsk/docs/SKILLS.md) |
 | **Agents** | 18 | `.hxsk/agents/` | [docs/AGENTS.md](.hxsk/docs/AGENTS.md) |
 
 ### 2. 8-Event Hook 생명주기
 
-Claude Code의 훅 시스템으로 에이전트 행동을 자동화합니다. 7개 이벤트, 24개 스크립트.
+Claude Code의 훅 시스템으로 에이전트 행동을 자동화합니다. 7개 이벤트, 25개 스크립트.
 
 ```
 SessionStart ──→ [작업 수행] ──→ SessionEnd
@@ -312,9 +312,9 @@ make setup
 ├── llms.txt                   # LLM 진입점 (Self-Configure 시작)
 ├── .claude/settings.json      # 훅 설정 (8개 이벤트)
 └── .hxsk/                     # Single Source of Truth
-    ├── skills/                # 스킬 정의 (20) — How
+    ├── skills/                # 스킬 정의 (21) — How
     ├── agents/                # 에이전트 정의 (18) — When/With What
-    ├── hooks/                 # 훅 스크립트 (24) — 자동화
+    ├── hooks/                 # 훅 스크립트 (25) — 자동화
     ├── scripts/               # 유틸리티 (bootstrap, issue, merge)
     ├── docs/                  # 상세 문서 (23)
     ├── prompts/               # Setup + 마이그레이션 프롬프트
@@ -355,12 +355,14 @@ make setup
 | 문서 | 설명 |
 |------|------|
 | [**Design Philosophy**](.hxsk/docs/DESIGN-PHILOSOPHY.md) | **설계 철학 — 9가지 원칙, 작성 규칙, 연구 근거, 방향성** |
-| [Skills](.hxsk/docs/SKILLS.md) | 19개 스킬 상세 |
-| [Agents](.hxsk/docs/AGENTS.md) | 17개 에이전트 상세 |
+| [Skills](.hxsk/docs/SKILLS.md) | 21개 스킬 상세 |
+| [Agents](.hxsk/docs/AGENTS.md) | 18개 에이전트 상세 |
 | [Hooks](.hxsk/docs/HOOKS.md) | 훅 시스템 + settings.json 전체 예시 |
 | [Memory](.hxsk/docs/MEMORY.md) | 파일 기반 메모리 시스템 |
 | [Workflows](.hxsk/docs/WORKFLOWS.md) | SPEC→PLAN→EXECUTE→VERIFY |
 | [Conventions](.hxsk/docs/CONVENTIONS.md) | 개발 컨벤션 (Issue, Branch, Commit, PR) |
+| [GitHub Workflow](.hxsk/docs/GITHUB-WORKFLOW.md) | gh CLI 기반 이슈/PR 자동화 |
+| [Antigravity Guide](.hxsk/docs/ANTIGRAVITY_AGENT_GUIDE.md) | Antigravity IDE 에이전트 가이드 |
 | [Build](.hxsk/docs/BUILD.md) | Self-Configure 배포 가이드 |
 | [Research](.hxsk/research/INDEX.md) | 33개 연구 문서, 7개 카테고리 |
 
@@ -378,7 +380,7 @@ make setup
 |------|------|------|
 | **Iron Laws** | `NO EDIT WITHOUT READ FIRST`, `NO COMPLETION WITHOUT VERIFICATION`, `NO WRITE TO EXISTING FILES` | Meincke+ 2025: Authority 기법으로 준수율 33%→72% |
 | **합리화 테이블** | 허위 완료(5항목), Read 건너뛰기(4항목), 파일 덮어쓰기(3항목) | Sharma+ ICLR 2024: RLHF 아첨 메커니즘 차단 |
-| **CSO 적용** | 19개 스킬 description을 트리거 조건만으로 최적화 | SkillReducer 2026: 48% 압축 + 2.8% 품질 향상 |
+| **CSO 적용** | 21개 스킬 description을 트리거 조건만으로 최적화 | SkillReducer 2026: 48% 압축 + 2.8% 품질 향상 |
 | **Ultrathink 트리거** | 아키텍처 결정·디버깅·리팩토링 시 깊은 thinking 명시 요청 | Anthropic: adaptive thinking under-allocation 대응 |
 
 ### Phase 2: 검증 체계 고도화 (중기)

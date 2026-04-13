@@ -20,7 +20,7 @@ See @AGENTS.md for shared project instructions (workflow, memory protocol, valid
 
 ## Compaction Rules
 압축 시 반드시 보존:
-- `.hxsk/.track-modifications.log` 변경 파일 목록
+- track-modifications 훅이 기록한 변경 파일 목록 (`.hxsk/` 하위 runtime 로그)
 - 현재 SPEC.md 목표 및 활성 PLAN.md 태스크
 - 이 세션의 메모리 검색 결과와 아키텍처 결정사항
 
