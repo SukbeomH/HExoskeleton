@@ -8,6 +8,9 @@ phase: {N}
 plan: {M}
 wave: {W}
 gap_closure: false
+cross_phase_invariants:
+  inherit: []   # 직전 phase의 inherit + new를 그대로 복사
+  new: []       # 이번 phase에서 새로 추가되는 불변 조건
 ---
 
 # Plan {N}.{M}: {Descriptive Name}
