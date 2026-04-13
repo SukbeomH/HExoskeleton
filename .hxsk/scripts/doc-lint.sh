@@ -152,6 +152,134 @@ rule_link_01() {
 }
 
 # ─────────────────────────────────────────────────────
+# LINK-02: 앵커 링크(#section) 유효성
+# ─────────────────────────────────────────────────────
+#
+# GitHub Markdown의 heading → anchor 변환 규칙 근사:
+#  1. leading '#'과 공백 제거
+#  2. 영문 소문자화 (ASCII 한정, 한글 등은 원본 유지)
+#  3. 공백 → hyphen
+#  4. 문장부호·괄호류 제거 (알려진 특수문자 블랙리스트)
+#
+# basename 기반 매칭: AGENTS.md처럼 의도적 중복 파일은 anchor union으로
+# 취급 (오탐 가능성 있으나 DUP-01에서 이미 관리).
+# 캐시: 각 .md의 slug를 /tmp 디렉토리에 파일당 하나 저장 후 `grep -qxF`로
+# 조회 — 연관 배열 없이 파일 캐시 기반으로 검사.
+#
+# ⚠ [:blank:] 사용 이유: [:space:]는 newline(\n)을 포함한다. 여기서는
+# heading_to_slug의 입력이 `echo`로 이미 개행이 보존되므로, [:space:]로
+# 치환하면 slug 끝 개행이 '-'로 바뀌어 모든 slug 뒤에 trailing '-'가
+# 붙는다(grep -qxF 매칭 실패). space/tab만 바꾸도록 [:blank:]로 제한.
+
+heading_to_slug() {
+    # sed -E: ERE 모드 (`#+` 그대로 사용 가능; BRE의 `\+`는 macOS 기본
+    # sed에서 literal로 해석되어 `##` prefix가 제거되지 않던 버그가 있었음)
+    echo "$1" \
+        | sed -E 's/^#+[[:space:]]*//' \
+        | tr '[:upper:]' '[:lower:]' \
+        | tr -s '[:blank:]' '-' \
+        | tr -d '".,;:!?()[]{}<>/\\|&*+=@#$%~^`'"'"
+}
+
+rule_link_02() {
+    local cache_dir
+    cache_dir=$(mktemp -d "${TMPDIR:-/tmp}/doc-lint-anchors.XXXXXX") || {
+        fail "LINK-02: mktemp 실패"
+        return
+    }
+    # 스크립트가 errexit 이라 trap return 대신 수동 정리
+    local cleanup_dir="$cache_dir"
+
+    # 각 .md의 heading → slug 수집 (basename 기준, union)
+    # pipefail 활성 상태에서 heading 없는 파일의 grep 실패가 전파되지 않도록 `|| true`
+    local md bname
+    for md in "${ALL_MD[@]}"; do
+        bname=$(basename "$md")
+        {
+            grep -E '^#{1,6}[[:space:]]' "$md" 2>/dev/null || true
+        } | while IFS= read -r h; do
+            heading_to_slug "$h"
+        done >> "$cache_dir/$bname.slugs"
+    done
+
+    local total=0
+    local broken=0
+    local broken_list=()
+
+    for md in "${ALL_MD[@]}"; do
+        # LINK_EXCLUDE_DIRS는 LINK-01과 동일하게 스킵
+        local skip_file=0
+        local exc_dir
+        for exc_dir in $LINK_EXCLUDE_DIRS; do
+            if [[ "$md" == "${exc_dir}"/* ]]; then
+                skip_file=1
+                break
+            fi
+        done
+        [[ $skip_file -eq 1 ]] && continue
+
+        local dir
+        dir="$(dirname "$md")"
+
+        while IFS= read -r line_info; do
+            [[ -z "$line_info" ]] && continue
+            local lineno="${line_info%%:*}"
+            local link="${line_info#*:}"
+
+            [[ -z "$link" ]] && continue
+            [[ "$link" =~ ^https?:// ]] && continue
+            [[ "$link" =~ ^mailto: ]] && continue
+            [[ "$link" =~ \$\{ ]] && continue
+
+            # anchor 없으면 스킵 (LINK-01이 파일 존재만 검사)
+            [[ "$link" != *"#"* ]] && continue
+
+            local file_part="${link%%#*}"
+            local anchor="${link#*#}"
+            [[ -z "$anchor" ]] && continue
+
+            # target 결정
+            local target_base
+            if [[ -z "$file_part" ]]; then
+                # 같은 파일 내 앵커
+                target_base=$(basename "$md")
+            else
+                # 파일 존재하지 않으면 LINK-01이 잡음 — 여기선 스킵
+                [[ ! -e "$dir/$file_part" ]] && continue
+                target_base=$(basename "$file_part")
+            fi
+
+            total=$((total + 1))
+
+            local anchors_file="$cache_dir/$target_base.slugs"
+            if [[ -f "$anchors_file" ]] && grep -qxF "$anchor" "$anchors_file" 2>/dev/null; then
+                : # OK
+            else
+                broken=$((broken + 1))
+                broken_list+=("$md:$lineno → $link (anchor '#$anchor' not found in $target_base)")
+            fi
+        done < <(
+            grep -n -oE '\[[^]]*\]\([^)]+\)' "$md" 2>/dev/null | \
+                sed -E 's|^([0-9]+):\[[^]]*\]\(([^)]+)\)$|\1:\2|' || true
+        )
+    done
+
+    # 캐시 정리
+    rm -rf "$cleanup_dir"
+
+    local valid=$((total - broken))
+    if [[ $broken -eq 0 ]]; then
+        pass "LINK-02: 앵커 링크 유효성 ($valid/$total)"
+    else
+        fail "LINK-02: 앵커 링크 깨짐 ${broken}건 (유효 $valid/$total)"
+        local item
+        for item in "${broken_list[@]}"; do
+            detail "$item"
+        done
+    fi
+}
+
+# ─────────────────────────────────────────────────────
 # INDEX-01: INDEX.md 목록 vs 실제 파일 차집합
 # ─────────────────────────────────────────────────────
 
@@ -476,6 +604,7 @@ echo "대상: ${#ALL_MD[@]}개 .md 파일"
 echo ""
 
 should_run "LINK-01"   && rule_link_01
+should_run "LINK-02"   && rule_link_02
 should_run "INDEX-01"  && rule_index_01
 should_run "COUNT-01"  && rule_count_01
 should_run "REF-01"    && rule_ref_01

@@ -473,4 +473,4 @@ direnv allow
 
 - [Hooks 상세](./HOOKS.md) — MCP 도구를 사용하는 훅
 - [Skills 상세](./SKILLS.md) — MCP 도구를 사용하는 스킬
-- [환경변수 설정](../../README.md#환경변수) — 환경변수 설정 방법
+- [README](../../README.md) — 프로젝트 개요 (환경변수 설정은 각 MCP 공급자 문서 참조)
