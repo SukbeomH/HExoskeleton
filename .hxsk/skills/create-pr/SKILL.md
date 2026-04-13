@@ -124,10 +124,42 @@ Keep under 70 characters.
 
 ## PR 생성 전 자가 점검
 
+### 범위 / 크기
 - [ ] 변경 목적이 2개 이상 포함되어 있지 않은가?
 - [ ] 프로덕션 코드 변경이 500줄을 넘지 않는가?
 - [ ] "이것도 같이 고치면 좋겠다"로 범위를 넓히지 않았는가?
 - [ ] PR 설명만 읽고도 왜 이 변경이 필요한지 이해할 수 있는가?
+
+### A/B/C/D/E 품질 점검 (REQUIRED)
+
+먼저 lessons-learned 조회:
+
+```bash
+bash .hxsk/hooks/md-recall-memory.sh "pr quality check" \
+  ".hxsk/memories/lessons-learned" 10 compact
+```
+
+**A. 코드 ↔ 문서 정합**
+- [ ] 변경 함수/모듈의 docstring이 현재 구현과 일치
+- [ ] PLAN.md 설명 ↔ 실제 구현 일치 (drift 시 둘 중 수정)
+
+**B. 테스트 품질**
+- [ ] 각 task에 real path 테스트 최소 1개 (mock-only 불가)
+- [ ] DB/파일/연결 close() 또는 fixture teardown 존재
+- [ ] 미사용 param은 `_` prefix 또는 제거됨
+
+**C. 상태 동기화 / 의미론**
+- [ ] cross_phase_invariants 위반 없음 (PLAN.md frontmatter 확인)
+- [ ] 이전 phase 테스트 전원 통과
+
+**D. Resource / Lifecycle**
+- [ ] Threading 경계 resource 안전성 확인
+- [ ] Shutdown/teardown path에 cleanup 존재
+
+**E. Forward-compat**
+- [ ] 현재 미사용 entity 제거 또는 명시적 사유 기재
+
+**실패 항목 발견 시**: 수정 → 재검증 → 전 항목 통과 후 PR 생성.
 
 ## Merge 전략
 
