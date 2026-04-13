@@ -27,12 +27,15 @@ SPEC.md → PLAN.md → EXECUTE → VERIFY. Working docs in `.hxsk/`
 ### Search (우선순위)
 | 방식 | 용도 |
 |------|------|
-| `bash .hxsk/hooks/md-recall-memory.sh <query>` | 훅 기반 검색 (2-hop 지원) |
+| `bash .hxsk/hooks/md-recall-memory.sh <query> "." 5 compact` | 훅 기반 검색 (2-hop 지원) |
 | 파일 검색: `.hxsk/memories/` | Broad context |
 | 타입별 필터: `.hxsk/memories/{type}/*.md` | Narrow filter |
+| lessons-learned 조회: `md-recall-memory.sh "query lessons-learned" "." 5` | 반복 패턴 방지 |
 
 ### Storage Triggers
-Architecture decisions, bug root causes, patterns, session ends 등 발생 시 자동 저장. 상세: `.hxsk/skills/memory-protocol/SKILL.md`
+Architecture decisions, bug root causes, patterns, session ends 등 발생 시 자동 저장.
+PR 리뷰/실행 이탈 발견 시 → `lessons-learned/{A-E}` 카테고리로 분류 저장.
+상세: `.hxsk/skills/memory-protocol/SKILL.md`
 
 ## Validation
 

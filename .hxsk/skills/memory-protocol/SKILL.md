@@ -255,6 +255,11 @@ session_chain: [session-snapshot, session-summary, session-handoff]
 | `session-summary` | 세션 종료 요약 | `session,auto` | `memories/session-summary/` |
 | `session-snapshot` | Pre-compact 스냅샷 | `session-snapshot,pre-compact` | `memories/session-snapshot/` |
 | `security-finding` | 보안 발견 사항 | `security,finding` | `memories/security-finding/` |
+| `lessons-learned/A-doc-drift` | 코드↔문서 drift 패턴 | `lessons-learned,category-A` | `memories/lessons-learned/A-doc-drift/` |
+| `lessons-learned/B-test-quality` | 테스트 품질 패턴 | `lessons-learned,category-B` | `memories/lessons-learned/B-test-quality/` |
+| `lessons-learned/C-state-sync` | 상태 동기화/의미론 패턴 | `lessons-learned,category-C` | `memories/lessons-learned/C-state-sync/` |
+| `lessons-learned/D-lifecycle` | Resource/Lifecycle 패턴 | `lessons-learned,category-D` | `memories/lessons-learned/D-lifecycle/` |
+| `lessons-learned/E-compat` | Forward-compat 패턴 | `lessons-learned,category-E` | `memories/lessons-learned/E-compat/` |
 | `general` | 기타 | context-dependent | `memories/general/` |
 
 ---
