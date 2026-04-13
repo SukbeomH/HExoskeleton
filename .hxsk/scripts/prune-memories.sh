@@ -2,7 +2,13 @@
 # prune-memories.sh — local-tier 메모리 리텐션 & 아카이브
 #
 # 사용법:
-#   bash .hxsk/scripts/prune-memories.sh [RETENTION_DAYS]
+#   bash .hxsk/scripts/prune-memories.sh [RETENTION_DAYS] [--dry-run]
+#
+# 예시:
+#   bash prune-memories.sh                # 30일 초과 파일 이동
+#   bash prune-memories.sh 60             # 60일 초과 파일 이동
+#   bash prune-memories.sh --dry-run      # 이동 대상만 출력 (실행 X)
+#   bash prune-memories.sh 7 --dry-run    # 7일 기준 dry-run
 #
 # 동작:
 #   1. RETENTION_DAYS(기본 30일) 초과 파일을 _retained/YYYY-MM/{tier}/로 이동
@@ -16,7 +22,47 @@ set -uo pipefail
 PROJECT_DIR="${CLAUDE_PROJECT_DIR:-$(pwd)}"
 MEM_DIR="$PROJECT_DIR/.hxsk/memories"
 ARCHIVE_DIR="$MEM_DIR/_retained"
-RETENTION_DAYS="${1:-30}"
+RETENTION_DAYS=30
+DRY_RUN=0
+RETENTION_DAYS_SET=0
+
+# --help용: 파일 상단의 연속 주석 블록을 종료까지 출력 (delimiter 기반)
+print_help() {
+    awk '
+        NR == 1 && /^#!/ { next }
+        /^#/ { sub(/^# ?/, ""); print; next }
+        { exit }
+    ' "$0"
+}
+
+# 인자 파싱:
+#  - --dry-run / -n: 플래그
+#  - --help / -h: 도움말 출력 후 종료
+#  - 순수 숫자: RETENTION_DAYS (한 번만 허용, 중복 거부)
+#  - 그 외: Unknown → exit 1
+for arg in "$@"; do
+    case "$arg" in
+        --dry-run|-n) DRY_RUN=1 ;;
+        --help|-h)
+            print_help
+            exit 0
+            ;;
+        *)
+            if [[ "$arg" =~ ^[0-9]+$ ]]; then
+                if [[ "$RETENTION_DAYS_SET" -eq 1 ]]; then
+                    echo "Multiple RETENTION_DAYS values (already '$RETENTION_DAYS', got '$arg')" >&2
+                    exit 1
+                fi
+                RETENTION_DAYS="$arg"
+                RETENTION_DAYS_SET=1
+            else
+                echo "Unknown argument: $arg" >&2
+                echo "Usage: $0 [RETENTION_DAYS] [--dry-run]" >&2
+                exit 1
+            fi
+            ;;
+    esac
+done
 
 # local-tier만 정리 (shared-tier는 git으로 관리)
 LOCAL_TIERS=(
@@ -56,11 +102,16 @@ for tier in "${LOCAL_TIERS[@]}"; do
         fi
 
         dest_dir="$ARCHIVE_DIR/$month/$tier"
-        mkdir -p "$dest_dir"
-        mv "$f" "$dest_dir/"
+        if [[ "$DRY_RUN" -eq 1 ]]; then
+            echo "[dry-run] would move: $f → $dest_dir/"
+        else
+            mkdir -p "$dest_dir"
+            mv "$f" "$dest_dir/"
+        fi
         moved=$((moved + 1))
 
-        # 롤업 대상 월 기록
+        # 롤업 대상 월 기록 — session-summary tier만 (롤업은 이 tier에만 생성)
+        [[ "$tier" != "session-summary" ]] && continue
         case " $rolled_up_months " in
             *" $month "*) ;;
             *) rolled_up_months="$rolled_up_months $month" ;;
@@ -69,10 +120,17 @@ for tier in "${LOCAL_TIERS[@]}"; do
 done
 
 # 월별 롤업 파일 생성 (session-summary만 해당)
+# dry-run 모드에선 파일이 실제로 이동하지 않아 summary_dir가 없으므로 skip
 for month in $rolled_up_months; do
     [[ -z "$month" || "$month" == "unknown" ]] && continue
     rollup="$ARCHIVE_DIR/$month/${month}_rollup.md"
     summary_dir="$ARCHIVE_DIR/$month/session-summary"
+
+    if [[ "$DRY_RUN" -eq 1 ]]; then
+        echo "[dry-run] would write rollup: $rollup"
+        continue
+    fi
+
     [[ -d "$summary_dir" ]] || continue
 
     {
@@ -93,6 +151,10 @@ for month in $rolled_up_months; do
     } > "$rollup"
 done
 
-echo "pruned: $moved files (retention=${RETENTION_DAYS}d)"
+if [[ "$DRY_RUN" -eq 1 ]]; then
+    echo "[dry-run] would prune: $moved files (retention=${RETENTION_DAYS}d)"
+else
+    echo "pruned: $moved files (retention=${RETENTION_DAYS}d)"
+fi
 [[ -n "$rolled_up_months" ]] && echo "rollups:$rolled_up_months"
 exit 0
