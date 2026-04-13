@@ -210,6 +210,31 @@ gh pr review <PR> --request-changes --body "<review>"
 gh pr review <PR> --approve --body "<review>"
 ```
 
+## Lessons-Learned 저장 (REQUEST_CHANGES 또는 [High]/[Blocker] 발견 시)
+
+리뷰에서 발견된 패턴을 A/B/C/D/E로 분류하여 저장한다.
+
+**카테고리 판단 기준:**
+- A (doc-drift): docstring/plan 불일치, stale 경로, 주석 오류
+- B (test-quality): mock-only 테스트, coverage 부족, resource close 누락
+- C (state-sync): invariant 위반, timing 오류, semantic 불일치
+- D (lifecycle): thread safety, cleanup 누락, fixture scope 문제
+- E (compat): 미사용 param, dead weight, forward-compat dead code
+
+**저장 명령 (각 패턴별):**
+
+```bash
+bash .hxsk/hooks/md-store-memory.sh \
+  "Lesson {카테고리}: {패턴 제목}" \
+  "증상: {구체적 코드/상황}
+PR: #{N}
+예방: {다음에 이 실수를 방지하려면}" \
+  "lessons-learned,category-{A|B|C|D|E},pr-{N}" \
+  "lessons-learned/{카테고리 디렉토리}"
+```
+
+APPROVE인 경우에도 [High] 이상 발견이 있었다면 저장.
+
 ## Scripts
 
 (없음 — `gh pr diff`, `gh pr view` 등 에이전트 네이티브 도구로 직접 수행)
