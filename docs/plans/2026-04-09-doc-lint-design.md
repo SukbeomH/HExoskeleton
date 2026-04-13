@@ -39,7 +39,9 @@ ORPHAN-01  | 어떤 INDEX/문서에서도 참조되지 않는 고아 파일  | �
 DUP-01     | 동일 파일명이 여러 위치에 존재               | 전체 .md          | 구현됨
 ```
 
-> **LINK-02 구현 노트**: 각 `.md`의 `## 헤딩`을 수집해 GitHub Markdown slug 규칙(소문자 + 공백 → hyphen + 특수문자 제거)으로 근사 후 `#anchor` 링크와 교차 검증. basename 기반 매칭 + `/tmp` 캐시로 bash 3(macOS 기본)에서도 동작.
+> **LINK-02 구현 노트**: 각 `.md`의 `## 헤딩`을 수집해 GitHub Markdown slug 규칙(소문자 + 공백 → hyphen + 특수문자 제거)으로 근사 후 `#anchor` 링크와 교차 검증. basename 기반 매칭 + `/tmp` 파일 캐시로 연관 배열 없이 구현.
+>
+> **Bash 버전 요구**: 스크립트 상단에서 `mapfile -t`를 사용하므로 **bash 4+** 필요. macOS 기본 `/bin/bash`(3.2)에선 Homebrew 등으로 설치한 bash 4+가 필요.
 
 ### 설계 원칙
 

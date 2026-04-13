@@ -164,13 +164,20 @@ rule_link_01() {
 # basename 기반 매칭: AGENTS.md처럼 의도적 중복 파일은 anchor union으로
 # 취급 (오탐 가능성 있으나 DUP-01에서 이미 관리).
 # 캐시: 각 .md의 slug를 /tmp 디렉토리에 파일당 하나 저장 후 `grep -qxF`로
-# 조회 — bash 3 (macOS 기본)에서 연관 배열 없이 동작.
+# 조회 — 연관 배열 없이 파일 캐시 기반으로 검사.
+#
+# ⚠ [:blank:] 사용 이유: [:space:]는 newline(\n)을 포함한다. 여기서는
+# heading_to_slug의 입력이 `echo`로 이미 개행이 보존되므로, [:space:]로
+# 치환하면 slug 끝 개행이 '-'로 바뀌어 모든 slug 뒤에 trailing '-'가
+# 붙는다(grep -qxF 매칭 실패). space/tab만 바꾸도록 [:blank:]로 제한.
 
 heading_to_slug() {
+    # sed -E: ERE 모드 (`#+` 그대로 사용 가능; BRE의 `\+`는 macOS 기본
+    # sed에서 literal로 해석되어 `##` prefix가 제거되지 않던 버그가 있었음)
     echo "$1" \
-        | sed 's/^#\+[[:space:]]*//' \
+        | sed -E 's/^#+[[:space:]]*//' \
         | tr '[:upper:]' '[:lower:]' \
-        | tr -s '[:space:]' '-' \
+        | tr -s '[:blank:]' '-' \
         | tr -d '".,;:!?()[]{}<>/\\|&*+=@#$%~^`'"'"
 }
 
