@@ -131,7 +131,13 @@ rule_link_01() {
                 broken=$((broken + 1))
                 broken_list+=("$md:$lineno → $link")
             fi
-        done < <(perl -ne 'while (/\[([^\]]*)\]\(([^)]+)\)/g) { print "$.:$2\n" }' "$md" 2>/dev/null || true)
+        done < <(
+            # POSIX 도구만 사용 (bash/grep/sed) — 설계 원칙: 외부 종속성 없음
+            # grep -n -oE: 각 매치에 line number prefix. 동일 라인의 여러 매치도 라인별로 출력
+            # sed로 "[text](link)" → "link"만 추출해 "lineno:link" 포맷 생성
+            grep -n -oE '\[[^]]*\]\([^)]+\)' "$md" 2>/dev/null | \
+                sed -E 's|^([0-9]+):\[[^]]*\]\(([^)]+)\)$|\1:\2|' || true
+        )
     done
 
     local valid=$((total - broken))

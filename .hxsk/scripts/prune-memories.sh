@@ -46,8 +46,13 @@ for tier in "${LOCAL_TIERS[@]}"; do
         # 파일명에서 YYYY-MM 추출 (형식: YYYY-MM-DD_*)
         month="${base:0:7}"
         if [[ ! "$month" =~ ^[0-9]{4}-[0-9]{2}$ ]]; then
-            # 형식 불일치 시 mtime에서 추출
-            month=$(date -r "$f" '+%Y-%m' 2>/dev/null || echo "unknown")
+            # 형식 불일치 시 mtime에서 YYYY-MM 추출 (OS 이식성)
+            # BSD(macOS)는 `stat -f %Sm -t FMT`, GNU(Linux)는 `stat -c %y`
+            if stat -f '%Sm' "$f" >/dev/null 2>&1; then
+                month=$(stat -f '%Sm' -t '%Y-%m' "$f" 2>/dev/null || echo "unknown")
+            else
+                month=$(stat -c '%y' "$f" 2>/dev/null | cut -c1-7 || echo "unknown")
+            fi
         fi
 
         dest_dir="$ARCHIVE_DIR/$month/$tier"
