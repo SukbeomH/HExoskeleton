@@ -116,7 +116,7 @@ Read `.hxsk/skills/planner/SKILL.md`.
 ```markdown
 # lessons-learned 조회 — 반복 패턴 방지
 bash .hxsk/hooks/md-recall-memory.sh "{phase/feature description}" \
-  ".hxsk/memories/lessons-learned" 5 compact
+  "." 5 compact
 ```
 
 **Step 2-B: Checklist Before Submitting Plans에 invariants 항목 추가**
@@ -184,9 +184,9 @@ Read `.hxsk/skills/executor/SKILL.md`.
 
 | Rule | 기본 카테고리 | 저장 경로 |
 |------|------|------|
-| Rule 1 (Bug fix) | C (semantic) 또는 D (lifecycle) | `lessons-learned/C-state-sync` 또는 `D-lifecycle` |
-| Rule 2 (Missing Critical) | B (test) 또는 D (lifecycle) | `lessons-learned/B-test-quality` 또는 `D-lifecycle` |
-| Rule 3 (Blocking) | D (lifecycle) 또는 A (doc) | `lessons-learned/D-lifecycle` 또는 `A-doc-drift` |
+| Rule 1 (Bug fix) | C (semantic) 또는 D (lifecycle) | `lessons-learned/C-state-sync` 또는 `lessons-learned/D-lifecycle` |
+| Rule 2 (Missing Critical) | B (test) 또는 D (lifecycle) | `lessons-learned/B-test-quality` 또는 `lessons-learned/D-lifecycle` |
+| Rule 3 (Blocking) | D (lifecycle) 또는 A (doc) | `lessons-learned/D-lifecycle` 또는 `lessons-learned/A-doc-drift` |
 | Rule 4 (Architecture) | C (state sync) | `lessons-learned/C-state-sync` |
 
 저장 시 타입 파라미터를 카테고리 경로로 지정:
@@ -250,7 +250,7 @@ Expected: `## PR 생성 전 자가 점검` 섹션에 범위/크기 체크리스�
 
 ```bash
 bash .hxsk/hooks/md-recall-memory.sh "pr quality check" \
-  ".hxsk/memories/lessons-learned" 10 compact
+  "." 10 compact
 ```
 
 **A. 코드 ↔ 문서 정합**
@@ -375,7 +375,7 @@ Expected: **서브에이전트 프롬프트 템플릿** 내 Rules 블록에 파�
 실행 전 관련 패턴 조회:
 ```bash
 bash .hxsk/hooks/md-recall-memory.sh "{WORK_ID} {task description}" \
-  ".hxsk/memories/lessons-learned" 5 compact
+  "." 5 compact
 ```
 해당 A/B/C/D/E 패턴 확인 후 동일 실수 방지.
 

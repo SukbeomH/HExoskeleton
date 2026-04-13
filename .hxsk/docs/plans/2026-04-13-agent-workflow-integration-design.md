@@ -1,7 +1,7 @@
 # Agent Workflow Integration — 설계 문서
 
 > **날짜**: 2026-04-13
-> **원본 템플릿**: [`~/agent-workflow-template.md`](~/agent-workflow-template.md)
+> **원본 템플릿**: 로컬 홈 디렉토리의 `agent-workflow-template.md` 기반
 > **상태**: 설계 확정, 구현 대기
 
 ---
@@ -118,11 +118,11 @@ bash .hxsk/hooks/md-store-memory.sh \
 ```bash
 # 전체 lessons-learned 조회
 bash .hxsk/hooks/md-recall-memory.sh "{task description}" \
-  ".hxsk/memories/lessons-learned" 5 compact
+  "." 5 compact
 
 # 특정 카테고리만
-bash .hxsk/hooks/md-recall-memory.sh "test" \
-  ".hxsk/memories/lessons-learned/B-test-quality" 3 compact
+bash .hxsk/hooks/md-recall-memory.sh "B-test-quality test" \
+  "." 3 compact
 ```
 
 ### 트리거 시점
@@ -212,8 +212,8 @@ PR 생성 직전 단계에 다음 섹션 강제 삽입:
 
 lessons-learned 조회:
 ```bash
-bash .hxsk/hooks/md-recall-memory.sh "pr check" \
-  ".hxsk/memories/lessons-learned" 10 compact
+bash .hxsk/hooks/md-recall-memory.sh "pr check lessons-learned" \
+  "." 10 compact
 ```
 
 ### A. 코드 ↔ 문서 정합
@@ -258,7 +258,7 @@ bash .hxsk/hooks/md-recall-memory.sh "pr check" \
 실행 전 관련 lessons 조회:
 ```bash
 bash .hxsk/hooks/md-recall-memory.sh "{task description}" \
-  ".hxsk/memories/lessons-learned" 5 compact
+  "." 5 compact
 ```
 해당 카테고리(A/B/C/D/E) 패턴 확인 후 동일 실수 방지.
 
@@ -355,7 +355,7 @@ ALT:      {고려한 다른 옵션}
 
 ## 9. 5 카테고리 참조 (A-E)
 
-> 원본 출처: [`~/agent-workflow-template.md` §2.1](~/agent-workflow-template.md)
+> 원본 출처: 로컬 홈 디렉토리의 `agent-workflow-template.md` §2.1
 
 | 카테고리 | 메모리 저장 경로 | 증상 | 근본 원인 |
 |---|---|---|---|

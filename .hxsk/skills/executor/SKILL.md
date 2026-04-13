@@ -272,9 +272,9 @@ After applying any deviation rule (Rules 1-4), persist it:
 
 | Rule | 기본 카테고리 | 저장 경로 |
 |------|------|------|
-| Rule 1 (Bug fix) | C (semantic) 또는 D (lifecycle) | `lessons-learned/C-state-sync` 또는 `D-lifecycle` |
-| Rule 2 (Missing Critical) | B (test) 또는 D (lifecycle) | `lessons-learned/B-test-quality` 또는 `D-lifecycle` |
-| Rule 3 (Blocking) | D (lifecycle) 또는 A (doc) | `lessons-learned/D-lifecycle` 또는 `A-doc-drift` |
+| Rule 1 (Bug fix) | C (semantic) 또는 D (lifecycle) | `lessons-learned/C-state-sync` 또는 `lessons-learned/D-lifecycle` |
+| Rule 2 (Missing Critical) | B (test) 또는 D (lifecycle) | `lessons-learned/B-test-quality` 또는 `lessons-learned/D-lifecycle` |
+| Rule 3 (Blocking) | D (lifecycle) 또는 A (doc) | `lessons-learned/D-lifecycle` 또는 `lessons-learned/A-doc-drift` |
 | Rule 4 (Architecture) | C (state sync) | `lessons-learned/C-state-sync` |
 
 저장 시 타입 파라미터를 카테고리 경로로 지정:

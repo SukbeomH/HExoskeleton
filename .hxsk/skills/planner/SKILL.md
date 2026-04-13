@@ -88,8 +88,8 @@ Grep(pattern: "{phase/feature description}", path: ".hxsk/memories/", output_mod
 
 ```bash
 # lessons-learned 조회 — 반복 패턴 방지
-bash .hxsk/hooks/md-recall-memory.sh "{phase/feature description}" \
-  ".hxsk/memories/lessons-learned" 5 compact
+bash .hxsk/hooks/md-recall-memory.sh "{phase/feature description} lessons-learned" \
+  "." 5 compact
 ```
 
 과거 `execution-summary`, `deviation`, `pattern-discovery` 메모리를 참고하여:

@@ -126,8 +126,8 @@ Rules:
 
 실행 전 관련 패턴 조회:
 ```bash
-bash .hxsk/hooks/md-recall-memory.sh "{WORK_ID} {task description}" \
-  ".hxsk/memories/lessons-learned" 5 compact
+bash .hxsk/hooks/md-recall-memory.sh "{WORK_ID} {task description} lessons-learned" \
+  "." 5 compact
 ```
 해당 A/B/C/D/E 패턴 확인 후 동일 실수 방지.
 
@@ -137,11 +137,11 @@ bash .hxsk/hooks/md-recall-memory.sh "{WORK_ID} {task description}" \
 
 | 카테고리 | 확인 항목 | 결과 |
 |---|---|---|
-| A | docstring ↔ 구현 일치 | PASS / FAIL |
-| B | real path 테스트 포함 | PASS / FAIL |
-| C | cross_phase_invariants 위반 없음 | PASS / FAIL |
-| D | resource cleanup 존재 | PASS / FAIL |
-| E | 미사용 entity 없음 | PASS / FAIL |
+| A | docstring ↔ 구현 일치 | PASS / FAIL / N/A |
+| B | real path 테스트 포함 | PASS / FAIL / N/A |
+| C | cross_phase_invariants 위반 없음 | PASS / FAIL / N/A |
+| D | resource cleanup 존재 | PASS / FAIL / N/A |
+| E | 미사용 entity 없음 | PASS / FAIL / N/A |
 
 ## Ambiguity Log (REQUIRED)
 

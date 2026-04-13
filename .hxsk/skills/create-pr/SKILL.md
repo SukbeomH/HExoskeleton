@@ -135,8 +135,8 @@ Keep under 70 characters.
 먼저 lessons-learned 조회:
 
 ```bash
-bash .hxsk/hooks/md-recall-memory.sh "pr quality check" \
-  ".hxsk/memories/lessons-learned" 10 compact
+bash .hxsk/hooks/md-recall-memory.sh "pr quality check lessons-learned" \
+  "." 10 compact
 ```
 
 **A. 코드 ↔ 문서 정합**
@@ -144,7 +144,7 @@ bash .hxsk/hooks/md-recall-memory.sh "pr quality check" \
 - [ ] PLAN.md 설명 ↔ 실제 구현 일치 (drift 시 둘 중 수정)
 
 **B. 테스트 품질**
-- [ ] 각 task에 real path 테스트 최소 1개 (mock-only 불가)
+- [ ] (코드 변경 시) 각 task에 real path 테스트 최소 1개 (mock-only 불가)
 - [ ] DB/파일/연결 close() 또는 fixture teardown 존재
 - [ ] 미사용 param은 `_` prefix 또는 제거됨
 
