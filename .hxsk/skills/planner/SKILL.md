@@ -86,6 +86,12 @@ If it sounds like corporate PM theater, delete it.
 Grep(pattern: "{phase/feature description}", path: ".hxsk/memories/", output_mode: "files_with_matches")
 ```
 
+```bash
+# lessons-learned 조회 — 반복 패턴 방지
+bash .hxsk/hooks/md-recall-memory.sh "{phase/feature description}" \
+  ".hxsk/memories/lessons-learned" 5 compact
+```
+
 과거 `execution-summary`, `deviation`, `pattern-discovery` 메모리를 참고하여:
 - 이전 실행에서 발생한 이탈 패턴 회피
 - 검증된 접근 방식 재활용
@@ -513,6 +519,9 @@ context:
 - [ ] Must-haves are derived from phase goal
 - [ ] Discovery level assessed (0-3)
 - [ ] TDD considered for complex logic
+- [ ] cross_phase_invariants.inherit: 직전 plan의 (inherit + new) 복사
+- [ ] cross_phase_invariants.new: 이번 phase에서 추가되는 불변 조건 명시
+- [ ] invariant 위반 시 Rule 4 (아키텍처 체크포인트) 적용 명시
 
 ## 네이티브 도구 활용
 
