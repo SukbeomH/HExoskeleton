@@ -399,6 +399,20 @@ else
 fi
 
 # ─────────────────────────────────────────────────────
+# Git Merge Driver (멀티 리모트 환경 머지 충돌 방지)
+# ─────────────────────────────────────────────────────
+# .gitattributes의 `merge=ours`가 동작하려면 로컬 레포에
+# merge.ours.driver가 등록되어 있어야 한다. git config는
+# 클론마다 다시 설정해야 하므로 bootstrap에서 보장.
+
+if git rev-parse --git-dir >/dev/null 2>&1; then
+    if ! git config --get merge.ours.driver >/dev/null 2>&1; then
+        git config merge.ours.driver true
+        echo "[bootstrap] Registered git merge driver: merge.ours.driver=true (required by .gitattributes)"
+    fi
+fi
+
+# ─────────────────────────────────────────────────────
 # Write Version File
 # ─────────────────────────────────────────────────────
 

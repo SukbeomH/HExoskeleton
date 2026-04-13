@@ -86,12 +86,34 @@ EOF
     fi
 
     if [[ "$FILE_COUNT" -ge 1 ]]; then
+        # ── 중복 스킵: 실 변경 내용이 이전과 동일하면 저장 생략 ──
+        # 지문 = HEAD 해시 + git status + diff stat 요약의 해시
+        # (MODIFICATIONS_COUNT는 단조 증가해 같은 diff에도 값이 달라져 부적합)
+        SUMMARY_DIR="$PROJECT_DIR/.hxsk/memories/session-summary"
+        HEAD_HASH=$(git -C "$PROJECT_DIR" rev-parse --short HEAD 2>/dev/null || echo "nohead")
+        DIFF_SIG=$(printf '%s\n%s\n' "$MODIFIED" "$DIFF_STAT" | md5 2>/dev/null \
+            || printf '%s\n%s\n' "$MODIFIED" "$DIFF_STAT" | md5sum 2>/dev/null | awk '{print $1}' \
+            || echo "nomd5")
+        CUR_FINGERPRINT="${HEAD_HASH}|${DIFF_SIG}"
+        LATEST=$(ls -t "$SUMMARY_DIR"/*.md 2>/dev/null | head -1)
+        if [[ -n "$LATEST" ]]; then
+            LAST_FINGERPRINT=$(grep -m1 '^fingerprint:' "$LATEST" 2>/dev/null | sed 's/^fingerprint: //')
+            if [[ "$CUR_FINGERPRINT" == "$LAST_FINGERPRINT" ]]; then
+                echo "[$TS] Memory store skipped (same fingerprint: $CUR_FINGERPRINT)" >> "$LOG_FILE"
+                rm -f "$TRACK_LOG"
+                exit 0
+            fi
+        fi
+
         # CURRENT.md가 있으면 풍부한 content 사용, 없으면 fallback
         if [[ -f "$CURRENT_MD" ]]; then
             MEMORY_CONTENT=$(head -30 "$CURRENT_MD" 2>/dev/null || true)
         else
             MEMORY_CONTENT="On $TS, the developer worked on the $BRANCH branch, modifying $FILE_COUNT files. $(echo "$RECENT_COMMITS" | head -1)"
         fi
+        # 지문 라인 추가 (다음 실행의 중복 감지용)
+        MEMORY_CONTENT="${MEMORY_CONTENT}
+fingerprint: $CUR_FINGERPRINT"
         # modifications_count 추가
         MEMORY_CONTENT="${MEMORY_CONTENT}
 modifications_count: $MODIFICATIONS_COUNT"
@@ -124,6 +146,16 @@ modifications_count: $MODIFICATIONS_COUNT"
 
     # ── 4. track-modifications.log 초기화 ──
     rm -f "$TRACK_LOG"
+
+    # ── 5. session-summary 누적 시 자동 prune (150개 초과 시) ──
+    SUMMARY_DIR="$PROJECT_DIR/.hxsk/memories/session-summary"
+    if [[ -d "$SUMMARY_DIR" ]]; then
+        COUNT=$(ls -1 "$SUMMARY_DIR"/*.md 2>/dev/null | wc -l | tr -d ' ')
+        if [[ "$COUNT" -gt 150 ]]; then
+            bash "$PROJECT_DIR/.hxsk/scripts/prune-memories.sh" 30 \
+                >> "$LOG_FILE" 2>&1 || true
+        fi
+    fi
 ) &
 
 exit 0

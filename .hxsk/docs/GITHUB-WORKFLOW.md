@@ -438,4 +438,4 @@ jobs:
 
 - [Linting 상세](./LINTING.md) — 린트/타입체크 설정
 - [MCP 상세](./MCP.md) — GitHub Agent가 사용하는 MCP 도구
-- [README](../README.md) — 프로젝트 개요
+- [README](../../README.md) — 프로젝트 개요

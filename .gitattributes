@@ -27,3 +27,12 @@
 *.ico binary
 *.zip binary
 *.db binary
+
+# HXSK: 기계 생성 INDEX는 내 버전 유지 후 훅이 재생성 (check-consistency.sh)
+.hxsk/agents/INDEX.md merge=ours
+.hxsk/skills/INDEX.md merge=ours
+.hxsk/research/INDEX.md merge=ours
+.hxsk/memories/*/INDEX.md merge=ours
+
+# HXSK: 버전 파일 — 충돌 시 내 버전 유지 (bootstrap이 다시 동기화)
+.hxsk/.bootstrap-version merge=ours

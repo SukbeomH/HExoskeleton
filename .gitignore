@@ -64,11 +64,33 @@ yarn-error.log*
 secrets/
 
 # ─── HXSK (런타임/임시 데이터만 무시) ────────────
-.hxsk/memories/
+# memories: tier 분리 — local-only vs shared
+# Local-only (각 환경 독립, 재생성 가능)
+.hxsk/memories/session-summary/
+.hxsk/memories/session-snapshot/
+.hxsk/memories/session-handoff/
+.hxsk/memories/health-event/
+.hxsk/memories/debug-blocked/
+.hxsk/memories/debug-eliminated/
+.hxsk/memories/bootstrap/
+.hxsk/memories/general/
+.hxsk/memories/deviation/
+.hxsk/memories/_retained/
+# Shared (git-tracked): architecture-decision, root-cause, pattern-discovery,
+# security-finding, execution-summary, _schema — 명시적으로 무시하지 않음
+
+# 상태 파일 (host별로 덮어쓰므로 공유 시 머지 충돌)
+.hxsk/CURRENT.md
+.hxsk/STATE.md
+.hxsk/JOURNAL.md
+.hxsk/SESSION_HANDOFF.md
+
 .hxsk/archive/
 .hxsk/reports/
 .hxsk/.modified-this-session
 .hxsk/.session-active
+.hxsk/.track-modifications.log
+.hxsk/.context-save.log
 .hxsk/context-config.yaml
 .hxsk/prd-*.json
 .hxsk/issues/MASTER-*.md
