@@ -3,7 +3,7 @@ id: 002
 title: "dispatcher/SKILL.md 서브에이전트 프롬프트 중첩 코드블록 GFM 렌더링 모호성"
 type: improvement
 priority: P3
-status: open
+status: resolved
 wave: null
 created: 2026-04-13
 assignee: null

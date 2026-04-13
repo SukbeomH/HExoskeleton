@@ -109,7 +109,7 @@ MASTER 문서의 branch 필드 기록. status를 `in-progress`로 변경.
 3. WORK 문서에 worktree, worktree_branch 기록
 
 **서브에이전트 프롬프트 템플릿:**
-```
+````
 You are executing {WORK_ID}.
 Main root: resolve via `git worktree list | head -1 | awk '{print $1}'`
 Read your work spec: {main_root}/.hxsk/issues/{WORK_ID}.md
@@ -151,7 +151,7 @@ REASON:   {왜 그렇게 결정}
 ALT:      {고려한 다른 옵션}
 
 결정이 없었다면: DECISION LOG: none
-```
+````
 
 ---
 
