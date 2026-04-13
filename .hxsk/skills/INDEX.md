@@ -1,6 +1,6 @@
 # Skills Index
 
-> 20 skills available. Agents fetch only what they need.
+> 21 skills available. Agents fetch only what they need.
 
 | Skill | Description | Path |
 |-------|-------------|------|
@@ -13,6 +13,7 @@
 | create-pr | Analyzes changes, creates branch, splits commits logically, pushes and creates pull request via gh CLI | `skills/create-pr/SKILL.md` |
 | debugger | Systematic debugging with persistent state and fresh context advantages | `skills/debugger/SKILL.md` |
 | dispatcher | MASTER/WORK 기반 6-Phase 병렬 이슈 오케스트레이션 (v2.0.0) | `skills/dispatcher/SKILL.md` |
+| doc-lint | Verifies document consistency -- broken links, INDEX sync, counts, orphan files, and duplicates | `skills/doc-lint/SKILL.md` |
 | empirical-validation | Requires proof before marking work complete -- no "trust me, it works" | `skills/empirical-validation/SKILL.md` |
 | executor | Executes HXSK plans with atomic commits, deviation handling, checkpoint protocols, and state management | `skills/executor/SKILL.md` |
 | handoff | Session handoff workflow -- status check, test, commit, memory store, summary output | `skills/handoff/SKILL.md` |

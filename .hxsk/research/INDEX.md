@@ -10,38 +10,38 @@
 
 | 문서 | 상태 | 핵심 결론 |
 |------|------|----------|
-| RESEARCH-a-mem-agentic-memory.md | `active` | 7-속성 노트 + 2-hop 검색 채택, Memory Evolution 미채택 |
-| RESEARCH-nemori-self-organizing-agent-memory.md | `active` | 중복 제거 + 이중 메모리 채택, Predict-Calibrate 미채택 |
-| RESEARCH-agentic-reasoning-token-optimization.md | `active` | ReWOO 계획-실행 분리, EASYTOOL 2단계 로딩 채택 |
-| RESEARCH-ontology-for-llm-agents.md | `active` | 14 타입 분류 + JSON Schema + type-relations.yaml |
-| RESEARCH-rlm-recursive-language-models.md | `active` | Agent-Skill 래핑 구조, 재귀적 분할 채택 |
-| RESEARCH-context-compression-98.md | `active` | 컨텍스트 압축 기법 분석 |
-| RESEARCH-hybrid-search-fts5-rrf.md | `active` | FTS5 + RRF 하이브리드 검색 분석 (향후 최적화 후보) |
-| RESEARCH-hxsk-applicability-hybrid-search-compression.md | `active` | HXSK 적용 가능성 평가 |
+| [RESEARCH-a-mem-agentic-memory.md](memory-systems/RESEARCH-a-mem-agentic-memory.md) | `active` | 7-속성 노트 + 2-hop 검색 채택, Memory Evolution 미채택 |
+| [RESEARCH-nemori-self-organizing-agent-memory.md](memory-systems/RESEARCH-nemori-self-organizing-agent-memory.md) | `active` | 중복 제거 + 이중 메모리 채택, Predict-Calibrate 미채택 |
+| [RESEARCH-agentic-reasoning-token-optimization.md](memory-systems/RESEARCH-agentic-reasoning-token-optimization.md) | `active` | ReWOO 계획-실행 분리, EASYTOOL 2단계 로딩 채택 |
+| [RESEARCH-ontology-for-llm-agents.md](memory-systems/RESEARCH-ontology-for-llm-agents.md) | `active` | 14 타입 분류 + JSON Schema + type-relations.yaml |
+| [RESEARCH-rlm-recursive-language-models.md](memory-systems/RESEARCH-rlm-recursive-language-models.md) | `active` | Agent-Skill 래핑 구조, 재귀적 분할 채택 |
+| [RESEARCH-context-compression-98.md](memory-systems/RESEARCH-context-compression-98.md) | `active` | 컨텍스트 압축 기법 분석 |
+| [RESEARCH-hybrid-search-fts5-rrf.md](memory-systems/RESEARCH-hybrid-search-fts5-rrf.md) | `active` | FTS5 + RRF 하이브리드 검색 분석 (향후 최적화 후보) |
+| [RESEARCH-hxsk-applicability-hybrid-search-compression.md](memory-systems/RESEARCH-hxsk-applicability-hybrid-search-compression.md) | `active` | HXSK 적용 가능성 평가 |
 
 ## platform-integration/ (8)
 
 | 문서 | 상태 | 핵심 결론 |
 |------|------|----------|
-| RESEARCH-everything-claude-code.md | `active` | Claude Code 전체 기능 정리 (skills, hooks, agents) |
-| RESEARCH-awesome-claude-code.md | `active` | 커뮤니티 리소스 큐레이션 |
-| RESEARCH-claude-code-as-mcp-server.md | `active` | Claude Code MCP 서버 활용 평가 |
-| RESEARCH-agents-md-agentic-engineering-2026.md | `active` | AGENTS.md 에이전틱 엔지니어링 트렌드 |
-| RESEARCH-google-antigravity-migration.md | `archived` | Antigravity IDE 마이그레이션 — 현재 비활성 플랫폼 |
-| RESEARCH-opencode-plugin-migration.md | `archived` | OpenCode 플러그인 호환성 — Claude Code 집중으로 후순위 |
-| antigravity_doc_rules_and_workflows.md | `archived` | Antigravity 규칙/워크플로우 스냅샷 |
-| antigravity_doc_skills.md | `archived` | Antigravity 스킬 문서 스냅샷 |
+| [RESEARCH-everything-claude-code.md](platform-integration/RESEARCH-everything-claude-code.md) | `active` | Claude Code 전체 기능 정리 (skills, hooks, agents) |
+| [RESEARCH-awesome-claude-code.md](platform-integration/RESEARCH-awesome-claude-code.md) | `active` | 커뮤니티 리소스 큐레이션 |
+| [RESEARCH-claude-code-as-mcp-server.md](platform-integration/RESEARCH-claude-code-as-mcp-server.md) | `active` | Claude Code MCP 서버 활용 평가 |
+| [RESEARCH-agents-md-agentic-engineering-2026.md](platform-integration/RESEARCH-agents-md-agentic-engineering-2026.md) | `active` | AGENTS.md 에이전틱 엔지니어링 트렌드 |
+| [RESEARCH-google-antigravity-migration.md](platform-integration/RESEARCH-google-antigravity-migration.md) | `archived` | Antigravity IDE 마이그레이션 — 현재 비활성 플랫폼 |
+| [RESEARCH-opencode-plugin-migration.md](platform-integration/RESEARCH-opencode-plugin-migration.md) | `archived` | OpenCode 플러그인 호환성 — Claude Code 집중으로 후순위 |
+| [antigravity_doc_rules_and_workflows.md](platform-integration/antigravity_doc_rules_and_workflows.md) | `archived` | Antigravity 규칙/워크플로우 스냅샷 |
+| [antigravity_doc_skills.md](platform-integration/antigravity_doc_skills.md) | `archived` | Antigravity 스킬 문서 스냅샷 |
 
 ## deployment-strategy/ (6)
 
 | 문서 | 상태 | 핵심 결론 |
 |------|------|----------|
-| RESEARCH-code-as-specification.md | `active` | 코드 = 스펙 접근법, 문서/코드 균형 지침 |
-| RESEARCH-boilerplate-safe-apply.md | `archived` | 기존 프로젝트 덮어쓰기 방지 — Self-Configure로 해소 |
-| RESEARCH-plugin-feasibility.md | `superseded` | 플러그인 전환 분석 → Self-Configure 모델로 최종 결정 |
-| RESEARCH-plugin-auto-release.md | `superseded` | release-please 워크플로우 → 인프라 삭제로 무효 |
-| RESEARCH-plugin-vs-safe-apply.md | `superseded` | 플러그인 vs 안전 적용 비교 → Self-Configure로 무효 |
-| RESEARCH-gsd-in-plugin.md | `superseded` | .gsd/ 플러그인 내장 → .hxsk/ 전환 + Self-Configure로 무효 |
+| [RESEARCH-code-as-specification.md](deployment-strategy/RESEARCH-code-as-specification.md) | `active` | 코드 = 스펙 접근법, 문서/코드 균형 지침 |
+| [RESEARCH-boilerplate-safe-apply.md](deployment-strategy/RESEARCH-boilerplate-safe-apply.md) | `archived` | 기존 프로젝트 덮어쓰기 방지 — Self-Configure로 해소 |
+| [RESEARCH-plugin-feasibility.md](deployment-strategy/RESEARCH-plugin-feasibility.md) | `superseded` | 플러그인 전환 분석 → Self-Configure 모델로 최종 결정 |
+| [RESEARCH-plugin-auto-release.md](deployment-strategy/RESEARCH-plugin-auto-release.md) | `superseded` | release-please 워크플로우 → 인프라 삭제로 무효 |
+| [RESEARCH-plugin-vs-safe-apply.md](deployment-strategy/RESEARCH-plugin-vs-safe-apply.md) | `superseded` | 플러그인 vs 안전 적용 비교 → Self-Configure로 무효 |
+| [RESEARCH-gsd-in-plugin.md](deployment-strategy/RESEARCH-gsd-in-plugin.md) | `superseded` | .gsd/ 플러그인 내장 → .hxsk/ 전환 + Self-Configure로 무효 |
 
 ## language-support/ (3)
 
