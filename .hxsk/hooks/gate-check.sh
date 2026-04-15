@@ -1,6 +1,7 @@
 #!/bin/bash
-# gate-check.sh — HXSK 게이트 조건 자동 집행 훅
-# Usage: 직접 실행 또는 훅 이벤트(PreToolUse, Stop)에서 호출
+# gate-check.sh — HXSK 게이트 조건 검증 유틸리티
+# Usage: bash .hxsk/hooks/gate-check.sh {status|gate-0|gate-p3|gate-e0|update <gate>}
+# Note: settings.json에 자동 등록되지 않음 — 워크플로우 내에서 수동 호출
 #
 # 체크 항목:
 #   - PLAN 없이 EXECUTE 시도 감지
@@ -157,9 +158,25 @@ update_state_gate() {
         return
     fi
 
-    # current_gate 값 업데이트 (sed in-place)
-    sed -i.bak "s/current_gate:.*/current_gate: \"$gate\"/" "$STATE_FILE" 2>/dev/null || true
+    # current_gate 값 업데이트 (sed in-place), 실제 변경 여부 확인
+    local before
+    before=$(grep "^current_gate:" "$STATE_FILE" 2>/dev/null | head -1 || echo "")
+
+    sed -i.bak "s/^current_gate:.*/current_gate: \"$gate\"/" "$STATE_FILE" 2>/dev/null || {
+        echo "ERROR: failed to update STATE.md" >&2
+        rm -f "${STATE_FILE}.bak" 2>/dev/null
+        return 1
+    }
     rm -f "${STATE_FILE}.bak" 2>/dev/null || true
+
+    local after
+    after=$(grep "^current_gate:" "$STATE_FILE" 2>/dev/null | head -1 || echo "")
+
+    if [ "$before" = "$after" ] && ! echo "$after" | grep -q "\"$gate\""; then
+        echo "WARN: STATE.md current_gate field not found or unchanged" >&2
+        return 1
+    fi
+
     echo -e "${GREEN}[STATE]${NC} current_gate → $gate"
 }
 

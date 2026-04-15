@@ -32,33 +32,44 @@ forge_issue_create() {
     local body="$2"
     local label="${3:-}"
     local result
+    local number
 
     case $(detect_forge) in
         github)
             if [ -n "$label" ]; then
-                result=$(gh issue create --title "$title" --body "$body" --label "$label" 2>/dev/null)
+                result=$(gh issue create --title "$title" --body "$body" --label "$label")
             else
-                result=$(gh issue create --title "$title" --body "$body" 2>/dev/null)
+                result=$(gh issue create --title "$title" --body "$body")
             fi
-            echo "$result" | grep -oE '[0-9]+$' | tail -1
+            [ $? -ne 0 ] && return 1
+            number=$(echo "$result" | grep -oE '[0-9]+$' | tail -1)
             ;;
         gitlab)
             if [ -n "$label" ]; then
-                result=$(glab issue create --title "$title" --description "$body" --label "$label" 2>/dev/null)
+                result=$(glab issue create --title "$title" --description "$body" --label "$label")
             else
-                result=$(glab issue create --title "$title" --description "$body" 2>/dev/null)
+                result=$(glab issue create --title "$title" --description "$body")
             fi
-            echo "$result" | grep -oE '#[0-9]+' | head -1 | tr -d '#'
+            [ $? -ne 0 ] && return 1
+            number=$(echo "$result" | grep -oE '#[0-9]+' | head -1 | tr -d '#')
             ;;
         gitea)
-            result=$(tea issue create --title "$title" --body "$body" 2>/dev/null)
-            echo "$result" | grep -oE '#[0-9]+' | head -1 | tr -d '#'
+            result=$(tea issue create --title "$title" --body "$body")
+            [ $? -ne 0 ] && return 1
+            number=$(echo "$result" | grep -oE '#[0-9]+' | head -1 | tr -d '#')
             ;;
         *)
             echo "ERROR: unknown forge platform — set git remote origin" >&2
             return 1
             ;;
     esac
+
+    if [ -z "$number" ]; then
+        echo "ERROR: failed to parse issue number from forge CLI output" >&2
+        return 1
+    fi
+
+    echo "$number"
 }
 
 # ── 이슈 코멘트 ──────────────────────────────────────────────────────────────
@@ -73,6 +84,10 @@ forge_issue_comment() {
         gitlab) glab issue note "$number" --message "$body" ;;
         gitea)  tea comment create "$number" --body "$body" 2>/dev/null \
                 || echo "WARN: tea comment not supported, skipping" >&2 ;;
+        *)
+            echo "ERROR: unsupported forge '$(detect_forge)'; cannot comment on issue #$number" >&2
+            return 1
+            ;;
     esac
 }
 
@@ -86,6 +101,10 @@ forge_issue_close() {
         github) gh issue close "$number" ;;
         gitlab) glab issue close "$number" ;;
         gitea)  tea issue close "$number" 2>/dev/null ;;
+        *)
+            echo "ERROR: unsupported forge '$(detect_forge)'; cannot close issue #$number" >&2
+            return 1
+            ;;
     esac
 }
 
@@ -101,6 +120,10 @@ forge_pr_create() {
         github) gh pr create --title "$title" --body "$body" --base "$base" ;;
         gitlab) glab mr create --title "$title" --description "$body" --target-branch "$base" ;;
         gitea)  tea pr create --title "$title" --description "$body" --base "$base" 2>/dev/null ;;
+        *)
+            echo "ERROR: unsupported forge for PR/MR creation: $(detect_forge)" >&2
+            return 1
+            ;;
     esac
 }
 
@@ -128,7 +151,14 @@ forge_sub_issue_create() {
             if [ -n "$child_num" ]; then
                 forge_issue_comment "$parent" "- [ ] #${child_num} ${title}"
                 echo "$child_num"
+            else
+                echo "ERROR: sub-issue creation failed — forge_issue_create returned empty" >&2
+                return 1
             fi
+            ;;
+        *)
+            echo "ERROR: unsupported forge '$(detect_forge)'; cannot create sub-issue" >&2
+            return 1
             ;;
     esac
 }
