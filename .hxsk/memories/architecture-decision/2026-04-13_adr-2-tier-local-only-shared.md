@@ -21,8 +21,8 @@ keywords:
 ## Decision
 `.hxsk/memories/` 를 **local-only** 과 **shared** 두 티어로 분리한다.
 
-- **local-only** (gitignored, 각 환경 독립): session-summary, session-snapshot, session-handoff, health-event, debug-blocked, debug-eliminated, bootstrap, general, deviation, _archive
-- **shared** (git-tracked): architecture-decision, root-cause, pattern-discovery, security-finding, execution-summary, _schema
+- **local-only** (gitignored, 각 환경 독립): session-summary, session-snapshot, session-handoff, health-event, debug-blocked, debug-eliminated, bootstrap, general, deviation
+- **shared** (git-tracked): architecture-decision, root-cause, pattern-discovery, security-finding, execution-summary, lessons-learned, _schema
 
 ## Context
 여러 리모트 개발 환경에서 동시 작업 시 `.hxsk/memories/` 전체가 gitignored인 탓에:
@@ -48,9 +48,17 @@ keywords:
 ## Supporting Infrastructure
 - `.gitattributes`: INDEX.md/bootstrap-version에 `merge=ours`
 - `bootstrap.sh`: `merge.ours.driver` 자동 등록
-- `prune-memories.sh`: 30일 초과 local-tier → `_archive/YYYY-MM/`
+- `prune-memories.sh`: 30일 초과 local-tier → `_archive/YYYY-MM/` *(Superseded: PR #132)*
 - `stop-context-save.sh`: 지문 기반 중복 저장 스킵
 
 ## References
 - PR: #123 (merge commit에서 전체 변경 이력 확인)
 - Date: 2026-04-13
+
+## Superseded By
+- **PR #132 (2026-04-15)**: local-tier 정리 정책 재설계
+  - `_archive/` 이동 → **직접 삭제** (git log/PR이 이력 대체)
+  - 30일 TTL → **cap 20 (FIFO) + 보조 7일 TTL**
+  - Write-gating: 훅 자체 변경만 있는 세션은 session-summary 저장 생략
+  - 가치 기반 승격: `tags: [decision|root-cause|incident|security|pattern|lesson]`
+    매칭 시 삭제 직전 shared-tier 해당 폴더로 자동 이동

@@ -208,25 +208,26 @@ else
 fi
 
 # ─────────────────────────────────────────────────────
-# 5. Memory cleanup (session-summary, snapshot, execution-summary)
+# 5. Memory cleanup — local-tier cap 기반 prune
+#    정책: session-summary 최신 20개, session-snapshot 최신 10개 유지
+#    shared-tier(execution-summary 등)는 git으로 관리하므로 자동 정리 제외
 # ─────────────────────────────────────────────────────
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_DIR="${CLAUDE_PROJECT_DIR:-.}"
-MEMORY_CLEANUP="$PROJECT_DIR/.hxsk/scripts/memory-cleanup.sh"
+PRUNE_SCRIPT="$PROJECT_DIR/.hxsk/scripts/prune-memories.sh"
 
-if [[ -x "$MEMORY_CLEANUP" ]]; then
+if [[ -f "$PRUNE_SCRIPT" ]]; then
     echo ""
     echo "--- Memory Cleanup ---"
-    if [[ "$DRY_RUN" == true ]]; then
-        bash "$MEMORY_CLEANUP" --dry-run 2>/dev/null | grep -E '^\s*(Archived|Deleted|Kept|Total|Active|\[EMPTY\])' || true
-    else
-        bash "$MEMORY_CLEANUP" 2>/dev/null | grep -E '^\s*(Archived|Deleted|Kept|Total|Active|\[EMPTY\])' || true
-    fi
+    dry_flag=()
+    [[ "$DRY_RUN" == true ]] && dry_flag=(--dry-run)
+    bash "$PRUNE_SCRIPT" --max-count 20 --tier session-summary "${dry_flag[@]}" 2>/dev/null || true
+    bash "$PRUNE_SCRIPT" --max-count 10 --tier session-snapshot "${dry_flag[@]}" 2>/dev/null || true
 else
     echo ""
     echo "--- Memory Cleanup ---"
-    echo "  [SKIP] scripts/memory-cleanup.sh not found"
+    echo "  [SKIP] scripts/prune-memories.sh not found"
 fi
 
 # ─────────────────────────────────────────────────────
