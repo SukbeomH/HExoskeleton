@@ -66,6 +66,15 @@
 | solution_comparison_report_guide.md | `active` | 솔루션 비교 보고서 작성 프레임워크 |
 | HOOK_ISSUE_REPORT.md | `archived` | macOS 훅 실행 이슈 (2026-02-11, 일시적) |
 
+## workflow/ (1) — all active
+
+| 문서 | 상태 | 핵심 결론 |
+|------|------|----------|
+| [RESEARCH-github-task-management-workflow.md](workflow/RESEARCH-github-task-management-workflow.md) | `active` | GitHub Flow + Sub-Issues GA + Worktree 패턴 + 멀티에이전트 Conductor 패턴 |
+| [RESEARCH-multi-platform-compatibility.md](workflow/RESEARCH-multi-platform-compatibility.md) | `active` | GitHub/GitLab/Gitea/Forgejo 호환성 매트릭스 + forge-detect.sh 추상화 전략 |
+| [RESEARCH-token-optimization-multi-hop.md](workflow/RESEARCH-token-optimization-multi-hop.md) | `active` | 멀티홉 핸드오프 토큰 최적화 — 경로 전달·구조화 WORK 문서·요약 보고로 60-75% 절감 |
+| [RESEARCH-git-issue-as-memory.md](workflow/RESEARCH-git-issue-as-memory.md) | `active` | Git 이슈·커밋·코멘트를 단기 실행 메모리로 활용 — 로컬 파일은 장기 메모리로 역할 분리 |
+
 ## agent-discipline/ (3) — all active
 
 Superpowers 플러그인 분석 및 에이전트 규율 강화 연구.

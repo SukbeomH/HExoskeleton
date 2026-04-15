@@ -55,6 +55,30 @@ PR 리뷰/실행 이탈 발견 시 → `lessons-learned/{A-E}` 카테고리로 �
 - **3-Strike Rule**: 동일 접근 3회 연속 실패 시 반드시 전환
 - **Atomic Commit**: 태스크당 하나의 커밋. 논리적 단위 유지
 
+## Task Management Gates
+
+See `.hxsk/workflow/GATES.md` for full gate definitions.
+
+### Gate Summary
+| Gate | 진입 조건 | 완료 조건 |
+|------|-----------|-----------|
+| GATE-0 | SPEC.md 존재 + Goals/Scope 섹션 | — |
+| GATE-P1~P4 | 이전 GATE 통과 | STATE.md 업데이트 |
+| GATE-E0 | GATE-P4 통과 + sub_issue 전체 기록 | Dispatcher 핸드오프 |
+| GATE-V0 | 모든 sub_issue closed | Conflict 해결 시작 |
+| GATE-D0 | 부모 PR merged | 결과 보고서 + 메모리 동기화 |
+
+### Rules (Claude Code 외 하네스 포함)
+- PLAN 없이 EXECUTE 금지
+- 파일 소유권 선언 없이 병렬 작업 금지
+- PR 없이 main/feat 브랜치 직접 머지 금지
+- 모든 하위 이슈 closed 전 VERIFY 금지
+- 핸드오프 시 경로만 전달, 파일 내용/이슈 전문 포함 금지
+
+### Forge Platform
+플랫폼 자동 감지: `source .hxsk/scripts/forge-detect.sh`
+GitHub → `gh` CLI / GitLab → `glab` CLI / Gitea → `tea` CLI
+
 ## Agent Boundaries
 
 ### Always
