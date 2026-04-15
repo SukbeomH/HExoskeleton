@@ -146,7 +146,7 @@ HExoskeleton은 세 가지 관찰에서 출발합니다.
 
 ### 2. 8-Event Hook 생명주기
 
-Claude Code의 훅 시스템으로 에이전트 행동을 자동화합니다. 7개 이벤트, 25개 스크립트.
+Claude Code의 훅 시스템으로 에이전트 행동을 자동화합니다. 7개 이벤트, 26개 스크립트.
 
 ```
 SessionStart ──→ [작업 수행] ──→ SessionEnd
@@ -247,6 +247,36 @@ Discovery → Issue 생성 (.hxsk/issues/)
 └── 완료
 ```
 
+### 5. Git Forge 통합 작업 관리
+
+GitHub / GitLab / Gitea / Forgejo 등 모든 Git 플랫폼과 호환되는 게이트 기반 작업 관리 시스템. 단일 진실 원천 `GATES.md`가 각 단계의 진입·완료 조건을 정의하고, Claude Code(훅)와 다른 에이전트 하네스(AGENTS.md 규칙) 모두에서 집행됩니다.
+
+```
+GATES.md (단일 진실 원천)
+     ↓ 훅으로 집행                ↓ 규칙으로 참조
+gate-check.sh               AGENTS.md 섹션
+(Claude Code 전용)          (opencode / Copilot / Antigravity)
+```
+
+PLAN 단계는 GitHub Issue + Git Worktree로 세분화됩니다:
+
+```
+P1 브랜치 생성 → P2 부모 이슈 생성 → P3 파일 소유권 맵 작성
+→ P4 하위 이슈/브랜치 전수 생성 → P5 워크트리 전수 생성
+→ EXECUTE (서브에이전트 병렬) → PR→리뷰→머지→이슈 close
+→ VERIFY (부모 PR) → 결과 보고서
+```
+
+**플랫폼 호환성**: `forge-detect.sh`가 remote URL로 플랫폼 자동 감지 → CLI 추상화
+
+| 플랫폼 | 등급 | 비고 |
+|--------|------|------|
+| GitHub | ✅ 100% | Sub-Issues GA (2025-01) 활용 |
+| GitLab | ✅ 85% | MR + 이슈 체크리스트 대체 |
+| Gitea / Forgejo | ✅ 80% | `tea` CLI + 체크리스트 대체 |
+
+> 상세: [설계 문서](.hxsk/docs/plans/2026-04-15-github-task-management-design.md) · [리서치](.hxsk/research/workflow/)
+
 ### 5. Lazy Loading 문서 계층
 
 에이전트가 필요한 만큼만 읽도록 3단계로 구조화합니다.
@@ -314,13 +344,14 @@ make setup
 └── .hxsk/                     # Single Source of Truth
     ├── skills/                # 스킬 정의 (21) — How
     ├── agents/                # 에이전트 정의 (18) — When/With What
-    ├── hooks/                 # 훅 스크립트 (25) — 자동화
-    ├── scripts/               # 유틸리티 (bootstrap, issue, merge)
+    ├── hooks/                 # 훅 스크립트 (26) — 자동화
+    ├── scripts/               # 유틸리티 (bootstrap, issue, merge, forge-detect)
+    ├── workflow/              # 게이트 기반 작업 관리 (GATES.md)
     ├── docs/                  # 상세 문서 (23)
     ├── prompts/               # Setup + 마이그레이션 프롬프트
     ├── templates/             # 문서 템플릿 (32)
     ├── memories/              # 파일 기반 메모리 (14 타입)
-    ├── research/              # 연구 문서 (33개, 7개 카테고리)
+    ├── research/              # 연구 문서 (35개, 8개 카테고리)
     ├── issues/                # 파일 기반 이슈 레지스트리
     ├── STATE.md               # 현재 작업 상태
     ├── SPEC.md                # 프로젝트 명세
@@ -345,6 +376,8 @@ make setup
 | [Meincke et al. (2025)](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=5357179) | Authority 기반 Iron Laws 설계 근거 (N=28,000, 준수율 33%→72%) | — |
 | [Sharma et al. (ICLR 2024)](https://arxiv.org/abs/2310.13548) | 합리화 테이블의 이론적 근거 (RLHF 아첨 메커니즘) | — |
 | [SkillReducer (2026)](https://arxiv.org/abs/2603.29919) | CSO 패턴 — description 트리거 최적화 (55K 스킬 분석) | — |
+| [GitHub Flow](https://docs.github.com/en/get-started/using-github/github-flow) + [Sub-Issues GA](https://github.blog/engineering/architecture-optimization/introducing-sub-issues-enhancing-issue-management-on-github/) | Gate 기반 PLAN 세분화, 부모·하위 이슈 계층 | — |
+| [Git Worktree 멀티에이전트](https://www.augmentcode.com/guides/git-worktrees-parallel-ai-agent-execution) | 파일 소유권 맵 + `.worktrees/` 패턴 | — |
 
 > 상세: [.hxsk/research/INDEX.md](.hxsk/research/INDEX.md)
 
@@ -359,12 +392,12 @@ make setup
 | [Agents](.hxsk/docs/AGENTS.md) | 18개 에이전트 상세 |
 | [Hooks](.hxsk/docs/HOOKS.md) | 훅 시스템 + settings.json 전체 예시 |
 | [Memory](.hxsk/docs/MEMORY.md) | 파일 기반 메모리 시스템 |
-| [Workflows](.hxsk/docs/WORKFLOWS.md) | SPEC→PLAN→EXECUTE→VERIFY |
+| [Workflows](.hxsk/docs/WORKFLOWS.md) | SPEC→PLAN→EXECUTE→VERIFY + Gate 워크플로우 |
 | [Conventions](.hxsk/docs/CONVENTIONS.md) | 개발 컨벤션 (Issue, Branch, Commit, PR) |
-| [GitHub Workflow](.hxsk/docs/GITHUB-WORKFLOW.md) | gh CLI 기반 이슈/PR 자동화 |
+| [Git Forge 작업 관리 설계](.hxsk/docs/plans/2026-04-15-github-task-management-design.md) | Gate 기반 작업 관리 + 멀티 플랫폼 호환 |
 | [Antigravity Guide](.hxsk/docs/ANTIGRAVITY_AGENT_GUIDE.md) | Antigravity IDE 에이전트 가이드 |
 | [Build](.hxsk/docs/BUILD.md) | Self-Configure 배포 가이드 |
-| [Research](.hxsk/research/INDEX.md) | 33개 연구 문서, 7개 카테고리 |
+| [Research](.hxsk/research/INDEX.md) | 35개 연구 문서, 8개 카테고리 |
 
 ---
 
@@ -399,6 +432,17 @@ make setup
 | **스킬 TDD** | 서브에이전트로 스킬 없이 압박 시나리오 실행 → 스킬 작성 → 재검증 | Superpowers writing-skills: RED→GREEN→REFACTOR |
 | **서브에이전트 프롬프트 템플릿** | implementer, reviewer 등 역할별 표준 템플릿 | Superpowers: 컨텍스트 격리 + 구조화된 지시 |
 | **합리화 테이블 자동 갱신** | 실제 우회 패턴 수집 → 테이블 업데이트 사이클 | 모델 업데이트 시 행동 변화 추적 |
+
+### Phase 4: Git Forge 통합 작업 관리 (설계 완료)
+
+| 항목 | 내용 | 근거 |
+|------|------|------|
+| **GATES.md** | SPEC→PLAN(P1-P5)→EXECUTE→VERIFY→DONE 단계별 진입/완료 조건 | 단일 진실 원천, 에이전트 하네스 무관 |
+| **gate-check.sh 훅** | PreToolUse/Stop 이벤트에서 게이트 조건 자동 집행 | Claude Code 전용 인프라 레이어 |
+| **forge-detect.sh** | remote URL 기반 플랫폼 감지 → gh/glab/tea CLI 추상화 | GitHub/GitLab/Gitea/Forgejo 80-100% 호환 |
+| **AGENTS.md 게이트 규칙** | 모든 에이전트 하네스 공통 게이트 규칙 섹션 | opencode/Copilot/Antigravity 호환 |
+
+> 설계 문서: [`.hxsk/docs/plans/2026-04-15-github-task-management-design.md`](.hxsk/docs/plans/2026-04-15-github-task-management-design.md)
 
 ---
 

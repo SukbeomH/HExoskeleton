@@ -454,8 +454,58 @@ Extract from $ARGUMENTS:
 
 ---
 
+---
+
+## Git Forge 통합 작업 관리 (Gate-based Workflow)
+
+SPEC→PLAN→EXECUTE→VERIFY 각 단계에 게이트 조건을 부여하고,
+GitHub/GitLab/Gitea/Forgejo 이슈·PR·Worktree와 연동합니다.
+
+### 3-레이어 책임 분리
+
+```
+HOP 1: GATES      → 조건 & 플랫폼 연동  (진행해도 되는가?)
+HOP 2: Dispatcher → 실행 엔진           (어떻게 병렬 실행?)
+HOP 3: Sub-agent  → 작업 실행           (파일을 어떻게 변경?)
+```
+
+각 레이어는 인접 레이어 내부를 모름. STATE.md + `.hxsk/issues/`로만 통신.
+
+### 멀티홉 흐름 (요약)
+
+```
+GATES:      GATE-0 → P1(브랜치) → P2(부모이슈) → P3(소유권맵) → P4(하위이슈)
+            [HOP 1→2] PLAN.md 경로 + 소유권 맵 전달
+Dispatcher: WORK 분해 → Wave 배정 → 워크트리 생성
+            [HOP 2→3] WORK 문서 경로만 전달
+Sub-agent:  코드 변경 → 커밋 → Self-review → 요약 반환
+Dispatcher: 머지 → [HOP 2→1] PR 번호 목록 반환
+GATES:      GATE-V0 → VERIFY → 부모 PR → GATE-D0 → 보고서
+```
+
+### 토큰 최적화 (핸드오프 시 경로/요약만 전달)
+
+| 핸드오프 | 전달 | 금지 |
+|----------|------|------|
+| HOP 1→2 | PLAN.md 경로, 소유권 맵 | 대화 내역, 이슈 내용 |
+| HOP 2→3 | WORK 문서 경로 | Dispatcher 컨텍스트, 파일 내용 |
+| HOP 3→2 | 요약 테이블 | 전체 구현 설명 |
+
+전체 세션 **~60-75% 절감** 추정
+
+### 플랫폼 추상화
+
+`forge-detect.sh`: `github.com → gh` / `gitlab.* → glab` / `gitea/forgejo → tea`
+
+> 상세: [설계 문서 v2](plans/2026-04-15-github-task-management-design.md)
+> 리서치: [workflow/](../research/workflow/)
+
+---
+
 ## 관련 문서
 
 - [Skills 상세](./SKILLS.md) — 워크플로우가 호출하는 스킬
 - [Agents 상세](./AGENTS.md) — 워크플로우가 위임하는 에이전트
 - [Hooks 상세](./HOOKS.md) — 이벤트 기반 자동화
+- [Git Forge 작업 관리 설계](./plans/2026-04-15-github-task-management-design.md) — Gate 기반 워크플로우
+- [GitHub Workflow (deprecated)](./GITHUB-WORKFLOW.md) — v1.11.1 이전 CI/CD 참고 (현재 미사용)

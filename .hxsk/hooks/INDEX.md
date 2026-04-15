@@ -1,6 +1,6 @@
 # Hooks Index
 
-> 19 hook scripts. Claude Code only -- other agents use AGENTS.md rules instead.
+> 20 hook scripts. Claude Code only -- other agents use AGENTS.md rules instead.
 
 | Hook | Event | Purpose | File |
 |------|-------|---------|------|
@@ -22,4 +22,5 @@
 | scaffold-infra.sh | (utility) | Compare infra files | `hooks/scaffold-infra.sh` |
 | check-consistency.sh | (utility) | Code/doc/skill/agent consistency check (14 points) | `hooks/check-consistency.sh` |
 | pre-pr-check.sh | (utility) | Pre-PR validation + version recommendation | `hooks/pre-pr-check.sh` |
+| gate-check.sh | (utility) | Gate condition validation + STATE.md update | `hooks/gate-check.sh` |
 | _json_parse.sh | (library) | JSON parse abstraction | `hooks/_json_parse.sh` |

@@ -207,6 +207,10 @@ verify  → 구조 검증, 누락 자동 보충
 |------|------|--------|
 | [ReWOO](https://github.com/weitianxin/Awesome-Agentic-Reasoning) | SPEC→PLAN→EXECUTE 분리 | 전체 프레임워크 |
 | [RLM](https://arxiv.org/html/2512.24601v2) | Agent-Skill 래핑 | Persistent REPL |
+| [GitHub Flow](https://docs.github.com/en/get-started/using-github/github-flow) | Gate 기반 PLAN 세분화(P1-P5), 짧은 수명 브랜치 | — |
+| [Sub-Issues GA (2025)](https://github.blog/engineering/architecture-optimization/introducing-sub-issues-enhancing-issue-management-on-github/) | 부모·하위 이슈 계층, `gh sub-issue create` | GitHub 전용 → forge-detect.sh로 추상화 |
+| [Git Worktree 멀티에이전트](https://www.augmentcode.com/guides/git-worktrees-parallel-ai-agent-execution) | 파일 소유권 맵, `.worktrees/{name}` 패턴, 컨플릭트 6유형 방지 | — |
+| [Conductor 패턴 (2026)](https://elite-ai-assisted-coding.dev/p/the-parallel-agent-multiplier-conductor-with-charlie-holtz) | Orchestrator가 GATES.md 기준으로 서브에이전트 조율 | — |
 
 ### 에이전트 규율
 
@@ -238,6 +242,15 @@ Gate Function 스킬화, 보조 문서 시스템, 2단계 리뷰 (spec→quality
 
 ### Phase 3: 스킬 품질 보증 (계획)
 스킬 TDD (서브에이전트 압박 시나리오), 프롬프트 템플릿 표준화, 합리화 테이블 자동 갱신
+
+### Phase 4: Git Forge 통합 작업 관리 (설계 완료, 구현 예정)
+
+단일 진실 원천 `GATES.md`로 SPEC→PLAN(P1-P5)→EXECUTE→VERIFY→DONE 전 단계를 게이트로 제어.
+에이전트 하네스 무관 (Claude Code: 훅 집행 / 기타: AGENTS.md 규칙).
+`forge-detect.sh`로 GitHub/GitLab/Gitea/Forgejo CLI 추상화.
+
+근거: GitHub Flow (Trunk-Based 혼용) + Sub-Issues GA + Worktree 멀티에이전트 Conductor 패턴
+리서치: `.hxsk/research/workflow/` (2문서, 2026-04-15)
 
 ---
 
