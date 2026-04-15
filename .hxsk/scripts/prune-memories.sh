@@ -1,28 +1,27 @@
 #!/usr/bin/env bash
-# prune-memories.sh — local-tier 메모리 리텐션 & 아카이브
+# prune-memories.sh — local-tier 메모리 리텐션 정리
 #
 # 사용법:
 #   bash .hxsk/scripts/prune-memories.sh [RETENTION_DAYS] [--dry-run]
 #
 # 예시:
-#   bash prune-memories.sh                # 30일 초과 파일 이동
-#   bash prune-memories.sh 60             # 60일 초과 파일 이동
-#   bash prune-memories.sh --dry-run      # 이동 대상만 출력 (실행 X)
-#   bash prune-memories.sh 7 --dry-run    # 7일 기준 dry-run
+#   bash prune-memories.sh                # 7일 초과 파일 삭제
+#   bash prune-memories.sh 30             # 30일 초과 파일 삭제
+#   bash prune-memories.sh --dry-run      # 삭제 대상만 출력 (실행 X)
+#   bash prune-memories.sh 3 --dry-run    # 3일 기준 dry-run
 #
 # 동작:
-#   1. RETENTION_DAYS(기본 30일) 초과 파일을 _retained/YYYY-MM/{tier}/로 이동
+#   1. RETENTION_DAYS(기본 7일) 초과 파일을 직접 삭제
 #   2. 대상: local-tier (gitignore 대상). shared-tier는 건드리지 않음
-#   3. 월별 롤업 파일(YYYY-MM_rollup.md) 생성 — 커밋 해시·파일 수 요약
+#   3. git log/PR이 실행 이력을 대체하므로 _retained 이동 불필요
 #
-# 멀티 리모트: 아카이브는 gitignored라 각 환경에서 독립적으로 수행.
+# 멀티 리모트: gitignored 파일이므로 각 환경에서 독립적으로 수행.
 
 set -uo pipefail
 
 PROJECT_DIR="${CLAUDE_PROJECT_DIR:-$(pwd)}"
 MEM_DIR="$PROJECT_DIR/.hxsk/memories"
-ARCHIVE_DIR="$MEM_DIR/_retained"
-RETENTION_DAYS=30
+RETENTION_DAYS=7
 DRY_RUN=0
 RETENTION_DAYS_SET=0
 
@@ -79,82 +78,26 @@ LOCAL_TIERS=(
 
 [[ -d "$MEM_DIR" ]] || { echo "memories/ 없음: $MEM_DIR"; exit 0; }
 
-moved=0
-rolled_up_months=""
+deleted=0
 
 for tier in "${LOCAL_TIERS[@]}"; do
     src="$MEM_DIR/$tier"
     [[ -d "$src" ]] || continue
 
-    # RETENTION_DAYS 초과 *.md 파일 찾기
+    # RETENTION_DAYS 초과 *.md 파일 찾기 → 직접 삭제 (git log/PR이 이력 보존)
     while IFS= read -r -d '' f; do
-        base=$(basename "$f")
-        # 파일명에서 YYYY-MM 추출 (형식: YYYY-MM-DD_*)
-        month="${base:0:7}"
-        if [[ ! "$month" =~ ^[0-9]{4}-[0-9]{2}$ ]]; then
-            # 형식 불일치 시 mtime에서 YYYY-MM 추출 (OS 이식성)
-            # BSD(macOS)는 `stat -f %Sm -t FMT`, GNU(Linux)는 `stat -c %y`
-            if stat -f '%Sm' "$f" >/dev/null 2>&1; then
-                month=$(stat -f '%Sm' -t '%Y-%m' "$f" 2>/dev/null || echo "unknown")
-            else
-                month=$(stat -c '%y' "$f" 2>/dev/null | cut -c1-7 || echo "unknown")
-            fi
-        fi
-
-        dest_dir="$ARCHIVE_DIR/$month/$tier"
         if [[ "$DRY_RUN" -eq 1 ]]; then
-            echo "[dry-run] would move: $f → $dest_dir/"
+            echo "[dry-run] would delete: $f"
         else
-            mkdir -p "$dest_dir"
-            mv "$f" "$dest_dir/"
+            rm -f "$f"
         fi
-        moved=$((moved + 1))
-
-        # 롤업 대상 월 기록 — session-summary tier만 (롤업은 이 tier에만 생성)
-        [[ "$tier" != "session-summary" ]] && continue
-        case " $rolled_up_months " in
-            *" $month "*) ;;
-            *) rolled_up_months="$rolled_up_months $month" ;;
-        esac
+        deleted=$((deleted + 1))
     done < <(find "$src" -maxdepth 1 -type f -name "*.md" -mtime +"$RETENTION_DAYS" -print0 2>/dev/null)
 done
 
-# 월별 롤업 파일 생성 (session-summary만 해당)
-# dry-run 모드에선 파일이 실제로 이동하지 않아 summary_dir가 없으므로 skip
-for month in $rolled_up_months; do
-    [[ -z "$month" || "$month" == "unknown" ]] && continue
-    rollup="$ARCHIVE_DIR/$month/${month}_rollup.md"
-    summary_dir="$ARCHIVE_DIR/$month/session-summary"
-
-    if [[ "$DRY_RUN" -eq 1 ]]; then
-        echo "[dry-run] would write rollup: $rollup"
-        continue
-    fi
-
-    [[ -d "$summary_dir" ]] || continue
-
-    {
-        echo "# Rollup: $month"
-        echo ""
-        echo "> session-summary 월별 집계 (자동 생성)"
-        echo ""
-        file_count=$(find "$summary_dir" -maxdepth 1 -name "*.md" 2>/dev/null | wc -l | tr -d ' ')
-        echo "- Sessions: $file_count"
-        echo ""
-        echo "## Commits mentioned"
-        grep -h "^[a-f0-9]\{7,\} " "$summary_dir"/*.md 2>/dev/null \
-            | sort -u | head -100
-        echo ""
-        echo "## Branches"
-        grep -h "^- \*\*Branch\*\*:" "$summary_dir"/*.md 2>/dev/null \
-            | sort -u
-    } > "$rollup"
-done
-
 if [[ "$DRY_RUN" -eq 1 ]]; then
-    echo "[dry-run] would prune: $moved files (retention=${RETENTION_DAYS}d)"
+    echo "[dry-run] would prune: $deleted files (retention=${RETENTION_DAYS}d)"
 else
-    echo "pruned: $moved files (retention=${RETENTION_DAYS}d)"
+    echo "pruned: $deleted files (retention=${RETENTION_DAYS}d)"
 fi
-[[ -n "$rolled_up_months" ]] && echo "rollups:$rolled_up_months"
 exit 0

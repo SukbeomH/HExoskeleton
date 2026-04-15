@@ -147,12 +147,13 @@ modifications_count: $MODIFICATIONS_COUNT"
     # ── 4. track-modifications.log 초기화 ──
     rm -f "$TRACK_LOG"
 
-    # ── 5. session-summary 누적 시 자동 prune (150개 초과 시) ──
+    # ── 5. session-summary 누적 시 자동 prune (20개 초과 시, 7일 TTL)
+    #    git log/PR이 실행 이력을 대체하므로 로컬 보존 기간 최소화
     SUMMARY_DIR="$PROJECT_DIR/.hxsk/memories/session-summary"
     if [[ -d "$SUMMARY_DIR" ]]; then
         COUNT=$(ls -1 "$SUMMARY_DIR"/*.md 2>/dev/null | wc -l | tr -d ' ')
-        if [[ "$COUNT" -gt 150 ]]; then
-            bash "$PROJECT_DIR/.hxsk/scripts/prune-memories.sh" 30 \
+        if [[ "$COUNT" -gt 20 ]]; then
+            bash "$PROJECT_DIR/.hxsk/scripts/prune-memories.sh" 7 \
                 >> "$LOG_FILE" 2>&1 || true
         fi
     fi
