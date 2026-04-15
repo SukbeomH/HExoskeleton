@@ -4,6 +4,47 @@
 
 ---
 
+### [2026-04-15] v5.4.0 — Git Forge 통합 작업 관리 + lessons-learned + 메모리 티어 최적화
+
+#### 신규 — Git Forge 통합 작업 관리 (PR #131)
+- **GATES.md** — SPEC→PLAN(P1-P5)→EXECUTE→VERIFY→DONE 단일 진실 원천
+- **gate-check.sh** — PreToolUse/Stop 훅으로 게이트 조건 자동 집행
+- **forge-detect.sh** — remote URL로 플랫폼 감지(GitHub/GitLab/Gitea/Forgejo) → gh/glab/tea CLI 추상화
+- AGENTS.md에 게이트 규칙 섹션 추가 — opencode/Copilot/Antigravity 호환
+
+#### 신규 — lessons-learned 체계 (PR #127)
+- `lessons-learned` 메모리 타입 추가 — A/B/C/D/E 5개 카테고리로 분류 저장
+- `planner` 스킬 — 계획 수립 전 lessons recall + `cross_phase_invariants` 체크리스트
+- `executor` 스킬 — invariants 로드 + deviation A-E 분류 자동 저장
+- `create-pr` 스킬 — Pre-PR Self-Check A-E 품질 점검
+- `pr-review` 스킬 — 리뷰 후 lessons-learned A-E 분류 저장
+- `dispatcher` 스킬 — 서브에이전트에 lessons recall + ambiguity log 전달
+- `PLAN.md` 템플릿 — `cross_phase_invariants` frontmatter 필드 추가
+
+#### 개선 — 메모리 티어 최적화 (PR #132)
+- **Write-gating** — 훅 자체 변경(.hxsk/CURRENT.md, STATE.md, 내부 로그)만 있는 세션은 session-summary 저장 생략
+- **Cap 기반 prune** — `prune-memories.sh --max-count N [--tier T]` FIFO 모드 추가. stop-context-save / compact-context가 TTL 대신 최신 20개 유지로 교체
+- **가치 기반 승격** — frontmatter `tags: [decision|root-cause|incident|security|pattern|lesson]` 매칭 파일은 삭제 직전 shared-tier 해당 폴더로 자동 `mv`. git이 장기 보존 시스템 역할
+- `prune-memories.sh` — `--dry-run` / `--help` / `--max-count` / `--tier` 옵션 (PR #125, #132)
+- `RETENTION_DAYS=0` 전체 삭제 분기, `rm` 실패 시 exit 2 + failed 카운터 분리
+- `memory-cleanup.sh` 삭제 (30일 아카이브 구정책과 충돌) — `compact-context.sh`가 `prune-memories.sh` 직접 호출
+
+#### 신규 — doc-lint 검증 체계 (PR #123, #126)
+- **doc-lint 훅** — PR 전 문서 정합성 6개 항목 검증 (LINK, INDEX, COUNT, REF, ORPHAN)
+- **LINK-02** — 마크다운 앵커(`#`) 링크 유효성 검사
+- 메모리 2-tier 분리 정착 — local(gitignored) vs shared(git-tracked)
+
+#### 수정
+- `dispatcher` 스킬 — 서브에이전트 프롬프트 외부 펜스 4-backtick 교체 (GFM 중첩 코드블록 렌더링 이슈 #002)
+- `check-consistency.sh` — dead component 탐지 glob 확장 에러 + grep/wc 예외 처리
+
+#### 문서
+- `ANTIGRAVITY_AGENT_GUIDE.md` — Antigravity IDE 에이전트 가이드 추가
+- Git Forge 작업 관리 설계 문서 (`docs/plans/2026-04-15-github-task-management-design.md`)
+- agent-workflow 통합 설계 + 구현 계획 문서 추가
+
+---
+
 ### [2026-04-07] v5.3.0 — 에이전트 규율 강화 + 연구 기반 설계 문서화
 
 #### 신규

@@ -20,7 +20,7 @@
   <img src="https://img.shields.io/badge/dependencies-zero-brightgreen?style=flat-square" alt="Zero Dependencies" />
   <img src="https://img.shields.io/badge/stack-bash%20%2B%20markdown-blue?style=flat-square" alt="Bash + Markdown" />
   <img src="https://img.shields.io/badge/multi--agent-5%20platforms-blueviolet?style=flat-square" alt="Multi-Agent" />
-  <img src="https://img.shields.io/badge/v5.3.0%20%C2%B7%2021%20skills%20%C2%B7%2018%20agents%20%C2%B7%2025%20hooks-orange?style=flat-square" alt="Components" />
+  <img src="https://img.shields.io/badge/v5.4.0%20%C2%B7%2021%20skills%20%C2%B7%2018%20agents%20%C2%B7%2026%20hooks-orange?style=flat-square" alt="Components" />
   <img src="https://img.shields.io/github/license/SukbeomH/HExoskeleton?style=flat-square" alt="License" />
 </p>
 
@@ -71,7 +71,7 @@ HExoskeleton은 세 가지 관찰에서 출발합니다.
     │         │         │
 ┌───▼───┐ ┌──▼──┐ ┌───▼────┐
 │skills/│ │hooks│ │agents/ │
-│  20   │ │ 24  │ │  18    │
+│  21   │ │ 26  │ │  18    │
 └───────┘ └─────┘ └────────┘
 ```
 
@@ -148,6 +148,7 @@ HExoskeleton은 세 가지 관찰에서 출발합니다.
 
 Claude Code의 훅 시스템으로 에이전트 행동을 자동화합니다. 7개 이벤트, 26개 스크립트.
 
+
 ```
 SessionStart ──→ [작업 수행] ──→ SessionEnd
      │               │                │
@@ -185,7 +186,7 @@ SessionStart ──→ [작업 수행] ──→ SessionEnd
 | Frontmatter 메타데이터 | A-Mem | YAML frontmatter (`title`, `tags`, `keywords`, `related`) |
 | 2-Hop 그래프 검색 | A-Mem | `related` 필드 → 관련 메모리까지 자동 추적 |
 | Compact 모드 | A-Mem | 제목 + 1줄 요약만 반환 (토큰 최적화) |
-| 타입별 분리 | Nemori | 14개 디렉토리 (root-cause, architecture-decision 등) |
+| 타입별 분리 | Nemori | 15개 디렉토리 (root-cause, architecture-decision, lessons-learned 등) |
 | 중복 방지 | Nemori | 동일 제목 저장 시 `[SKIP:DUPLICATE]` |
 | Contextual description | Nemori | 검색 시 압축 요약 자동 생성 |
 
@@ -198,7 +199,7 @@ bash .hxsk/hooks/md-recall-memory.sh "검색어" "." 5 compact 2
 ```
 
 <details>
-<summary><strong>14개 메모리 타입</strong></summary>
+<summary><strong>15개 메모리 타입</strong></summary>
 
 | 카테고리 | 타입 | 용도 |
 |----------|------|------|
@@ -209,13 +210,16 @@ bash .hxsk/hooks/md-recall-memory.sh "검색어" "." 5 compact 2
 | | `pattern-discovery` | 발견된 패턴/학습 |
 | **실행** | `execution-summary` | 실행 결과 요약 |
 | | `deviation` | 계획 대비 이탈 |
-| **세션** | `session-summary` | 세션 종료 요약 (자동) |
+| | `lessons-learned` | PR 리뷰·실행 이탈 A/B/C/D/E 분류 (v5.4.0+) |
+| **세션** | `session-summary` | 세션 종료 요약 (자동, cap=20 FIFO) |
 | | `session-snapshot` | Pre-compact 스냅샷 |
 | | `session-handoff` | 세션 인수인계 |
 | **시스템** | `health-event` | 컨텍스트 건강 이벤트 |
 | | `bootstrap` | 프로젝트 초기 설정 |
 | | `security-finding` | 보안 발견 사항 |
 | | `general` | 기타 |
+
+> v5.4.0부터 `tags: [decision|root-cause|incident|security|pattern|lesson]` 매칭 파일은 삭제 직전 shared-tier 폴더로 자동 승격됩니다. 로컬 누적은 cap 기반 FIFO로 제어.
 
 </details>
 
@@ -347,11 +351,11 @@ make setup
     ├── hooks/                 # 훅 스크립트 (26) — 자동화
     ├── scripts/               # 유틸리티 (bootstrap, issue, merge, forge-detect)
     ├── workflow/              # 게이트 기반 작업 관리 (GATES.md)
-    ├── docs/                  # 상세 문서 (23)
+    ├── docs/                  # 상세 문서 (26)
     ├── prompts/               # Setup + 마이그레이션 프롬프트
     ├── templates/             # 문서 템플릿 (32)
-    ├── memories/              # 파일 기반 메모리 (14 타입)
-    ├── research/              # 연구 문서 (35개, 8개 카테고리)
+    ├── memories/              # 파일 기반 메모리 (15 타입)
+    ├── research/              # 연구 문서 (38개, 7개 카테고리)
     ├── issues/                # 파일 기반 이슈 레지스트리
     ├── STATE.md               # 현재 작업 상태
     ├── SPEC.md                # 프로젝트 명세
@@ -433,14 +437,16 @@ make setup
 | **서브에이전트 프롬프트 템플릿** | implementer, reviewer 등 역할별 표준 템플릿 | Superpowers: 컨텍스트 격리 + 구조화된 지시 |
 | **합리화 테이블 자동 갱신** | 실제 우회 패턴 수집 → 테이블 업데이트 사이클 | 모델 업데이트 시 행동 변화 추적 |
 
-### Phase 4: Git Forge 통합 작업 관리 (설계 완료)
+### Phase 4: Git Forge 통합 작업 관리 (v5.4.0 출시)
 
-| 항목 | 내용 | 근거 |
+| 항목 | 내용 | 상태 |
 |------|------|------|
-| **GATES.md** | SPEC→PLAN(P1-P5)→EXECUTE→VERIFY→DONE 단계별 진입/완료 조건 | 단일 진실 원천, 에이전트 하네스 무관 |
-| **gate-check.sh 훅** | PreToolUse/Stop 이벤트에서 게이트 조건 자동 집행 | Claude Code 전용 인프라 레이어 |
-| **forge-detect.sh** | remote URL 기반 플랫폼 감지 → gh/glab/tea CLI 추상화 | GitHub/GitLab/Gitea/Forgejo 80-100% 호환 |
-| **AGENTS.md 게이트 규칙** | 모든 에이전트 하네스 공통 게이트 규칙 섹션 | opencode/Copilot/Antigravity 호환 |
+| **GATES.md** | SPEC→PLAN(P1-P5)→EXECUTE→VERIFY→DONE 단계별 진입/완료 조건 | ✅ 구현 (PR #131) |
+| **gate-check.sh 훅** | PreToolUse/Stop 이벤트에서 게이트 조건 자동 집행 | ✅ 구현 (PR #131) |
+| **forge-detect.sh** | remote URL 기반 플랫폼 감지 → gh/glab/tea CLI 추상화 | ✅ 구현 (PR #131) |
+| **AGENTS.md 게이트 규칙** | 모든 에이전트 하네스 공통 게이트 규칙 섹션 | ✅ 구현 |
+| **lessons-learned 타입** | PR 리뷰·실행 이탈 A/B/C/D/E 분류 · 5개 스킬 통합 | ✅ 구현 (PR #127) |
+| **메모리 티어 최적화** | Write-gating + cap FIFO + 가치 태그 shared-tier 자동 승격 | ✅ 구현 (PR #132) |
 
 > 설계 문서: [`.hxsk/docs/plans/2026-04-15-github-task-management-design.md`](.hxsk/docs/plans/2026-04-15-github-task-management-design.md)
 
