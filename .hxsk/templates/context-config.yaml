@@ -28,17 +28,19 @@ archive:
     archive_format: "prd-{year}-{month}.json"
 
 # Memory retention policy (.hxsk/memories/)
+# 정책: local-tier(gitignored)만 자동 정리. cap 기반 FIFO + TTL 보조.
+# 가치 태그(decision, root-cause, incident, security, pattern, lesson)는
+# 삭제 직전 shared-tier로 자동 승격되어 git으로 보존됨.
 memory:
   session-summary:
-    max_age_days: 30        # 30일 이상 → _archive/로 이동
-    max_files: 30           # 30개 초과 시 오래된 것부터 아카이브
+    max_files: 20           # 최신 20개만 유지 (FIFO, cap 기반)
+    ttl_days: 7             # 보조 TTL (stop hook 외부 수동 실행 시)
   session-snapshot:
-    max_age_days: 14        # 14일 이상 → 삭제 (임시 데이터)
-  execution-summary:
-    max_age_days: 60        # 60일 이상 → _archive/로 이동
-  # 아래 타입들은 수동 관리 (자동 정리 대상 아님)
-  # architecture-decision, root-cause, pattern-discovery, session-handoff,
-  # security-finding, general
+    max_files: 10           # 최신 10개 유지 (임시 스냅샷)
+    ttl_days: 7
+  # shared-tier (git 관리, 자동 정리 제외):
+  #   architecture-decision, root-cause, pattern-discovery, security-finding,
+  #   lessons-learned, execution-summary
 
 # Folder organization
 folders:

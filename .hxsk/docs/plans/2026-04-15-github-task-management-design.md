@@ -5,7 +5,7 @@
 >   - `.hxsk/research/workflow/RESEARCH-github-task-management-workflow.md`
 >   - `.hxsk/research/workflow/RESEARCH-multi-platform-compatibility.md`
 >   - `.hxsk/research/workflow/RESEARCH-token-optimization-multi-hop.md`
-> 상태: IN_PROGRESS (P0~P4 구현 완료: GATES.md, forge-detect.sh, AGENTS.md, STATE.md, gate-check.sh)
+> 상태: DONE (PR #131 merged — GATES.md, forge-detect.sh, AGENTS.md, STATE.md, gate-check.sh)
 > 호환 플랫폼: GitHub ✅ / GitLab ✅ (85%) / Gitea ✅ (80%) / Forgejo ✅ (80%)
 
 ---

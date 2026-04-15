@@ -75,9 +75,9 @@ secrets/
 .hxsk/memories/bootstrap/
 .hxsk/memories/general/
 .hxsk/memories/deviation/
-.hxsk/memories/_retained/
 # Shared (git-tracked): architecture-decision, root-cause, pattern-discovery,
-# security-finding, execution-summary, _schema — 명시적으로 무시하지 않음
+# security-finding, execution-summary, lessons-learned, _schema
+# — 명시적으로 무시하지 않음 (가치 태그가 있는 local 파일은 자동 승격됨)
 
 # 상태 파일 (host별로 덮어쓰므로 공유 시 머지 충돌)
 .hxsk/CURRENT.md

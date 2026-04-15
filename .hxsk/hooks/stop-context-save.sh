@@ -85,7 +85,14 @@ EOF
         MODIFICATIONS_COUNT=$(wc -l < "$TRACK_LOG" | tr -d ' ')
     fi
 
-    if [[ "$FILE_COUNT" -ge 1 ]]; then
+    # ── Write-gating: 의미 있는 변경만 집계 ──
+    # 훅이 생성하는 파일(CURRENT.md, STATE.md, .hxsk 내부 로그)만 있는 세션은
+    # session-summary로 남길 가치가 없음 → 저장 생략
+    MEANINGFUL=$(echo "$MODIFIED" | sed 's/^[[:space:]MADRC?]*//' \
+        | grep -v -E '^(\.hxsk/CURRENT\.md|\.hxsk/STATE\.md|\.hxsk/\..*\.log|\.hxsk/\.modified-this-session)$' \
+        | grep -c '.' 2>/dev/null || echo "0")
+
+    if [[ "$MEANINGFUL" -ge 1 ]]; then
         # ── 중복 스킵: 실 변경 내용이 이전과 동일하면 저장 생략 ──
         # 지문 = HEAD 해시 + git status + diff stat 요약의 해시
         # (MODIFICATIONS_COUNT는 단조 증가해 같은 diff에도 값이 달라져 부적합)
@@ -147,12 +154,15 @@ modifications_count: $MODIFICATIONS_COUNT"
     # ── 4. track-modifications.log 초기화 ──
     rm -f "$TRACK_LOG"
 
-    # ── 5. session-summary 누적 시 자동 prune (150개 초과 시) ──
+    # ── 5. session-summary 누적 시 자동 prune (cap 기반, 최신 20개 유지)
+    #    git log/PR이 실행 이력을 대체하므로 로컬은 개수 상한으로 제어.
+    #    TTL 대신 FIFO 캡: 오래된 파일을 항상 정리하므로 7일 이내 누적도 해소.
     SUMMARY_DIR="$PROJECT_DIR/.hxsk/memories/session-summary"
     if [[ -d "$SUMMARY_DIR" ]]; then
         COUNT=$(ls -1 "$SUMMARY_DIR"/*.md 2>/dev/null | wc -l | tr -d ' ')
-        if [[ "$COUNT" -gt 150 ]]; then
-            bash "$PROJECT_DIR/.hxsk/scripts/prune-memories.sh" 30 \
+        if [[ "$COUNT" -gt 20 ]]; then
+            bash "$PROJECT_DIR/.hxsk/scripts/prune-memories.sh" \
+                --max-count 20 --tier session-summary \
                 >> "$LOG_FILE" 2>&1 || true
         fi
     fi
