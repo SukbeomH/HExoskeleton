@@ -1,0 +1,17 @@
+{
+  "$comment": "Gemini CLI settings — HXSK prune integration. Merge into .gemini/settings.json or ~/.gemini/settings.json",
+  "hooks": {
+    "SessionEnd": [
+      {
+        "command": "bash",
+        "args": [".hxsk/scripts/prune-memories.sh", "--auto"]
+      }
+    ],
+    "PreCompress": [
+      {
+        "command": "bash",
+        "args": [".hxsk/scripts/prune-memories.sh", "--auto"]
+      }
+    ]
+  }
+}

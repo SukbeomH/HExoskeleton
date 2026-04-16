@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+# HXSK git post-commit hook — 하네스 훅 미지원 시 폴백
+#
+# 설치 방법 (리포지토리 루트에서):
+#   git config core.hooksPath .hxsk/githooks
+#
+# Aider / Continue.dev / Antigravity 등 lifecycle 훅이 없는 하네스에서도
+# 커밋 시점에 메모리 prune을 발화시킴. `prune-tick.sh`가 cooldown을 내장해
+# 매 커밋마다 실제로 돌지는 않음(기본 60초).
+#
+# 무거운 작업을 git 훅에서 돌리지 않는 것이 원칙이지만,
+# prune-tick.sh는 백그라운드 실행 + cooldown이라 커밋 속도 영향 없음.
+
+set -uo pipefail
+
+REPO_ROOT=$(git rev-parse --show-toplevel 2>/dev/null) || exit 0
+TICK="$REPO_ROOT/.hxsk/scripts/prune-tick.sh"
+
+[[ -f "$TICK" ]] || exit 0
+
+# 백그라운드 + 출력 무시 — 커밋 훅 속도 유지
+CLAUDE_PROJECT_DIR="$REPO_ROOT" bash "$TICK" >/dev/null 2>&1 &
+disown 2>/dev/null || true
+
+exit 0

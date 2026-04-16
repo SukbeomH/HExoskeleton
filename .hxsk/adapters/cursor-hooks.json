@@ -1,0 +1,19 @@
+{
+  "$comment": "Cursor 1.7+ hook config — HXSK prune integration. Copy/merge to .cursor/hooks.json",
+  "hooks": {
+    "stop": [
+      {
+        "command": ".hxsk/scripts/prune-memories.sh",
+        "args": ["--auto"],
+        "timeout": 10
+      }
+    ],
+    "preCompact": [
+      {
+        "command": ".hxsk/scripts/prune-memories.sh",
+        "args": ["--auto"],
+        "timeout": 10
+      }
+    ]
+  }
+}

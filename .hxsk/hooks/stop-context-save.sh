@@ -154,17 +154,13 @@ modifications_count: $MODIFICATIONS_COUNT"
     # ── 4. track-modifications.log 초기화 ──
     rm -f "$TRACK_LOG"
 
-    # ── 5. session-summary 누적 시 자동 prune (cap 기반, 최신 20개 유지)
-    #    git log/PR이 실행 이력을 대체하므로 로컬은 개수 상한으로 제어.
-    #    TTL 대신 FIFO 캡: 오래된 파일을 항상 정리하므로 7일 이내 누적도 해소.
-    SUMMARY_DIR="$PROJECT_DIR/.hxsk/memories/session-summary"
-    if [[ -d "$SUMMARY_DIR" ]]; then
-        COUNT=$(ls -1 "$SUMMARY_DIR"/*.md 2>/dev/null | wc -l | tr -d ' ')
-        if [[ "$COUNT" -gt 20 ]]; then
-            bash "$PROJECT_DIR/.hxsk/scripts/prune-memories.sh" \
-                --max-count 20 --tier session-summary \
-                >> "$LOG_FILE" 2>&1 || true
-        fi
+    # ── 5. 모든 local-tier 자동 prune (설정 기반)
+    #    --auto: .hxsk/.prune-config의 tier별 cap(기본 5, bootstrap 1) 적용.
+    #    Stop은 매 턴 발화하지만 --auto는 cap 초과 tier만 처리하여 매우 빠름.
+    #    단일 tier 하드코드 대신 전 tier 통합 관리.
+    PRUNE_SCRIPT="$PROJECT_DIR/.hxsk/scripts/prune-memories.sh"
+    if [[ -f "$PRUNE_SCRIPT" ]]; then
+        bash "$PRUNE_SCRIPT" --auto >> "$LOG_FILE" 2>&1 || true
     fi
 ) &
 

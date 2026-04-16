@@ -91,6 +91,9 @@ secrets/
 .hxsk/.session-active
 .hxsk/.track-modifications.log
 .hxsk/.context-save.log
+.hxsk/.last-prune-ts
+.hxsk/.prune-lock/
+.hxsk/.prune-config
 .hxsk/context-config.yaml
 .hxsk/prd-*.json
 .hxsk/issues/MASTER-*.md
@@ -109,6 +112,7 @@ secrets/
 .claude/skills/
 .claude/agents/
 .claude/worktrees/
+.claude/scheduled_tasks.lock
 
 # ─── Worktrees ───────────────────────────────────
 .worktrees/

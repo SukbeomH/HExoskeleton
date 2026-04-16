@@ -1,0 +1,29 @@
+# HXSK prune 설정 샘플 (shell-sourceable)
+#
+# 사용:
+#   cp .hxsk/templates/prune-config.sample .hxsk/.prune-config
+#   # 이후 필요한 값만 수정
+#
+# prune-memories.sh --auto / prune-tick.sh / Claude Code 훅이 모두 참조.
+# 값이 정의되지 않으면 스크립트 내부 기본값 사용.
+
+# ── Tier별 cap (FIFO) ──
+# 미지정 tier는 PRUNE_DEFAULT_CAP 적용.
+PRUNE_DEFAULT_CAP=5
+
+# tier 이름의 하이픈은 언더스코어로 치환:
+#   session-summary → PRUNE_CAP_session_summary
+PRUNE_CAP_bootstrap=1        # 최신 snapshot 1개만
+# PRUNE_CAP_session_summary=5
+# PRUNE_CAP_session_snapshot=5
+# PRUNE_CAP_session_handoff=5
+# PRUNE_CAP_health_event=5
+# PRUNE_CAP_debug_blocked=5
+# PRUNE_CAP_debug_eliminated=5
+# PRUNE_CAP_general=5
+# PRUNE_CAP_deviation=5
+
+# ── opportunistic tick cooldown (초) ──
+# md-store/md-recall/bootstrap 호출 시 prune-tick.sh가 참조.
+# 너무 짧으면 연속 호출로 I/O 낭비, 너무 길면 누적.
+PRUNE_TICK_COOLDOWN=60

@@ -20,7 +20,7 @@
   <img src="https://img.shields.io/badge/dependencies-zero-brightgreen?style=flat-square" alt="Zero Dependencies" />
   <img src="https://img.shields.io/badge/stack-bash%20%2B%20markdown-blue?style=flat-square" alt="Bash + Markdown" />
   <img src="https://img.shields.io/badge/multi--agent-5%20platforms-blueviolet?style=flat-square" alt="Multi-Agent" />
-  <img src="https://img.shields.io/badge/v5.4.0%20%C2%B7%2021%20skills%20%C2%B7%2018%20agents%20%C2%B7%2026%20hooks-orange?style=flat-square" alt="Components" />
+  <img src="https://img.shields.io/badge/v5.5.0%20%C2%B7%2021%20skills%20%C2%B7%2018%20agents%20%C2%B7%2026%20hooks-orange?style=flat-square" alt="Components" />
   <img src="https://img.shields.io/github/license/SukbeomH/HExoskeleton?style=flat-square" alt="License" />
 </p>
 
@@ -211,7 +211,7 @@ bash .hxsk/hooks/md-recall-memory.sh "검색어" "." 5 compact 2
 | **실행** | `execution-summary` | 실행 결과 요약 |
 | | `deviation` | 계획 대비 이탈 |
 | | `lessons-learned` | PR 리뷰·실행 이탈 A/B/C/D/E 분류 (v5.4.0+) |
-| **세션** | `session-summary` | 세션 종료 요약 (자동, cap=20 FIFO) |
+| **세션** | `session-summary` | 세션 종료 요약 (자동, cap=5 FIFO, v5.5+) |
 | | `session-snapshot` | Pre-compact 스냅샷 |
 | | `session-handoff` | 세션 인수인계 |
 | **시스템** | `health-event` | 컨텍스트 건강 이벤트 |
@@ -220,6 +220,8 @@ bash .hxsk/hooks/md-recall-memory.sh "검색어" "." 5 compact 2
 | | `general` | 기타 |
 
 > v5.4.0부터 `tags: [decision|root-cause|incident|security|pattern|lesson]` 매칭 파일은 삭제 직전 shared-tier 폴더로 자동 승격됩니다. 로컬 누적은 cap 기반 FIFO로 제어.
+>
+> v5.5.0부터 **하네스 독립 prune**: `prune-tick.sh`가 `md-store-memory.sh`/`md-recall-memory.sh`/`bootstrap.sh` 말미에서 opportunistic하게 발화. Cursor/Gemini CLI/Copilot CLI/OpenCode 등 Claude Code 외 하네스에서도 자동 동작. 설정은 `.hxsk/.prune-config` (기본 cap=5, bootstrap=1, cooldown=60s). 하네스별 어댑터는 `.hxsk/adapters/`, git 훅 폴백은 `.hxsk/githooks/`.
 
 </details>
 

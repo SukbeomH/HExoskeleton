@@ -17,7 +17,7 @@ set -o pipefail
 # Version & Mode Detection
 # ─────────────────────────────────────────────────────
 
-BOOTSTRAP_VERSION="5.4.0"
+BOOTSTRAP_VERSION="5.5.0"
 VERSION_FILE=".hxsk/.bootstrap-version"
 HOOK_DIR=".hxsk/hooks"
 MODE="fresh"
@@ -448,5 +448,11 @@ if [[ "$REQUIRED_FAIL" -gt 0 ]]; then
 else
     echo " RESULT: ALL REQUIRED CHECKS PASSED"
     echo "================================================================"
+
+    # ── Opportunistic prune tick (하네스 독립) ──
+    # 부트스트랩 성공 직후에도 한 번 기회를 줌. cooldown·lock 내장.
+    TICK_SCRIPT="${CLAUDE_PROJECT_DIR:-.}/.hxsk/scripts/prune-tick.sh"
+    [[ -f "$TICK_SCRIPT" ]] && bash "$TICK_SCRIPT" >/dev/null 2>&1 &
+
     exit 0
 fi

@@ -118,3 +118,8 @@ while IFS= read -r filepath; do
         echo ""
     fi
 done <<< "$RESULTS"
+
+# ── Opportunistic prune tick (하네스 독립) ──
+# 메모리 검색 시점에도 prune 기회 제공. cooldown·lock 내장으로 중복 안전.
+TICK_SCRIPT="$PROJECT_PATH/.hxsk/scripts/prune-tick.sh"
+[[ -f "$TICK_SCRIPT" ]] && bash "$TICK_SCRIPT" >/dev/null 2>&1 &
