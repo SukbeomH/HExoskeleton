@@ -14,16 +14,16 @@
 TARGET_VERSION=5.5.0
 CUR_VERSION=$(grep '^version:' .hxsk/.bootstrap-version 2>/dev/null | awk '{print $2}')
 case "${CUR_VERSION:-}" in
-    "")                echo "FRESH — 초기 설치" ;;
-    "$TARGET_VERSION") echo "VERIFY — 동일 버전, 정합성 확인만" ;;
-    *)                 echo "UPGRADE — v$CUR_VERSION → v$TARGET_VERSION 프레임워크 동기화 필요" ;;
+    "")                echo "FRESH" ;;
+    "$TARGET_VERSION") echo "VERIFY" ;;
+    *)                 echo "UPGRADE"; echo "  from=$CUR_VERSION to=$TARGET_VERSION" ;;
 esac
 ```
 
-분기별 이동:
-- **FRESH** → "초기 설치" (Step 1~9)
-- **VERIFY** → "일상 확인 (VERIFY)" 섹션
-- **UPGRADE** → "업그레이드 (UPGRADE)" 섹션 (Step U1~U6)
+출력 첫 줄이 분기 토큰입니다. 분기별 이동:
+- **`FRESH`** → "초기 설치" (Step 1~9)
+- **`VERIFY`** → "일상 확인 (VERIFY)" 섹션
+- **`UPGRADE`** → "업그레이드 (UPGRADE)" 섹션 (Step U1~U6, 두 번째 줄의 `from/to` 버전 활용)
 
 ### Bash 실행 불가 폴백
 
@@ -213,16 +213,25 @@ Claude Code 외 다른 하네스를 함께 쓰는 경우, 각 하네스의 훅 �
 
 `$CUR_VERSION` → `$TARGET_VERSION` 프레임워크 동기화. 프로젝트 고유 파일(SPEC, STATE, CURRENT, PATTERNS, DECISIONS 등)과 애플리케이션 코드는 건드리지 않습니다. **부록 B**의 파일 경계 참조표를 반드시 숙지하세요.
 
-### Step U1: 사전 감사 — 프레임워크 커스텀 수정 감지
+### Step U1: 사전 감사 — 프레임워크 커스텀 수정/신규 파일 감지
 
 ```bash
-git diff HEAD --name-only -- \
-    .hxsk/skills/ .hxsk/agents/ .hxsk/hooks/ .hxsk/scripts/ \
-    .hxsk/prompts/ .hxsk/templates/ .hxsk/docs/ \
-    .hxsk/workflow/ .hxsk/adapters/ .hxsk/githooks/
+FRAMEWORK_DIRS=(
+    .hxsk/skills .hxsk/agents .hxsk/hooks .hxsk/scripts
+    .hxsk/prompts .hxsk/templates .hxsk/docs
+    .hxsk/workflow .hxsk/adapters .hxsk/githooks
+)
+
+# (1) 수정·삭제된 추적 파일
+echo "-- modified --"
+git diff HEAD --name-only -- "${FRAMEWORK_DIRS[@]}"
+
+# (2) untracked(새로 추가된) 파일 — rsync --delete 가 조용히 지우는 범위
+echo "-- untracked --"
+git ls-files --others --exclude-standard -- "${FRAMEWORK_DIRS[@]}"
 ```
 
-출력이 있으면 **프레임워크 파일에 로컬 수정 존재** — Step U3의 `--delete` sync로 사라집니다.
+위 두 섹션 중 어디든 출력이 있으면 **프레임워크 파일에 로컬 수정/신규 파일 존재** — Step U3의 `rsync --delete`로 사라집니다 (untracked도 포함).
 
 **결정 트리**:
 1. 의도된 프로젝트 확장 → `.hxsk/skills-custom/`, `.hxsk/hooks-custom/` 같은 **프로젝트 고유 폴더로 이동** (sync 범위 외)
@@ -233,16 +242,26 @@ git diff HEAD --name-only -- \
 
 ### Step U2: 소스 확보
 
-HXSK 릴리즈 아카이브를 로컬 임시 경로로 획득. 두 가지 옵션 중 환경에 맞는 쪽 선택:
+HXSK 릴리즈 아카이브를 로컬 임시 경로로 획득. **아래 두 옵션 중 하나만 선택 실행**하세요 (둘 다 돌리면 경로 혼합).
+
+공통 초기화:
 
 ```bash
-HX_SRC=/tmp/hxsk-upgrade-$TARGET_VERSION
+# TMPDIR 폴백: /tmp 없는 환경(일부 컨테이너) 대응
+HX_SRC="${TMPDIR:-/tmp}/hxsk-upgrade-$TARGET_VERSION"
+rm -rf "$HX_SRC"   # 이전 시도 잔재 제거 (멱등)
+```
 
-# 옵션 A — git clone (네트워크/인증 여유)
+**옵션 A — git clone** (네트워크/인증 여유 있음):
+
+```bash
 git clone --depth 1 -b setup-v$TARGET_VERSION \
     https://github.com/SukbeomH/HExoskeleton.git "$HX_SRC"
+```
 
-# 옵션 B — Release tarball (corp proxy, 오프라인 후속, 경량)
+**옵션 B — Release tarball** (corp proxy, 오프라인 후속, 경량 환경):
+
+```bash
 mkdir -p "$HX_SRC"
 curl -sL "https://github.com/SukbeomH/HExoskeleton/archive/refs/tags/setup-v$TARGET_VERSION.tar.gz" \
     | tar xz -C "$HX_SRC" --strip-components=1
@@ -277,18 +296,26 @@ mkdir -p "$TG/.hxsk/memories/lessons-learned"
 cp "$HX_SRC/.hxsk/.bootstrap-version" "$TG/.hxsk/.bootstrap-version"
 ```
 
-**`.claude/settings.json` 교체 전 diff 확인** (프로젝트 커스텀 훅 보호):
+**`.claude/settings.json` 교체 전 diff 확인** (프로젝트 커스텀 훅 보호). Claude Code를 사용하지 않는 프로젝트(Gemini CLI 전용 등)는 이 파일이 없을 수 있으므로 존재 여부로 분기:
 
 ```bash
-diff "$TG/.claude/settings.json" "$HX_SRC/.claude/settings.json" | head -40
+if [[ -f "$TG/.claude/settings.json" && -f "$HX_SRC/.claude/settings.json" ]]; then
+    diff "$TG/.claude/settings.json" "$HX_SRC/.claude/settings.json" | head -40
+    # 차이가 경로·version 차이뿐이면 그대로 교체:
+    #   cp "$HX_SRC/.claude/settings.json" "$TG/.claude/settings.json"
+    # 프로젝트 고유 훅 블록(테스트 실행, 린터 등)이 있으면 수동 병합 후 사용자 확인 필수
+elif [[ -f "$HX_SRC/.claude/settings.json" ]]; then
+    # 대상에 settings.json 없음 → Claude Code 신규 도입이면 복사
+    # mkdir -p "$TG/.claude" && cp "$HX_SRC/.claude/settings.json" "$TG/.claude/settings.json"
+    echo "target has no .claude/settings.json — Claude Code 미사용 프로젝트면 건너뛰기"
+fi
 ```
 
-- 차이가 경로·version 차이뿐이면 그대로 교체: `cp "$HX_SRC/.claude/settings.json" "$TG/.claude/settings.json"`
-- 프로젝트 고유 훅 블록(예: 테스트 실행, 린터)이 있으면 **수동 병합** 후 사용자 확인 필수
-
-**롤백**:
+**롤백** (문제 발생 시):
 ```bash
-cp "$TG/.claude/settings.json.v$CUR_VERSION.bak" "$TG/.claude/settings.json"
+# settings.json은 백업이 있을 때만 복원
+[[ -f "$TG/.claude/settings.json.v$CUR_VERSION.bak" ]] && \
+    cp "$TG/.claude/settings.json.v$CUR_VERSION.bak" "$TG/.claude/settings.json"
 cp "$TG/.hxsk/.bootstrap-version.v$CUR_VERSION.bak" "$TG/.hxsk/.bootstrap-version"
 # 프레임워크 파일은 git checkout HEAD -- .hxsk/{범주} 또는 HX_SRC에서 재sync
 ```
@@ -369,7 +396,7 @@ bash .hxsk/scripts/bootstrap.sh
 
 | 하네스 | 최소 버전 / 전제 | 설치 명령 | 공식 문서 |
 |---|---|---|---|
-| **Cursor** | 1.7+ (hooks.json 지원) | `cp .hxsk/adapters/cursor-hooks.json .cursor/hooks.json` | [cursor.com/docs/hooks](https://cursor.com/docs/hooks) |
+| **Cursor** | 1.7+ (hooks.json 지원) | `mkdir -p .cursor && cp .hxsk/adapters/cursor-hooks.json .cursor/hooks.json` (기존 `hooks.json` 있으면 병합 필요) | [cursor.com/docs/hooks](https://cursor.com/docs/hooks) |
 | **Gemini CLI** | 최신 | `mkdir -p .gemini && cp .hxsk/adapters/gemini-settings.json .gemini/settings.json` (프로젝트 우선, 글로벌은 `~/.gemini/`) | [geminicli.com/docs/hooks](https://geminicli.com/docs/hooks/) |
 | **Copilot CLI** | 2026-02 GA+ | `mkdir -p .copilot && cp .hxsk/adapters/copilot-hooks.json .copilot/hooks.json` | [GitHub Docs](https://docs.github.com/en/copilot/how-tos/copilot-cli/use-hooks) |
 | **Windsurf** | Cascade 활성 | `mkdir -p .windsurf && cp .hxsk/adapters/windsurf-hooks.json .windsurf/hooks.json` | [docs.windsurf.com/windsurf/cascade/hooks](https://docs.windsurf.com/windsurf/cascade/hooks) |
