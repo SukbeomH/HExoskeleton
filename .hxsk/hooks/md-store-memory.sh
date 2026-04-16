@@ -123,3 +123,9 @@ fi
 } > "$FILEPATH"
 
 echo "$FILEPATH"
+
+# ── Opportunistic prune tick (하네스 독립) ──
+# Claude Code 훅이 없는 하네스(Cursor/Gemini CLI/OpenCode 등)에서도 메모리 저장 시
+# 자연 발화. cooldown·lock 내장이라 과다 호출 안전. 백그라운드 실행으로 호출자 블로킹 없음.
+TICK_SCRIPT="$PROJECT_DIR/.hxsk/scripts/prune-tick.sh"
+[[ -f "$TICK_SCRIPT" ]] && bash "$TICK_SCRIPT" >/dev/null 2>&1 &

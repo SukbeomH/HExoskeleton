@@ -4,6 +4,27 @@
 
 ---
 
+### [2026-04-16] v5.5.0 — 하네스 독립 prune + 임계치 5 + 전 local-tier cap
+
+#### 신규
+- **prune-tick.sh** — 하네스 독립 opportunistic 트리거. sentinel mtime + mkdir atomic lock, cooldown 60s 기본. 메모리 툴 호출 시 자연 발화.
+- **--auto 모드** (`prune-memories.sh`) — 설정 파일(`.hxsk/.prune-config`) 기반으로 전 local-tier에 tier별 cap 일괄 적용. 기본 cap=5 (bootstrap=1).
+- **하네스 어댑터 템플릿** (`.hxsk/adapters/`) — Cursor / Gemini CLI / Copilot CLI / Windsurf / OpenCode / Codex CLI 각각의 훅 시스템용 설정 스니펫.
+- **git 훅 폴백** (`.hxsk/githooks/post-commit`, `post-merge`) — lifecycle 훅 미지원 하네스(Aider/Continue/Antigravity)용. `core.hooksPath .hxsk/githooks`.
+- **`.hxsk/.prune-config` 템플릿** — shell-sourceable 설정 샘플(`templates/prune-config.sample`).
+
+#### 개선
+- Stop 훅: 단일 tier hardcode → `--auto` 단일 호출로 전 tier 통합 관리. COUNT > 20 게이트 제거.
+- PreCompact 훅: session-summary(20) + session-snapshot(10) 두 줄 → `--auto` 한 줄로 단순화.
+- md-store-memory.sh / md-recall-memory.sh / bootstrap.sh 말미에 `prune-tick.sh` 비동기 호출 삽입.
+- 기본 cap 20 → 5 (모든 local-tier). bootstrap은 1개만 유지.
+
+#### 연구
+- AI 에이전트 하네스 9종 훅 지원 현황 조사 (Cursor/Gemini CLI/Copilot CLI/Windsurf/OpenCode/Codex CLI/Aider/Continue/Antigravity).
+- Opportunistic self-trigger 패턴 (sentinel mtime + mkdir atomic lock, BashFAQ/045) 적용.
+
+---
+
 ### [2026-04-15] v5.4.0 — Git Forge 통합 작업 관리 + lessons-learned + 메모리 티어 최적화
 
 #### 신규 — Git Forge 통합 작업 관리 (PR #131)

@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+# HXSK git post-merge hook — pull/merge 후 메모리 prune 기회 제공.
+# 역할·제한은 post-commit과 동일.
+
+set -uo pipefail
+
+REPO_ROOT=$(git rev-parse --show-toplevel 2>/dev/null) || exit 0
+TICK="$REPO_ROOT/.hxsk/scripts/prune-tick.sh"
+
+[[ -f "$TICK" ]] || exit 0
+
+CLAUDE_PROJECT_DIR="$REPO_ROOT" bash "$TICK" >/dev/null 2>&1 &
+disown 2>/dev/null || true
+
+exit 0

@@ -2,22 +2,31 @@
 # prune-memories.sh — local-tier 메모리 리텐션 정리
 #
 # 사용법:
+#   bash .hxsk/scripts/prune-memories.sh --auto                   # 설정 기반 자동 (권장)
 #   bash .hxsk/scripts/prune-memories.sh [RETENTION_DAYS] [--dry-run]
 #   bash .hxsk/scripts/prune-memories.sh --max-count N [--tier TIER] [--dry-run]
 #
 # 예시:
+#   bash .hxsk/scripts/prune-memories.sh --auto                  # 모든 local-tier에 cap 적용 (기본 5, bootstrap 1)
+#   bash .hxsk/scripts/prune-memories.sh --auto --dry-run        # auto 모드 dry-run
 #   bash .hxsk/scripts/prune-memories.sh                         # 7일 초과 삭제 (TTL)
 #   bash .hxsk/scripts/prune-memories.sh 30                      # 30일 초과 삭제
-#   bash .hxsk/scripts/prune-memories.sh --dry-run               # TTL 대상만 출력
 #   bash .hxsk/scripts/prune-memories.sh 0 --dry-run             # 전체 대상 (0=모든 파일)
-#   bash .hxsk/scripts/prune-memories.sh --max-count 20          # tier별 최신 20개만 유지 (FIFO)
-#   bash .hxsk/scripts/prune-memories.sh --max-count 20 --tier session-summary  # 특정 tier만
+#   bash .hxsk/scripts/prune-memories.sh --max-count 5           # tier별 최신 5개만 유지 (FIFO)
+#   bash .hxsk/scripts/prune-memories.sh --max-count 5 --tier session-summary  # 특정 tier만
 #
 # 동작:
+#   - --auto 모드(권장): .hxsk/.prune-config로 tier별 cap 설정, 없으면 기본값 적용
+#   - --max-count 모드: tier별 mtime 최신 N개 유지, 나머지 삭제 (cap 기반, 전 tier 동일 N)
 #   - 기본 모드: RETENTION_DAYS(기본 7일) 초과 파일 삭제 (TTL 기반)
-#   - --max-count 모드: tier별 mtime 최신 N개 유지, 나머지 삭제 (cap 기반)
 #   - 대상: local-tier (gitignore 대상). shared-tier는 건드리지 않음
 #   - git log/PR이 실행 이력을 대체하므로 _retained 이동 불필요
+#
+# 하네스 독립성 (v5.5+):
+#   Claude Code 훅 외에도 md-store-memory.sh / md-recall-memory.sh / bootstrap.sh 말미에서
+#   prune-tick.sh를 통해 opportunistic하게 자동 호출됨. 즉, 어떤 에이전트 하네스에서도
+#   메모리 툴이 호출되면 자연스럽게 prune이 발화. Cursor/Gemini CLI/Copilot CLI는
+#   각자의 훅 시스템에서 .hxsk/hooks/stop-context-save.sh를 호출하면 된다.
 #
 # 가치 기반 승격 (삭제 직전 구제):
 #   frontmatter tags에 다음 키워드가 있으면 삭제 대신 shared-tier로 이동:
@@ -39,6 +48,25 @@ DRY_RUN=0
 RETENTION_DAYS_SET=0
 MAX_COUNT=""
 TIER_FILTER=""
+AUTO_MODE=0
+
+# ── 기본 cap (v5.5+ hands-off 정책) ──
+# .hxsk/.prune-config로 오버라이드 가능 (shell-sourceable).
+PRUNE_DEFAULT_CAP=5
+PRUNE_CAP_bootstrap=1       # bootstrap은 최신 1개만 (멱등 snapshot)
+PRUNE_TICK_COOLDOWN=60      # prune-tick.sh가 참조 (여기서도 노출)
+
+# Optional config override
+PRUNE_CFG="$PROJECT_DIR/.hxsk/.prune-config"
+# shellcheck disable=SC1090
+[[ -f "$PRUNE_CFG" ]] && source "$PRUNE_CFG"
+
+# tier별 cap 조회 (미지정 tier는 PRUNE_DEFAULT_CAP)
+resolve_cap() {
+    local tier="$1"
+    local var="PRUNE_CAP_${tier//-/_}"
+    echo "${!var:-$PRUNE_DEFAULT_CAP}"
+}
 
 # --help용: 파일 상단의 연속 주석 블록을 종료까지 출력 (delimiter 기반)
 print_help() {
@@ -58,6 +86,7 @@ while [[ $# -gt 0 ]]; do
     arg="$1"
     case "$arg" in
         --dry-run|-n) DRY_RUN=1 ;;
+        --auto) AUTO_MODE=1 ;;
         --help|-h)
             print_help
             exit 0
@@ -88,7 +117,7 @@ while [[ $# -gt 0 ]]; do
                 RETENTION_DAYS_SET=1
             else
                 echo "Unknown argument: $arg" >&2
-                echo "Usage: $0 [RETENTION_DAYS] [--dry-run] | $0 --max-count N [--tier T] [--dry-run]" >&2
+                echo "Usage: $0 --auto [--dry-run] | $0 [RETENTION_DAYS] [--dry-run] | $0 --max-count N [--tier T] [--dry-run]" >&2
                 exit 1
             fi
             ;;
@@ -168,31 +197,46 @@ delete_file() {
     fi
 }
 
-if [[ -n "$MAX_COUNT" ]]; then
-    # ── cap 기반: tier별 최신 MAX_COUNT개 유지, 나머지 삭제 ──
+# tier별 cap 적용 공통 함수
+apply_cap_to_tier() {
+    local tier="$1"
+    local cap="$2"
+    local src="$MEM_DIR/$tier"
+    [[ -d "$src" ]] || return 0
+
+    # mtime 최신→오래된 순 정렬. 0 기반 skip 후 나머지 삭제.
+    # stat 이식성: BSD(%m)/GNU(%Y) 모두 epoch 초.
+    local files_sorted
+    files_sorted=$(
+        find "$src" -maxdepth 1 -type f -name "*.md" -print0 2>/dev/null |
+        while IFS= read -r -d '' f; do
+            ts=$(stat -f '%m' "$f" 2>/dev/null || stat -c '%Y' "$f" 2>/dev/null || echo 0)
+            printf '%s\t%s\n' "$ts" "$f"
+        done |
+        sort -rn -k1,1 |
+        cut -f2-
+    )
+    local idx=0
+    while IFS= read -r f; do
+        [[ -z "$f" ]] && continue
+        idx=$((idx + 1))
+        [[ "$idx" -le "$cap" ]] && continue
+        delete_file "$f"
+    done <<< "$files_sorted"
+}
+
+if [[ "$AUTO_MODE" -eq 1 ]]; then
+    # ── auto 모드: 설정 기반, tier별 개별 cap 적용 ──
     for tier in "${LOCAL_TIERS[@]}"; do
         [[ -n "$TIER_FILTER" && "$tier" != "$TIER_FILTER" ]] && continue
-        src="$MEM_DIR/$tier"
-        [[ -d "$src" ]] || continue
-
-        # mtime 최신→오래된 순 정렬. 0 기반 skip 후 나머지 삭제.
-        # stat 이식성: BSD(%m)/GNU(%Y) 모두 epoch 초.
-        files_sorted=$(
-            find "$src" -maxdepth 1 -type f -name "*.md" -print0 2>/dev/null |
-            while IFS= read -r -d '' f; do
-                ts=$(stat -f '%m' "$f" 2>/dev/null || stat -c '%Y' "$f" 2>/dev/null || echo 0)
-                printf '%s\t%s\n' "$ts" "$f"
-            done |
-            sort -rn -k1,1 |
-            cut -f2-
-        )
-        idx=0
-        while IFS= read -r f; do
-            [[ -z "$f" ]] && continue
-            idx=$((idx + 1))
-            [[ "$idx" -le "$MAX_COUNT" ]] && continue
-            delete_file "$f"
-        done <<< "$files_sorted"
+        cap=$(resolve_cap "$tier")
+        apply_cap_to_tier "$tier" "$cap"
+    done
+elif [[ -n "$MAX_COUNT" ]]; then
+    # ── 수동 cap: 전 tier 동일 MAX_COUNT 적용 ──
+    for tier in "${LOCAL_TIERS[@]}"; do
+        [[ -n "$TIER_FILTER" && "$tier" != "$TIER_FILTER" ]] && continue
+        apply_cap_to_tier "$tier" "$MAX_COUNT"
     done
 else
     # ── TTL 기반: RETENTION_DAYS 초과 파일 삭제 ──
@@ -214,7 +258,9 @@ else
     done
 fi
 
-if [[ -n "$MAX_COUNT" ]]; then
+if [[ "$AUTO_MODE" -eq 1 ]]; then
+    mode_desc="auto (default=${PRUNE_DEFAULT_CAP}, bootstrap=${PRUNE_CAP_bootstrap})${TIER_FILTER:+, tier=$TIER_FILTER}"
+elif [[ -n "$MAX_COUNT" ]]; then
     mode_desc="max-count=${MAX_COUNT}${TIER_FILTER:+, tier=$TIER_FILTER}"
 else
     mode_desc="retention=${RETENTION_DAYS}d${TIER_FILTER:+, tier=$TIER_FILTER}"

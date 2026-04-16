@@ -28,16 +28,21 @@ archive:
     archive_format: "prd-{year}-{month}.json"
 
 # Memory retention policy (.hxsk/memories/)
-# 정책: local-tier(gitignored)만 자동 정리. cap 기반 FIFO + TTL 보조.
+# v5.5+ 정책: local-tier cap 기반 FIFO + opportunistic tick (하네스 독립).
 # 가치 태그(decision, root-cause, incident, security, pattern, lesson)는
 # 삭제 직전 shared-tier로 자동 승격되어 git으로 보존됨.
+#
+# 실제 설정 값은 .hxsk/.prune-config (shell-sourceable)를 사용:
+#   cp .hxsk/templates/prune-config.sample .hxsk/.prune-config
+# YAML은 문서화 용도. 스크립트는 bash 변수를 직접 소스.
 memory:
-  session-summary:
-    max_files: 20           # 최신 20개만 유지 (FIFO, cap 기반)
-    ttl_days: 7             # 보조 TTL (stop hook 외부 수동 실행 시)
-  session-snapshot:
-    max_files: 10           # 최신 10개 유지 (임시 스냅샷)
-    ttl_days: 7
+  default_cap: 5            # 모든 local-tier 기본 cap (PRUNE_DEFAULT_CAP)
+  bootstrap:
+    max_files: 1            # PRUNE_CAP_bootstrap=1
+  tick_cooldown_sec: 60     # opportunistic tick 쿨다운 (PRUNE_TICK_COOLDOWN)
+  # 나머지 local-tier(session-*, health-event, debug-*, general, deviation)는
+  # default_cap=5 적용. .hxsk/.prune-config로 tier별 오버라이드 가능.
+  #
   # shared-tier (git 관리, 자동 정리 제외):
   #   architecture-decision, root-cause, pattern-discovery, security-finding,
   #   lessons-learned, execution-summary

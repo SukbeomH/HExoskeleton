@@ -208,9 +208,9 @@ else
 fi
 
 # ─────────────────────────────────────────────────────
-# 5. Memory cleanup — local-tier cap 기반 prune
-#    정책: session-summary 최신 20개, session-snapshot 최신 10개 유지
-#    shared-tier(execution-summary 등)는 git으로 관리하므로 자동 정리 제외
+# 5. Memory cleanup — --auto 모드 (설정 기반 전 tier 통합)
+#    .hxsk/.prune-config의 PRUNE_DEFAULT_CAP / PRUNE_CAP_<tier> 참조.
+#    shared-tier(execution-summary, root-cause 등)는 git 관리이므로 자동 정리 제외.
 # ─────────────────────────────────────────────────────
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -222,8 +222,7 @@ if [[ -f "$PRUNE_SCRIPT" ]]; then
     echo "--- Memory Cleanup ---"
     dry_flag=()
     [[ "$DRY_RUN" == true ]] && dry_flag=(--dry-run)
-    bash "$PRUNE_SCRIPT" --max-count 20 --tier session-summary "${dry_flag[@]}" 2>/dev/null || true
-    bash "$PRUNE_SCRIPT" --max-count 10 --tier session-snapshot "${dry_flag[@]}" 2>/dev/null || true
+    bash "$PRUNE_SCRIPT" --auto "${dry_flag[@]}" 2>/dev/null || true
 else
     echo ""
     echo "--- Memory Cleanup ---"

@@ -1,0 +1,12 @@
+{
+  "$comment": "Windsurf Cascade hook config — HXSK prune integration. Copy/merge to .windsurf/hooks.json. post_cascade_response는 Stop의 대체로 매 턴 종료에 발화.",
+  "hooks": {
+    "post_cascade_response": [
+      {
+        "command": "bash",
+        "args": [".hxsk/scripts/prune-memories.sh", "--auto"],
+        "timeout": 10
+      }
+    ]
+  }
+}
