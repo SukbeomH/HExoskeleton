@@ -35,6 +35,12 @@ PRUNE_CFG="$HXSK_DIR/.prune-config"
 # shellcheck disable=SC1090
 [[ -f "$PRUNE_CFG" ]] && source "$PRUNE_CFG"
 
+# 설정 값 정규화: 비정상 값(빈/음수/문자열)이면 기본값 폴백.
+# 산술 비교 시 "integer expression expected" 또는 부호 혼동 방지.
+if [[ ! "$PRUNE_TICK_COOLDOWN" =~ ^[0-9]+$ ]]; then
+    PRUNE_TICK_COOLDOWN=60
+fi
+
 # ── 선행 체크 ──
 [[ -f "$PRUNE_SCRIPT" ]] || exit 0
 [[ -d "$HXSK_DIR/memories" ]] || exit 0

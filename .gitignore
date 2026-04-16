@@ -112,6 +112,7 @@ secrets/
 .claude/skills/
 .claude/agents/
 .claude/worktrees/
+.claude/scheduled_tasks.lock
 
 # ─── Worktrees ───────────────────────────────────
 .worktrees/

@@ -61,11 +61,31 @@ PRUNE_CFG="$PROJECT_DIR/.hxsk/.prune-config"
 # shellcheck disable=SC1090
 [[ -f "$PRUNE_CFG" ]] && source "$PRUNE_CFG"
 
-# tier별 cap 조회 (미지정 tier는 PRUNE_DEFAULT_CAP)
+# 설정 값 정규화: 비정상 값이면 기본값으로 폴백 (bash 산술 에러 방지)
+# 주의: `local name=.. val=${!name-}` 한 줄은 indirect expansion 실패 (name 미확정).
+sanitize_uint() {
+    local name="$1"
+    local fallback="$2"
+    local val="${!name-}"
+    if [[ ! "$val" =~ ^[0-9]+$ ]]; then
+        echo "[warn] $name=\"$val\" invalid, falling back to $fallback" >&2
+        printf -v "$name" '%d' "$fallback"
+    fi
+}
+sanitize_uint PRUNE_DEFAULT_CAP 5
+sanitize_uint PRUNE_CAP_bootstrap 1
+sanitize_uint PRUNE_TICK_COOLDOWN 60
+
+# tier별 cap 조회 (미지정 tier는 PRUNE_DEFAULT_CAP, 비정상 값은 폴백)
 resolve_cap() {
     local tier="$1"
     local var="PRUNE_CAP_${tier//-/_}"
-    echo "${!var:-$PRUNE_DEFAULT_CAP}"
+    local val="${!var:-$PRUNE_DEFAULT_CAP}"
+    if [[ ! "$val" =~ ^[0-9]+$ ]]; then
+        echo "[warn] $var=\"$val\" invalid, using PRUNE_DEFAULT_CAP=$PRUNE_DEFAULT_CAP" >&2
+        val="$PRUNE_DEFAULT_CAP"
+    fi
+    echo "$val"
 }
 
 # --help용: 파일 상단의 연속 주석 블록을 종료까지 출력 (delimiter 기반)
