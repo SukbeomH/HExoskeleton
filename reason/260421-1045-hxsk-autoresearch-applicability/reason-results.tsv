@@ -1,0 +1,4 @@
+round	winner	votes_AB	votes_A	votes_B	consecutive_wins	key_critique
+1	AB	3	0	0	1	구현 복잡도 과소평가(FATAL) + autoresearch:debug 비교 미완결(MAJOR)
+2	AB	3	0	0	2	autoresearch:debug 사용 정책 미정의(MAJOR) — 순차 vs 병렬 큐 구조 차이 확인 후 보완재 결론
+3	AB	3	0	0	3	기회비용 정량화 없는 P0 우선순위 결정(MAJOR) — 실측 기반 기회비용 추가로 수렴
