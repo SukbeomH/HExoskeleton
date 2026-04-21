@@ -199,13 +199,20 @@ Claude Code 외 다른 하네스를 함께 쓰는 경우, 각 하네스의 훅 �
 ### 완료 확인
 
 - [ ] 에이전트 지침 파일이 프로젝트 루트에 존재
+  - 검증: `ls CLAUDE.md AGENTS.md 2>/dev/null && echo OK || echo MISSING`
 - [ ] `.hxsk/` 디렉토리에 SPEC.md, STATE.md, PATTERNS.md 존재
+  - 검증: `ls .hxsk/SPEC.md .hxsk/STATE.md .hxsk/PATTERNS.md 2>/dev/null && echo OK || echo MISSING`
 - [ ] SPEC.md에 프로젝트 실제 내용 반영 (플레이스홀더 `{...}` 가 남아있으면 안 됨)
+  - 검증: `grep -c '{[A-Za-z]' .hxsk/SPEC.md 2>/dev/null && echo "WARN: 미교체 플레이스홀더 있음" || echo OK`
 - [ ] 필수 스킬 5개가 에이전트 설정 디렉토리에 배치됨 (bootstrap, planner, executor, verifier, memory-protocol)
+  - 검증: `bash .hxsk/scripts/bootstrap.sh 2>&1 | tail -3`
 - [ ] 에이전트 정의 파일이 에이전트 설정 디렉토리에 배치됨
+  - 검증: `ls .hxsk/agents/*.md 2>/dev/null | wc -l`
 - [ ] (선택) 에이전트별 심볼릭 링크 생성됨
 - [ ] (Claude Code) 훅 **8개 이벤트** 모두 `.claude/settings.json`에 등록됨 (SessionStart, PreToolUse, PostToolUse, PreCompact, Stop, SubagentStop, SessionEnd)
+  - 검증: `grep -c '"type": "command"' .claude/settings.json 2>/dev/null`
 - [ ] (Claude Code) 메모리 명령어 동작 확인
+  - 검증: `bash .hxsk/hooks/md-recall-memory.sh "memory" "." 3 compact 2>&1 | head -5`
 
 ### 초기 설치 후 다음 단계
 
