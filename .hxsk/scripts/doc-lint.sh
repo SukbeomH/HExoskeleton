@@ -80,7 +80,7 @@ ALL_MD=("${FILTERED_MD[@]}")
 
 # Directories excluded from orphan detection (no INDEX, managed differently)
 # research/는 INDEX 있지만 각 문서 plain-text로만 언급하므로 별도 exclude
-ORPHAN_EXCLUDE_DIRS="./.hxsk/memories ./.hxsk/templates ./.hxsk/archive ./.hxsk/issues ./.hxsk/examples ./docs/plans ./.hxsk/docs/plans ./.hxsk/reports ./.hxsk/research"
+ORPHAN_EXCLUDE_DIRS="./.hxsk/memories ./.hxsk/templates ./.hxsk/archive ./.hxsk/issues ./.hxsk/examples ./docs/plans ./.hxsk/docs/plans ./.hxsk/reports ./.hxsk/research ./learn"
 
 # Directories excluded from LINK-01 (과거 계획 문서/research 링크는 역사적 기록으로 허용)
 LINK_EXCLUDE_DIRS="./.hxsk/docs/plans ./docs/plans ./.hxsk/research"

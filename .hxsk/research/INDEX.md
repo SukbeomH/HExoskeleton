@@ -74,6 +74,7 @@
 | [RESEARCH-multi-platform-compatibility.md](workflow/RESEARCH-multi-platform-compatibility.md) | `active` | GitHub/GitLab/Gitea/Forgejo 호환성 매트릭스 + forge-detect.sh 추상화 전략 |
 | [RESEARCH-token-optimization-multi-hop.md](workflow/RESEARCH-token-optimization-multi-hop.md) | `active` | 멀티홉 핸드오프 토큰 최적화 — 경로 전달·구조화 WORK 문서·요약 보고로 60-75% 절감 |
 | [RESEARCH-git-issue-as-memory.md](workflow/RESEARCH-git-issue-as-memory.md) | `active` | Git 이슈·커밋·코멘트를 단기 실행 메모리로 활용 — 로컬 파일은 장기 메모리로 역할 분리 |
+| [RESEARCH-autoresearch-methodology.md](workflow/RESEARCH-autoresearch-methodology.md) | `active` | Karpathy 원조 vs Goenka 일반화 비교 — 7원칙 추출, HXSK 수입 권장: 자동 revert 루프 + TSV 로그 + Guard 이중 게이트 |
 
 ## agent-discipline/ (3) — all active
 
