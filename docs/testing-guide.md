@@ -81,8 +81,8 @@ qlty fmt                # 자동 포맷
 | **INDEX-01** | INDEX.md 카운트와 실제 파일 수 일치 |
 | **INDEX-02** | INDEX.md 항목과 실제 파일 존재 대응 |
 | **COUNT-01** | "17개 스킬" 같은 inline 카운트 자동 동기화 |
-| **REF-01** | 중복 파일명 참조 모호성 |
-| **ORPHAN-01** | INDEX에 없는 .md 파일 (의도적 orphan 제외) |
+| **REF-01** | 중복 파일명 참조 모호성; 예상 중복 파일명은 DUP-01 목록에 등록 |
+| **ORPHAN-01** | INDEX에 없는 .md 파일 (의도적 orphan 제외); `ORPHAN_EXCLUDE_DIRS`에 `./scenario ./predict ./.hxsk/docs ./.hxsk/phases` 포함 |
 
 실행:
 ```bash
@@ -366,6 +366,26 @@ bash .hxsk/scripts/prune-memories.sh --dry-run
 | 메모리 동작 | smoke test (6.2) | 수동 |
 | 스킬 동작 (TDD) | skill-testing skill | 에이전트 주도 |
 | 에이전트 완료 주장 | empirical-validation skill | 완료 선언 게이트 |
+| **신뢰성 회귀 감지** | **check-reliability.sh** | **수동 (릴리스 전)** |
+
+### 11.1 check-reliability.sh
+
+11개 패턴 신뢰성 이슈 카운터:
+```bash
+bash .hxsk/scripts/check-reliability.sh
+# → ISSUE COUNT: N
+```
+
+**목표**: `ISSUE COUNT: 0`
+
+감지 패턴 예시:
+- `set -e` 누락 스크립트
+- TYPE_DIR 자동 생성 없는 메모리 저장
+- YAML frontmatter에 비안전 문자열 삽입
+- `.hxsk/` 존재 검증 누락
+- stale lock 미감지
+- 2-hop related 파싱이 frontmatter 외부로 누출
+- `.prune-config` 소싱 전 권한 검증 누락
 
 ## See Also
 

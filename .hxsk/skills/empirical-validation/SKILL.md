@@ -145,6 +145,23 @@ npm run build
 - 테스트 실패 원인 불명 — 에러 메시지가 모호
 - 사용자가 "왜?"라고 물을 때 — 설명에 깊은 이해 필요
 
+## Guard 이중 게이트 (선택)
+
+단일 Verify 외에 Guard를 추가하면 **목표 달성 + 사이드 이펙트 없음**을 동시에 검증한다.
+
+```
+Verify: bash .hxsk/scripts/doc-lint.sh   # 목표 달성?
+Guard:  bash .hxsk/hooks/check-consistency.sh  # 기존 기능 깨지지 않음?
+```
+
+Guard 실패 시 → Verify 성공이라도 BLOCK. Guard 명령은 이진 exit code(0/1)만 허용.
+
+**pre-commit hook과의 역할 구분**:
+- Guard (실행 중): 매 원자 변경 직후 즉시 사이드 이펙트 감지 — 에이전트 루프 내부
+- pre-commit: 커밋 직전 최종 관문 — 인간 실수 및 누락 방지
+
+두 레이어는 시점이 다르므로 중복이 아니다.
+
 ## 관련 스킬
 
 - **REQUIRED**: `memory-protocol` — 검증 결과(성공/실패)를 메모리에 저장

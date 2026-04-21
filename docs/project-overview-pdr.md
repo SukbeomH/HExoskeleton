@@ -76,7 +76,7 @@ HXSK는 Claude Code 네이티브 환경에 최적화되었지만, Gemini·Copilo
     │ skills/  (22)    │  How — 재사용 가능한 절차
     │ agents/  (18)    │  When/With What — 스킬 오케스트레이션
     │ hooks/   (21+)   │  Event-driven 가드레일
-    │ scripts/ (11)    │  유틸리티 (이슈/메모리/빌드)
+    │ scripts/ (12)    │  유틸리티 (이슈/메모리/빌드)
     │ memories/        │  15 types × 2-hop search
     │ workflow/        │  GATES.md
     │ templates/       │  33 templates

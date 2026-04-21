@@ -12,18 +12,25 @@
 
 ```bash
 TARGET_VERSION=5.5.0
-CUR_VERSION=$(grep '^version:' .hxsk/.bootstrap-version 2>/dev/null | awk '{print $2}')
-case "${CUR_VERSION:-}" in
-    "")                echo "FRESH" ;;
-    "$TARGET_VERSION") echo "VERIFY" ;;
-    *)                 echo "UPGRADE"; echo "  from=$CUR_VERSION to=$TARGET_VERSION" ;;
-esac
+VERSION_FILE=".hxsk/.bootstrap-version"
+if [ ! -f "$VERSION_FILE" ]; then
+    echo "FRESH"
+elif ! grep -q '^version:' "$VERSION_FILE"; then
+    echo "CORRUPTED"
+else
+    CUR_VERSION=$(grep '^version:' "$VERSION_FILE" | awk '{print $2}')
+    case "$CUR_VERSION" in
+        "$TARGET_VERSION") echo "VERIFY" ;;
+        *)                 echo "UPGRADE"; echo "  from=$CUR_VERSION to=$TARGET_VERSION" ;;
+    esac
+fi
 ```
 
 출력 첫 줄이 분기 토큰입니다. 분기별 이동:
 - **`FRESH`** → "초기 설치" (Step 1~9)
 - **`VERIFY`** → "일상 확인 (VERIFY)" 섹션
 - **`UPGRADE`** → "업그레이드 (UPGRADE)" 섹션 (Step U1~U6, 두 번째 줄의 `from/to` 버전 활용)
+- **`CORRUPTED`** → `.bootstrap-version` 파일이 손상됨. `cat .hxsk/.bootstrap-version`으로 확인. 정상 내용: `version: X.Y.Z`. 손상 시 `echo "version: X.Y.Z" > .hxsk/.bootstrap-version` 후 Step 0 재실행.
 
 ### Bash 실행 불가 폴백
 
@@ -192,13 +199,20 @@ Claude Code 외 다른 하네스를 함께 쓰는 경우, 각 하네스의 훅 �
 ### 완료 확인
 
 - [ ] 에이전트 지침 파일이 프로젝트 루트에 존재
+  - 검증: `ls CLAUDE.md AGENTS.md 2>/dev/null && echo OK || echo MISSING`
 - [ ] `.hxsk/` 디렉토리에 SPEC.md, STATE.md, PATTERNS.md 존재
+  - 검증: `ls .hxsk/SPEC.md .hxsk/STATE.md .hxsk/PATTERNS.md 2>/dev/null && echo OK || echo MISSING`
 - [ ] SPEC.md에 프로젝트 실제 내용 반영 (플레이스홀더 `{...}` 가 남아있으면 안 됨)
+  - 검증: `grep -c '{[A-Za-z]' .hxsk/SPEC.md 2>/dev/null && echo "WARN: 미교체 플레이스홀더 있음" || echo OK`
 - [ ] 필수 스킬 5개가 에이전트 설정 디렉토리에 배치됨 (bootstrap, planner, executor, verifier, memory-protocol)
+  - 검증: `bash .hxsk/scripts/bootstrap.sh 2>&1 | tail -3`
 - [ ] 에이전트 정의 파일이 에이전트 설정 디렉토리에 배치됨
+  - 검증: `ls .hxsk/agents/*.md 2>/dev/null | wc -l`
 - [ ] (선택) 에이전트별 심볼릭 링크 생성됨
 - [ ] (Claude Code) 훅 **8개 이벤트** 모두 `.claude/settings.json`에 등록됨 (SessionStart, PreToolUse, PostToolUse, PreCompact, Stop, SubagentStop, SessionEnd)
+  - 검증: `grep -c '"type": "command"' .claude/settings.json 2>/dev/null`
 - [ ] (Claude Code) 메모리 명령어 동작 확인
+  - 검증: `bash .hxsk/hooks/md-recall-memory.sh "memory" "." 3 compact 2>&1 | head -5`
 
 ### 초기 설치 후 다음 단계
 
@@ -350,7 +364,8 @@ bash .hxsk/scripts/prune-memories.sh --auto --dry-run  # v5.5+ 모드 smoke
 # 백업 파일 제거 (검증 완료 후)
 rm -f .claude/settings.json.v$CUR_VERSION.bak .hxsk/.bootstrap-version.v$CUR_VERSION.bak
 
-git add -A
+# .env 등 프로젝트 파일 제외 — 프레임워크 파일만 명시적 스테이징
+git add .hxsk/ CLAUDE.md AGENTS.md GEMINI.md .claude/settings.json 2>/dev/null || true
 git commit -m "chore(hxsk): v$CUR_VERSION → v$TARGET_VERSION 프레임워크 동기화"
 ```
 

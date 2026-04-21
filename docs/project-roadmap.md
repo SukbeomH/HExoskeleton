@@ -21,6 +21,7 @@
 
 | 버전 | 날짜 | 주제 | PR |
 |------|------|------|-----|
+| **v5.5.0+** | 2026-04-21~ | Plan 6.1 신뢰성 패치 (11건 수정) | — |
 | **v5.5.0** | 2026-04-16 | 하네스 독립 prune | #134 |
 | v5.4.0 | 2026-04-15 | Git Forge + lessons-learned + 메모리 티어 | #131, #127, #133 |
 
@@ -60,6 +61,7 @@
 | ✅ v5.4.0 Git Forge 통합 | ✅ done | — |
 | ✅ v5.4.0 lessons-learned 5 카테고리 | ✅ done | — |
 | ✅ v5.5.0 하네스 독립 prune | ✅ done | — |
+| ✅ Plan 6.1 신뢰성 11건 수정 (YAML injection, race condition, stale lock, etc.) | ✅ done | — |
 
 ### Phase 3: 배포 최적화 (2026-Q3) 📋 계획
 
@@ -79,6 +81,24 @@
 - AI 모델 독립성 (Anthropic 외 LLM 프로토콜 확장)
 
 ## 4. Completed Major Milestones
+
+### Plan 6.1 (2026-04-21~) — 신뢰성 11건 수정
+
+**11개 신뢰성 이슈 해결: YAML injection, race condition, stale lock, CLAUDE_PROJECT_DIR 검증, NO_MATCH 시그널, TYPE_DIR 자동 생성, 2-hop frontmatter 제약**
+
+| 수정 영역 | 상세 |
+|---------|------|
+| YAML injection 방지 | `md-store-memory.sh`: `yaml_safe()` 함수 추가 |
+| Race condition 방지 | `stop-context-save.sh`: atomic `mv` flag claim |
+| Stale lock 감지 | `prune-tick.sh`: 300s 임계값 고아 락 제거 |
+| CLAUDE_PROJECT_DIR 검증 | hooks + scripts: `.hxsk/` 존재 사전 확인 |
+| NO_MATCH 시그널 | `md-recall-memory.sh`: 결과 없음 시 stderr `[NO_MATCH]` |
+| TYPE_DIR 자동 생성 | `md-store-memory.sh`: 타입 디렉토리 자동 mkdir |
+| 2-hop frontmatter 제약 | `md-recall-memory.sh`: related 파싱 frontmatter 범위 한정 |
+| Config 소싱 보안 | `prune-memories.sh` + `prune-tick.sh`: owner + permissions 검증 |
+| SPEC placeholder guard | `planner`: `{placeholder}` 패턴 감지 시 계획 거부 |
+| ORPHAN 제외 확장 | `doc-lint.sh`: scenario/predict/.hxsk/docs/.hxsk/phases 추가 |
+| 신뢰성 카운터 신규 | `check-reliability.sh`: 11-패턴 이슈 카운터 스크립트 |
 
 ### v5.4.0 (2026-04-15) — Git Forge + lessons-learned
 

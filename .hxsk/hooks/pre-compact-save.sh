@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Hook: PreCompact — STATE.md 자동 백업
 # 컨텍스트 압축 전 HXSK 상태 문서를 백업하여 컨텍스트 손실 방지
 

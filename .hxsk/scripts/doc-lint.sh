@@ -80,7 +80,7 @@ ALL_MD=("${FILTERED_MD[@]}")
 
 # Directories excluded from orphan detection (no INDEX, managed differently)
 # research/는 INDEX 있지만 각 문서 plain-text로만 언급하므로 별도 exclude
-ORPHAN_EXCLUDE_DIRS="./.hxsk/memories ./.hxsk/templates ./.hxsk/archive ./.hxsk/issues ./.hxsk/examples ./docs/plans ./.hxsk/docs/plans ./.hxsk/reports ./.hxsk/research ./learn"
+ORPHAN_EXCLUDE_DIRS="./.hxsk/memories ./.hxsk/templates ./.hxsk/archive ./.hxsk/issues ./.hxsk/examples ./docs/plans ./.hxsk/docs/plans ./.hxsk/docs ./.hxsk/reports ./.hxsk/research ./.hxsk/phases ./learn ./reason ./scenario ./predict"
 
 # Directories excluded from LINK-01 (과거 계획 문서/research 링크는 역사적 기록으로 허용)
 LINK_EXCLUDE_DIRS="./.hxsk/docs/plans ./docs/plans ./.hxsk/research"
@@ -572,6 +572,8 @@ rule_dup_01() {
             VERIFICATION.md) continue ;;
             # write-report.md: agents/는 에이전트 정의, examples/는 사용 예시 — 의도적 구분
             write-report.md) continue ;;
+            # autoresearch 세션 출력 파일 — scenario/predict/learn/reason 세션마다 생성
+            overview.md|summary.md|findings.md|scenarios.md|edge-cases.md) continue ;;
         esac
 
         local locations

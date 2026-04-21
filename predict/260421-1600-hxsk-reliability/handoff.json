@@ -1,0 +1,69 @@
+{
+  "session": "260421-1600-hxsk-reliability",
+  "date": "2026-04-21",
+  "scope": [".hxsk/scripts/", ".hxsk/hooks/"],
+  "goal": "신뢰성 + 실패 모드 분석",
+  "depth": "standard",
+  "predict_score": 219,
+  "anti_herd": {
+    "status": "PASSED",
+    "flip_rate": 0.25,
+    "entropy": 0.78,
+    "da_challenges": 4
+  },
+  "findings": {
+    "confirmed": 11,
+    "probable": 2,
+    "minority": 1
+  },
+  "priority_fixes": [
+    {
+      "id": "DA-3",
+      "severity": "HIGH",
+      "file": ".hxsk/hooks/*.sh + .hxsk/scripts/*.sh",
+      "issue": "CLAUDE_PROJECT_DIR 미검증",
+      "fix": "스크립트 초반에 .hxsk/ 존재 확인 후 PROJ 변수 설정"
+    },
+    {
+      "id": "RE-1",
+      "severity": "HIGH",
+      "file": ".hxsk/hooks/md-store-memory.sh",
+      "line": "20-25",
+      "issue": "TYPE_DIR 없을 때 조용한 general 리다이렉트",
+      "fix": "mkdir -p TYPE_DIR + stderr warning"
+    },
+    {
+      "id": "DA-4",
+      "severity": "HIGH",
+      "file": ".hxsk/hooks/md-recall-memory.sh",
+      "line": "29-34",
+      "issue": "fallback 시 [NO_MATCH] 없음",
+      "fix": "매칭 없을 시 exit 0 + [NO_MATCH] stderr"
+    },
+    {
+      "id": "SA-8/RE-4",
+      "severity": "MEDIUM",
+      "file": ".hxsk/scripts/prune-tick.sh",
+      "line": "57-63",
+      "issue": "SIGKILL stale lock",
+      "fix": "300초 이상 stale lock 자동 해제"
+    },
+    {
+      "id": "RE-6/PE-6",
+      "severity": "MEDIUM",
+      "file": ".hxsk/hooks/md-recall-memory.sh",
+      "line": "23",
+      "issue": "head-100 하드 캡",
+      "fix": "HXSK_RECALL_MAX 변수화, 기본값 500"
+    }
+  ],
+  "chain_ready": {
+    "fix": ["DA-3", "RE-1", "DA-4", "RE-6/PE-6", "RE-3", "RE-5", "DA-5", "SA-1"],
+    "debug": ["SA-8/RE-4", "SA-7"],
+    "security": ["RE-5/SE-1", "SA-2/SE-2"]
+  },
+  "related_session": "260421-1553-hxsk-setup-e2e",
+  "cross_findings": {
+    "C2_correction": "scenario assumed md-store-memory.sh performs silent exit 1. Actual: silent redirect to general. predict CONFIRMED-02 clarifies this."
+  }
+}

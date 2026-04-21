@@ -14,11 +14,10 @@ CURRENT_MD="$PROJECT_DIR/.hxsk/CURRENT.md"
 LOG_FILE="$PROJECT_DIR/.hxsk/.context-save.log"
 TRACK_LOG="$PROJECT_DIR/.hxsk/.track-modifications.log"
 
-# 플래그 파일 없으면 스킵
-[[ -f "$FLAG_FILE" ]] || exit 0
-
-# 플래그 즉시 삭제 (중복 실행 방지)
-rm -f "$FLAG_FILE"
+# Atomic claim: mv은 같은 파일시스템 내에서 POSIX 원자적 연산.
+# 두 프로세스가 동시 실행될 때 정확히 하나만 성공, 나머지는 exit 0.
+CLAIMED_FLAG="${FLAG_FILE}.$$"
+mv "$FLAG_FILE" "$CLAIMED_FLAG" 2>/dev/null || exit 0
 
 # 변경 정보 수집
 MODIFIED=$(git -C "$PROJECT_DIR" status --porcelain 2>/dev/null | head -30)
@@ -107,7 +106,7 @@ EOF
             LAST_FINGERPRINT=$(grep -m1 '^fingerprint:' "$LATEST" 2>/dev/null | sed 's/^fingerprint: //')
             if [[ "$CUR_FINGERPRINT" == "$LAST_FINGERPRINT" ]]; then
                 echo "[$TS] Memory store skipped (same fingerprint: $CUR_FINGERPRINT)" >> "$LOG_FILE"
-                rm -f "$TRACK_LOG"
+                rm -f "$TRACK_LOG" "$CLAIMED_FLAG"
                 exit 0
             fi
         fi
@@ -151,8 +150,8 @@ modifications_count: $MODIFICATIONS_COUNT"
         fi
     fi
 
-    # ── 4. track-modifications.log 초기화 ──
-    rm -f "$TRACK_LOG"
+    # ── 4. track-modifications.log + claimed flag 정리 ──
+    rm -f "$TRACK_LOG" "$CLAIMED_FLAG"
 
     # ── 5. 모든 local-tier 자동 prune (설정 기반)
     #    --auto: .hxsk/.prune-config의 tier별 cap(기본 5, bootstrap 1) 적용.

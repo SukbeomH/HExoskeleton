@@ -1,0 +1,26 @@
+iteration	dimension	classification	severity	title	description	parent
+1	happy_path	new	-	신규 FRESH 설치 — 정상 흐름	신규 사용자가 Step 0~9 순서대로 실행하여 첫 /bootstrap 성공	-
+2	first_run_ux	new	HIGH	setup.md 길이로 인한 단계 건너뜀	사용자가 setup 없이 /bootstrap 직접 실행 → 에러 메시지에 다음 단계 안내 없음	-
+3	error_path	new	CRITICAL	Step 0 .bootstrap-version 파일 손상 → FRESH 오분기	손상된 .bootstrap-version → FRESH 감지 → 기존 SPEC.md/memories 덮어쓰기	-
+4	error_path	new	HIGH	Windows Git Bash symlink 생성 실패	Developer Mode OFF → ln -sfn 실패 → .claude/skills 미생성	-
+5	edge_case	new	HIGH	이전 실패 설치 잔재 — settings.json 덮어쓰기	부분 설치 후 재설치 시 기존 커스텀 settings.json 소실	-
+6	upgrade_path	new	HIGH	U1 수정 파일 감지 — 결정 트리 판단 기준 불명확	프레임워크 파일 커스텀 수정 vs 프로젝트 확장 구분 기준 없어 오판 → 데이터 손실	-
+7	upgrade_path	new	MEDIUM	U2 git clone 네트워크 차단 — 3번째 옵션 없음	회사 프록시로 GitHub HTTPS 차단 시 두 옵션 모두 실패, 로컬 파일 안내 없음	-
+8	upgrade_path	new	HIGH	U3 rsync 폴백 — cp -r 후 빈 디렉토리 복사	rsync 없는 환경에서 cp -r 성공이지만 실제 파일 없음 → U4 bootstrap FAIL	-
+9	upgrade_path	new	MEDIUM	U4 prune-memories.sh 비제로 종료로 불필요한 업그레이드 차단	손상된 메모리 파일 1개 때문에 업그레이드 전체 차단 — 과잉 차단	-
+10	first_run_ux	new	HIGH	SPEC.md 플레이스홀더 미교체 → /planner 무의미한 계획 수립	완료 체크리스트 강제 검증 없이 {placeholder} 상태로 /planner 실행	-
+11	error_path	new	HIGH	settings.json 훅 누락 — PreCompact 미등록 → 메모리 조용한 손실	8개 훅 이벤트 중 일부 누락 시 컨텍스트 압축 전 메모리 저장 실패	-
+12	error_path	new	MEDIUM	bootstrap.sh FAIL — .hxsk/memories/ 미생성	md-store-memory.sh에서 대상 디렉토리 자동 mkdir 없을 경우 exit 1	-
+13	edge_case	new	MEDIUM	Cursor 1.6 어댑터 설치 — 훅 조용히 무시	최소 버전 1.7 미달 상태에서 어댑터 설치 → 훅 파일 있어도 미발화	-
+14	edge_case	new	LOW	Claude Code + Gemini CLI 동시 symlink 경합	동시 실행 시 동일 SKILL.md write race condition	-
+15	permission	new	HIGH	.hxsk/ 읽기 전용 — 공유 환경 write 권한 없음	CI 에이전트 또는 read-only checkout에서 SPEC.md 생성 Permission denied	-
+16	first_run_ux	new	HIGH	/planner 실행 시 SPEC.md Goals 섹션 없음 — GATE-0 미충족	SPEC.md에 Goals 섹션 없으면 GATE-0 차단, 형식 예시 안내 없음	-
+17	error_path	new	CRITICAL	md-store-memory.sh 타입 디렉토리 없음 → 조용한 실패	mkdir -p 없으면 exit 1, 에이전트가 저장됐다 가정하고 계속 진행	-
+18	edge_case	new	MEDIUM	WSL2 /mnt/ 마운트 — symlink Windows 앱에서 경로 불일치	Unix symlink가 Windows native Claude Code에서 대상 못 찾음	-
+19	upgrade_path	new	CRITICAL	U6 git add -A → .env 파일 커밋 포함	명시적 파일 스테이징 대신 -A 사용 시 .gitignore 없는 .env 유출 가능	-
+20	recovery	new	HIGH	업그레이드 롤백 — .bak 파일 없음	settings.json 백업 조건부 실행 → 없을 때 git checkout 기반 복구 안내 없음	-
+21	integration	new	MEDIUM	Codex CLI feature flag 미활성화 → 훅 조용히 무시	experimental.codex_hooks=false 기본값에서 어댑터 설치해도 이벤트 미발화	-
+22	edge_case	variant	CRITICAL	bootstrap-version 빈 파일 → FRESH 오분기 (Iteration 3 variant)	touch로 생성된 빈 파일도 FRESH 감지 → 기존 데이터 덮어쓰기	#3
+23	temporal	new	MEDIUM	오래된 setup.md 사용 — TARGET_VERSION↔실제버전 불일치	캐시된 구버전 setup.md로 업그레이드 시 신규 디렉토리 동기화 누락	-
+24	first_run_ux	new	HIGH	완료 체크리스트 시각적 체크만 — 검증 명령 없음	항목별 실제 검증 명령 없어 "다 했다" 착각 → /bootstrap FAIL	-
+25	edge_case	new	MEDIUM	doc-lint ORPHAN-01 — scenario/ learn/ reason/ 자동 제외 없음	신규 작업 디렉토리 생성 시마다 ORPHAN_EXCLUDE_DIRS 수동 수정 필요	-

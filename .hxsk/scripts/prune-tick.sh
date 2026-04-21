@@ -24,6 +24,10 @@ set -uo pipefail
 
 PROJECT_DIR="${CLAUDE_PROJECT_DIR:-$(pwd)}"
 HXSK_DIR="$PROJECT_DIR/.hxsk"
+if [ ! -d "$HXSK_DIR" ]; then
+    echo "[ERROR] prune-tick: .hxsk/ not found at '$PROJECT_DIR'. Set CLAUDE_PROJECT_DIR." >&2
+    exit 1
+fi
 TICK_FILE="$HXSK_DIR/.last-prune-ts"
 LOCK_DIR="$HXSK_DIR/.prune-lock"
 PRUNE_SCRIPT="$HXSK_DIR/scripts/prune-memories.sh"
@@ -32,8 +36,15 @@ LOG_FILE="$HXSK_DIR/.context-save.log"
 # 기본 cooldown (60초). 설정으로 오버라이드 가능.
 PRUNE_TICK_COOLDOWN=60
 PRUNE_CFG="$HXSK_DIR/.prune-config"
-# shellcheck disable=SC1090
-[[ -f "$PRUNE_CFG" ]] && source "$PRUNE_CFG"
+if [[ -f "$PRUNE_CFG" ]]; then
+    _MODE=$(stat -f '%A' "$PRUNE_CFG" 2>/dev/null || stat -c '%a' "$PRUNE_CFG" 2>/dev/null || echo "600")
+    if [[ -O "$PRUNE_CFG" ]] && (( ! (8#$_MODE & 8#022) )); then
+        # shellcheck disable=SC1090
+        source "$PRUNE_CFG"
+    else
+        echo "[WARN] prune-tick: skipping .prune-config (not owner-only writable, mode=$_MODE)" >&2
+    fi
+fi
 
 # 설정 값 정규화: 비정상 값(빈/음수/문자열)이면 기본값 폴백.
 # 산술 비교 시 "integer expression expected" 또는 부호 혼동 방지.
@@ -57,7 +68,21 @@ fi
 # ── Atomic lock: 동시 실행 방지 ──
 # mkdir은 POSIX 원자적 연산. 이미 존재하면 실패 → 다른 tick이 진행 중.
 if ! mkdir "$LOCK_DIR" 2>/dev/null; then
-    exit 0
+    # stale lock 감지: SIGKILL 등으로 trap이 실행되지 않아 lock이 잔존할 수 있음
+    if [ -d "$LOCK_DIR" ]; then
+        lock_ctime=$(stat -f '%m' "$LOCK_DIR" 2>/dev/null || stat -c '%Y' "$LOCK_DIR" 2>/dev/null || echo 0)
+        now=$(date +%s)
+        lock_age=$(( now - lock_ctime ))
+        if [ "$lock_age" -gt 300 ]; then
+            echo "[WARN] prune-tick: Removing stale lock (age: ${lock_age}s)" >&2
+            rmdir "$LOCK_DIR" 2>/dev/null || true
+            mkdir "$LOCK_DIR" 2>/dev/null || exit 0
+        else
+            exit 0
+        fi
+    else
+        exit 0
+    fi
 fi
 trap 'rmdir "$LOCK_DIR" 2>/dev/null' EXIT
 

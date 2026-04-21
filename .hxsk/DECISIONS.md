@@ -165,4 +165,36 @@ A-Mem 논문 기반 확장 적용:
 
 ---
 
-*Last updated: 2026-03-06*
+*Last updated: 2026-04-21*
+
+---
+
+## ADR: Autoresearch 방법론 3계층 하네스 적용 전략
+
+**날짜**: 2026-04-21  
+**상태**: accepted
+
+### Context
+
+autoresearch 방법론(Karpathy + Goenka) 기법 3가지(TSV 로그, 자동 revert 루프, Guard 이중 게이트)를
+HXSK 10개 하네스에 범용 적용하기 위해 계층 분리 전략이 필요하다.
+하네스별 hook API가 달라 단일 구현으로는 전 하네스를 커버할 수 없다.
+
+### Decision
+
+3계층으로 분리한다:
+- **Layer 1 (AGENTS.md)**: 행동 지침 — 전 하네스 공통
+- **Layer 2 (SKILL.md)**: 절차 상세 — SKILL 지원 하네스만 (Claude Code + Gemini)
+- **Layer 3 (githooks/post-commit)**: 자동화 실행 — git 기반 전 하네스 공통
+
+### Rationale
+
+- EASYTOOL 2단계 로딩 원칙: L1=트리거/정책, L2=절차 상세
+- CLI 우선 원칙: git hook은 외부 의존 없이 전 하네스 커버
+- PostToolUse hook은 Claude Code 전용 → Guard 자동화에 사용하지 않음
+
+### Consequences
+
+- SKILL 미지원 하네스(Cursor 등)는 Layer 1 정책만 따름 — 정밀도 낮아지는 트레이드오프 감수
+- Guard 자동화는 `githooks/post-commit` 확장으로 구현
+- 새 하네스 추가 시 어댑터 파일만 추가하면 Layer 1-2 자동 적용

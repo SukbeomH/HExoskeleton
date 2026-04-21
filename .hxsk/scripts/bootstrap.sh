@@ -251,6 +251,24 @@ for dir in reports research archive issues/archive; do
     fi
 done
 
+# SPEC.md — 프로젝트 명세 (HXSK 핵심 파일)
+if [[ -f ".hxsk/SPEC.md" ]]; then
+    SPEC_SIZE=$(wc -c < ".hxsk/SPEC.md" | tr -d ' ')
+    # 플레이스홀더 잔존 여부 경고
+    PLACEHOLDER_COUNT=$(grep -c '{[A-Za-z]' ".hxsk/SPEC.md" 2>/dev/null || echo 0)
+    if [[ "$PLACEHOLDER_COUNT" -gt 0 ]]; then
+        report_warn "SPEC.md" "${SPEC_SIZE}B — ⚠️  ${PLACEHOLDER_COUNT}개 미교체 플레이스홀더 발견 (grep '{[A-Za-z]' .hxsk/SPEC.md)"
+    else
+        report_ok "SPEC.md" "${SPEC_SIZE}B"
+    fi
+else
+    if [[ "$MODE" = "fresh" ]]; then
+        report_fail "SPEC.md" "missing — HXSK 초기 설정이 필요합니다. 먼저 \`.hxsk/prompts/setup.md\`를 실행하세요."
+    else
+        report_warn "SPEC.md" "missing — 프로젝트 명세 파일 없음"
+    fi
+fi
+
 # Context files
 if [[ -f ".hxsk/PATTERNS.md" ]]; then
     PATTERNS_SIZE=$(wc -c < ".hxsk/PATTERNS.md" | tr -d ' ')
@@ -444,6 +462,7 @@ printf "PASS: %d  FAIL: %d  WARN: %d  SKIP: %d  NEW: %d  UPDATED: %d\n" \
 if [[ "$REQUIRED_FAIL" -gt 0 ]]; then
     echo " RESULT: FAILED — ${REQUIRED_FAIL} required check(s) failed"
     echo "================================================================"
+    echo " 다음 단계: .hxsk/prompts/setup.md 를 열어 FAIL 항목을 수동으로 수정하세요."
     exit 1
 else
     echo " RESULT: ALL REQUIRED CHECKS PASSED"

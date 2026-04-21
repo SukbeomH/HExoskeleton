@@ -1,0 +1,15 @@
+session	date	persona	finding_id	severity	consensus	priority_score	status	file	line
+260421-1600-hxsk-reliability	2026-04-21	DA	DA-3	HIGH	5/5	0.88	CONFIRMED	.hxsk/hooks/*.sh	all
+260421-1600-hxsk-reliability	2026-04-21	RE	RE-1	HIGH	5/5	0.85	CONFIRMED	.hxsk/hooks/md-store-memory.sh	20-25
+260421-1600-hxsk-reliability	2026-04-21	DA	DA-4	HIGH	5/5	0.82	CONFIRMED	.hxsk/hooks/md-recall-memory.sh	29-34
+260421-1600-hxsk-reliability	2026-04-21	SA,RE	SA-8/RE-4	MEDIUM	5/5	0.71	CONFIRMED	.hxsk/scripts/prune-tick.sh	57-63
+260421-1600-hxsk-reliability	2026-04-21	RE,PE	RE-6/PE-6	MEDIUM	4/5	0.68	CONFIRMED	.hxsk/hooks/md-recall-memory.sh	23
+260421-1600-hxsk-reliability	2026-04-21	RE	RE-3	MEDIUM	4/5	0.65	CONFIRMED	.hxsk/hooks/md-store-memory.sh	7
+260421-1600-hxsk-reliability	2026-04-21	RE,SE	RE-5/SE-1	MEDIUM	4/5	0.62	CONFIRMED	.hxsk/hooks/md-store-memory.sh	37-39
+260421-1600-hxsk-reliability	2026-04-21	SA	DA-5/SA-4	MEDIUM	4/5	0.60	CONFIRMED	.hxsk/hooks/check-consistency.sh	136-147
+260421-1600-hxsk-reliability	2026-04-21	SA,PE	SA-1/PE-5	MEDIUM	4/5	0.58	CONFIRMED	.hxsk/scripts/bootstrap.sh	203-210
+260421-1600-hxsk-reliability	2026-04-21	SA	SA-7	MEDIUM	3/5	0.52	CONFIRMED	.hxsk/hooks/stop-context-save.sh	20-21
+260421-1600-hxsk-reliability	2026-04-21	SA,SE	SA-2/SE-2	MEDIUM	3/5	0.50	CONFIRMED	.hxsk/scripts/prune-memories.sh	62-63
+260421-1600-hxsk-reliability	2026-04-21	RE	RE-2	LOW	2/5	0.35	PROBABLE	.hxsk/hooks/md-recall-memory.sh	45
+260421-1600-hxsk-reliability	2026-04-21	SA	SA-6	LOW	2/5	0.28	PROBABLE	.hxsk/hooks/pre-compact-save.sh	1
+260421-1600-hxsk-reliability	2026-04-21	RE,PE	RE-7/PE-7	LOW	1/5	0.15	MINORITY	.hxsk/scripts/prune-memories.sh	170-182

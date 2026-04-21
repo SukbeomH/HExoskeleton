@@ -95,3 +95,11 @@ GitHub → `gh` CLI / GitLab → `glab` CLI / Gitea → `tea` CLI
 - Read/print .env or credential files
 - Commit hardcoded secrets or API keys
 - Skip failing tests to "fix later"
+- `/autoresearch` 커맨드를 `Iterations: N` 없이 실행 (unbounded 루프 금지)
+
+## Autoresearch 통합 원칙
+
+- HXSK debugger에서 3-Strike 발동 후 원인 불명 복합 버그 → `/autoresearch:debug`로 전환
+- 태스크 완료마다 `.hxsk/reports/iteration-log.tsv` 에 결과 한 줄 append
+- verify 실패 + attempt < 3: `git revert HEAD --no-edit` 후 다른 방식 재시도
+- verify 실패 + attempt == 3: 3-Strike Rule — 사용자 에스컬레이션
