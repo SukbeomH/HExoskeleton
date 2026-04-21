@@ -5,7 +5,7 @@
 # mode: compact (기본, contextual_description만), full (전체 내용)
 # hop: 1 (직접 검색만), 2 (related 필드 추적 포함, 기본값)
 
-set -uo pipefail
+set -euo pipefail
 
 QUERY="${1:?Usage: md-recall-memory.sh <query> [project_path] [limit] [mode] [hop]}"
 PROJECT_PATH="${2:-${CLAUDE_PROJECT_DIR:-.}}"
@@ -13,7 +13,12 @@ LIMIT="${3:-5}"
 MODE="${4:-compact}"  # compact (ReWOO) 또는 full
 HOP="${5:-2}"         # A-Mem: 1=직접만, 2=related 포함
 
+if [ ! -d "$PROJECT_PATH/.hxsk" ]; then
+    echo "[ERROR] md-recall-memory: .hxsk/ not found at '$PROJECT_PATH'. Set CLAUDE_PROJECT_DIR to project root." >&2
+    exit 1
+fi
 MEMORIES_DIR="$PROJECT_PATH/.hxsk/memories"
+RECALL_MAX="${HXSK_RECALL_MAX:-500}"
 
 # memories 디렉토리 없으면 빈 출력
 [ -d "$MEMORIES_DIR" ] || exit 0
@@ -22,18 +27,14 @@ MEMORIES_DIR="$PROJECT_PATH/.hxsk/memories"
 # 최신순 정렬: 파일명이 YYYY-MM-DD 접두사이므로 역순 정렬
 RESULTS=$(find "$MEMORIES_DIR" -name "*.md" -not -name ".gitkeep" 2>/dev/null \
     | sort -r \
-    | head -100 \
+    | head -"$RECALL_MAX" \
     | xargs grep -li "$QUERY" 2>/dev/null \
     | head -"$LIMIT" || true)
 
 if [ -z "$RESULTS" ]; then
-    # 검색어가 매칭되지 않으면 최근 파일 반환
-    RESULTS=$(find "$MEMORIES_DIR" -name "*.md" -not -name ".gitkeep" 2>/dev/null \
-        | sort -r \
-        | head -"$LIMIT" || true)
+    echo "[NO_MATCH] No memory files found for query: $QUERY" >&2
+    exit 0
 fi
-
-[ -z "$RESULTS" ] && exit 0
 
 # ── A-Mem 2-hop: related 필드 추적 ──
 RELATED_FILES=""

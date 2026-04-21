@@ -4,7 +4,7 @@
 # 출력: .hxsk/memories/{type}/{YYYY-MM-DD}_{slug}.md (YAML frontmatter + markdown)
 # A-Mem 연구 기반: keywords, contextual_description, related 필드 지원
 
-set -uo pipefail
+set -euo pipefail
 
 TITLE="${1:?Usage: md-store-memory.sh <title> <content> [tags] [type] [keywords] [contextual_desc] [related]}"
 CONTENT="${2:?Missing content}"
@@ -15,12 +15,16 @@ CONTEXTUAL_DESC="${6:-}"   # 1줄 요약 (검색 결과 압축용)
 RELATED="${7:-}"           # 관련 메모리 파일명 배열 (쉼표 구분)
 
 PROJECT_DIR="${CLAUDE_PROJECT_DIR:-.}"
+if [ ! -d "$PROJECT_DIR/.hxsk" ]; then
+    echo "[ERROR] md-store-memory: .hxsk/ not found at '$PROJECT_DIR'. Set CLAUDE_PROJECT_DIR to project root." >&2
+    exit 1
+fi
 MEMORIES_DIR="$PROJECT_DIR/.hxsk/memories"
 
-# Type 디렉토리 검증 (없으면 general 폴백)
+# Type 디렉토리 검증 (없으면 요청된 타입으로 생성)
 TYPE_DIR="$MEMORIES_DIR/$TYPE"
 if [ ! -d "$TYPE_DIR" ]; then
-    TYPE_DIR="$MEMORIES_DIR/general"
+    echo "[INFO] md-store-memory: Creating memory type directory: $TYPE" >&2
     mkdir -p "$TYPE_DIR"
 fi
 

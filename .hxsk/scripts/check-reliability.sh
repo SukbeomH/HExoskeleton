@@ -1,0 +1,69 @@
+#!/usr/bin/env bash
+# Known-issue checker for HXSK reliability fixes
+# Returns count of remaining known issues (0 = all fixed)
+set -uo pipefail
+
+issues=0
+
+# RE-1: TYPE_DIR silent redirect to general (should warn + mkdir -p instead)
+if grep -q 'TYPE_DIR=.*general' .hxsk/hooks/md-store-memory.sh 2>/dev/null; then
+    echo "FAIL RE-1: md-store-memory.sh TYPE_DIR silent redirect to general"
+    issues=$((issues+1))
+fi
+
+# RE-3: missing -e in md-store-memory.sh
+if grep -q '^set -uo pipefail' .hxsk/hooks/md-store-memory.sh 2>/dev/null && \
+   ! grep -q '^set -euo pipefail' .hxsk/hooks/md-store-memory.sh 2>/dev/null; then
+    echo "FAIL RE-3a: md-store-memory.sh missing -e in set flags"
+    issues=$((issues+1))
+fi
+
+# RE-3: missing -e in md-recall-memory.sh
+if grep -q '^set -uo pipefail' .hxsk/hooks/md-recall-memory.sh 2>/dev/null && \
+   ! grep -q '^set -euo pipefail' .hxsk/hooks/md-recall-memory.sh 2>/dev/null; then
+    echo "FAIL RE-3b: md-recall-memory.sh missing -e in set flags"
+    issues=$((issues+1))
+fi
+
+# DA-4: recall fallback without [NO_MATCH] marker
+if ! grep -q 'NO_MATCH' .hxsk/hooks/md-recall-memory.sh 2>/dev/null; then
+    echo "FAIL DA-4: md-recall-memory.sh no [NO_MATCH] marker on fallback"
+    issues=$((issues+1))
+fi
+
+# RE-6: head-100 hard cap (should use variable)
+if grep -q 'head -100' .hxsk/hooks/md-recall-memory.sh 2>/dev/null; then
+    echo "FAIL RE-6: md-recall-memory.sh hard-coded head -100"
+    issues=$((issues+1))
+fi
+
+# SA-8: stale lock detection missing in prune-tick.sh
+if ! grep -qE 'stale|lock_age|mtime.*300' .hxsk/scripts/prune-tick.sh 2>/dev/null; then
+    echo "FAIL SA-8: prune-tick.sh no stale lock detection"
+    issues=$((issues+1))
+fi
+
+# C1: CORRUPTED branch missing in setup.md
+if ! grep -q 'CORRUPTED' .hxsk/prompts/setup.md 2>/dev/null; then
+    echo "FAIL C1: setup.md missing CORRUPTED branch in Step 0"
+    issues=$((issues+1))
+fi
+
+# C3: git add -A in setup.md U6
+if grep -q 'git add -A' .hxsk/prompts/setup.md 2>/dev/null; then
+    echo "FAIL C3: setup.md U6 uses git add -A (secrets risk)"
+    issues=$((issues+1))
+fi
+
+# DA-3: CLAUDE_PROJECT_DIR without .hxsk validation
+for f in .hxsk/hooks/md-store-memory.sh .hxsk/hooks/md-recall-memory.sh .hxsk/scripts/prune-tick.sh; do
+    if grep -qE 'CLAUDE_PROJECT_DIR|PROJECT_DIR' "$f" 2>/dev/null && \
+       ! grep -qE '\.hxsk.*not found|! -d.*\.hxsk|if.*\.hxsk' "$f" 2>/dev/null; then
+        echo "FAIL DA-3: $f uses CLAUDE_PROJECT_DIR without .hxsk/ existence check"
+        issues=$((issues+1))
+    fi
+done
+
+echo ""
+echo "ISSUE COUNT: $issues"
+exit 0
