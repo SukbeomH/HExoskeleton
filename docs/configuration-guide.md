@@ -44,6 +44,9 @@ HXSK_MEMORY_CAP=5              # 각 메모리 타입당 최대 파일 수 (기�
 # 프룬 tick 쿨다운
 HXSK_PRUNE_COOLDOWN_SEC=60     # opportunistic trigger 최소 간격 (기본 60s)
 
+# 메모리 회상 스캔 깊이
+HXSK_RECALL_MAX=500            # md-recall-memory.sh 출력 최대 줄 수 (기본 500)
+
 # Forge 강제 지정 (자동감지 오버라이드)
 HXSK_FORGE_CMD=gh              # gh / glab / tea
 ```
@@ -108,6 +111,13 @@ triggers:
 cp .hxsk/templates/prune-config.sample .hxsk/.prune-config
 # 필요한 값만 주석 해제/수정
 ```
+
+> **보안 요구사항**: `.prune-config`는 현재 사용자 소유(`-O` 검증)이고 그룹/월드-쓰기 금지(`permissions & 022 == 0`)이어야 한다. 조건 미충족 시 `prune-memories.sh`와 `prune-tick.sh`가 WARN을 출력하고 파일 소싱을 건너뛴다. 이는 권한 상승 공격 방지를 위한 것이다.
+>
+> ```bash
+> # 올바른 권한 설정
+> chmod 600 .hxsk/.prune-config   # 소유자 읽기/쓰기만
+> ```
 
 ### 4.1 Tier별 cap
 ```bash
@@ -271,7 +281,7 @@ export default {
 ### 6.7 Git Hook Fallback (Aider/Continue/Antigravity)
 `.hxsk/githooks/post-commit`:
 ```bash
-#!/usr/bin/env bash
+#!/usr/bin/env bash   # 표준 shebang — /bin/bash 대신 env를 통한 경로 독립
 bash "$(dirname "$0")/../scripts/prune-tick.sh" >/dev/null 2>&1 &
 ```
 

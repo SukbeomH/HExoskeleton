@@ -33,7 +33,7 @@ HExoskeleton/
     ├── skills/   (22)         # 재사용 절차
     ├── agents/   (18)         # 스킬 오케스트레이션
     ├── hooks/    (21+)        # 이벤트 훅
-    ├── scripts/  (11)         # 유틸리티
+    ├── scripts/  (12)         # 유틸리티
     ├── workflow/ (1)          # GATES.md
     ├── prompts/  (3)          # setup 프롬프트
     ├── templates/ (33)        # 문서 템플릿
@@ -55,7 +55,7 @@ HExoskeleton/
 | **Skills** | 22 | ~6,032 | 각 `{name}/SKILL.md` 형식 |
 | **Agents** | 18 | ~622 | 각 `{name}.md` 파일 |
 | **Hooks** | 21+ | ~3,246 | Claude Code 이벤트별 |
-| **Scripts** | 11 | ~2,606 | 유틸리티 bash |
+| **Scripts** | 12 | ~2,606+ | 유틸리티 bash |
 | **Templates** | 33 | ~2,386 | 문서 생성 표준 |
 | **Internal Docs** | 11 | varied | `.hxsk/docs/` |
 | **Prompts** | 3 | ~495 | setup 프롬프트 |
@@ -130,18 +130,18 @@ HExoskeleton/
 - `post-turn-verify.sh` — 턴 종료 검증
 
 **PreCompact**:
-- `pre-compact-save.sh` — 압축 전 스냅샷 저장
+- `pre-compact-save.sh` — 압축 전 스냅샷 저장; shebang `#!/usr/bin/env bash`로 표준화
 
 **Stop**:
-- `stop-context-save.sh` — CURRENT.md 재생성 + A-Mem 저장
+- `stop-context-save.sh` — CURRENT.md 재생성 + A-Mem 저장; atomic `mv "$FLAG_FILE" "$CLAIMED_FLAG.$$"` 으로 동시 Stop 훅 race condition 방지
 
 **SessionEnd**:
 - `save-session-changes.sh` — CHANGELOG.md에 세션 변경 기록
 - `save-transcript.sh` — 트랜스크립트 보존 (선택)
 
 **Memory**:
-- `md-store-memory.sh` — YAML+MD 저장, Nemori dedup
-- `md-recall-memory.sh` — 2-hop grep 검색
+- `md-store-memory.sh` — YAML+MD 저장, Nemori dedup; `yaml_safe()` YAML injection 방지; TYPE_DIR 자동 생성; `.hxsk/` 존재 검증
+- `md-recall-memory.sh` — 2-hop grep 검색; 결과 없음 시 stderr `[NO_MATCH]` 출력; `HXSK_RECALL_MAX` 환경변수로 스캔 깊이 제한(기본 500줄); 2-hop `related` 파싱은 frontmatter 범위로 한정
 
 **Workflow**:
 - `gate-check.sh` — GATES.md 조건 검증
@@ -159,21 +159,22 @@ HExoskeleton/
 - `pre-commit-doc-lint.sh`
 - `pre-commit-version-check.sh`
 
-## 6. Utility Scripts (11)
+## 6. Utility Scripts (12)
 
 | Script | 목적 |
 |--------|------|
-| `bootstrap.sh` (458 lines) | 환경 수렴 엔진 — fresh/update/verify |
+| `bootstrap.sh` (458 lines) | 환경 수렴 엔진 — fresh/update/verify; FAIL 시 "다음 단계: setup.md 열어 수동 수정" 안내 |
 | `detect-language.sh` (221) | Python/Node/Go/Rust + 패키지 매니저 감지 |
-| `doc-lint.sh` (619) | 마크다운 구조 검증 |
+| `doc-lint.sh` (619) | 마크다운 구조 검증; ORPHAN_EXCLUDE_DIRS에 `./scenario ./predict ./.hxsk/docs ./.hxsk/phases` 포함 |
 | `issue-create.sh` (166) | master/work/legacy 모드 이슈 생성 |
 | `issue-list.sh` (137) | 이슈 인덱스 출력 |
 | `merge-worktrees.sh` (63) | 워크트리 병합 |
-| `prune-memories.sh` (295) | Tier 기반 메모리 프룬 + 가치 승격 |
-| `prune-tick.sh` (75) | 하네스 독립 opportunistic 트리거 (60s 쿨다운) |
+| `prune-memories.sh` (295) | Tier 기반 메모리 프룬 + 가치 승격; `.prune-config` 소싱 전 owner(`-O`) + permissions(`& 022`) 검증 |
+| `prune-tick.sh` (75) | 하네스 독립 opportunistic 트리거 (60s 쿨다운); stale lock 300s 감지·제거; `.prune-config` source 안전 검증 |
 | `generate-llms-txt.sh` (61) | llms.txt 자동 생성 |
 | `forge-detect.sh` (170) | GitHub/GitLab/Gitea + auth 감지 |
 | `verify-self-configure.sh` (341) | 자가 구성 검증 |
+| `check-reliability.sh` (NEW) | 11-패턴 신뢰성 이슈 카운터; `bash .hxsk/scripts/check-reliability.sh` → `ISSUE COUNT: N` 출력 |
 
 ## 7. Memory System (15 Types)
 

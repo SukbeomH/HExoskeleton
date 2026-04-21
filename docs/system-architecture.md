@@ -24,7 +24,7 @@ graph TB
         Skills[skills/<br/>22 재사용 절차]
         Agents[agents/<br/>18 오케스트레이터]
         Hooks[hooks/<br/>21 이벤트 훅]
-        Scripts[scripts/<br/>11 유틸리티]
+        Scripts[scripts/<br/>12 유틸리티]
         Memory[memories/<br/>15 타입 × 2-hop]
         Workflow[workflow/GATES.md<br/>8 게이트]
         Templates[templates/<br/>33 템플릿]
@@ -123,7 +123,7 @@ sequenceDiagram
 
     U->>H: Ctrl+C (session end)
     H->>Stop: Stop event
-    Stop->>C: Regenerate CURRENT.md (Nemori narrative)
+    Stop->>C: Regenerate CURRENT.md (Nemori narrative)<br/>atomic mv flag claim (race-condition 방지)
     Stop->>M: Store session-summary memory
 ```
 
@@ -136,7 +136,9 @@ graph TB
         Hook[Hook event]
         Agent --> MS[md-store-memory.sh]
         Hook --> MS
-        MS -->|YAML frontmatter| File[memories/{type}/YYYY-MM-DD_{slug}.md]
+        MS -->|yaml_safe() sanitize<br/>YAML injection 방지| Safe[안전한 frontmatter]
+        Safe -->|YAML frontmatter| File[memories/{type}/YYYY-MM-DD_{slug}.md]
+        MS -->|TYPE_DIR auto-create| File
         MS -->|Nemori dedup| Skip{중복?}
         Skip -.Yes.-> Skipped[Skip write]
         Skip --No--> File
@@ -147,13 +149,14 @@ graph TB
         Query --> MR[md-recall-memory.sh]
         MR -->|grep| Idx1[1st hop: keywords, title]
         Idx1 --> Related[related field]
-        Related -->|2-hop| Idx2[2nd hop: 연관 메모리]
-        Idx2 --> Result[Compact or Full 결과]
+        Related -->|2-hop frontmatter 한정<br/>awk /^---$/| Idx2[2nd hop: 연관 메모리]
+        Idx2 --> Result[Compact or Full 결과<br/>HXSK_RECALL_MAX 줄 제한]
+        MR -->|결과 없음| NoMatch[[stderr: NO_MATCH]]
     end
 
     subgraph Prune["프룬 사이클"]
         Trigger[md-store or bootstrap 호출]
-        Trigger --> PT[prune-tick.sh<br/>60s cooldown]
+        Trigger --> PT[prune-tick.sh<br/>60s cooldown<br/>stale lock 300s 감지]
         PT -->|Lock OK| PM[prune-memories.sh --auto]
         PM -->|tier cap=5| Local[local tier 프룬]
         PM -->|value elevation| Shared[decision/root-cause<br/>→ shared tier]
@@ -366,10 +369,12 @@ graph TB
 |-----|------|------|
 | DECISION-001 | `scripts/md-*.sh`는 심볼릭 링크 | 빌드 시 경로 치환으로 플러그인/네이티브 양쪽 동작 |
 | (미번호) | 외부 Vector DB 금지 | bash `grep`이 충분. zero-dep 원칙 |
-| (미번호) | Opportunistic prune-tick | cron/launchd 의존 없이 cooldown 60s 자가 트리거 |
+| (미번호) | Opportunistic prune-tick | cron/launchd 의존 없이 cooldown 60s 자가 트리거; stale lock 300s 감지 |
 | (미번호) | Tier 분리 (local/shared) | git 추적 비용 vs 장기 지식 보존 밸런스 |
 | (미번호) | GATES.md 파일 기반 검증 | AGENTS.md의 "Forge-agnostic" 원칙 — GitHub 없어도 동작 |
 | (미번호) | 15 memory types | A-Mem + 도메인 특화(debug/security/session) 혼합 |
+| (미번호) | `.prune-config` owner+perm 검증 | 그룹/월드-쓰기 가능 config 소싱 시 WARN+스킵 — 권한 상승 방지 |
+| (미번호) | `yaml_safe()` + 2-hop frontmatter 한정 | YAML injection 방지; body false-match 제거 |
 
 전체 ADR: `.hxsk/DECISIONS.md`.
 

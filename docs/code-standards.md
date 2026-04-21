@@ -124,6 +124,7 @@ eef848e chore(release): v5.4.0 — Git Forge + lessons-learned + 메모리 티�
 ```bash
 #!/usr/bin/env bash
 # bash ≥3.2 호환 (macOS 기본 bash 포함)
+# ⚠️ #!/bin/bash 사용 금지 — env를 통한 경로 독립 shebang이 표준
 ```
 - **`[[ ]]` OK**, but **`declare -g` 금지** (bash 4+ 전용)
 - **associative arrays 금지** (bash 4+)
@@ -149,6 +150,56 @@ set -o pipefail       # pipe 체인 에러 전파
 ```bash
 source "${DIR}/_json_parse.sh"
 # jq → python3 → node 폴백 체인
+```
+
+### 6.6 YAML Injection 방지 (`yaml_safe()` 패턴)
+YAML frontmatter에 사용자 제공 값을 삽입할 때는 반드시 `yaml_safe()`로 sanitize한다:
+```bash
+yaml_safe() {
+    # 줄바꿈/CR 제거, 큰따옴표 이스케이프
+    printf '%s' "$1" | tr -d '\n\r' | sed 's/"/\\"/g'
+}
+# 사용 예
+title=$(yaml_safe "$raw_title")
+printf 'title: "%s"\n' "$title" >> "$MEMORY_FILE"
+```
+- YAML 스칼라 값은 삽입 전 newline·CR 제거 필수
+- `"` 문자는 `\"` 이스케이프 필수
+- `md-store-memory.sh`의 구현을 참조
+
+### 6.7 Atomic Flag Claim (race condition 방지)
+두 프로세스가 동일한 플래그 파일을 경쟁할 수 있는 경우 `mv` atomic rename을 사용:
+```bash
+# ❌ Wrong — TOCTOU race condition
+if [ -f "$FLAG_FILE" ]; then
+    rm "$FLAG_FILE"
+    # do work
+fi
+
+# ✅ Correct — atomic claim
+CLAIMED="$FLAG_FILE.$$"
+if mv "$FLAG_FILE" "$CLAIMED" 2>/dev/null; then
+    rm -f "$CLAIMED"
+    # do work (이 프로세스만 진입)
+fi
+```
+
+### 6.8 Shell-Executable Config 소싱 보안
+외부 config 파일을 `source`(`.`)로 실행할 때는 반드시 소유권과 권한을 검증한다:
+```bash
+# .prune-config 등 shell-sourceable config 소싱 전 검증
+if [ -f "$CONFIG" ]; then
+    # 소유자 검증: 현재 사용자 소유가 아니면 거부
+    if ! [ -O "$CONFIG" ]; then
+        echo "WARN: $CONFIG not owned by current user — skipping" >&2
+    # 권한 검증: 그룹/월드 쓰기 가능이면 거부
+    elif [ $(( $(stat -c '%a' "$CONFIG" 2>/dev/null || stat -f '%OLp' "$CONFIG") & 022 )) -ne 0 ]; then
+        echo "WARN: $CONFIG is group/world-writable — skipping" >&2
+    else
+        # shellcheck source=/dev/null
+        source "$CONFIG"
+    fi
+fi
 ```
 
 ## 7. Markdown Standards

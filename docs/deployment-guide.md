@@ -61,7 +61,7 @@ llms.txt → .hxsk/prompts/setup.md 순서로 읽고 실행
 
 ### Step 2: 감지 스크립트 실행 (자동)
 
-setup.md의 Step 0이 3분기 분류를 자동 수행:
+setup.md의 Step 0이 3분기 분류를 자동 수행. **CORRUPTED 브랜치 감지**도 포함 — `git status` 실패 시 CORRUPTED로 분류하고 수동 복구를 안내한다.
 
 ```bash
 TARGET_VERSION=5.5.0
@@ -76,6 +76,7 @@ esac
 - **FRESH** → Step 1~9 (초기 설치 전체)
 - **VERIFY** → 빠른 검증만
 - **UPGRADE** → Step U1~U6 (마이그레이션)
+- **CORRUPTED** → 수동 복구 필요 (setup.md 지시에 따라 처리)
 
 ### Step 3: 필수 스킬 설치
 
@@ -146,7 +147,7 @@ setup.md Step 0에서 `UPGRADE` 분기로 진입하면 Step U1~U6 자동 실행:
 3. **U3**: 스킬/에이전트/훅 재동기화 (심볼릭 링크 재생성)
 4. **U4**: 템플릿 업데이트 (사용자 작성 파일은 보존)
 5. **U5**: `.bootstrap-version` 갱신
-6. **U6**: 검증 (`verify-self-configure.sh`)
+6. **U6**: 검증 (`verify-self-configure.sh`) — 명시적 git staging 사용 (`git add <file>`, `git add -A` 아님)
 
 ### 4.2 수동 업그레이드
 ```bash
@@ -208,6 +209,21 @@ Git hooks 폴백:
 git config core.hooksPath .hxsk/githooks
 # 이제 post-commit / post-merge가 자동으로 prune-tick.sh 호출
 ```
+
+## 5.9 Completion Checklist (setup.md)
+
+setup.md의 완료 체크리스트 각 항목에는 검증 명령이 포함되어 있다:
+
+| 체크 항목 | 검증 명령 |
+|----------|----------|
+| CLAUDE.md / AGENTS.md 존재 | `ls CLAUDE.md AGENTS.md` |
+| SPEC.md placeholder 없음 | `grep -c '{[A-Za-z]' .hxsk/SPEC.md` → 출력 0 |
+| 메모리 디렉토리 생성 | `ls .hxsk/memories/` |
+| 훅 바인딩 | `.claude/settings.json` 내 hooks 섹션 확인 |
+
+**bootstrap.sh FAIL 동작**: FAIL 항목 발생 시 결과 블록 하단에 "다음 단계: `.hxsk/prompts/setup.md` 를 열어 FAIL 항목을 수동으로 수정하세요." 메시지를 출력한다.
+
+**planner SPEC.md guard**: `planner` skill은 SPEC.md에 미해결 `{placeholder}` 패턴이 있으면 계획 생성을 거부한다. (`grep '{[A-Za-z]'` 패턴으로 감지)
 
 ## 6. Self-Configure 검증
 
