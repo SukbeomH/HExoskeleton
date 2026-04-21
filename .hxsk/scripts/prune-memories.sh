@@ -175,9 +175,10 @@ promoted=0
 # 첫 번째 매칭 태그의 대상 폴더로 이동 (git으로 장기 보존)
 promote_target() {
     local f="$1"
-    # frontmatter 블록(첫 ---...--- 사이) 내의 tags 라인만 검사
+    # frontmatter의 tags 섹션만 추출 — title/description 등 다른 필드에서 오탐 방지
     local tags_block
-    tags_block=$(awk '/^---$/{c++; next} c==1' "$f" 2>/dev/null | head -30)
+    tags_block=$(awk '/^---$/{c++;next} c==1' "$f" 2>/dev/null \
+        | sed -n '/^tags:/,/^[a-z]/p' | head -20)
     case "$tags_block" in
         *decision*|*architecture-decision*) echo "architecture-decision" ;;
         *root-cause*)                       echo "root-cause" ;;

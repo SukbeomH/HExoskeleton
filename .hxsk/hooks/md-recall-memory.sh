@@ -42,8 +42,10 @@ if [ "$HOP" = "2" ]; then
     # 1차 결과의 related 필드에서 파일명 추출
     while IFS= read -r filepath; do
         [ -f "$filepath" ] || continue
-        # related 섹션에서 파일명 추출 (YAML 배열)
-        RELATED=$(sed -n '/^related:/,/^[a-z]/p' "$filepath" 2>/dev/null | grep -E '^\s*-\s*' | sed 's/^\s*-\s*//' || true)
+        # related 섹션에서 파일명 추출 (YAML 배열) — frontmatter 내에서만 검색
+        RELATED=$(awk '/^---$/{c++;next} c==1' "$filepath" 2>/dev/null \
+            | sed -n '/^related:/,/^[a-z]/p' \
+            | grep -E '^\s*-\s*' | sed 's/^\s*-\s*//' || true)
         if [ -n "$RELATED" ]; then
             while IFS= read -r related_ref; do
                 [ -z "$related_ref" ] && continue
