@@ -56,10 +56,17 @@ PRUNE_DEFAULT_CAP=5
 PRUNE_CAP_bootstrap=1       # bootstrap은 최신 1개만 (멱등 snapshot)
 PRUNE_TICK_COOLDOWN=60      # prune-tick.sh가 참조 (여기서도 노출)
 
-# Optional config override
+# Optional config override — source only if owned by current user and not group/world writable
 PRUNE_CFG="$PROJECT_DIR/.hxsk/.prune-config"
-# shellcheck disable=SC1090
-[[ -f "$PRUNE_CFG" ]] && source "$PRUNE_CFG"
+if [[ -f "$PRUNE_CFG" ]]; then
+    _MODE=$(stat -f '%A' "$PRUNE_CFG" 2>/dev/null || stat -c '%a' "$PRUNE_CFG" 2>/dev/null || echo "600")
+    if [[ -O "$PRUNE_CFG" ]] && (( ! (8#$_MODE & 8#022) )); then
+        # shellcheck disable=SC1090
+        source "$PRUNE_CFG"
+    else
+        echo "[WARN] prune-memories: skipping .prune-config (not owner-only writable, mode=$_MODE)" >&2
+    fi
+fi
 
 # 설정 값 정규화: 비정상 값이면 기본값으로 폴백 (bash 산술 에러 방지)
 # 주의: `local name=.. val=${!name-}` 한 줄은 indirect expansion 실패 (name 미확정).

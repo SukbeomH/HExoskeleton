@@ -6,6 +6,9 @@
 
 set -euo pipefail
 
+# YAML scalar sanitizer: strip newlines/carriage returns, escape double quotes
+yaml_safe() { printf '%s' "${1:-}" | tr -d '\n\r' | sed 's/"/\\"/g'; }
+
 TITLE="${1:?Usage: md-store-memory.sh <title> <content> [tags] [type] [keywords] [contextual_desc] [related]}"
 CONTENT="${2:?Missing content}"
 TAGS="${3:-general,auto}"
@@ -104,13 +107,13 @@ fi
 # YAML frontmatter 생성
 {
     echo "---"
-    echo "title: \"$TITLE\""
+    echo "title: \"$(yaml_safe "$TITLE")\""
     echo "tags:"
     echo "$YAML_TAGS"
     echo "type: $TYPE"
     echo "created: $ISO_DATE"
     # A-Mem 확장 필드
-    echo "contextual_description: \"$CONTEXTUAL_DESC\""
+    echo "contextual_description: \"$(yaml_safe "$CONTEXTUAL_DESC")\""
     if [ -n "$YAML_KEYWORDS" ]; then
         echo "keywords:"
         echo "$YAML_KEYWORDS"

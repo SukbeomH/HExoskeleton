@@ -36,8 +36,15 @@ LOG_FILE="$HXSK_DIR/.context-save.log"
 # 기본 cooldown (60초). 설정으로 오버라이드 가능.
 PRUNE_TICK_COOLDOWN=60
 PRUNE_CFG="$HXSK_DIR/.prune-config"
-# shellcheck disable=SC1090
-[[ -f "$PRUNE_CFG" ]] && source "$PRUNE_CFG"
+if [[ -f "$PRUNE_CFG" ]]; then
+    _MODE=$(stat -f '%A' "$PRUNE_CFG" 2>/dev/null || stat -c '%a' "$PRUNE_CFG" 2>/dev/null || echo "600")
+    if [[ -O "$PRUNE_CFG" ]] && (( ! (8#$_MODE & 8#022) )); then
+        # shellcheck disable=SC1090
+        source "$PRUNE_CFG"
+    else
+        echo "[WARN] prune-tick: skipping .prune-config (not owner-only writable, mode=$_MODE)" >&2
+    fi
+fi
 
 # 설정 값 정규화: 비정상 값(빈/음수/문자열)이면 기본값 폴백.
 # 산술 비교 시 "integer expression expected" 또는 부호 혼동 방지.
