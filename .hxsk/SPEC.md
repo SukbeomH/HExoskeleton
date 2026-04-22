@@ -37,10 +37,14 @@ HExoskeleton은 Claude Code 네이티브 환경에 최적화된 AI 에이전틱 
 
 - [x] 외부 종속성 없이 Claude Code CLI만으로 에이전트 워크플로우 실행
 - [x] 14개 메모리 타입 + 2-hop 검색으로 세션 간 컨텍스트 유지
-- [x] 16개 Agent + 18개 Skill (공유 스킬 2개 포함) 정의 완료
+- [x] 19개 Agent + 22개 Skill (공유 스킬 2개 포함) 정의 완료
 - [x] 3개 빌드 타겟(Plugin/Antigravity/OpenCode) 스크립트 작성
 - [x] shellcheck 복잡도 CLEAN, 레이어 경계 PASS
-- [ ] `.hxsk/SPEC.md` 및 `STACK.md` 완전 작성 (이 작업)
+- [x] 하네스 비종속 신뢰성 + 1-liner 설치 (Phase 7, v5.5.0)
+- [x] Git Forge GATES + forge-detect + gate-check (Phase 7)
+- [x] 보안 감사 STRIDE/OWASP 15건 (Phase 8, 2026-04-23)
+- [ ] 보안 수정 P0/P1 (bash-guard 패턴 + file-protect + SHA256 검증)
+- [ ] 메모리 age-based prune 티어 추가
 - [ ] release-please 멀티 패키지 설정 검토
 
 ## Technical Requirements
@@ -58,4 +62,4 @@ HExoskeleton은 Claude Code 네이티브 환경에 최적화된 AI 에이전틱 
 
 ---
 
-*Last updated: 2026-03-06*
+*Last updated: 2026-04-23*
