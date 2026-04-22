@@ -26,6 +26,21 @@
 
 ---
 
+## 빠른 시작 — 3선택
+
+> **어떤 AI 에이전트를 사용 중인가?**
+>
+> | 에이전트 | 시작 명령 |
+> |---------|----------|
+> | Claude Code | `bash .hxsk/scripts/install.sh --harness claude-code` |
+> | Cursor 1.7+ | `bash .hxsk/scripts/install.sh --harness cursor` |
+> | GitHub Copilot CLI | `bash .hxsk/scripts/install.sh --harness copilot` |
+> | 기타 (Gemini·Windsurf·Codex 등) | [Tier 2·3 설치 안내](.hxsk/adapters/README.md) |
+>
+> 처음이라면: `.hxsk/prompts/setup.md` Step 1(필수) → Step 4(필수) → 위 명령 순서로 실행
+
+---
+
 ## 설계 사상
 
 HExoskeleton은 세 가지 관찰에서 출발합니다.
