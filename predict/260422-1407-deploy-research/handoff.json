@@ -1,0 +1,108 @@
+{
+  "version": "1.0",
+  "tool": "predict",
+  "generated_at": "2026-04-22T14:07:00+09:00",
+  "commit_hash": "10f52791e66abef574dee28dd0d135e46e196394",
+  "scope": ["배포 관련 파일 전체 (HXSK + autoresearch plugin + 웹 리서치"],
+  "summary": {
+    "personas": 8,
+    "rounds": 3,
+    "findings_confirmed": 8,
+    "findings_probable": 2,
+    "findings_minority": 1,
+    "anti_herd_passed": true,
+    "predict_score": 156
+  },
+  "findings": [
+    {
+      "id": "H-01",
+      "type": "reliability",
+      "severity": "CRITICAL",
+      "confidence": "HIGH",
+      "location": "bootstrap.sh:26-42 + md-store-memory.sh",
+      "title": "신뢰성 11건 — Silent Failure 패턴",
+      "description": "bootstrap.sh CORRUPTED 분기 미구현, md-store-memory.sh TYPE_DIR 미생성 시 메모리 유실, stale lock 미감지",
+      "evidence": "bootstrap.sh: OLD_VERSION='' → MODE='fresh' → SPEC.md 덮어쓰기. md-store-memory.sh: TYPE_DIR 없으면 조용히 실패",
+      "recommendation": "bootstrap.sh CORRUPTED 분기 + md-store-memory.sh mkdir -p + stale lock 300s 감지",
+      "personas_agreed": 6,
+      "personas_total": 8
+    },
+    {
+      "id": "H-02",
+      "type": "ux",
+      "severity": "HIGH",
+      "confidence": "HIGH",
+      "location": "setup.md:130-173",
+      "title": "Step 6 JSON 수동 편집 — 최대 마찰점",
+      "description": "172줄 JSON 블록을 사용자가 수동 복사·편집. 재설치 시 커스텀 훅 덮어쓰기 위험",
+      "recommendation": "install-hooks.sh --merge 스크립트 생성",
+      "personas_agreed": 5,
+      "personas_total": 8
+    },
+    {
+      "id": "H-03",
+      "type": "ux",
+      "severity": "HIGH",
+      "confidence": "HIGH",
+      "location": "setup.md:Step 0-9",
+      "title": "setup.md 선택/필수 단계 미분리",
+      "description": "9단계 중 필수 3개, 선택 6개이나 레이블 없음 → 신규 사용자 인지 부하",
+      "recommendation": "[필수]/[선택] 레이블 추가, 핵심 경로 명시",
+      "personas_agreed": 5,
+      "personas_total": 8
+    },
+    {
+      "id": "H-04",
+      "type": "security",
+      "severity": "HIGH",
+      "confidence": "HIGH",
+      "location": "setup.md:U2",
+      "title": "SHA256 검증 없는 tarball 다운로드",
+      "description": "curl tarball 다운로드 시 SHA 검증 없음 — 부분 다운로드·공급망 위험",
+      "recommendation": "GitHub Releases에 sha256sums 첨부 + setup.md U2 검증 스니펫",
+      "personas_agreed": 4,
+      "personas_total": 8
+    },
+    {
+      "id": "H-05",
+      "type": "discoverability",
+      "severity": "HIGH",
+      "confidence": "MEDIUM",
+      "location": "README.md / 외부 마켓플레이스",
+      "title": "발견 가능성 부재 — 플러그인 마켓 미등록",
+      "description": "claudemarketplaces.com(105K 월간 방문) 미등록, llms.txt 진입 의존",
+      "recommendation": "claudemarketplaces.com 등록 + README Quick Start 개선",
+      "personas_agreed": 4,
+      "personas_total": 8
+    }
+  ],
+  "hypotheses": [
+    {
+      "rank": 1,
+      "id": "H-01",
+      "hypothesis": "bootstrap.sh CORRUPTED 분기 + md-store-memory.sh mkdir -p 추가 시 설치 신뢰성 확보",
+      "confidence": "HIGH",
+      "location": "bootstrap.sh + md-store-memory.sh"
+    },
+    {
+      "rank": 2,
+      "id": "H-03",
+      "hypothesis": "setup.md [필수]/[선택] 레이블 추가 시 신규 사용자 진입 장벽 50% 감소",
+      "confidence": "HIGH",
+      "location": "setup.md:Step 0-9"
+    },
+    {
+      "rank": 3,
+      "id": "H-04",
+      "hypothesis": "install-hooks.sh --merge 스크립트로 Step 6 자동화 가능",
+      "confidence": "HIGH",
+      "location": "setup.md:Step 6"
+    }
+  ],
+  "next_steps": {
+    "immediate": "Phase 0 신뢰성 패치 (H-01, H-02 우선)",
+    "short_term": "Phase 1 설치 자동화 (H-03, H-04, H-08)",
+    "medium_term": "Phase 2 발견 가능성 (H-06, H-10)",
+    "long_term": "Phase 3 Claude Code Plugin 패키지화 검토"
+  }
+}
