@@ -33,7 +33,7 @@ HExoskeleton/
     ├── skills/   (22)         # 재사용 절차
     ├── agents/   (18)         # 스킬 오케스트레이션
     ├── hooks/    (21+)        # 이벤트 훅
-    ├── scripts/  (12)         # 유틸리티
+    ├── scripts/  (17)         # 유틸리티
     ├── workflow/ (1)          # GATES.md
     ├── prompts/  (3)          # setup 프롬프트
     ├── templates/ (33)        # 문서 템플릿
@@ -159,7 +159,7 @@ HExoskeleton/
 - `pre-commit-doc-lint.sh`
 - `pre-commit-version-check.sh`
 
-## 6. Utility Scripts (12)
+## 6. Utility Scripts (17)
 
 | Script | 목적 |
 |--------|------|
@@ -175,6 +175,11 @@ HExoskeleton/
 | `forge-detect.sh` (170) | GitHub/GitLab/Gitea + auth 감지 |
 | `verify-self-configure.sh` (341) | 자가 구성 검증 |
 | `check-reliability.sh` (NEW) | 11-패턴 신뢰성 이슈 카운터; `bash .hxsk/scripts/check-reliability.sh` → `ISSUE COUNT: N` 출력 |
+| `install.sh` (70) | 하네스별 1-liner 설치 — `--harness <name>` (Tier 1: claude-code·cursor·copilot 완전 지원) |
+| `install-hooks.sh` (228) | Claude Code settings.json 훅 설치/병합 — `--merge` 기존 설정 보존, python3 원자적 교체 |
+| `hxsk-harness-sync.sh` (35) | 어댑터 드리프트 감지/동기화 — `--check`/`--sync` 모드 |
+| `setup-verify.sh` (200) | 설치 검증 5개 독립 조건 — `PASS N/5 | FAIL M/5` 출력 |
+| `pre-release-check.sh` (100) | 릴리스 전 4-체크: SHA256·CHANGELOG·ISSUE COUNT·실행권한 |
 
 ## 7. Memory System (16 Types)
 
@@ -197,7 +202,7 @@ HExoskeleton/
 | `session-handoff` | 세션 간 브리지 |
 | `session-snapshot` | pre-compact 스냅샷 |
 | `session-summary` | 세션 종료 요약 |
-| `test` | 테스트 메모리 저장 (PR #138, 신규) |
+| `test` | 테스트 메모리 저장 (PR #138) |
 
 스키마: `.hxsk/memories/_schema/base.schema.json` + `type-relations.yaml`.
 

@@ -23,6 +23,7 @@
 |------|------|------|-----|
 | **v5.5.0+** | 2026-04-22 | execution-summary + test 메모리 타입 + reason 세션 출력 | #138 |
 | **v5.5.0+** | 2026-04-22 | Plan 6.1 신뢰성 패치 17건 수정 | #137 |
+| **v5.5.0+** | 2026-04-22 | 하네스 비종속 신뢰성 + 1-liner 설치 개선 (Wave 1·2·3) | #140 |
 | **v5.5.0** | 2026-04-16 | 하네스 독립 prune | #134 |
 | v5.4.0 | 2026-04-15 | Git Forge + lessons-learned + 메모리 티어 | #131, #127, #133 |
 
@@ -64,6 +65,7 @@
 | ✅ v5.5.0 하네스 독립 prune | ✅ done | — |
 | ✅ Plan 6.1 신뢰성 17건 수정 (YAML injection, race condition, stale lock, etc.) | ✅ done | #137 |
 | ✅ execution-summary + test 메모리 타입 + reason 세션 출력 | ✅ done | #138 |
+| ✅ Phase 7: 신뢰성 개선 + install.sh + hxsk-harness-sync.sh + [필수]/[선택] UX | ✅ done | #140 |
 
 ### Phase 3: 배포 최적화 (2026-Q3) 📋 계획
 
