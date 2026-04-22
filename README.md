@@ -54,58 +54,21 @@ HExoskeleton은 세 가지 관찰에서 출발합니다.
 
 ## 아키텍처
 
-```
-                    ┌──────────────────────────┐
-                    │    GitHub Repository      │
-                    │    (= Distribution)       │
-                    └──────────┬───────────────┘
-                               │
-              ┌────────────────┼────────────────┐
-              │                │                │
-        ┌─────▼─────┐   ┌─────▼─────┐   ┌─────▼──────┐
-        │  llms.txt  │   │ AGENTS.md │   │  prompts/  │
-        │  (진입점)  │   │  (공통)   │   │  (setup)   │
-        └─────┬──────┘   └───────────┘   └────────────┘
-              │
-    ┌─────────┼─────────┐
-    │         │         │
-┌───▼───┐ ┌──▼──┐ ┌───▼────┐
-│skills/│ │hooks│ │agents/ │
-│  21   │ │ 26  │ │  18    │
-└───────┘ └─────┘ └────────┘
-```
-
 ### Self-Configure 모델
 
-일반적인 프레임워크는 `npm install`, `pip install`, 빌드 스크립트를 요구합니다. HExoskeleton은 다릅니다:
-
-1. 에이전트가 `llms.txt`를 읽어 프로젝트 구조를 파악
-2. `setup.md` 프롬프트를 따라 스킬/훅/에이전트를 프로젝트에 배치
-3. `bootstrap.sh`가 누락 컴포넌트를 수렴적(idempotent)으로 보충
-
-**빌드 없음, 설치 명령 없음.** 에이전트가 파일을 읽고 복사하는 것이 곧 설치입니다.
+`llms.txt` → `setup.md` → `bootstrap.sh` 수렴 엔진. **빌드 없음, 설치 명령 없음.** 에이전트가 파일을 읽고 링크하는 것이 곧 설치입니다.
 
 ### 멀티 에이전트 수렴
 
-하나의 프로젝트를 여러 AI 에이전트가 동시에 관리합니다. 에이전트 지침은 분리하되, 워킹 상태(`.hxsk/`)는 공유합니다.
-
 ```
-┌───────────┐  ┌───────────┐  ┌───────────┐  ┌───────────┐  ┌───────────┐
-│ Claude    │  │ Gemini    │  │ Copilot   │  │ Cursor    │  │ Windsurf  │
-│ CLAUDE.md │  │ GEMINI.md │  │ symlink   │  │ symlink   │  │ symlink   │
-└─────┬─────┘  └─────┬─────┘  └─────┬─────┘  └─────┬─────┘  └─────┬─────┘
-      └───────────────┼──────────────┼──────────────┼───────────────┘
-                      ▼              ▼              ▼
-                ┌──────────────────────────────────────┐
-                │           .hxsk/ (공유 상태)           │
-                │  STATE · SPEC · PATTERNS · memories   │
-                │  skills · agents · hooks              │
-                └──────────────────────────────────────┘
+Claude · Gemini · Copilot · Cursor · Windsurf (10+ 하네스)
+         ↓ 각자의 진입점 (CLAUDE.md / GEMINI.md / symlink)
+         ▼
+    .hxsk/ (공유 상태)
+    STATE · SPEC · PATTERNS · memories · skills · agents · hooks
 ```
 
-- **에이전트 간 인수인계** — Claude Code로 디버깅 → Cursor로 UI 작업. STATE.md와 메모리가 컨텍스트를 유지
-- **Lock-in 없음** — 순수 마크다운이므로 어떤 에이전트든 읽고 쓸 수 있음
-- **동시 사용** — 백엔드(Claude) + 프론트엔드(Cursor) 동시 작업 가능
+에이전트 지침은 분리, 워킹 상태(`.hxsk/`)는 공유. Lock-in 없음, 동시 사용 가능.
 
 ---
 
@@ -165,17 +128,7 @@ SessionStart ──→ [작업 수행] ──→ SessionEnd
                   (결과 요약)
 ```
 
-| 이벤트 | 훅 | 역할 |
-|--------|-----|------|
-| **SessionStart** | `session-start.sh` | STATE.md + git status 컨텍스트 주입 |
-| **PreToolUse** | `file-protect.py`, `bash-guard.py` | .env/시크릿 보호, 파괴적 명령 차단 |
-| **PostToolUse** | `auto-format.sh`, `track-modifications.sh` | 자동 포맷, 변경 파일 추적 |
-| **PreCompact** | `pre-compact-save.sh` | 컨텍스트 압축 전 스냅샷 |
-| **Stop** | `post-turn-verify.sh`, `stop-context-save.sh` | 작업 검증, 세션 컨텍스트 저장 |
-| **SubagentStop** | (prompt) | 서브에이전트 결과 요약 |
-| **SessionEnd** | `save-transcript.sh`, `save-session-changes.sh` | 대화 내역 + 변경사항 저장 |
-
-> 상세: [docs/HOOKS.md](.hxsk/docs/HOOKS.md)
+> 이벤트별 훅 상세: [docs/HOOKS.md](.hxsk/docs/HOOKS.md)
 
 ### 3. 파일 기반 메모리 시스템
 
@@ -185,10 +138,8 @@ SessionStart ──→ [작업 수행] ──→ SessionEnd
 |------|------|-----------|
 | Frontmatter 메타데이터 | A-Mem | YAML frontmatter (`title`, `tags`, `keywords`, `related`) |
 | 2-Hop 그래프 검색 | A-Mem | `related` 필드 → 관련 메모리까지 자동 추적 |
-| Compact 모드 | A-Mem | 제목 + 1줄 요약만 반환 (토큰 최적화) |
-| 타입별 분리 | Nemori | 15개 디렉토리 (root-cause, architecture-decision, lessons-learned 등) |
+| 타입별 분리 | Nemori | 16개 디렉토리 (root-cause, architecture-decision, test 등, PR #138에서 `test` 추가) |
 | 중복 방지 | Nemori | 동일 제목 저장 시 `[SKIP:DUPLICATE]` |
-| Contextual description | Nemori | 검색 시 압축 요약 자동 생성 |
 
 ```bash
 # 저장
@@ -199,29 +150,11 @@ bash .hxsk/hooks/md-recall-memory.sh "검색어" "." 5 compact 2
 ```
 
 <details>
-<summary><strong>15개 메모리 타입</strong></summary>
+<summary><strong>16개 메모리 타입 (v5.5.0+)</strong></summary>
 
-| 카테고리 | 타입 | 용도 |
-|----------|------|------|
-| **디버깅** | `root-cause` | 근본 원인 분석 |
-| | `debug-eliminated` | 배제된 가설 |
-| | `debug-blocked` | 3-strike 차단 |
-| **아키텍처** | `architecture-decision` | 아키텍처 결정 사항 |
-| | `pattern-discovery` | 발견된 패턴/학습 |
-| **실행** | `execution-summary` | 실행 결과 요약 |
-| | `deviation` | 계획 대비 이탈 |
-| | `lessons-learned` | PR 리뷰·실행 이탈 A/B/C/D/E 분류 (v5.4.0+) |
-| **세션** | `session-summary` | 세션 종료 요약 (자동, cap=5 FIFO, v5.5+) |
-| | `session-snapshot` | Pre-compact 스냅샷 |
-| | `session-handoff` | 세션 인수인계 |
-| **시스템** | `health-event` | 컨텍스트 건강 이벤트 |
-| | `bootstrap` | 프로젝트 초기 설정 |
-| | `security-finding` | 보안 발견 사항 |
-| | `general` | 기타 |
+디버깅: `root-cause`, `debug-eliminated`, `debug-blocked` · 아키텍처: `architecture-decision`, `pattern-discovery` · 실행: `execution-summary`, `deviation`, `lessons-learned` · 세션: `session-summary`, `session-snapshot`, `session-handoff` · 시스템: `health-event`, `bootstrap`, `security-finding`, `general` · 테스트: `test` (PR #138 신규)
 
-> v5.4.0부터 `tags: [decision|root-cause|incident|security|pattern|lesson]` 매칭 파일은 삭제 직전 shared-tier 폴더로 자동 승격됩니다. 로컬 누적은 cap 기반 FIFO로 제어.
->
-> v5.5.0부터 **하네스 독립 prune**: `prune-tick.sh`가 `md-store-memory.sh`/`md-recall-memory.sh`/`bootstrap.sh` 말미에서 opportunistic하게 발화. Cursor/Gemini CLI/Copilot CLI/OpenCode 등 Claude Code 외 하네스에서도 자동 동작. 설정은 `.hxsk/.prune-config` (기본 cap=5, bootstrap=1, cooldown=60s). 하네스별 어댑터는 `.hxsk/adapters/`, git 훅 폴백은 `.hxsk/githooks/`.
+> `tags: [decision|root-cause|incident]` 보유 파일은 shared-tier로 자동 승격. v5.5.0부터 하네스 독립 prune (cap=5, cooldown=60s).
 
 </details>
 
@@ -253,57 +186,15 @@ Discovery → Issue 생성 (.hxsk/issues/)
 └── 완료
 ```
 
-### 5. Git Forge 통합 작업 관리
+### 5. Git Forge 통합 · Lazy Loading · 수렴적 Bootstrap
 
-GitHub / GitLab / Gitea / Forgejo 등 모든 Git 플랫폼과 호환되는 게이트 기반 작업 관리 시스템. 단일 진실 원천 `GATES.md`가 각 단계의 진입·완료 조건을 정의하고, Claude Code(훅)와 다른 에이전트 하네스(AGENTS.md 규칙) 모두에서 집행됩니다.
+**Git Forge**: `GATES.md`가 SPEC→PLAN→EXECUTE→VERIFY→DONE 각 게이트 조건을 정의. `gate-check.sh` 훅 + `forge-detect.sh`(GitHub/GitLab/Gitea 자동 감지)로 집행.
 
-```
-GATES.md (단일 진실 원천)
-     ↓ 훅으로 집행                ↓ 규칙으로 참조
-gate-check.sh               AGENTS.md 섹션
-(Claude Code 전용)          (opencode / Copilot / Antigravity)
-```
+**Lazy Loading**: `CLAUDE.md`(L1, ~50 tokens) → `skills/SKILL.md`(L2) → `.hxsk/research/`(L3). 에이전트가 필요한 깊이만 읽음.
 
-PLAN 단계는 GitHub Issue + Git Worktree로 세분화됩니다:
+**Bootstrap**: `bootstrap.sh`는 멱등 수렴 엔진 — `fresh/update/verify` 어느 모드든 동일 최종 상태 보장.
 
-```
-P1 브랜치 생성 → P2 부모 이슈 생성 → P3 파일 소유권 맵 작성
-→ P4 하위 이슈/브랜치 전수 생성 → P5 워크트리 전수 생성
-→ EXECUTE (서브에이전트 병렬) → PR→리뷰→머지→이슈 close
-→ VERIFY (부모 PR) → 결과 보고서
-```
-
-**플랫폼 호환성**: `forge-detect.sh`가 remote URL로 플랫폼 자동 감지 → CLI 추상화
-
-| 플랫폼 | 등급 | 비고 |
-|--------|------|------|
-| GitHub | ✅ 100% | Sub-Issues GA (2025-01) 활용 |
-| GitLab | ✅ 85% | MR + 이슈 체크리스트 대체 |
-| Gitea / Forgejo | ✅ 80% | `tea` CLI + 체크리스트 대체 |
-
-> 상세: [설계 문서](.hxsk/docs/plans/2026-04-15-github-task-management-design.md) · [리서치](.hxsk/research/workflow/)
-
-### 5. Lazy Loading 문서 계층
-
-에이전트가 필요한 만큼만 읽도록 3단계로 구조화합니다.
-
-| 레벨 | 내용 | 토큰 | 예시 |
-|------|------|------|------|
-| **L0** | YAML frontmatter만 | ~50 | 이슈 목록 스캔 |
-| **L1** | 본문 (Quick Reference 포함) | ~200-500 | 스킬 개요 파악 |
-| **L2** | 관련 SKILL/PLAN/연구 문서 | ~1000+ | 상세 절차 실행 |
-
-`CLAUDE.md`(L1) → `skills/SKILL.md`(L2) → `.hxsk/research/`(L3) 순으로 깊어집니다.
-
-### 6. 수렴적 Bootstrap
-
-`bootstrap.sh`는 멱등(idempotent) 수렴 엔진입니다. 몇 번을 실행해도 동일한 최종 상태에 도달합니다.
-
-```
-fresh   → 모든 컴포넌트 생성, 카운트 기록
-update  → 기존 카운트와 비교, 변경분만 [NEW]/[UPDATED] 표시
-verify  → 구조 검증, 누락 타입 자동 보충
-```
+> Git Forge 상세: [설계 문서](.hxsk/docs/plans/2026-04-15-github-task-management-design.md)
 
 ---
 
@@ -356,7 +247,7 @@ make setup
     ├── docs/                  # 상세 문서 (26)
     ├── prompts/               # Setup + 마이그레이션 프롬프트
     ├── templates/             # 문서 템플릿 (32)
-    ├── memories/              # 파일 기반 메모리 (15 타입)
+    ├── memories/              # 파일 기반 메모리 (16 타입)
     ├── research/              # 연구 문서 (38개, 7개 카테고리)
     ├── issues/                # 파일 기반 이슈 레지스트리
     ├── STATE.md               # 현재 작업 상태
@@ -369,21 +260,9 @@ make setup
 
 ## 연구 기반
 
-현재 아키텍처는 최신 에이전트 메모리 및 추론 최적화 연구를 분석하고 선택적으로 적용한 결과입니다.
+현재 아키텍처는 최신 에이전트 메모리 및 추론 최적화 연구를 선택적으로 적용한 결과입니다.
 
-| 출처 | 적용한 것 | 적용하지 않은 것 |
-|------|-----------|-----------------|
-| [A-Mem](https://arxiv.org/html/2502.12110v11) | frontmatter, `related`, 2-hop, compact | Memory Evolution (자동 진화) |
-| [Nemori](https://arxiv.org/html/2508.03341v3) | 타입 분리, `[SKIP:DUPLICATE]`, contextual_description | Predict-Calibrate (확률 보정) |
-| [ReWOO](https://github.com/weitianxin/Awesome-Agentic-Reasoning) | SPEC → PLAN → EXECUTE 분리 | 전체 프레임워크 |
-| [RLM](https://arxiv.org/html/2512.24601v2) | Agent-Skill 래핑, Phase → Plan → Task | Persistent REPL |
-| [Anthropic](https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents) | 간결한 에이전트 정의, 외부 파일 위임 | — |
-| [Superpowers](https://github.com/obra/superpowers) | Iron Laws, Gate Functions, 합리화 테이블 패턴 분석 | 스킬 TDD, 2단계 리뷰 (중기 적용) |
-| [Meincke et al. (2025)](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=5357179) | Authority 기반 Iron Laws 설계 근거 (N=28,000, 준수율 33%→72%) | — |
-| [Sharma et al. (ICLR 2024)](https://arxiv.org/abs/2310.13548) | 합리화 테이블의 이론적 근거 (RLHF 아첨 메커니즘) | — |
-| [SkillReducer (2026)](https://arxiv.org/abs/2603.29919) | CSO 패턴 — description 트리거 최적화 (55K 스킬 분석) | — |
-| [GitHub Flow](https://docs.github.com/en/get-started/using-github/github-flow) + [Sub-Issues GA](https://github.blog/engineering/architecture-optimization/introducing-sub-issues-enhancing-issue-management-on-github/) | Gate 기반 PLAN 세분화, 부모·하위 이슈 계층 | — |
-| [Git Worktree 멀티에이전트](https://www.augmentcode.com/guides/git-worktrees-parallel-ai-agent-execution) | 파일 소유권 맵 + `.worktrees/` 패턴 | — |
+핵심 출처: [A-Mem](https://arxiv.org/html/2502.12110v11) · [Nemori](https://arxiv.org/html/2508.03341v3) · [ReWOO](https://github.com/weitianxin/Awesome-Agentic-Reasoning) · [RLM](https://arxiv.org/html/2512.24601v2) · [Anthropic Context Engineering](https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents) · [Superpowers](https://github.com/obra/superpowers) · [SkillReducer (2026)](https://arxiv.org/abs/2603.29919) · [Meincke et al. (2025)](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=5357179) · [Sharma et al. ICLR 2024](https://arxiv.org/abs/2310.13548)
 
 > 상세: [.hxsk/research/INDEX.md](.hxsk/research/INDEX.md)
 
@@ -391,66 +270,19 @@ make setup
 
 ## 상세 문서
 
-| 문서 | 설명 |
-|------|------|
-| [**Design Philosophy**](.hxsk/docs/DESIGN-PHILOSOPHY.md) | **설계 철학 — 9가지 원칙, 작성 규칙, 연구 근거, 방향성** |
-| [Skills](.hxsk/docs/SKILLS.md) | 21개 스킬 상세 |
-| [Agents](.hxsk/docs/AGENTS.md) | 18개 에이전트 상세 |
-| [Hooks](.hxsk/docs/HOOKS.md) | 훅 시스템 + settings.json 전체 예시 |
-| [Memory](.hxsk/docs/MEMORY.md) | 파일 기반 메모리 시스템 |
-| [Workflows](.hxsk/docs/WORKFLOWS.md) | SPEC→PLAN→EXECUTE→VERIFY + Gate 워크플로우 |
-| [Conventions](.hxsk/docs/CONVENTIONS.md) | 개발 컨벤션 (Issue, Branch, Commit, PR) |
-| [Git Forge 작업 관리 설계](.hxsk/docs/plans/2026-04-15-github-task-management-design.md) | Gate 기반 작업 관리 + 멀티 플랫폼 호환 |
-| [Antigravity Guide](.hxsk/docs/ANTIGRAVITY_AGENT_GUIDE.md) | Antigravity IDE 에이전트 가이드 |
-| [Build](.hxsk/docs/BUILD.md) | Self-Configure 배포 가이드 |
-| [Research](.hxsk/research/INDEX.md) | 35개 연구 문서, 8개 카테고리 |
+[Design Philosophy](.hxsk/docs/DESIGN-PHILOSOPHY.md) · [Skills](.hxsk/docs/SKILLS.md) · [Agents](.hxsk/docs/AGENTS.md) · [Hooks](.hxsk/docs/HOOKS.md) · [Memory](.hxsk/docs/MEMORY.md) · [Workflows](.hxsk/docs/WORKFLOWS.md) · [Conventions](.hxsk/docs/CONVENTIONS.md) · [Build](.hxsk/docs/BUILD.md) · [Research](.hxsk/research/INDEX.md)
+
+공개 문서: [docs/](docs/) — codebase-summary · system-architecture · deployment-guide · testing-guide · configuration-guide · code-standards · project-roadmap · project-overview-pdr
 
 ---
 
 ## 로드맵
 
-[Superpowers 분석](.hxsk/research/superpowers-analysis.md)과 [근거 논문 리서치](.hxsk/research/superpowers-references.md), [Claude Code 품질 저하 완화 분석](.hxsk/research/claude-code-quality-mitigation.md)을 기반으로 한 개선 계획입니다.
+현재 버전 **v5.5.0** (2026-04-16). 최근 변경: PR #138 test 메모리 타입 추가 · PR #137 신뢰성 17건 수정.
 
-### Phase 1: 규율 강화 (즉시 적용)
+주요 완료 마일스톤: Iron Laws · 합리화 테이블 · CSO · Git Forge 통합(GATES.md) · 하네스 독립 prune · 16개 메모리 타입.
 
-에이전트의 규칙 우회·허위 완료·읽기 건너뛰기를 프롬프트 레벨에서 차단합니다.
-
-| 항목 | 내용 | 근거 |
-|------|------|------|
-| **Iron Laws** | `NO EDIT WITHOUT READ FIRST`, `NO COMPLETION WITHOUT VERIFICATION`, `NO WRITE TO EXISTING FILES` | Meincke+ 2025: Authority 기법으로 준수율 33%→72% |
-| **합리화 테이블** | 허위 완료(5항목), Read 건너뛰기(4항목), 파일 덮어쓰기(3항목) | Sharma+ ICLR 2024: RLHF 아첨 메커니즘 차단 |
-| **CSO 적용** | 21개 스킬 description을 트리거 조건만으로 최적화 | SkillReducer 2026: 48% 압축 + 2.8% 품질 향상 |
-| **Ultrathink 트리거** | 아키텍처 결정·디버깅·리팩토링 시 깊은 thinking 명시 요청 | Anthropic: adaptive thinking under-allocation 대응 |
-
-### Phase 2: 검증 체계 고도화 (중기)
-
-| 항목 | 내용 | 근거 |
-|------|------|------|
-| **Gate Function 스킬** | 5단계 게이트 (IDENTIFY→RUN→READ→VERIFY→CLAIM) | Anthropic harness blog: 허위 완료 선언 제거 |
-| **보조 문서 시스템** | 스킬당 심화 .md (프롬프트 템플릿, 안티패턴, 기법 가이드) | Superpowers: 스킬당 2-3개 보조 문서 패턴 |
-| **2단계 리뷰** | spec-reviewer(스펙 준수) + code-reviewer(코드 품질) 분리 | Anthropic multi-agent: 전문 역할 분리로 90%+ 향상 |
-| **PreToolUse 훅 강화** | Edit/Write 도구 사용 시 조건부 thinking 요청 주입 | Context rot 방지, 도구 사용 전 검증 |
-
-### Phase 3: 스킬 품질 보증 (장기)
-
-| 항목 | 내용 | 근거 |
-|------|------|------|
-| **스킬 TDD** | 서브에이전트로 스킬 없이 압박 시나리오 실행 → 스킬 작성 → 재검증 | Superpowers writing-skills: RED→GREEN→REFACTOR |
-| **서브에이전트 프롬프트 템플릿** | implementer, reviewer 등 역할별 표준 템플릿 | Superpowers: 컨텍스트 격리 + 구조화된 지시 |
-| **합리화 테이블 자동 갱신** | 실제 우회 패턴 수집 → 테이블 업데이트 사이클 | 모델 업데이트 시 행동 변화 추적 |
-
-### Phase 4: Git Forge 통합 작업 관리 (v5.4.0 출시)
-
-| 항목 | 내용 | 상태 |
-|------|------|------|
-| **GATES.md** | SPEC→PLAN(P1-P5)→EXECUTE→VERIFY→DONE 단계별 진입/완료 조건 | ✅ 구현 (PR #131) |
-| **gate-check.sh 훅** | PreToolUse/Stop 이벤트에서 게이트 조건 자동 집행 | ✅ 구현 (PR #131) |
-| **forge-detect.sh** | remote URL 기반 플랫폼 감지 → gh/glab/tea CLI 추상화 | ✅ 구현 (PR #131) |
-| **AGENTS.md 게이트 규칙** | 모든 에이전트 하네스 공통 게이트 규칙 섹션 | ✅ 구현 |
-| **lessons-learned 타입** | PR 리뷰·실행 이탈 A/B/C/D/E 분류 · 5개 스킬 통합 | ✅ 구현 (PR #127) |
-| **메모리 티어 최적화** | Write-gating + cap FIFO + 가치 태그 shared-tier 자동 승격 | ✅ 구현 (PR #132) |
-
-> 설계 문서: [`.hxsk/docs/plans/2026-04-15-github-task-management-design.md`](.hxsk/docs/plans/2026-04-15-github-task-management-design.md)
+상세 로드맵: [docs/project-roadmap.md](docs/project-roadmap.md)
 
 ---
 

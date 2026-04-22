@@ -235,7 +235,7 @@ bash .hxsk/scripts/verify-self-configure.sh
 
 검증 항목:
 - 훅이 Claude 설정에 등록되었는가
-- 메모리 디렉토리(15 타입)가 존재하는가
+- 메모리 디렉토리(16 타입)가 존재하는가
 - 버전 일관성 (llms.txt, .bootstrap-version, CHANGELOG)
 - 심볼릭 링크가 정상 해결되는가
 - 필수 스킬/에이전트가 모두 설치되었는가

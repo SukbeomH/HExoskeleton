@@ -26,7 +26,7 @@ HXSK는 Claude Code 네이티브 환경에 최적화되었지만, Gemini·Copilo
 
 | 원리 | 출처 | HXSK 구현 |
 |------|------|----------|
-| **A-Mem** (Agentic Memory) | 파일 기반 에이전트 메모리 연구 | `.hxsk/memories/` 15 타입, 2-hop 검색, keywords+contextual_description+related 필드 |
+| **A-Mem** (Agentic Memory) | 파일 기반 에이전트 메모리 연구 | `.hxsk/memories/` 16 타입, 2-hop 검색, keywords+contextual_description+related 필드 |
 | **ReWOO** (Reasoning Without Observation) | 계획-실행 분리 | `planner` skill(PLAN.md 생성) → `executor` skill(원자 실행) 분리 |
 | **Nemori** (Self-Organizing Memory) | 중복 방지 + Predict-Calibrate | `md-store-memory.sh`에서 title/slug 기반 자동 dedup |
 
@@ -77,7 +77,7 @@ HXSK는 Claude Code 네이티브 환경에 최적화되었지만, Gemini·Copilo
     │ agents/  (18)    │  When/With What — 스킬 오케스트레이션
     │ hooks/   (21+)   │  Event-driven 가드레일
     │ scripts/ (12)    │  유틸리티 (이슈/메모리/빌드)
-    │ memories/        │  15 types × 2-hop search
+    │ memories/        │  16 types × 2-hop search
     │ workflow/        │  GATES.md
     │ templates/       │  33 templates
     │ research/        │  L3 근거 자료
