@@ -33,3 +33,27 @@
 - [Workflow Guide](.hxsk/docs/WORKFLOWS.md): SPEC→PLAN→EXECUTE→VERIFY 워크플로우
 - [Skills Guide](.hxsk/docs/SKILLS.md): 스킬 상세 가이드
 - [Hooks Guide](.hxsk/docs/HOOKS.md): 훅 시스템 상세
+
+## 하네스별 빠른 시작
+
+어떤 AI 에이전트를 사용 중인가?
+
+### Claude Code
+1. 이 llms.txt를 읽은 후 `.hxsk/prompts/setup.md`를 실행하세요.
+2. 또는: `bash .hxsk/scripts/install.sh --harness claude-code`
+
+### Cursor 1.7+
+1. `.hxsk/prompts/setup.md` Step 1·4·6(필수) 실행
+2. `bash .hxsk/scripts/install.sh --harness cursor`
+
+### GitHub Copilot CLI
+1. `.hxsk/prompts/setup.md` Step 1·4·6(필수) 실행
+2. `bash .hxsk/scripts/install.sh --harness copilot`
+
+### Gemini CLI / Windsurf / OpenCode / Codex (Tier 2)
+1. `.hxsk/prompts/setup.md` Step 1·4·6(필수) 실행
+2. `.hxsk/adapters/README.md` 의 해당 하네스 섹션 참조
+
+### Aider / Continue / Antigravity (Tier 3 — 커뮤니티 기여)
+1. `.hxsk/prompts/setup.md` Step 1·4(필수) 실행
+2. `bash .hxsk/scripts/install.sh --harness git-hook`
