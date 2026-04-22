@@ -2,7 +2,7 @@
 
 > HExoskeleton 리포지토리의 파일 인벤토리, 의존성, 구성 요소 카운트.
 >
-> Version 5.5.0 · ~321 추적 파일
+> Version 5.5.0 · ~418 추적 파일
 
 ## 1. Repository Layout
 
@@ -37,9 +37,9 @@ HExoskeleton/
     ├── workflow/ (1)          # GATES.md
     ├── prompts/  (3)          # setup 프롬프트
     ├── templates/ (33)        # 문서 템플릿
-    ├── adapters/ (7)          # 하네스별 어댑터
+    ├── adapters/ (8)          # 하네스별 어댑터
     ├── githooks/              # git post-commit/post-merge
-    ├── memories/ (15 types)   # 파일 기반 메모리
+    ├── memories/ (16 types)   # 파일 기반 메모리
     ├── research/              # L3 근거 문서
     ├── issues/                # 파일 기반 이슈 레지스트리
     ├── docs/                  # 내부 심화 문서 (11)
@@ -59,8 +59,8 @@ HExoskeleton/
 | **Templates** | 33 | ~2,386 | 문서 생성 표준 |
 | **Internal Docs** | 11 | varied | `.hxsk/docs/` |
 | **Prompts** | 3 | ~495 | setup 프롬프트 |
-| **Adapters** | 7 | ~280–884 each | 하네스별 훅 설정 |
-| **Memory Types** | 15 | 런타임 생성 | A-Mem 확장 |
+| **Adapters** | 8 | ~280–884 each | 하네스별 훅 설정 |
+| **Memory Types** | 16 | 런타임 생성 | A-Mem 확장 |
 | **Workflow Gates** | 8 | 133 | GATES.md 정의 |
 
 ## 3. Skills Inventory (22)
@@ -81,7 +81,7 @@ HExoskeleton/
 | `executor` | PLAN.md → 원자 커밋 + 4-규칙 편차 처리 |
 | `handoff` | 세션 종료: 테스트→커밋→메모리→요약 |
 | `impact-analysis` | 변경 blast radius 평가 |
-| `memory-protocol` | 15 타입 메모리 저장/회상(2-hop) |
+| `memory-protocol` | 16 타입 메모리 저장/회상(2-hop) |
 | `plan-checker` | PLAN.md 6차원 검증 |
 | `planner` | 목표→PLAN.md 작성 (goal-backward) |
 | `pr-review` | 6-페르소나 코드 리뷰 (Dev/QA/Security/Arch/DevOps/UX) |
@@ -176,7 +176,7 @@ HExoskeleton/
 | `verify-self-configure.sh` (341) | 자가 구성 검증 |
 | `check-reliability.sh` (NEW) | 11-패턴 신뢰성 이슈 카운터; `bash .hxsk/scripts/check-reliability.sh` → `ISSUE COUNT: N` 출력 |
 
-## 7. Memory System (15 Types)
+## 7. Memory System (16 Types)
 
 `.hxsk/memories/` 하위 디렉토리:
 
@@ -197,10 +197,11 @@ HExoskeleton/
 | `session-handoff` | 세션 간 브리지 |
 | `session-snapshot` | pre-compact 스냅샷 |
 | `session-summary` | 세션 종료 요약 |
+| `test` | 테스트 메모리 저장 (PR #138, 신규) |
 
 스키마: `.hxsk/memories/_schema/base.schema.json` + `type-relations.yaml`.
 
-## 8. Harness Adapters (7)
+## 8. Harness Adapters (8)
 
 `.hxsk/adapters/`:
 
@@ -273,7 +274,7 @@ HExoskeleton/
 - **language-support/** (3) — 다국어 확장 타당성 (archived)
 - **tooling/** (2) — bash CLI vs MCP 트레이드오프
 - **architecture/** (3) — 코드 엔트로피, 솔루션 비교 프레임워크
-- **workflow/** (4+) — GitHub 워크플로우, 멀티플랫폼 호환성, autoresearch 방법론 비교
+- **workflow/** (5) — GitHub 워크플로우, 멀티플랫폼 호환성, 토큰 최적화, Git 이슈 메모리, AutoResearch 방법론 비교
 
 인덱스: `.hxsk/research/INDEX.md`.
 

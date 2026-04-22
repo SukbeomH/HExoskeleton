@@ -210,7 +210,7 @@ bash .hxsk/scripts/verify-self-configure.sh
 
 검증 항목:
 - [ ] 훅이 Claude Code 설정(`.claude/settings.json`)에 바인딩됨
-- [ ] 15개 메모리 타입 디렉토리 모두 존재
+- [ ] 16개 메모리 타입 디렉토리 모두 존재
 - [ ] `.bootstrap-version`과 llms.txt 버전 일치
 - [ ] 심볼릭 링크 정상 해결 (`.claude/skills/` → `.hxsk/skills/`)
 - [ ] 필수 스킬 5개(bootstrap, planner, executor, verifier, memory-protocol) 존재

@@ -25,7 +25,7 @@ graph TB
         Agents[agents/<br/>18 오케스트레이터]
         Hooks[hooks/<br/>21 이벤트 훅]
         Scripts[scripts/<br/>12 유틸리티]
-        Memory[memories/<br/>15 타입 × 2-hop]
+        Memory[memories/<br/>16 타입 × 2-hop]
         Workflow[workflow/GATES.md<br/>8 게이트]
         Templates[templates/<br/>33 템플릿]
         State[STATE.md<br/>CURRENT.md<br/>SPEC.md]
@@ -170,7 +170,7 @@ graph TB
 ```yaml
 ---
 name: short-title
-type: root-cause | architecture-decision | ... (15 types)
+type: root-cause | architecture-decision | ... (16 types)
 keywords: [bug, auth, session-token]
 contextual_description: "≤200자 요약 — 어떤 맥락에서 유용한가"
 related: [slug-of-related-memory-1, slug-of-related-memory-2]
@@ -372,7 +372,7 @@ graph TB
 | (미번호) | Opportunistic prune-tick | cron/launchd 의존 없이 cooldown 60s 자가 트리거; stale lock 300s 감지 |
 | (미번호) | Tier 분리 (local/shared) | git 추적 비용 vs 장기 지식 보존 밸런스 |
 | (미번호) | GATES.md 파일 기반 검증 | AGENTS.md의 "Forge-agnostic" 원칙 — GitHub 없어도 동작 |
-| (미번호) | 15 memory types | A-Mem + 도메인 특화(debug/security/session) 혼합 |
+| (미번호) | 16 memory types | A-Mem + 도메인 특화(debug/security/session/test) 혼합; `test` 타입은 PR #138에서 추가 |
 | (미번호) | `.prune-config` owner+perm 검증 | 그룹/월드-쓰기 가능 config 소싱 시 WARN+스킵 — 권한 상승 방지 |
 | (미번호) | `yaml_safe()` + 2-hop frontmatter 한정 | YAML injection 방지; body false-match 제거 |
 

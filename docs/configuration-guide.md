@@ -360,7 +360,7 @@ cross_phase_invariants:
 ```yaml
 ---
 name: title-slug
-type: root-cause                   # 15 타입 중 하나
+type: root-cause                   # 16 타입 중 하나
 keywords: [specific, terms]        # grep 타겟
 contextual_description: "≤200자 요약"
 related: [other-memory-slug-1, ...]  # 2-hop 링크
@@ -428,7 +428,7 @@ components:
   skills: 22
   agents: 18
   hooks: 21
-  memories: 15
+  memories: 16
 ```
 
 `setup.md` Step 0이 이 파일을 읽어 FRESH/VERIFY/UPGRADE 분기.

@@ -21,7 +21,8 @@
 
 | 버전 | 날짜 | 주제 | PR |
 |------|------|------|-----|
-| **v5.5.0+** | 2026-04-21~ | Plan 6.1 신뢰성 패치 (11건 수정) | — |
+| **v5.5.0+** | 2026-04-22 | execution-summary + test 메모리 타입 + reason 세션 출력 | #138 |
+| **v5.5.0+** | 2026-04-22 | Plan 6.1 신뢰성 패치 17건 수정 | #137 |
 | **v5.5.0** | 2026-04-16 | 하네스 독립 prune | #134 |
 | v5.4.0 | 2026-04-15 | Git Forge + lessons-learned + 메모리 티어 | #131, #127, #133 |
 
@@ -61,7 +62,8 @@
 | ✅ v5.4.0 Git Forge 통합 | ✅ done | — |
 | ✅ v5.4.0 lessons-learned 5 카테고리 | ✅ done | — |
 | ✅ v5.5.0 하네스 독립 prune | ✅ done | — |
-| ✅ Plan 6.1 신뢰성 11건 수정 (YAML injection, race condition, stale lock, etc.) | ✅ done | — |
+| ✅ Plan 6.1 신뢰성 17건 수정 (YAML injection, race condition, stale lock, etc.) | ✅ done | #137 |
+| ✅ execution-summary + test 메모리 타입 + reason 세션 출력 | ✅ done | #138 |
 
 ### Phase 3: 배포 최적화 (2026-Q3) 📋 계획
 
@@ -82,9 +84,15 @@
 
 ## 4. Completed Major Milestones
 
-### Plan 6.1 (2026-04-21~) — 신뢰성 11건 수정
+### PR #138 (2026-04-22) — execution-summary + test 메모리 타입 + reason 세션 출력
 
-**11개 신뢰성 이슈 해결: YAML injection, race condition, stale lock, CLAUDE_PROJECT_DIR 검증, NO_MATCH 시그널, TYPE_DIR 자동 생성, 2-hop frontmatter 제약**
+- `.hxsk/memories/test/` 디렉토리 신규 추가 (16번째 메모리 타입)
+- execution-summary 메모리 타입 개선
+- reason 세션 출력 기능 추가
+
+### Plan 6.1 / PR #137 (2026-04-22) — 신뢰성 17건 수정
+
+**17개 신뢰성 이슈 해결: YAML injection, race condition, stale lock, CLAUDE_PROJECT_DIR 검증, NO_MATCH 시그널, TYPE_DIR 자동 생성, 2-hop frontmatter 제약**
 
 | 수정 영역 | 상세 |
 |---------|------|
@@ -99,6 +107,8 @@
 | SPEC placeholder guard | `planner`: `{placeholder}` 패턴 감지 시 계획 거부 |
 | ORPHAN 제외 확장 | `doc-lint.sh`: scenario/predict/.hxsk/docs/.hxsk/phases 추가 |
 | 신뢰성 카운터 신규 | `check-reliability.sh`: 11-패턴 이슈 카운터 스크립트 |
+| shebang 표준화 | `pre-compact-save.sh`: `#!/usr/bin/env bash` |
+| ORPHAN 제외 확장(추가) | `doc-lint.sh`: `./scenario ./predict ./.hxsk/docs ./.hxsk/phases` |
 
 ### v5.4.0 (2026-04-15) — Git Forge + lessons-learned
 
