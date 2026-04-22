@@ -1,0 +1,15 @@
+{
+  "$comment": "GitHub Copilot CLI hook config — HXSK prune integration. Copy/merge to .copilot/hooks.json",
+  "hooks": {
+    "sessionEnd": [
+      {
+        "command": "bash .hxsk/scripts/prune-memories.sh --auto"
+      }
+    ],
+    "agentStop": [
+      {
+        "command": "bash .hxsk/scripts/prune-memories.sh --auto"
+      }
+    ]
+  }
+}
