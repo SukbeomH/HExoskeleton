@@ -198,6 +198,20 @@ bash .hxsk/hooks/md-recall-memory.sh "검색어" "." 5 compact
 
 ### [선택] Step 9: Multi-Harness 활성화 (선택, v5.5.0+)
 
+| Tier | 하네스 | 지원 수준 | 어댑터 |
+|------|--------|-----------|--------|
+| **Tier 1** | Claude Code | 완전 지원 (네이티브) | 내장 |
+| **Tier 1** | Cursor 1.7+ | 완전 지원 | cursor-hooks.json |
+| **Tier 1** | GitHub Copilot CLI | 완전 지원 | copilot-hooks.json |
+| **Tier 2** | Gemini CLI | 부분 지원 | gemini-settings.json |
+| **Tier 2** | Windsurf | 부분 지원 | windsurf-hooks.json |
+| **Tier 2** | OpenCode | 부분 지원 (JS 래퍼 필요) | opencode-plugin.ts |
+| **Tier 2** | OpenAI Codex CLI | 부분 지원 | codex-hooks.json |
+| **Tier 3** | Aider / Continue / Antigravity | 커뮤니티 기여 | git 훅 폴백 |
+
+> Tier 1만 설치해도 핵심 기능이 완전히 동작합니다.
+> Tier 2·3는 필요 시 추가하세요.
+
 Claude Code 외 다른 하네스를 함께 쓰는 경우, 각 하네스의 훅 시스템에 HXSK prune을 연결합니다. **부록 A** 참고.
 
 기본 발화(opportunistic tick)는 하네스 무관하게 작동하므로 필수는 아닙니다 — `md-store-memory.sh`/`md-recall-memory.sh`/`bootstrap.sh`가 호출되면 자동 정리.
