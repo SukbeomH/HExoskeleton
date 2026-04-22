@@ -8,6 +8,9 @@
 
 아래 지침에 따라 현재 프로젝트에 HExoskeleton(HXSK) 개발 방법론을 구성·유지하세요.
 
+> **빠른 시작 (약 5분):** Step 1 → Step 4 → Step 6 만 완료하면 기본 동작합니다.
+> 나머지(Step 2·3·5·7·8·9)는 필요에 따라 선택 적용하세요.
+
 ## Step 0: 상태 감지 (3분기)
 
 ```bash
@@ -44,11 +47,11 @@ fi
 
 ## 초기 설치
 
-### Step 1: 진입점 읽기
+### [필수] Step 1: 진입점 읽기
 
 이 레포의 `llms.txt`를 읽어 사용 가능한 리소스 목록을 파악하세요.
 
-### Step 2: 에이전트 지침 설정
+### [선택] Step 2: 에이전트 지침 설정
 
 당신의 에이전트 유형에 맞는 지침 파일을 프로젝트 루트에 저장하세요:
 
@@ -58,7 +61,7 @@ fi
 | Gemini CLI | `GEMINI.md` |
 | 기타 (Copilot, Cursor, Windsurf 등) | `AGENTS.md` |
 
-### Step 3: HXSK 문서 구조 생성
+### [선택] Step 3: HXSK 문서 구조 생성
 
 `.hxsk/` 디렉토리를 만들고 working docs를 생성하세요:
 
@@ -72,7 +75,7 @@ fi
 └── examples/     ← 사용 예시
 ```
 
-### Step 4: 스킬 및 에이전트 설치
+### [필수] Step 4: 스킬 및 에이전트 설치
 
 `.hxsk/skills/INDEX.md`를 참조하여 스킬을, `.hxsk/agents/INDEX.md`를 참조하여 에이전트를 가져오세요.
 
@@ -92,7 +95,10 @@ fi
 mkdir -p .claude/skills
 for skill_dir in .hxsk/skills/*/; do
     skill_name=$(basename "$skill_dir")
-    ln -sfn "../../.hxsk/skills/$skill_name" ".claude/skills/$skill_name"
+    if ! ln -sfn "../../.hxsk/skills/$skill_name" ".claude/skills/$skill_name" 2>/dev/null; then
+        echo "[WARN] symlink 실패 — cp 폴백 사용 (Windows 환경)"
+        cp -r ".hxsk/skills/$skill_name" ".claude/skills/$skill_name"
+    fi
 done
 
 # 에이전트: .hxsk/agents/*.md → .claude/agents/ (INDEX.md 제외)
@@ -111,7 +117,7 @@ done
 
 > **주의**: `.hxsk/.bootstrap-version` 파일을 직접 생성하지 마세요. `bootstrap.sh`가 자동 생성합니다.
 
-### Step 5: 에이전트별 자동 로드 경로 연결
+### [선택] Step 5: 에이전트별 자동 로드 경로 연결
 
 `AGENTS.md`를 각 에이전트의 자동 로드 경로에 심볼릭 링크로 연결하세요:
 
@@ -127,7 +133,7 @@ ln -sf AGENTS.md .cursorrules
 ln -sf AGENTS.md .windsurfrules
 ```
 
-### Step 6: 훅 설치 (Claude Code만)
+### [필수] Step 6: 훅 설치 (Claude Code만)
 
 > Claude Code가 아닌 에이전트는 이 단계를 건너뛰세요. AGENTS.md의 Agent Boundaries 규칙으로 대체됩니다.
 
@@ -172,7 +178,7 @@ ln -sf AGENTS.md .windsurfrules
 }
 ```
 
-### Step 7: 메모리 시스템 확인 (Claude Code만)
+### [선택] Step 7: 메모리 시스템 확인 (Claude Code만)
 
 > Claude Code가 아닌 에이전트는 이 단계를 건너뛰세요.
 
@@ -184,13 +190,13 @@ bash .hxsk/hooks/md-store-memory.sh "제목" "내용" "태그" "타입"
 bash .hxsk/hooks/md-recall-memory.sh "검색어" "." 5 compact
 ```
 
-### Step 8: README에 뱃지 추가 (선택)
+### [선택] Step 8: README에 뱃지 추가 (선택)
 
 ```markdown
 [![HExoskeleton](https://img.shields.io/badge/assisted%20with-HExoskeleton-blueviolet?style=flat-square)](https://github.com/SukbeomH/HExoskeleton)
 ```
 
-### Step 9: Multi-Harness 활성화 (선택, v5.5.0+)
+### [선택] Step 9: Multi-Harness 활성화 (선택, v5.5.0+)
 
 Claude Code 외 다른 하네스를 함께 쓰는 경우, 각 하네스의 훅 시스템에 HXSK prune을 연결합니다. **부록 A** 참고.
 
