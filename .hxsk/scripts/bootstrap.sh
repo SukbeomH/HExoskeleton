@@ -14,6 +14,18 @@ set -o nounset
 set -o pipefail
 
 # ─────────────────────────────────────────────────────
+# Log Setup
+# ─────────────────────────────────────────────────────
+
+LOG_DIR=".hxsk/logs"
+mkdir -p "$LOG_DIR"
+LOG_FILE="$LOG_DIR/bootstrap-$(date +%Y%m%d-%H%M%S).log"
+
+# 최근 10개만 유지 (오래된 로그 정리)
+find "$LOG_DIR" -name "bootstrap-*.log" -type f 2>/dev/null \
+    | sort | head -n -10 | xargs rm -f 2>/dev/null || true
+
+# ─────────────────────────────────────────────────────
 # Version & Mode Detection
 # ─────────────────────────────────────────────────────
 
@@ -64,7 +76,9 @@ report_pass() {
 }
 
 report_fail() {
-    printf "  [FAIL]    %-20s %s\n" "$1" "$2"
+    local category="$1" msg="$2"
+    printf "  [FAIL]    %-20s %s\n" "$category" "$msg"
+    printf "            %-20s %s\n" "" "→ 복구: setup.md의 해당 Step을 참조하거나 \`bash .hxsk/scripts/setup-verify.sh\` 실행"
     ((FAIL_COUNT++)) || true
     ((REQUIRED_FAIL++)) || true
 }
@@ -113,6 +127,12 @@ count_skills()   { mkdir -p .hxsk/skills;   find .hxsk/skills -name "SKILL.md" 2
 count_agents()   { mkdir -p .hxsk/agents;   find .hxsk/agents -name "*.md" -not -name "INDEX.md" 2>/dev/null | wc -l | tr -d ' '; }
 count_hooks()    { mkdir -p .hxsk/hooks;    find .hxsk/hooks -name "*.sh" -o -name "*.py" 2>/dev/null | wc -l | tr -d ' '; }
 count_memories() { mkdir -p .hxsk/memories; find .hxsk/memories -mindepth 1 -maxdepth 1 -type d -not -name "_schema" 2>/dev/null | wc -l | tr -d ' '; }
+
+# ─────────────────────────────────────────────────────
+# Redirect all output to log file (tee: screen + file)
+# ─────────────────────────────────────────────────────
+
+exec > >(tee -a "$LOG_FILE") 2>&1
 
 # ─────────────────────────────────────────────────────
 # Header
@@ -463,10 +483,12 @@ if [[ "$REQUIRED_FAIL" -gt 0 ]]; then
     echo " RESULT: FAILED — ${REQUIRED_FAIL} required check(s) failed"
     echo "================================================================"
     echo " 다음 단계: .hxsk/prompts/setup.md 를 열어 FAIL 항목을 수동으로 수정하세요."
+    echo " 로그 저장됨: ${LOG_FILE}"
     exit 1
 else
     echo " RESULT: ALL REQUIRED CHECKS PASSED"
     echo "================================================================"
+    echo " 로그 저장됨: ${LOG_FILE}"
 
     # ── Opportunistic prune tick (하네스 독립) ──
     # 부트스트랩 성공 직후에도 한 번 기회를 줌. cooldown·lock 내장.
