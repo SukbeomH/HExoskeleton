@@ -27,6 +27,8 @@
 - 메모리 검색은 Grep → Glob 순서 (broad → narrow)
 - 세션 종료 시 자동 메모리 저장 (`stop-context-save.sh`)
 - 메모리 타입 14개: architecture-decision, root-cause, debug-eliminated, debug-blocked, health-event, session-handoff, execution-summary, deviation, pattern-discovery, bootstrap, session-summary, session-snapshot, security-finding, general
+- **bash 전체 출력 로그 저장**: `exec > >(tee -a "$LOG_FILE") 2>&1` — subshell 없이 exit 코드 보존하며 stdout+stderr 파일 저장
+- **검증 스크립트 set -e 금지**: 다중 조건 검증 시 `set -e` 대신 독립 if 블록으로 처리 — 하나 실패해도 나머지 조건 계속 검사
 
 ## Memory Triggers
 - Bug root cause → `root-cause`, Architecture decision → `architecture-decision`, Session end → `session-summary` (auto hook)
@@ -39,5 +41,5 @@
 
 > **로테이션**: 20개 도달 시 가장 오래되고 참조가 적은 패턴을 교체. 삭제 대신 `.hxsk/research/`로 아카이브.
 
-*Last updated: 2026-03-24*
-*Items: 17/20*
+*Last updated: 2026-04-22*
+*Items: 19/20*
