@@ -37,6 +37,18 @@ if grep -q 'head -100' .hxsk/hooks/md-recall-memory.sh 2>/dev/null; then
     issues=$((issues+1))
 fi
 
+# RE-5: md-store-memory.sh YAML injection via title/tags (yaml_safe must be applied)
+if ! grep -q 'yaml_safe' .hxsk/hooks/md-store-memory.sh 2>/dev/null; then
+    echo "FAIL RE-5: md-store-memory.sh missing yaml_safe() for YAML injection prevention"
+    issues=$((issues+1))
+fi
+
+# H-05: setup.md U2 SHA256 verification snippet missing
+if ! grep -q 'sha256sum\|SHA256' .hxsk/prompts/setup.md 2>/dev/null; then
+    echo "FAIL H-05: setup.md U2 missing SHA256 verification snippet"
+    issues=$((issues+1))
+fi
+
 # SA-7: stop-context-save.sh flag race condition (should use atomic mv)
 if ! grep -qiE 'CLAIMED_FLAG|mv.*CLAIMED|claimed' .hxsk/hooks/stop-context-save.sh 2>/dev/null; then
     echo "FAIL SA-7: stop-context-save.sh missing atomic mv pattern for flag claim"

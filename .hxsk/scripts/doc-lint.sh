@@ -63,6 +63,7 @@ mapfile -t ALL_MD < <(
         -not -path "./.hxsk/memories/*" \
         -not -path "./.hxsk/archive/*" \
         -not -path "./.hxsk/reports/*" \
+        -not -path "./.claude/worktrees/*" \
         -not -type l | sort
 )
 
@@ -83,7 +84,7 @@ ALL_MD=("${FILTERED_MD[@]}")
 ORPHAN_EXCLUDE_DIRS="./.hxsk/memories ./.hxsk/templates ./.hxsk/archive ./.hxsk/issues ./.hxsk/examples ./docs/plans ./.hxsk/docs/plans ./.hxsk/docs ./.hxsk/reports ./.hxsk/research ./.hxsk/phases ./learn ./reason ./scenario ./predict"
 
 # Directories excluded from LINK-01 (과거 계획 문서/research 링크는 역사적 기록으로 허용)
-LINK_EXCLUDE_DIRS="./.hxsk/docs/plans ./docs/plans ./.hxsk/research"
+LINK_EXCLUDE_DIRS="./.hxsk/docs/plans ./docs/plans ./.hxsk/research ./.hxsk/phases ./predict ./.claude/worktrees"
 
 # ─────────────────────────────────────────────────────
 # LINK-01: 상대 링크 유효성
@@ -574,6 +575,10 @@ rule_dup_01() {
             write-report.md) continue ;;
             # autoresearch 세션 출력 파일 — scenario/predict/learn/reason 세션마다 생성
             overview.md|summary.md|findings.md|scenarios.md|edge-cases.md) continue ;;
+            # predict 세션 분석 파일 — 세션마다 생성되는 의도적 중복
+            codebase-analysis.md|component-clusters.md|dependency-map.md|hypothesis-queue.md) continue ;;
+            # plan SUMMARY 파일 — 각 Phase마다 동일 번호 plan이 존재하는 의도적 중복
+            plan-*.md|plan-*-SUMMARY.md) continue ;;
         esac
 
         local locations

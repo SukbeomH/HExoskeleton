@@ -84,8 +84,13 @@ fi
 # YAML frontmatter + markdown 작성
 ISO_DATE=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 
-# tags를 YAML 배열로 변환
-YAML_TAGS=$(echo "$TAGS" | tr ',' '\n' | sed 's/^[[:space:]]*//' | sed 's/[[:space:]]*$//' | sed '/^$/d' | sed 's/^/  - /')
+# tags를 YAML 배열로 변환 (각 항목 yaml_safe 적용 — YAML 인젝션 방지)
+YAML_TAGS=""
+while IFS= read -r _tag; do
+    _tag=$(echo "$_tag" | sed 's/^[[:space:]]*//' | sed 's/[[:space:]]*$//')
+    [ -z "$_tag" ] && continue
+    YAML_TAGS="${YAML_TAGS}  - $(yaml_safe "$_tag")"$'\n'
+done < <(echo "$TAGS" | tr ',' '\n')
 
 # keywords를 YAML 배열로 변환 (A-Mem)
 YAML_KEYWORDS=""

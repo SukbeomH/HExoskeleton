@@ -283,6 +283,13 @@ curl -sL "https://github.com/SukbeomH/HExoskeleton/archive/refs/tags/setup-v$TAR
 
 성공 확인: `cat "$HX_SRC/.hxsk/.bootstrap-version"` 에 `version: $TARGET_VERSION` 표시.
 
+**SHA256 검증 (선택 — 릴리스 노트에 체크섬이 제공된 경우)**:
+
+```bash
+# SHA256 검증 (선택 — 릴리스 노트에 체크섬이 제공된 경우)
+# sha256sum -c <<< "EXPECTED_HASH  setup-v$TARGET_VERSION.tar.gz"
+```
+
 ### Step U3: 프레임워크 동기화
 
 ```bash
