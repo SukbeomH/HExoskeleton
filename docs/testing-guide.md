@@ -217,7 +217,21 @@ bash .hxsk/scripts/verify-self-configure.sh
 - [ ] doc-lint 기본 통과
 - [ ] `gate-check.sh status` 실행 가능
 
-### 6.2 Smoke Test
+### 6.2 setup-verify.sh — 설치 검증 (5 독립 조건)
+
+```bash
+bash .hxsk/scripts/setup-verify.sh
+```
+
+| 조건 | 확인 내용 |
+|------|---------|
+| 스킬 수 | `.claude/skills/` 내 스킬 디렉토리 ≥1 |
+| 에이전트 수 | `.claude/agents/` 내 에이전트 파일 ≥1 |
+| 훅 이벤트 | `.claude/settings.json`에 7개 이벤트 등록 확인 |
+| 메모리 디렉토리 | `.hxsk/memories/` 하위 타입 디렉토리 존재 |
+| bootstrap 버전 | `.hxsk/.bootstrap-version` 파싱 성공 |
+
+### 6.3 Smoke Test
 
 설치 직후 수동 확인:
 ```bash
@@ -370,7 +384,7 @@ bash .hxsk/scripts/prune-memories.sh --dry-run
 
 ### 11.1 check-reliability.sh
 
-11개 패턴 신뢰성 이슈 카운터:
+14개 패턴 신뢰성 이슈 카운터 (기존 11개 → SA-7·RE-5·H-05 추가):
 ```bash
 bash .hxsk/scripts/check-reliability.sh
 # → ISSUE COUNT: N
@@ -386,6 +400,14 @@ bash .hxsk/scripts/check-reliability.sh
 - stale lock 미감지
 - 2-hop related 파싱이 frontmatter 외부로 누출
 - `.prune-config` 소싱 전 권한 검증 누락
+
+신규 검사 (Phase 7):
+
+| 검사 ID | 검증 내용 |
+|---------|---------|
+| SA-7 | `stop-context-save.sh` 원자적 mv 패턴 (`CLAIMED_FLAG="${FLAG_FILE}.$"`) 존재 검증 |
+| RE-5 | `md-store-memory.sh` yaml_safe() 태그 루프 항목 전수 적용 검증 |
+| H-05 | `setup.md` U2 섹션 SHA256 검증 스니펫 존재 검증 |
 
 ## See Also
 

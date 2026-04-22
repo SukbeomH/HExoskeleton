@@ -39,6 +39,8 @@ HXSK는 **빌드 아티팩트를 배포하지 않는다**. 대신:
 
 ## 3. Fresh Installation (첫 설치)
 
+> **setup.md 핵심 경로:** Step 1·4·6 [필수] 만 완료하면 기본 동작 (약 5분)
+
 ### Step 0: 리포 클론
 ```bash
 git clone https://github.com/SukbeomH/HExoskeleton.git my-project
@@ -165,6 +167,9 @@ git pull --rebase
 
 ## 5. Harness-Specific Installation
 
+> **자동화 1-liner:** `bash .hxsk/scripts/install.sh --harness <name>` 으로 아래 단계를 자동화할 수 있습니다.
+> Tier 1 하네스(claude-code·cursor·copilot)는 완전 자동, Tier 2는 안내 메시지 출력.
+
 ### 5.1 Claude Code (네이티브)
 - `.claude/settings.json` 훅 등록 (위 Step 4)
 - `.claude/skills/`, `.claude/agents/` 심볼릭 링크
@@ -226,6 +231,8 @@ setup.md의 완료 체크리스트 각 항목에는 검증 명령이 포함되�
 **planner SPEC.md guard**: `planner` skill은 SPEC.md에 미해결 `{placeholder}` 패턴이 있으면 계획 생성을 거부한다. (`grep '{[A-Za-z]'` 패턴으로 감지)
 
 ## 6. Self-Configure 검증
+
+설치 후 검증: `bash .hxsk/scripts/setup-verify.sh` → PASS 5/5 확인
 
 ### 6.1 verify-self-configure.sh
 설치 후 검증:
