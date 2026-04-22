@@ -37,6 +37,12 @@ if grep -q 'head -100' .hxsk/hooks/md-recall-memory.sh 2>/dev/null; then
     issues=$((issues+1))
 fi
 
+# SA-7: stop-context-save.sh flag race condition (should use atomic mv)
+if ! grep -qiE 'CLAIMED_FLAG|mv.*CLAIMED|claimed' .hxsk/hooks/stop-context-save.sh 2>/dev/null; then
+    echo "FAIL SA-7: stop-context-save.sh missing atomic mv pattern for flag claim"
+    issues=$((issues+1))
+fi
+
 # SA-8: stale lock detection missing in prune-tick.sh
 if ! grep -qE 'stale|lock_age|mtime.*300' .hxsk/scripts/prune-tick.sh 2>/dev/null; then
     echo "FAIL SA-8: prune-tick.sh no stale lock detection"
