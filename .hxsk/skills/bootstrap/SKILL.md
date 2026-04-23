@@ -1,44 +1,34 @@
 ---
-name: bootstrap
-description: "Idempotent project setup — fresh install, update, or verify via convergence engine"
-version: 5.1.0
 allowed-tools:
-  - Read
-  - Write
-  - Edit
-  - Bash
-  - Grep
-  - Glob
-trigger: "프로젝트 초기화, 프로젝트 셋업, 처음 설정, 업데이트, 갱신, project setup, initialize project, after cloning, update, refresh"
+- Read
+- Write
+- Edit
+- Bash
+- Grep
+- Glob
+description: Use when initializing a fresh HExoskeleton project or updating an existing
+  one by detecting .hxsk/.bootstrap-version status.
+name: bootstrap
+trigger: 프로젝트 초기화, 프로젝트 셋업, 처음 설정, 업데이트, 갱신, project setup, initialize project, after
+  cloning, update, refresh, bootstrap 실행, bootstrap.sh, 환경 설정, 시스템 요구사항 확인, prerequisite
+  check, fresh install, verify mode, update mode, 멱등성 실행, idempotent setup, .env 생성,
+  메모리 초기화, memory init, 프로젝트 준비, project ready, converge, 상태 감지, 상태 확인, 설치 모드 감지
+version: 5.1.0
 ---
 
 ## Quick Reference
-- **시작**: `bash .hxsk/scripts/bootstrap.sh` (멱등 — 반복 실행 안전)
-- **모드**: fresh(초기) / verify(검증) / update(갱신) — `.hxsk/.bootstrap-version`으로 자동 감지
-- **Output**: `[NEW]` `[UPDATED]` `[OK]` `[PASS]` `[FAIL]` `[WARN]` `[SKIP]` 태그
-- **2-hop**: `[NEW]`/`[UPDATED]` 항목에 관련 컴포넌트 자동 표시
-- **메모리 저장**: `md-store-memory.sh` 로 `.hxsk/memories/bootstrap/`에 기록
+- **시작**: `bash .hxsk/scripts/bootstrap.sh` 실행 (멱등성 보장)
+- **정지**: Step 1에서 `[FAIL]` 또는 exit code 1 시 즉시 중단 및 해결
+- **완료**: 최종 보고 `RESULT: PASSED` 시 프로젝트 사용 가능 (READY)
+- **예외**: codebase-mapper 실패 시 FAIL, 메모리 저장 실패 시 WARN 후 진행
+- **모드**: `.hxsk/.bootstrap-version` 유무로 fresh/verify/update 자동 판별
 
----
-
-# Skill: Bootstrap
-
-> **Goal**: Idempotent project setup — detect state, converge to target, report delta.
-> **Scope**: 순수 bash 스크립트 기반. 외부 종속성 없음. 모든 에이전트에서 실행 가능.
-
-<role>
-You are a bootstrap orchestrator. Your job is to make an HExoskeleton project fully operational,
-whether it's a fresh clone or an existing installation being updated.
-
-**Core responsibilities:**
-- Detect install mode (fresh / verify / update) via .hxsk/.bootstrap-version
-- Verify system prerequisites and project structure
-- Report changes with [NEW]/[UPDATED]/[OK] tags
-- Provide 2-hop context for new or changed components
-- Store bootstrap state in `.hxsk/memories/`
-</role>
-
----
+## Iron Laws
+- NO BOOTSTRAP EXECUTION WITHOUT STATE DETECTION FIRST
+- NO ENVIRONMENT SETUP WITHOUT PREREQUISITE VERIFICATION FIRST
+- NO PROCESS TERMINATION WITHOUT ERROR REPORTING FIRST
+- NO PROJECT READY DECLARATION WITHOUT FINAL STATUS REPORT FIRST
+- NO MEMORY STORAGE FAILURE WITHOUT CONTINUATION TO REPORTING FIRST
 
 ## Procedure
 

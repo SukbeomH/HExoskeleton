@@ -64,6 +64,8 @@ mapfile -t ALL_MD < <(
         -not -path "./.hxsk/archive/*" \
         -not -path "./.hxsk/reports/*" \
         -not -path "./.claude/worktrees/*" \
+        -not -path "*/.venv/*" \
+        -not -path "*/venv/*" \
         -not -type l | sort
 )
 
@@ -585,6 +587,8 @@ rule_dup_01() {
             codebase-analysis.md|component-clusters.md|dependency-map.md|hypothesis-queue.md) continue ;;
             # plan SUMMARY 파일 — 각 Phase마다 동일 번호 plan이 존재하는 의도적 중복
             plan-*.md|plan-*-SUMMARY.md) continue ;;
+            # MASTER/WORK 이슈 — issues/는 활성, issues/archive/는 완료본 — 의도적 보관
+            MASTER-*.md|WORK-*.md) continue ;;
         esac
 
         local locations

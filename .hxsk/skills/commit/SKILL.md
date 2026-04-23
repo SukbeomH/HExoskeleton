@@ -1,28 +1,25 @@
 ---
+description: Use when staging changes for HXSK plan execution, needing to split mixed
+  logical changes, or creating conventional emoji commits.
 name: commit
-description: Analyzes diffs, splits logical changes, creates conventional emoji commits aligned with HXSK atomic commit protocol
-trigger: "커밋 생성, git commit, 커밋 메시지 작성, 변경사항 커밋, conventional commit"
+trigger: 커밋 생성, git commit, 커밋 메시지 작성, 변경사항 커밋, conventional commit, 커밋 분할, 커밋 나누기,
+  변경사항 분리, pre-commit check, 커밋 전 검사, git diff 분석, 변경사항 분석, conventional commit 작성,
+  emoji 커밋, HXSK 커밋, phase 커밋, commit message format, split commits, run pre-commit,
+  analyze diff
 ---
 
 ## Quick Reference
-- **Pre-commit**: `shellcheck *.sh` (선택적), `git diff --stat` 확인
-- **Commit format**: `<emoji> <type>(<scope>): <description>`
-- **Types**: feat, fix, docs, style, refactor, perf, test, chore, ci
-- **HXSK scope**: `(phase-N.M)` 형식 — 예: `feat(phase-1.2): add login endpoint`
-- **Split signals**: 다른 모듈, 혼합 유형(feature+config), 독립 버그 수정
+- **Split check**: 다른 모듈/유형/파일 카테고리 혼합 시 반드시 분리
+- **Format**: `<emoji> <type>(<scope>): <description>` (Imperative mood)
+- **HXSK scope**: `(phase-N.M)` 형식 필수 사용 (예: `feat(phase-1.2)`)
+- **Body rule**: WHAT 는 생략, WHY(이유) 만 72 자 내로 설명
+- **Pre-check**: `.qlty/qlty.toml` 존재 시 `qlty check` 실행 우선
 
----
-
-# HXSK Commit Skill
-
-<role>
-You create well-structured git commits following conventional commit format with emoji.
-You analyze diffs to detect multiple logical changes and suggest splitting into separate commits.
-
-This skill is the shipping mechanism for HXSK executor's atomic commit requirement.
-</role>
-
----
+## Iron Laws
+- NO COMMIT WITHOUT PRE-COMMIT CHECKS FIRST
+- NO COMMIT WITHOUT DIFF ANALYSIS FIRST
+- NO COMMIT WITHOUT CONVENTIONAL FORMAT FIRST
+- NO MERGED CHANGES WITHOUT LOGICAL SPLIT FIRST
 
 ## Workflow
 
