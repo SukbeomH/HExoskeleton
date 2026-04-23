@@ -1,31 +1,36 @@
 ---
-name: write-report
-description: Writes structured solution comparison reports for non-technical decision makers using weighted scoring frameworks
-version: 1.0.0
 allowed-tools:
-  - Read
-  - Grep
-  - Glob
-  - WebSearch
-  - WebFetch
-trigger: "솔루션 비교 보고서, 기술 선정 보고서, 벤더 평가, TCO 분석, write comparison report, technology evaluation, decision support report"
+- Read
+- Grep
+- Glob
+- WebSearch
+- WebFetch
+description: Use when comparing 3-5 solutions for executive decisions and writing
+  a report with the conclusion first.
+name: write-report
+trigger: 솔루션 비교 보고서, 기술 선정 보고서, 벤더 평가, TCO 분석, write comparison report, technology
+  evaluation, decision support report, 솔루션 비교 분석, 기술 도입 제안서, TCO 비용 분석, 가중 평점 매트릭스,
+  역피라미드 보고서, Executive Summary 작성, 현상 유지 리스크 평가, 솔루션 선정 가이드, vendor comparison report,
+  weighted score matrix, business case report, technology selection guide, cost benefit
+  analysis
+version: 1.0.0
 ---
 
 ## Quick Reference
-- **가이드 로드**: `Read(".hxsk/research/solution_comparison_report_guide.md")` 필수
-- **역피라미드**: 결론·추천을 Executive Summary 최상단에 배치
-- **비교 대상**: 3-5개 제한, 초과 시 사전 스크리닝으로 축소
-- **TCO**: 3-5년 기간, 9개 비용 카테고리 분리
-- **Memory recall**: `md-recall-memory.sh "report"` 검색 후 기존 보고서 패턴 확인
+- **가이드 로드**: `.hxsk/research/solution_comparison_report_guide.md` 로드 없이 진행 금지
+- **역피라미드**: 결론과 추천이 Executive Summary 최상단에 없으면 즉시 재작성
+- **비교 대상**: 3-5개 초과 시 Pugh 매트릭스로 사전 스크리닝 필수
+- **현상 유지**: "무행동 비용" 리스크가 명시되지 않으면 보고서 무효
+- **TCO 분석**: 단순 가격 비교 금지, 3-5년 총소유비용(9 카테고리) 기반 평가
 
----
-
-# Skill: Write Report
-
-> **Goal**: 비전문 의사결정자(경영진)를 위한 솔루션 비교·선정 보고서를 체계적으로 작성한다.
-> **Scope**: 가중 평점 매트릭스 기반 평가 + 역피라미드 구조 보고서. WebSearch/WebFetch로 리서치, Read로 가이드 참조.
-
----
+## Iron Laws
+- NO EXECUTIVE SUMMARY WITHOUT CONCLUSION AND RECOMMENDATION FIRST
+- NO RISK ASSESSMENT WITHOUT STATUS QUO OPTION FIRST
+- NO VISUALIZATION WITHOUT SYMBOLS OR PATTERNS FIRST
+- NO COST ANALYSIS WITHOUT 3-5 YEAR TCO CALCULATION FIRST
+- NO EVALUATION CRITERIA WITHOUT MUST-HAVE VS NICE-TO-HAVE DISTINCTION FIRST
+- NO TECHNICAL TERM USAGE WITHOUT PLAIN LANGUAGE TRANSLATION FIRST
+- NO NEW REPORT WITHOUT MEMORY PATTERN RECALL FIRST
 
 ## Procedure
 

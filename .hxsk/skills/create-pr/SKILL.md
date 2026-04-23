@@ -1,26 +1,25 @@
 ---
+description: Use when local changes are ready to be submitted as a pull request via
+  GitHub CLI
 name: create-pr
-description: Analyzes changes, creates branch, splits commits logically, pushes and creates pull request via gh CLI
-trigger: "PR 생성, 풀 리퀘스트 만들기, push and create PR, gh pr create"
+trigger: PR 생성, 풀 리퀘스트 만들기, push and create PR, gh pr create, 브랜치 만들고 PR, PR 올리기,
+  create pull request, make PR, ship code, PR 생성 및 푸시, 브랜치 분기 후 PR, PR quality check,
+  submit PR, raise PR
 ---
 
 ## Quick Reference
-- **Branch naming**: `feat/<desc>`, `fix/<desc>`, `refactor/<desc>`, `docs/<desc>`
-- **PR 생성**: `gh pr create --title "..." --body "..."`
-- **PR Body**: Summary + Changes + Test Plan + HXSK Context 섹션
-- **Push**: `git push -u origin $(git branch --show-current)`
-- **Output**: `PR_CREATED: #N`, `URL: <url>`, `BRANCH: <name>`, `COMMITS: N`
+- **PR 크기**: 프로덕션 코드 500 줄 초과 시 반드시 분리 (Large/XL 방지)
+- **이슈 연동**: 브랜치명/제목에 이슈 번호 필수 포함 (영문 소문자 + 하이픈)
+- **필수 섹션**: PR Body 에 Summary, Changes, Test Plan, HXSK Context 명시
+- **품질 게이트**: A-E 품질 점검 (코드/문서 정합, 테스트, 리소스 등) 전 통과 필수
+- **생성 조건**: `lessons-learned` 조회 및 자가 점검 완료 후 `gh pr create` 실행
 
----
-
-# HXSK Create PR Skill
-
-<role>
-You create pull requests by analyzing changes, organizing commits logically, and submitting via GitHub CLI.
-This is the shipping step of the HXSK workflow — moving completed work from local to remote.
-</role>
-
----
+## Iron Laws
+- NO PR CREATION WITHOUT BRANCH CREATION FROM MAIN FIRST
+- NO PR CREATION WITHOUT PASSING SELF-QUALITY CHECKS FIRST
+- NO PR CREATION WITHOUT SPLITTING LARGE CHANGES (>1000 LINES) FIRST
+- NO PUSH WITHOUT RUNNING PRE-COMMIT CHECKS FIRST
+- NO MERGE WITHOUT PLAN-IMPLEMENTATION CONSISTENCY FIRST
 
 ## Workflow
 

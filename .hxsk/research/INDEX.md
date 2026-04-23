@@ -86,15 +86,23 @@ Superpowers 플러그인 분석 및 에이전트 규율 강화 연구.
 | superpowers-references.md | `active` | 7패턴 × 20개 학술/산업 출처 (Meincke+ 2025, SkillReducer 2026 등) |
 | claude-code-quality-mitigation.md | `active` | GitHub #42796 품질 저하 이슈 — 6문제 중 4개 Superpowers 기법으로 완화 가능 |
 
+## hallucination-research/ (1) — all active
+
+LLM 할루시네이션 언어 특성 연구 및 SKILL.md 최적화 적용.
+
+| 문서 | 상태 | 핵심 결론 |
+|------|------|----------|
+| [2026-04-23-hallucination-linguistic-features.md](../2026-04-23-hallucination-linguistic-features.md) | `active` | Watson et al. 2026 OR 수치 기반 — Answerability(OR=0.331) 보호, Lack of Specificity(OR=2.382) 위험 — skill-doc-optimizer 메트릭에 적용 |
+
 ---
 
 ## 요약
 
 | 상태 | 개수 | 비율 |
 |------|------|------|
-| `active` | 21 | 64% |
+| `active` | 22 | 65% |
 | `archived` | 7 | 21% |
 | `superseded` | 5 | 15% |
 
-*Total: 33 documents across 7 categories*
-*Updated: 2026-03-25 — status 태깅 완료*
+*Total: 34 documents across 8 categories*
+*Updated: 2026-04-23 — hallucination-research 카테고리 추가*
