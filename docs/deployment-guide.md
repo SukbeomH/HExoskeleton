@@ -164,6 +164,7 @@ git pull --rebase
 |------|-----|---------|------------|
 | v5.3.x | v5.4.0 | Git Forge + lessons-learned A-E + 메모리 티어 | 자동 |
 | v5.4.x | v5.5.0 | 하네스 독립 prune + cap=5 + local-tier 전체 | `.hxsk/.prune-config` 새로 생성 |
+| v5.5.0 | v5.5.0+ | Phase 8 보안 강화 + Phase 9 Progressive Disclosure | 자동 (setup.md 재실행) |
 
 ## 5. Harness-Specific Installation
 
@@ -261,6 +262,12 @@ bash .hxsk/hooks/gate-check.sh status
 # 4. doc-lint
 bash .hxsk/scripts/doc-lint.sh
 ```
+
+### 6.3 보안 체크리스트
+- [ ] `bash-guard.py` DESTRUCTIVE_FS 패턴 활성 (rm -rRf, shred, dd if=/dev/zero, truncate, chmod 777, git push --mirror)
+- [ ] `file-protect.py` secrets 경로 차단 (`secrets/`, `.secrets`, `.gitconfig`, `credentials`)
+- [ ] setup.md 다운로드 시 SHA256 검증 완료 (필수 — Phase 8)
+- [ ] doc-lint INDEX-01: `references/` 서브디렉토리 자동 제외 확인
 
 ## 7. Environment Variables
 

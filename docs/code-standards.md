@@ -101,7 +101,8 @@ eef848e chore(release): v5.4.0 — Git Forge + lessons-learned + 메모리 티�
 | Level | 파일 | 크기 제약 | 로드 시점 |
 |-------|------|---------|---------|
 | **L1** | `CLAUDE.md`, `AGENTS.md`, `GEMINI.md` | ≤120 lines | 항상 로드 |
-| **L2** | `.hxsk/skills/*/SKILL.md`, `.hxsk/docs/*.md` | 100~300 lines | 스킬 로드/참조 |
+| **L2** | `.hxsk/skills/*/SKILL.md` (entry) | **≤200 lines** | 스킬 로드 시 |
+| **L2+** | `.hxsk/skills/*/references/*.md` | 제한 없음 | On-demand 선택 로드 |
 | **L3** | `.hxsk/research/*/RESEARCH-*.md` | 제한 없음 | On-demand 참조만 |
 
 ### 5.1 L1 규칙
@@ -109,9 +110,11 @@ eef848e chore(release): v5.4.0 — Git Forge + lessons-learned + 메모리 티�
 - 제외: 예시, 포맷, 스키마
 - ≤120 lines 강제
 
-### 5.2 Skill/Agent 규칙
+### 5.2 Skill/Agent 규칙 (Progressive Disclosure)
 - Agent body ≤ 20-30 lines — 상세는 Skill 위임
 - Skill Quick Reference ≤ 5 lines
+- **Skill entry SKILL.md ≤ 200줄** (verifier/debugger는 ≤160줄)
+- **상세 프로토콜은 `references/` 서브디렉토리**로 분리 — 필요 시만 로드
 - 기존 패턴 참조 (DRY)
 
 ### 5.3 PATTERNS.md 규칙
@@ -331,7 +334,8 @@ Python은 **시스템 내장 `python3`만 사용**. pip 의존성 추가 금지.
 | GEMINI.md | 120 lines | L1 경량 |
 | AGENTS.md | 120 lines | 하네스 공용 |
 | Skill Quick Reference | 5 lines | Description에서 본문 진입 유도 |
-| Skill body | 100~300 lines | CSO + 프로시저 |
+| **Skill entry SKILL.md** | **≤200 lines** | **Progressive Disclosure — 콜드스타트 비용 절감** |
+| Skill references/ 파일 | 제한 없음 | 선택 로드 — 필요 시만 참조 |
 | Agent | 20~30 lines | When/With What만 |
 | PATTERNS.md | 2KB / 20 items | 핵심 휴리스틱만 |
 | contextual_description | 200 chars | 메모리 요약 |

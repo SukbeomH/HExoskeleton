@@ -66,9 +66,10 @@ graph LR
         AB[Body<br/>## 탑재 Skills<br/>## 실행 순서]
     end
 
-    subgraph Skill["Skill (How) — 100~300 lines"]
+    subgraph Skill["Skill (How) — entry ≤200줄 + references/"]
         SF[Frontmatter<br/>name, description, trigger]
-        SB[Quick Reference ≤5 lines<br/>+ 상세 Procedures<br/>+ Anti-Patterns]
+        SB[Quick Reference ≤5 lines<br/>+ 핵심 흐름 요약<br/>+ references/ 링크]
+        SR[references/<br/>execution-flow.md<br/>deviation-rules.md 등]
     end
 
     subgraph Infra["Infrastructure"]
@@ -81,12 +82,15 @@ graph LR
     H -->|enforces| Skill
 ```
 
-**크기 제약**:
+**크기 제약 (Progressive Disclosure — Phase 9)**:
 - Agent body ≤ 20-30 lines (상세는 Skill에 위임)
 - Skill Quick Reference ≤ 5 lines
-- Skill 총 크기 100~300 lines
+- **Skill entry SKILL.md ≤ 200줄** (verifier/debugger ≤ 160줄)
+- **Skill 상세는 `references/` 서브디렉토리로 분리** (선택 로드)
 - CLAUDE.md ≤ 120 lines
 - PATTERNS.md ≤ 2KB / 20 items
+
+Phase 9 분할 결과: executor 681→98줄, planner 566→177줄, verifier 452→135줄, debugger 365→119줄 (~65-86% 절감).
 
 근거: **SkillReducer 연구(2026)**는 48% 설명 압축 + 2.8% 품질 개선을 보고. **Anthropic 내부**는 시스템 프롬프트 ~1,800 tokens 최적, >2,500 tokens에서 34% 환각 증가를 관찰.
 
@@ -326,7 +330,8 @@ sequenceDiagram
 
     U->>H: /skill executor (PLAN.md 주어짐)
     H->>A: Invoke executor agent
-    A->>S: Load executor SKILL.md
+    A->>S: Load executor SKILL.md (entry ≤200줄)
+    Note over S: 필요 시 references/ 선택 로드<br/>(execution-flow, deviation-rules 등)
     S->>MP: Recall past deviations (2-hop)
     MP-->>S: 관련 lessons-learned
 

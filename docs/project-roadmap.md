@@ -21,6 +21,8 @@
 
 | 버전 | 날짜 | 주제 | PR |
 |------|------|------|-----|
+| **v5.5.0+** | 2026-04-23 | Phase 9: Progressive Disclosure + refactor 스킬 (skills 21→22, entry ≤200줄) | #144 |
+| **v5.5.0+** | 2026-04-23 | Phase 8: 보안 강화 (bash-guard DESTRUCTIVE_FS, file-protect .secrets, grep option-injection, yaml_safe backslash, SHA256 필수) | — |
 | **v5.5.0+** | 2026-04-22 | execution-summary + test 메모리 타입 + reason 세션 출력 | #138 |
 | **v5.5.0+** | 2026-04-22 | Plan 6.1 신뢰성 패치 17건 수정 | #137 |
 | **v5.5.0+** | 2026-04-22 | 하네스 비종속 신뢰성 + 1-liner 설치 개선 (Wave 1·2·3) | #140 |
@@ -66,6 +68,8 @@
 | ✅ Plan 6.1 신뢰성 17건 수정 (YAML injection, race condition, stale lock, etc.) | ✅ done | #137 |
 | ✅ execution-summary + test 메모리 타입 + reason 세션 출력 | ✅ done | #138 |
 | ✅ Phase 7: 신뢰성 개선 + install.sh + hxsk-harness-sync.sh + [필수]/[선택] UX | ✅ done | #140 |
+| ✅ Phase 8: 보안 강화 (STRIDE/OWASP 감사 + P0/P1/P2 수정) | ✅ done | — |
+| ✅ Phase 9: Progressive Disclosure (refactor 스킬 + executor/planner/verifier/debugger 분할) | ✅ done | #144 |
 
 ### Phase 3: 배포 최적화 (2026-Q3) 📋 계획
 
