@@ -6,6 +6,40 @@
 
 ---
 
+## Phase 10 완료 상태 (2026-04-23)
+
+| 항목 | 상태 | 결과 |
+|------|------|------|
+| metrics.py Watson et al. 3개 함수 | ✅ | answerability/specificity/intention_grounding |
+| signatures.py OutputField 2개 추가 | ✅ | answerability_score, specificity_score |
+| MEDIUM 4개 스킬 CSO 적용 | ✅ | description "Use when..." 패턴 완료 |
+| Iron Laws 수동 보완 (4개 스킬) | ✅ | optimize.py 갭으로 인한 수동 처리 |
+| BootstrapFewShot 실행 | ✅ | Val score 0.797 (목표 0.75 초과) |
+| composite_hallucination_risk | ✅ | 0.571 → 0.196 (-63%) |
+
+### PR #146 리뷰 발견 사항 (후속 작업 대상)
+
+> 6-Persona 리뷰 결과 (2026-04-23). Blocker 0건 → APPROVE 및 머지 완료.
+
+#### [Medium] 후속 PR 필요
+
+| # | 파일 | 문제 | 조치 |
+|---|------|------|------|
+| M-1 | `optimize.py:122-139` | `_apply_changes()`가 Iron Laws를 파일에 기록하지 않음. `result.iron_laws` stdout 출력만 되고 SKILL.md 미반영 | `## Iron Laws` 섹션 write 로직 추가 |
+| M-2 | `optimized_module.json` | 재실행 가능한 BootstrapFewShot 결과물이 git 포함 (220KB) | `.gitignore` 추가 또는 재생성 방법 README 명시 |
+| M-3 | `requirements.txt` | `dspy-ai>=2.5.0` 하한만 지정, 상한 없음. dspy-ai는 마이너 릴리스에서 API 변경 잦음 | `dspy-ai~=2.5.0` compatible release 핀 |
+| M-4 | `signatures.py:30-38` | `OutputField float` 파싱 안전장치 없음. LLM이 "0.85 (높음)" 반환 시 파싱 실패 가능 | `modules.py`에서 `try/except ValueError` 추가 |
+
+#### [Nitpick] 선택적 개선
+
+| # | 파일 | 문제 |
+|---|------|------|
+| N-1 | `metrics.py:77-79` | `words = text.lower().split()` 선언 후 trigger 체크에 미사용 (`text_lower` substring 방식 사용). `if not text.strip(): return 0.0`으로 단순화 가능 |
+| N-2 | `optimize.py:146` | `valset[:5]` — MEDIUM 스킬 4개뿐이어 실제 4개 반환. `# 최대 5개 (현재 4개)` 주석 추가 권장 |
+| N-3 | `.claude/settings.json` | `Bash(python3 -c *)` 프로젝트 공유 설정에 포함. `.claude/settings.local.json`으로 이동 고려 |
+
+---
+
 ## 현재 상태 (Phase 0 — 완료)
 
 | 항목 | 상태 | 비고 |
@@ -74,10 +108,10 @@ specificity_score: float = dspy.OutputField(
 
 ### 1-C. 완료 기준
 
-- [ ] `metrics.py` 함수 3개 + `combined_metric` 패턴 업데이트
-- [ ] `signatures.py` OutputField 2개 추가
-- [ ] `python3 optimize.py --skill planner --dry-run` 재실행 → risk 수치 출력 확인
-- [ ] `python3 optimize.py --skill bootstrap --dry-run` → MEDIUM 스킬 개선 폭 확인
+- [x] `metrics.py` 함수 3개 + `combined_metric` 패턴 업데이트
+- [x] `signatures.py` OutputField 2개 추가
+- [x] `python3 optimize.py --skill planner --dry-run` 재실행 → risk 수치 출력 확인
+- [x] `python3 optimize.py --skill bootstrap --dry-run` → MEDIUM 스킬 개선 폭 확인
 
 ---
 
@@ -115,10 +149,10 @@ python3 optimize.py --skill commit --apply
 
 ### 완료 기준
 
-- [ ] 4개 스킬 dry-run 결과 검토 완료
-- [ ] `/skill-testing`으로 각 스킬 발동 확인
-- [ ] HIGH 스킬 1개(description 미세 개선 가능성 검토)
-- [ ] 변경사항 커밋 (`/commit`)
+- [x] 4개 스킬 dry-run 결과 검토 완료
+- [x] `/skill-testing`으로 각 스킬 발동 확인
+- [x] HIGH 스킬 1개(description 미세 개선 가능성 검토)
+- [x] 변경사항 커밋 (`/commit`)
 
 ---
 
@@ -141,10 +175,10 @@ python3 optimize.py --bootstrap
 
 ### 완료 기준
 
-- [ ] `optimized_module.json` 저장
-- [ ] Val score ≥ 0.75
-- [ ] bootstrap 전/후 planner dry-run 비교 → 개선 확인
-- [ ] 122B 모델로도 실행하여 결과 비교 (`--model qwen-122b`)
+- [x] `optimized_module.json` 저장
+- [x] Val score ≥ 0.75 (달성: 0.797)
+- [x] bootstrap 전/후 planner dry-run 비교 → 개선 확인
+- [ ] 122B 모델로도 실행하여 결과 비교 (`--model qwen-122b`) — Phase 11 후보
 
 ---
 
@@ -264,4 +298,4 @@ Phase 4 완료
 
 ---
 
-*Last updated: 2026-04-23*
+*Last updated: 2026-04-23 — Phase 10 완료 상태 + PR #146 리뷰 발견 사항 추가*
