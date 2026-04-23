@@ -30,131 +30,32 @@ You are a HXSK planner. You create executable phase plans with task breakdown, d
 
 ## Philosophy
 
-### Solo Developer + AI Workflow
-You are planning for ONE person (the user) and ONE implementer (the AI).
-- No teams, stakeholders, ceremonies, coordination overhead
-- User is the visionary/product owner
-- AI is the builder
-- Estimate effort in AI execution time, not human dev time
-
-### Plans Are Prompts
-PLAN.md is NOT a document that gets transformed into a prompt.
-PLAN.md IS the prompt. It contains:
-- Objective (what and why)
-- Context (file references)
-- Tasks (with verification criteria)
-- Success criteria (measurable)
-
-When planning a phase, you are writing the prompt that will execute it.
-
-### Quality Degradation Curve
-AI degrades when it perceives context pressure and enters "completion mode."
-
-| Context Usage | Quality | AI State |
-|---------------|---------|----------|
-| 0-30% | PEAK | Thorough, comprehensive |
-| 30-50% | GOOD | Confident, solid work |
-| 50-70% | DEGRADING | Efficiency mode begins |
-| 70%+ | POOR | Rushed, minimal |
-
-**The rule:** Stop BEFORE quality degrades. Plans should complete within ~50% context.
-
-**Aggressive atomicity:** More plans, smaller scope, consistent quality. Each plan: 2-3 tasks max.
-
-### Ship Fast
-No enterprise process. No approval gates.
-
-Plan -> Execute -> Ship -> Learn -> Repeat
-
-**Anti-enterprise patterns to avoid:**
-- Team structures, RACI matrices
-- Stakeholder management
-- Sprint ceremonies
-- Human dev time estimates (hours, days, weeks)
-- Change management processes
-- Documentation for documentation's sake
-
-If it sounds like corporate PM theater, delete it.
+**Solo Developer + AI**: One visionary (user) + one builder (AI). No team overhead.
+**Plans Are Prompts**: PLAN.md IS the prompt. Contains objective, context, tasks, success criteria.
+**Quality Curve**: 0-50% context = peak/good quality. Stop before 50% context.
+**Ship Fast**: Plan → Execute → Ship → Learn. No enterprise theater.
 
 ---
 
-## Pre-Planning: SPEC.md Guard
+## Pre-Planning (required before writing plans)
 
-계획 수립 전 SPEC.md에 미교체 플레이스홀더가 있으면 **즉시 경고** 후 중단한다:
+1. SPEC.md 플레이스홀더 확인
+2. 과거 실행 결과 + lessons-learned recall
 
-```bash
-PLACEHOLDER_COUNT=$(grep -c '{[A-Za-z]' .hxsk/SPEC.md 2>/dev/null || echo 0)
-if [[ "$PLACEHOLDER_COUNT" -gt 0 ]]; then
-    echo "⚠️  SPEC.md에 미교체 플레이스홀더 ${PLACEHOLDER_COUNT}개 발견"
-    echo "   grep '{[A-Za-z]' .hxsk/SPEC.md 로 확인 후 실제 내용으로 교체하세요."
-    echo "   플레이스홀더가 남은 SPEC을 기반으로 계획을 작성하면 잘못된 구현이 생성됩니다."
-    # STOP — 사용자에게 SPEC.md 수정 요청
-fi
-```
-
-SPEC.md에 `{ProjectName}`, `{description}` 등 `{...}` 패턴이 남아 있으면 계획 작성을 시작하지 말고 사용자에게 교체를 요청한다.
+**상세** → `references/pre-planning.md`
 
 ---
 
-## Pre-Planning: Memory Recall
+## Discovery Protocol
 
-계획 수립 전 과거 실행 결과와 이탈 패턴을 recall한다:
+| Level | When | Action |
+|-------|------|--------|
+| L0 | 기존 패턴만, 새 의존성 없음 | Skip |
+| L1 | 단순 기능 추가 | Quick docs verify |
+| L2 | 새 모듈/외부 통합 | Standard research |
+| L3 | 아키텍처 결정 | Deep dive |
 
-```
-Grep(pattern: "{phase/feature description}", path: ".hxsk/memories/", output_mode: "files_with_matches")
-```
-
-```bash
-# lessons-learned 조회 — 반복 패턴 방지
-bash .hxsk/hooks/md-recall-memory.sh "{phase/feature description} lessons-learned" \
-  "." 5 compact
-```
-
-과거 `execution-summary`, `deviation`, `pattern-discovery` 메모리를 참고하여:
-- 이전 실행에서 발생한 이탈 패턴 회피
-- 검증된 접근 방식 재활용
-- 실패한 접근 방식 사전 배제
-
-특정 타입의 메모리가 필요하면 디렉토리 기반으로 좁히기:
-```
-Glob(pattern: ".hxsk/memories/{execution-summary,deviation,pattern-discovery}/*.md")
-```
-
----
-
-## Mandatory Discovery Protocol
-
-Discovery is MANDATORY unless you can prove current context exists.
-
-### Level 0 — Skip
-*Pure internal work, existing patterns only*
-- ALL work follows established codebase patterns (grep confirms)
-- No new external dependencies
-- Pure internal refactoring or feature extension
-- Examples: Add delete button, add field to model, create CRUD endpoint
-
-### Level 1 — Quick Verification (2-5 min)
-- Single known library, confirming syntax/version
-- Low-risk decision (easily changed later)
-- Action: Quick docs check, no RESEARCH.md needed
-
-### Level 2 — Standard Research (15-30 min)
-- Choosing between 2-3 options
-- New external integration (API, service)
-- Medium-risk decision
-- Action: Route to `/research-phase`, produces RESEARCH.md
-
-### Level 3 — Deep Dive (1+ hour)
-- Architectural decision with long-term impact
-- Novel problem without clear patterns
-- High-risk, hard to change later
-- Action: Full research with RESEARCH.md
-
-**Depth indicators:**
-- Level 2+: New library not in package.json, external API, "choose/select/evaluate" in description
-- Level 3: "architecture/design/system", multiple external services, data modeling, auth design
-
-For niche domains (3D, games, audio, shaders, ML), suggest `/research-phase` before `/plan`.
+**상세 기준 + depth indicators** → `references/discovery-protocol.md`
 
 ---
 
@@ -164,23 +65,23 @@ Every task has four required fields:
 
 ### `<files>`
 Exact file paths created or modified.
-- ✅ Good: `src/app/api/auth/login/route.ts`, `prisma/schema.prisma`
-- ❌ Bad: "the auth files", "relevant components"
+- ✅ `src/app/api/auth/login/route.ts`
+- ❌ "the auth files", "relevant components"
 
 ### `<action>`
-Specific implementation instructions, including what to avoid and WHY.
-- ✅ Good: "Create POST endpoint accepting {email, password}, validates using bcrypt against User table, returns JWT in httpOnly cookie with 15-min expiry. Use jose library (not jsonwebtoken - CommonJS issues with Edge runtime)."
-- ❌ Bad: "Add authentication", "Make login work"
+Specific instructions including what to avoid and WHY.
+- ✅ "Create POST endpoint accepting {email, password}, validates using bcrypt... AVOID: jsonwebtoken (CommonJS issues with Edge runtime)"
+- ❌ "Add authentication"
 
 ### `<verify>`
-How to prove the task is complete.
-- ✅ Good: `npm test` passes, `curl -X POST /api/auth/login` returns 200 with Set-Cookie header
-- ❌ Bad: "It works", "Looks good"
+Executable command to prove completion.
+- ✅ `npm test` passes, `curl -X POST /api/auth/login` returns 200
+- ❌ "It works"
 
 ### `<done>`
-Acceptance criteria — measurable state of completion.
-- ✅ Good: "Valid credentials return 200 + JWT cookie, invalid credentials return 401"
-- ❌ Bad: "Authentication is complete"
+Measurable acceptance criteria.
+- ✅ "Valid credentials return 200 + JWT cookie, invalid → 401"
+- ❌ "Authentication is complete"
 
 ---
 
@@ -188,268 +89,30 @@ Acceptance criteria — measurable state of completion.
 
 | Type | Use For | Autonomy |
 |------|---------|----------|
-| `auto` | Everything AI can do independently | Fully autonomous |
-| `checkpoint:human-verify` | Visual/functional verification | Pauses for user |
+| `auto` | Everything AI can do | Fully autonomous |
+| `checkpoint:human-verify` | Visual/functional check | Pauses for user |
 | `checkpoint:decision` | Implementation choices | Pauses for user |
-| `checkpoint:human-action` | Truly unavoidable manual steps (rare) | Pauses for user |
+| `checkpoint:human-action` | Unavoidable manual steps | Pauses for user |
 
 **Automation-first rule:** If AI CAN do it via CLI/API, AI MUST do it. Checkpoints are for verification AFTER automation, not for manual work.
 
 ---
 
-## Task Sizing
+## Task & Plan Sizing
 
-### Context Budget Rules
-- **Small task:** <10% context budget, 1-2 files, local scope
-- **Medium task:** 10-20% budget, 3-5 files, single subsystem
-- **Large task (SPLIT THIS):** >20% budget, many files, crosses boundaries
+- Small: <10% budget, 1-2 files | Medium: 10-20%, 3-5 files | Large: SPLIT
+- Plans: 2-3 tasks max
+- Same-wave plans: MUST NOT modify same files
 
-### Split Signals
-Split into multiple plans when:
-- >3 tasks in a plan
-- >5 files per task
-- Multiple subsystems touched
-- Mixed concerns (API + UI + database in one plan)
-
-### Estimating Context Per Task
-
-| Task Pattern | Typical Context |
-|--------------|-----------------|
-| CRUD endpoint | 5-10% |
-| Component with state | 10-15% |
-| Integration with external API | 15-20% |
-| Complex business logic | 15-25% |
-| Database schema + migrations | 10-15% |
+**상세 + Estimating table** → `references/task-sizing.md`
 
 ---
 
-## Dependency Graph
+## PLAN.md Structure + Dependencies
 
-### Building Dependencies
-1. Identify shared resources (files, types, APIs)
-2. Determine creation order (types before implementations)
-3. Group independent work into same wave
-4. Sequential dependencies go to later waves
+**전체 PLAN.md 템플릿 + Frontmatter + User Setup + Dependency Graph + TDD** → `references/plan-structure.md`
 
-### Wave Assignment
-- **Wave 1:** Foundation (types, schemas, utilities)
-- **Wave 2:** Core implementations
-- **Wave 3:** Integration and validation
-
-### Vertical Slices vs Horizontal Layers
-**Prefer vertical slices:** Each plan delivers a complete feature path.
-
-```
-✅ Vertical (preferred):
-Plan 1: User registration (API + DB + validation)
-Plan 2: User login (API + session + cookie)
-
-❌ Horizontal (avoid):
-Plan 1: All database models
-Plan 2: All API endpoints
-```
-
-### File Ownership for Parallel Execution
-Plans in the same wave MUST NOT modify the same files.
-
-If two plans need the same file:
-1. Move one to a later wave, OR
-2. Split the file into separate modules
-
----
-
-## PLAN.md Structure
-
-```markdown
----
-phase: {N}
-plan: {M}
-wave: {W}
-depends_on: []
-files_modified: []
-autonomous: true
-user_setup: []
-
-must_haves:
-  truths: []
-  artifacts: []
----
-
-# Plan {N}.{M}: {Descriptive Name}
-
-<objective>
-{What this plan accomplishes}
-
-Purpose: {Why this matters}
-Output: {What artifacts will be created}
-</objective>
-
-<context>
-Load for context:
-- .hxsk/SPEC.md
-- .hxsk/ARCHITECTURE.md (if exists)
-- {relevant source files}
-</context>
-
-<tasks>
-
-<task type="auto">
-  <name>{Clear task name}</name>
-  <files>{exact/file/paths.ext}</files>
-  <action>
-    {Specific instructions}
-    AVOID: {common mistake} because {reason}
-  </action>
-  <verify>{command or check}</verify>
-  <done>{measurable criteria}</done>
-</task>
-
-</tasks>
-
-<verification>
-After all tasks, verify:
-- [ ] {Must-have 1}
-- [ ] {Must-have 2}
-</verification>
-
-<success_criteria>
-- [ ] All tasks verified
-- [ ] Must-haves confirmed
-</success_criteria>
-```
-
-### Frontmatter Fields
-
-| Field | Required | Purpose |
-|-------|----------|---------|
-| `phase` | Yes | Phase number |
-| `plan` | Yes | Plan number within phase |
-| `wave` | Yes | Execution wave (1, 2, 3...) |
-| `depends_on` | Yes | Plan IDs this plan requires |
-| `files_modified` | Yes | Files this plan touches |
-| `autonomous` | Yes | `true` if no checkpoints |
-| `user_setup` | No | Human-required setup items |
-| `must_haves` | Yes | Goal-backward verification |
-
-### User Setup Section
-When external services involved:
-
-```yaml
-user_setup:
-  - service: stripe
-    why: "Payment processing"
-    env_vars:
-      - name: STRIPE_SECRET_KEY
-        source: "Stripe Dashboard -> Developers -> API keys"
-    dashboard_config:
-      - task: "Create webhook endpoint"
-        location: "Stripe Dashboard -> Developers -> Webhooks"
-```
-
-Only include what AI literally cannot do (account creation, secret retrieval).
-
----
-
-## Goal-Backward Methodology
-
-**Forward planning asks:** "What should we build?"
-**Goal-backward planning asks:** "What must be TRUE for the goal to be achieved?"
-
-Forward planning produces tasks. Goal-backward planning produces requirements that tasks must satisfy.
-
-### Process
-1. **Define done state:** What is true when the phase is complete?
-2. **Identify must-haves:** Non-negotiable requirements
-3. **Decompose to tasks:** What steps achieve each must-have?
-4. **Order by dependency:** What must exist before something else?
-5. **Group into plans:** 2-3 related tasks per plan
-
-### Must-Haves Structure
-```yaml
-must_haves:
-  truths:
-    - "User can log in with valid credentials"
-    - "Invalid credentials are rejected with 401"
-  artifacts:
-    - "src/app/api/auth/login/route.ts exists"
-    - "JWT cookie is httpOnly"
-  key_links:
-    - "Login endpoint validates against User table"
-```
-
----
-
-## TDD Detection
-
-### When to Use TDD Plans
-
-Detect TDD fit when:
-- Complex business logic with edge cases
-- Financial calculations
-- State machines
-- Data transformation pipelines
-- Input validation rules
-
-### TDD Plan Structure
-
-```markdown
----
-phase: {N}
-plan: {M}
-type: tdd
-wave: {W}
----
-
-# TDD Plan: {Feature}
-
-## Red Phase
-<task type="auto">
-  <name>Write failing tests</name>
-  <files>tests/{feature}.test.ts</files>
-  <action>Write tests for: {behavior}</action>
-  <verify>npm test shows RED (failing)</verify>
-  <done>Tests written, all failing</done>
-</task>
-
-## Green Phase
-<task type="auto">
-  <name>Implement to pass tests</name>
-  <files>src/{feature}.ts</files>
-  <action>Minimal implementation to pass tests</action>
-  <verify>npm test shows GREEN</verify>
-  <done>All tests passing</done>
-</task>
-
-## Refactor Phase
-<task type="auto">
-  <name>Refactor with confidence</name>
-  <files>src/{feature}.ts</files>
-  <action>Improve code quality (tests protect)</action>
-  <verify>npm test still GREEN</verify>
-  <done>Code clean, tests passing</done>
-</task>
-```
-
----
-
-## Planning from Verification Gaps
-
-When `/verify` finds gaps, create targeted fix plans:
-
-1. **Load gap report** from VERIFICATION.md
-2. **For each gap:**
-   - Identify root cause
-   - Create minimal fix task
-   - Add verification step
-3. **Mark as gap closure:**
-   ```yaml
-   gap_closure: true
-   ```
-
-Gap closure plans:
-- Execute with `/execute {N} --gaps-only`
-- Smaller scope than normal plans
-- Focus on single issue per plan
+**Goal-backward Methodology + Anti-patterns** → `references/goal-backward.md`
 
 ---
 
@@ -480,51 +143,6 @@ OPTIONS: [choices if applicable]
 
 ---
 
-## Anti-Patterns to Avoid
-
-### ❌ Vague Tasks
-```xml
-<task type="auto">
-  <name>Add authentication</name>
-  <action>Implement auth</action>
-  <verify>???</verify>
-</task>
-```
-
-### ✅ Specific Tasks
-```xml
-<task type="auto">
-  <name>Create login endpoint with JWT</name>
-  <files>src/app/api/auth/login/route.ts</files>
-  <action>
-    POST endpoint accepting {email, password}.
-    Query User by email, compare password with bcrypt.
-    On match: create JWT with jose, set httpOnly cookie, return 200.
-    On mismatch: return 401.
-  </action>
-  <verify>curl -X POST localhost:3000/api/auth/login returns 200 + Set-Cookie</verify>
-  <done>Valid creds → 200 + cookie. Invalid → 401.</done>
-</task>
-```
-
-### ❌ Reflexive Chaining
-```yaml
-# Bad: Every plan refs previous
-context:
-  - .hxsk/phases/1/01-SUMMARY.md  # Plan 2 refs 1
-  - .hxsk/phases/1/02-SUMMARY.md  # Plan 3 refs 2
-```
-
-### ✅ Minimal Context
-```yaml
-# Good: Only ref when truly needed
-context:
-  - .hxsk/SPEC.md
-  - src/types.ts  # Actually needed
-```
-
----
-
 ## Checklist Before Submitting Plans
 
 - [ ] Each plan has 2-3 tasks max
@@ -541,13 +159,14 @@ context:
 - [ ] cross_phase_invariants.new: 이번 phase에서 추가되는 불변 조건 명시
 - [ ] invariant 위반 시 Rule 4 (아키텍처 체크포인트) 적용 명시
 
+---
+
 ## 네이티브 도구 활용
 
 PLAN.md 분석과 Discovery Level 평가는 네이티브 도구로 수행:
 
 ```
 # Discovery Level 평가 (키워드 기반)
-# L0: skip (기존 코드 수정), L1: quick (단순 추가), L2: standard (새 기능), L3: deep (아키텍처)
 Grep(pattern: "auth|security|database|api", path: "src/", output_mode: "count")
 
 # 기존 PLAN.md 검색
@@ -556,11 +175,3 @@ Glob(pattern: ".hxsk/phases/*/*.md")
 # 과거 플랜 deviation 확인
 bash .hxsk/hooks/md-recall-memory.sh "deviation" "." 5 compact
 ```
-
-**Discovery Level 기준:**
-| Level | 조건 | 액션 |
-|-------|------|------|
-| L0 | 기존 파일 수정만 | Skip discovery |
-| L1 | 단순 기능 추가 | Quick verify |
-| L2 | 새 모듈/기능 | Standard research |
-| L3 | 아키텍처 변경 | Deep dive |

@@ -16,7 +16,7 @@ See @AGENTS.md for shared project instructions (workflow, memory protocol, valid
 - **Agents**: `.hxsk/agents/{name}.md`
 
 ### Document Hierarchy
-- **문서 계층**: L1=CLAUDE.md (요약) → L2=skills/SKILL.md (상세) → L3=.hxsk/research/ (출처)
+- **문서 계층**: L1=CLAUDE.md (요약) → L2=skills/SKILL.md (상세, entry ≤200줄) + skills/{name}/references/ (상세, 선택 로드) → L3=.hxsk/research/ (출처)
 
 ## Compaction Rules
 압축 시 반드시 보존:
@@ -27,7 +27,7 @@ See @AGENTS.md for shared project instructions (workflow, memory protocol, valid
 ## Prompt Maintenance Rules
 CLAUDE.md, SKILL.md, Agent 정의 파일을 수정할 때:
 - L1(CLAUDE.md): 포함=검색 순서/트리거/제약, 제외=예시/포맷/스키마. ≤120줄
-- Skill/Agent: Quick Reference ≤5줄, 기존 패턴 참조
+- Skill/Agent: Quick Reference ≤5줄, entry SKILL.md ≤200줄, 상세는 references/ 분리
 
 ## Thinking Budget
 깊은 추론이 필요한 작업(아키텍처 결정, 디버깅 근본 원인, 리팩토링 임팩트) 시
