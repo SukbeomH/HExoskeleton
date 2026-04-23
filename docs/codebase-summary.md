@@ -32,7 +32,7 @@ HExoskeleton/
     ├── context-config.yaml    # 컨텍스트/프룬 설정
     ├── skills/   (22)         # 재사용 절차
     ├── agents/   (18)         # 스킬 오케스트레이션
-    ├── hooks/    (21+)        # 이벤트 훅
+    ├── hooks/    (26)          # 이벤트 훅
     ├── scripts/  (17)         # 유틸리티
     ├── workflow/ (1)          # GATES.md
     ├── prompts/  (3)          # setup 프롬프트
@@ -52,10 +52,10 @@ HExoskeleton/
 
 | 영역 | 개수 | 총 LOC | 비고 |
 |------|------|--------|------|
-| **Skills** | 22 | ~6,032 | 각 `{name}/SKILL.md` 형식 |
+| **Skills** | 22 | ~3,500 (entry) + refs/ | 각 `{name}/SKILL.md` ≤200줄 + `references/` |
 | **Agents** | 18 | ~622 | 각 `{name}.md` 파일 |
-| **Hooks** | 21+ | ~3,246 | Claude Code 이벤트별 |
-| **Scripts** | 12 | ~2,606+ | 유틸리티 bash |
+| **Hooks** | 26 | ~3,246 | Claude Code 이벤트별 |
+| **Scripts** | 17 | ~2,606+ | 유틸리티 bash |
 | **Templates** | 33 | ~2,386 | 문서 생성 표준 |
 | **Internal Docs** | 11 | varied | `.hxsk/docs/` |
 | **Prompts** | 3 | ~495 | setup 프롬프트 |
@@ -81,16 +81,17 @@ HExoskeleton/
 | `executor` | PLAN.md → 원자 커밋 + 4-규칙 편차 처리 |
 | `handoff` | 세션 종료: 테스트→커밋→메모리→요약 |
 | `impact-analysis` | 변경 blast radius 평가 |
-| `memory-protocol` | 16 타입 메모리 저장/회상(2-hop) |
+| `memory-protocol` | 17 타입 메모리 저장/회상(2-hop) |
 | `plan-checker` | PLAN.md 6차원 검증 |
 | `planner` | 목표→PLAN.md 작성 (goal-backward) |
 | `pr-review` | 6-페르소나 코드 리뷰 (Dev/QA/Security/Arch/DevOps/UX) |
+| `refactor` | 기능 보존 리팩토링 — PREPARE→IDENTIFY→REFACTOR→VERIFY, 10개 코드 스멜 카탈로그 |
 | `skill-testing` | 스킬 TDD (RED/GREEN/REFACTOR) |
 | `verifier` | SPEC.md must-haves 대조 검증 |
 | `write-report` | 솔루션 비교 보고서 작성 (TCO+가중점수) |
 | (+ INDEX.md) | 스킬 카탈로그 인덱스 |
 
-상세: `.hxsk/skills/{name}/SKILL.md`.
+상세: `.hxsk/skills/{name}/SKILL.md` (entry ≤200줄) + `{name}/references/` (상세, 선택 로드).
 
 ## 4. Agents Inventory (18)
 
@@ -117,7 +118,7 @@ HExoskeleton/
 
 상세: `.hxsk/agents/{name}.md`.
 
-## 5. Hooks Catalog (21+)
+## 5. Hooks Catalog (26)
 
 ### 이벤트별 분류
 
@@ -140,8 +141,12 @@ HExoskeleton/
 - `save-transcript.sh` — 트랜스크립트 보존 (선택)
 
 **Memory**:
-- `md-store-memory.sh` — YAML+MD 저장, Nemori dedup; `yaml_safe()` YAML injection 방지; TYPE_DIR 자동 생성; `.hxsk/` 존재 검증
-- `md-recall-memory.sh` — 2-hop grep 검색; 결과 없음 시 stderr `[NO_MATCH]` 출력; `HXSK_RECALL_MAX` 환경변수로 스캔 깊이 제한(기본 500줄); 2-hop `related` 파싱은 frontmatter 범위로 한정
+- `md-store-memory.sh` — YAML+MD 저장, Nemori dedup; `yaml_safe()` backslash-first YAML injection 방지; TYPE_DIR 자동 생성; `.hxsk/` 존재 검증
+- `md-recall-memory.sh` — 2-hop grep 검색; `grep -li -- "$QUERY"` option-injection 방지; `find -print0 | xargs -0` null-delimiter space-safety; `HXSK_RECALL_MAX`로 스캔 깊이 제한
+
+**Security (Phase 8)**:
+- `bash-guard.py` — DESTRUCTIVE_FS(rm -rRf, shred, dd if=/dev/zero, truncate, chmod 777, git push --mirror) + DESTRUCTIVE_GIT 패턴 차단
+- `file-protect.py` — `secrets/`, `secrets.`, `.secrets`, `.gitconfig`, `credentials` 쓰기 차단
 
 **Workflow**:
 - `gate-check.sh` — GATES.md 조건 검증
@@ -156,8 +161,8 @@ HExoskeleton/
 - `scaffold-hxsk.sh` / `scaffold-infra.sh` — 초기 스캐폴드
 
 **Pre-commit Git**:
-- `pre-commit-doc-lint.sh`
-- `pre-commit-version-check.sh`
+- `pre-commit-doc-lint.sh` — doc-lint 검사 (INDEX-01은 `references/` 서브디렉토리 자동 제외)
+- `pre-commit-version-check.sh` — 버전 정합성 검증
 
 ## 6. Utility Scripts (17)
 
@@ -181,7 +186,7 @@ HExoskeleton/
 | `setup-verify.sh` (200) | 설치 검증 5개 독립 조건 — `PASS N/5 | FAIL M/5` 출력 |
 | `pre-release-check.sh` (100) | 릴리스 전 4-체크: SHA256·CHANGELOG·ISSUE COUNT·실행권한 |
 
-## 7. Memory System (16 Types)
+## 7. Memory System (17 Types)
 
 `.hxsk/memories/` 하위 디렉토리:
 
