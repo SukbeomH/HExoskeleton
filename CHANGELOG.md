@@ -1,5 +1,43 @@
 # Changelog
 
+## [1.12.0](https://github.com/SukbeomH/HExoskeleton/compare/hxsk-plugin-v1.11.1...hxsk-plugin-v1.12.0) (2026-04-23)
+
+
+### Features
+
+* **phase-7:** 하네스 비종속 신뢰성 + 1-liner 설치 개선 (Wave 1·2·3) ([#140](https://github.com/SukbeomH/HExoskeleton/issues/140)) ([fdf095b](https://github.com/SukbeomH/HExoskeleton/commit/fdf095b))
+* **agent-workflow:** lessons-learned A/B/C/D/E 메모리 타입 + cross_phase_invariants + Pre-PR Self-Check 통합 ([a5f4e3e](https://github.com/SukbeomH/HExoskeleton/commit/a5f4e3e))
+* **skill/planner:** lessons-learned recall + cross_phase_invariants 작성 지침 추가 ([64d1561](https://github.com/SukbeomH/HExoskeleton/commit/64d1561))
+* **skill/executor:** cross_phase_invariants 로드 + deviation A/B/C/D/E 분류 저장 ([724f432](https://github.com/SukbeomH/HExoskeleton/commit/724f432))
+* **skill/create-pr:** Pre-PR Self-Check A/B/C/D/E 품질 점검 블록 추가 ([9e5b857](https://github.com/SukbeomH/HExoskeleton/commit/9e5b857))
+* **skill/pr-review:** 리뷰 후 lessons-learned A/B/C/D/E 분류 저장 ([0dc5ebd](https://github.com/SukbeomH/HExoskeleton/commit/0dc5ebd))
+* **skill/dispatcher:** 서브에이전트 프롬프트에 lessons recall + ambiguity log 강제 ([665bbf3](https://github.com/SukbeomH/HExoskeleton/commit/665bbf3))
+* **template:** PLAN.md frontmatter에 cross_phase_invariants 필드 추가 ([b897db2](https://github.com/SukbeomH/HExoskeleton/commit/b897db2))
+* **memory:** 하네스 독립 prune + 임계치 5 + 전 local-tier cap ([#134](https://github.com/SukbeomH/HExoskeleton/issues/134)) ([9318dc2](https://github.com/SukbeomH/HExoskeleton/commit/9318dc2))
+* **memory+doc-lint:** 메모리 티어 분리 + session-summary 정리 + doc-lint 도구 및 스킬 ([c055efa](https://github.com/SukbeomH/HExoskeleton/commit/c055efa))
+* **workflow:** Git Forge 통합 작업 관리 시스템 (GATES, forge-detect, gate-check) ([f5c1fb3](https://github.com/SukbeomH/HExoskeleton/commit/f5c1fb3))
+* **doc-lint:** LINK-02 앵커 링크 유효성 검사 구현 ([#126](https://github.com/SukbeomH/HExoskeleton/issues/126)) ([ec400b7](https://github.com/SukbeomH/HExoskeleton/commit/ec400b7))
+* **prune:** prune-memories.sh에 --dry-run / --help 옵션 추가 ([#125](https://github.com/SukbeomH/HExoskeleton/issues/125)) ([ec9c9bb](https://github.com/SukbeomH/HExoskeleton/commit/ec9c9bb))
+* bootstrap에서 .claude/skills/ 심볼릭 링크 자동 생성 — 슬래시 커맨드 지원 ([32eb29d](https://github.com/SukbeomH/HExoskeleton/commit/32eb29d))
+
+
+### Bug Fixes
+
+* **reliability:** Phase 6 신뢰성 수정 17건 (YAML 인젝션·경쟁 조건·stale lock 등) ([#137](https://github.com/SukbeomH/HExoskeleton/issues/137)) ([26d3181](https://github.com/SukbeomH/HExoskeleton/commit/26d3181))
+* **skill/dispatcher:** 서브에이전트 프롬프트 외부 펜스 4-backtick으로 교체 (closes [#002](https://github.com/SukbeomH/HExoskeleton/issues/2)) ([067c39c](https://github.com/SukbeomH/HExoskeleton/commit/067c39c))
+* **agent-workflow:** recall 인자 오류·테이블 prefix 누락·N/A 옵션 코드 리뷰 반영 ([5c12b70](https://github.com/SukbeomH/HExoskeleton/commit/5c12b70))
+* README 카운트 정합성 — 6건 불일치 수정 ([778c5c2](https://github.com/SukbeomH/HExoskeleton/commit/778c5c2))
+* check-consistency dead component 탐지 glob 확장 에러 및 grep exit code 수정 ([4d8d3d0](https://github.com/SukbeomH/HExoskeleton/commit/4d8d3d0))
+
+
+### Documentation
+
+* **setup:** 3분기 감지 + 업그레이드 섹션 + 하네스 부록 (v5.5.0 정렬) ([#135](https://github.com/SukbeomH/HExoskeleton/issues/135)) ([0fff8d7](https://github.com/SukbeomH/HExoskeleton/commit/0fff8d7))
+* autoresearch:learn 문서 최신화 (v5.5.0+) ([#139](https://github.com/SukbeomH/HExoskeleton/issues/139)) ([10f5279](https://github.com/SukbeomH/HExoskeleton/commit/10f5279))
+* autoresearch:learn Phase 7 post-release 문서 최신화 ([#143](https://github.com/SukbeomH/HExoskeleton/issues/143)) ([ea036eb](https://github.com/SukbeomH/HExoskeleton/commit/ea036eb))
+* 공개 문서 세트 생성 + autoresearch 방법론 연구 ([ac8fabf](https://github.com/SukbeomH/HExoskeleton/commit/ac8fabf))
+
+
 ## [1.11.1](https://github.com/SukbeomH/HExoskeleton/compare/hxsk-plugin-v1.11.0...hxsk-plugin-v1.11.1) (2026-03-12)
 
 

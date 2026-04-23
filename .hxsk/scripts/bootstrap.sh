@@ -23,7 +23,7 @@ LOG_FILE="$LOG_DIR/bootstrap-$(date +%Y%m%d-%H%M%S).log"
 
 # 최근 10개만 유지 (오래된 로그 정리)
 find "$LOG_DIR" -name "bootstrap-*.log" -type f 2>/dev/null \
-    | sort | head -n -10 | xargs rm -f 2>/dev/null || true
+    | sort -r | awk 'NR > 10' | xargs rm -f 2>/dev/null || true
 
 # ─────────────────────────────────────────────────────
 # Version & Mode Detection

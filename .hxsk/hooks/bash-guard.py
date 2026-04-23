@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """Hook: PreToolUse (Bash) — 파괴적 명령 + 패키지 관리자 차단
 
-1. 파괴적 git 명령 차단 (push --force, clean -f 등)
-2. 프로젝트 설정 기반 패키지 관리자 차단 (project-config.yaml 참조)
-3. config 없으면 차단 없음 (기본값 = 제한 없음)
+1. 파괴적 파일시스템 명령 차단 (rm -rf, shred, dd if=/dev/zero 등)
+2. 파괴적 git 명령 차단 (push --force, clean -f 등)
+3. 프로젝트 설정 기반 패키지 관리자 차단 (project-config.yaml 참조)
+4. config 없으면 패키지 차단 없음 (기본값 = 제한 없음)
 Exit code 2 = 차단 (stderr가 Claude에게 전달됨)
 Exit code 0 = 허용
 """
@@ -12,6 +13,34 @@ import json
 import os
 import re
 import sys
+
+# ── 파괴적 파일시스템 명령 패턴 ──
+DESTRUCTIVE_FS = [
+    (
+        r"\brm\s+-[a-zA-Z]*[rR]",
+        "rm -r/-rf is blocked. Use targeted file deletion instead.",
+    ),
+    (
+        r"\bshred\b",
+        "shred is blocked. It permanently destroys file data.",
+    ),
+    (
+        r"\bdd\b.*\bif=/dev/zero\b",
+        "dd if=/dev/zero is blocked. It overwrites data destructively.",
+    ),
+    (
+        r"\btruncate\b.*\s0\b",
+        "truncate --size 0 is blocked. It silently empties files.",
+    ),
+    (
+        r"\bchmod\b.*-[^\s]*R[^\s]*\s+0?777\b",
+        "chmod -R 777 is blocked. It makes files world-writable.",
+    ),
+    (
+        r"git\s+push\s+.*--mirror\b",
+        "git push --mirror is blocked. It overwrites the entire remote.",
+    ),
+]
 
 # ── 파괴적 git 명령 패턴 ──
 DESTRUCTIVE_GIT = [
@@ -100,6 +129,12 @@ command = tool_input.get("command", "")
 
 if not command:
     sys.exit(0)
+
+# 파괴적 파일시스템 명령 검사
+for pattern, message in DESTRUCTIVE_FS:
+    if re.search(pattern, command):
+        print(f"Blocked: {message}", file=sys.stderr)
+        sys.exit(2)
 
 # 파괴적 git 명령 검사
 for pattern, message in DESTRUCTIVE_GIT:

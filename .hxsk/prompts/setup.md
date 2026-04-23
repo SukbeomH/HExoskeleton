@@ -297,18 +297,26 @@ git clone --depth 1 -b setup-v$TARGET_VERSION \
 
 ```bash
 mkdir -p "$HX_SRC"
-curl -sL "https://github.com/SukbeomH/HExoskeleton/archive/refs/tags/setup-v$TARGET_VERSION.tar.gz" \
-    | tar xz -C "$HX_SRC" --strip-components=1
+TARBALL="setup-v${TARGET_VERSION}.tar.gz"
+curl -sL "https://github.com/SukbeomH/HExoskeleton/archive/refs/tags/${TARBALL}" \
+    -o "/tmp/${TARBALL}"
+```
+
+**SHA256 검증 (필수 — 릴리스 노트에서 체크섬 확인)**:
+
+```bash
+# 릴리스 노트(GitHub Releases)에서 setup-v$TARGET_VERSION 체크섬을 복사한 뒤 실행
+EXPECTED="<릴리스 노트의 SHA256 해시>"
+ACTUAL=$(shasum -a 256 "/tmp/${TARBALL}" | awk '{print $1}')
+if [ "$EXPECTED" != "$ACTUAL" ]; then
+    echo "SHA256 불일치 — 설치 중단 (expected=$EXPECTED, actual=$ACTUAL)" >&2
+    exit 1
+fi
+tar xz -C "$HX_SRC" --strip-components=1 < "/tmp/${TARBALL}"
+rm -f "/tmp/${TARBALL}"
 ```
 
 성공 확인: `cat "$HX_SRC/.hxsk/.bootstrap-version"` 에 `version: $TARGET_VERSION` 표시.
-
-**SHA256 검증 (선택 — 릴리스 노트에 체크섬이 제공된 경우)**:
-
-```bash
-# SHA256 검증 (선택 — 릴리스 노트에 체크섬이 제공된 경우)
-# sha256sum -c <<< "EXPECTED_HASH  setup-v$TARGET_VERSION.tar.gz"
-```
 
 ### Step U3: 프레임워크 동기화
 

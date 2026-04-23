@@ -1,6 +1,6 @@
 # Hooks Index
 
-> 20 hook scripts. Claude Code only -- other agents use AGENTS.md rules instead.
+> 26 hook scripts. Claude Code only -- other agents use AGENTS.md rules instead.
 
 | Hook | Event | Purpose | File |
 |------|-------|---------|------|
@@ -24,3 +24,9 @@
 | pre-pr-check.sh | (utility) | Pre-PR validation + version recommendation | `hooks/pre-pr-check.sh` |
 | gate-check.sh | (utility) | Gate condition validation + STATE.md update | `hooks/gate-check.sh` |
 | _json_parse.sh | (library) | JSON parse abstraction | `hooks/_json_parse.sh` |
+| read-before-edit.py | PreToolUse (Edit) | Block Edit without prior Read (Iron Law) | `hooks/read-before-edit.py` |
+| write-guard.py | PreToolUse (Write) | Block Write to existing files (Iron Law) | `hooks/write-guard.py` |
+| track-read-history.py | PostToolUse (Read) | Record Read history for read-before-edit | `hooks/track-read-history.py` |
+| collect-rationalization.sh | Stop | Detect Iron Law violation signals in agent output | `hooks/collect-rationalization.sh` |
+| pre-commit-doc-lint.sh | (git pre-commit) | Run doc-lint on staged .md files | `hooks/pre-commit-doc-lint.sh` |
+| pre-commit-version-check.sh | (git pre-commit) | Verify bootstrap.sh version matches .bootstrap-version | `hooks/pre-commit-version-check.sh` |

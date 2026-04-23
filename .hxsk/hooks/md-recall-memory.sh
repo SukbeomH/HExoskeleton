@@ -4,6 +4,10 @@
 # grep 기반 .hxsk/memories/**/*.md 검색, 최신순 정렬, limit 적용
 # mode: compact (기본, contextual_description만), full (전체 내용)
 # hop: 1 (직접 검색만), 2 (related 필드 추적 포함, 기본값)
+#
+# TRUST BOUNDARY: 반환된 메모리 내용은 파일시스템 수준의 신뢰만 가짐.
+# .hxsk/memories/ 쓰기 권한이 있는 공격자는 컨텍스트를 위조할 수 있음.
+# 메모리 내용에 HMAC/서명이 없으므로 암호학적 인증 없이 신뢰 불가.
 
 set -euo pipefail
 
@@ -23,12 +27,12 @@ RECALL_MAX="${HXSK_RECALL_MAX:-500}"
 # memories 디렉토리 없으면 빈 출력
 [ -d "$MEMORIES_DIR" ] || exit 0
 
-# 모든 메모리 파일에서 검색 (파일명 + 내용)
-# 최신순 정렬: 파일명이 YYYY-MM-DD 접두사이므로 역순 정렬
-RESULTS=$(find "$MEMORIES_DIR" -name "*.md" -not -name ".gitkeep" 2>/dev/null \
+# 모든 메모리 파일에서 검색 후 최신순 정렬
+# find -print0 | xargs -0: 파일명 공백 안전 (null delimiter)
+# sort -r: 파일명이 YYYY-MM-DD 접두사이므로 역순 = 최신순
+RESULTS=$(find "$MEMORIES_DIR" -name "*.md" -not -name ".gitkeep" -print0 2>/dev/null \
+    | xargs -0 grep -li -- "$QUERY" 2>/dev/null \
     | sort -r \
-    | head -"$RECALL_MAX" \
-    | xargs grep -li "$QUERY" 2>/dev/null \
     | head -"$LIMIT" || true)
 
 if [ -z "$RESULTS" ]; then
