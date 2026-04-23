@@ -135,6 +135,19 @@ def _apply_changes(path, original_content, frontmatter, result):
         after_qr = rest[after_qr_start:] if after_qr_start != -1 else ""
         body = before_qr + qr_pattern + result.refined_quick_ref + "\n" + after_qr
 
+    iron_pattern = "## Iron Laws\n"
+    iron_content = result.iron_laws.strip() if result.iron_laws else ""
+    if iron_content:
+        if iron_pattern in body:
+            # replace existing
+            before_iron, rest = body.split(iron_pattern, 1)
+            after_iron_start = rest.find("\n##")
+            after_iron = rest[after_iron_start:] if after_iron_start != -1 else ""
+            body = before_iron + iron_pattern + iron_content + "\n" + after_iron
+        else:
+            # append at end
+            body = body.rstrip() + "\n\n" + iron_pattern + iron_content + "\n"
+
     new_content = f"---\n{new_fm}---\n\n{body}"
     path.write_text(new_content)
 
