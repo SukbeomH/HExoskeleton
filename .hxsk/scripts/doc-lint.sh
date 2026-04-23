@@ -316,6 +316,7 @@ rule_index_01() {
 
         # Actual .md files in directory (excluding INDEX.md itself)
         # SKILL.md가 있는 하위 디렉토리는 SKILL.md만 대표 — 같은 dir의 보조 문서는 제외
+        # references/ 서브디렉토리는 SKILL.md의 상세 파일 — INDEX 등록 불필요
         local actual_str
         actual_str=$({
             find "$dir" -name "*.md" -not -name "INDEX.md" 2>/dev/null | \
@@ -324,6 +325,11 @@ rule_index_01() {
                     fbase="$(basename "$f")"
                     # 같은 sub-dir에 SKILL.md가 있고 본인은 SKILL.md가 아니면 보조 문서
                     if [[ -f "$fdir/SKILL.md" && "$fbase" != "SKILL.md" ]]; then
+                        continue
+                    fi
+                    # references/ 디렉토리 내 파일 — 부모에 SKILL.md가 있으면 세부 참조 파일
+                    if [[ "$(basename "$fdir")" == "references" ]] && \
+                       [[ -f "$(dirname "$fdir")/SKILL.md" ]]; then
                         continue
                     fi
                     echo "$f"
