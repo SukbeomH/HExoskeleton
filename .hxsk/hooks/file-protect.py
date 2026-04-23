@@ -14,7 +14,10 @@ BLOCKED_PATTERNS = [
     ".pem",
     ".key",
     "secrets/",
+    "secrets.",   # secrets.json, secrets.yaml, secrets.toml
+    ".secrets",   # private.secrets, app.secrets
     ".git/",
+    ".gitconfig",
     "id_rsa",
     "id_ed25519",
     "credentials",

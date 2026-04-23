@@ -6,8 +6,8 @@
 
 set -euo pipefail
 
-# YAML scalar sanitizer: strip newlines/carriage returns, escape double quotes
-yaml_safe() { printf '%s' "${1:-}" | tr -d '\n\r' | sed 's/"/\\"/g'; }
+# YAML scalar sanitizer: strip newlines/carriage returns, escape backslashes then double quotes
+yaml_safe() { printf '%s' "${1:-}" | tr -d '\n\r' | sed 's/\\/\\\\/g; s/"/\\"/g'; }
 
 TITLE="${1:?Usage: md-store-memory.sh <title> <content> [tags] [type] [keywords] [contextual_desc] [related]}"
 CONTENT="${2:?Missing content}"
