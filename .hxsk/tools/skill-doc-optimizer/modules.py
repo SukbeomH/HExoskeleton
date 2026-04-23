@@ -4,6 +4,19 @@ from signatures import (
     QuickReferenceRefiner, IronLawsSynthesizer,
 )
 
+
+def _safe_float(val, fallback=0.5):
+    """LLM이 '0.85 (높음)' 같은 형식으로 반환할 때 첫 토큰만 float으로 변환한다.
+
+    DSPy OutputField(float) 선언에도 불구하고 LLM이 텍스트를 덧붙이는 경우
+    ValueError 없이 fallback 값을 반환해 파이프라인을 계속 진행시킨다.
+    """
+    try:
+        return float(str(val).split()[0])
+    except (ValueError, TypeError):
+        return fallback
+
+
 CSO_BAD_EXAMPLES = """
 Bad (방법론 요약): "Task planning and execution workflow management using goal-backward methodology"
 Bad (기능 나열): "Creates PLAN.md with tasks, waves, dependencies, and verification steps"
@@ -50,11 +63,18 @@ class SkillDocOptimizer(dspy.Module):
             existing_iron_laws=current_iron,
         )
 
+        # LLM이 float 필드에 '0.85 (높음)' 같은 텍스트를 덧붙일 수 있으므로
+        # _safe_float()으로 첫 토큰만 파싱한다. 파싱 실패 시 0.5 fallback.
+        answerability = _safe_float(desc_result.answerability_score)
+        specificity = _safe_float(desc_result.specificity_score)
+
         return dspy.Prediction(
             optimized_description=desc_result.optimized_description,
             expanded_triggers=trigger_result.expanded_triggers,
             refined_quick_ref=qr_result.refined_quick_ref,
             iron_laws=iron_result.iron_laws,
+            answerability_score=answerability,
+            specificity_score=specificity,
             changes={
                 "description": desc_result.change_reason,
                 "trigger": trigger_result.added_patterns,
