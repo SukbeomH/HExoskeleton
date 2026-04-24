@@ -4,6 +4,21 @@
 
 ---
 
+### [2026-04-23] v5.6.0 — 전체 22개 스킬 CSO 최적화 + hook CWD 고정
+
+#### 신규
+- **skill-doc-optimizer** — DSPy BootstrapFewShot 기반 스킬 문서 자동 최적화 도구 (`.hxsk/tools/skill-doc-optimizer/`). Watson et al. 2026 OR 메트릭, composite_hallucination_risk 지표.
+
+#### 개선
+- **전체 22개 SKILL.md description** — "Use when..." CSO(Context-Selective Output) 패턴으로 일괄 업데이트. composite_hallucination_risk 0.571 → 0.196 (-63%), Val score 0.797.
+- **hook CWD 드리프트 수정** — `.claude/settings.json` 모든 `.hxsk/hooks/` 명령에 `cd "${CLAUDE_PROJECT_DIR:-.}" &&` 접두어 추가. `cd` 후 상대 경로 훅 실패 문제 해결.
+
+#### 연구
+- Watson et al. 2026 (arXiv:2602.20300) OR 메트릭 + DSPy BootstrapFewShot 최적화 검증 완료 (Phase 10).
+- 22개 스킬 중 MEDIUM(bootstrap, commit, create-pr, write-report) 4개 CSO description 수동 검증 완료 (Phase 11, PR #149).
+
+---
+
 ### [2026-04-16] v5.5.0 — 하네스 독립 prune + 임계치 5 + 전 local-tier cap
 
 #### 신규
