@@ -19,7 +19,7 @@
 | [RESEARCH-hybrid-search-fts5-rrf.md](memory-systems/RESEARCH-hybrid-search-fts5-rrf.md) | `active` | FTS5 + RRF 하이브리드 검색 분석 (향후 최적화 후보) |
 | [RESEARCH-hxsk-applicability-hybrid-search-compression.md](memory-systems/RESEARCH-hxsk-applicability-hybrid-search-compression.md) | `active` | HXSK 적용 가능성 평가 |
 
-## platform-integration/ (8)
+## platform-integration/ (9)
 
 | 문서 | 상태 | 핵심 결론 |
 |------|------|----------|
@@ -27,6 +27,7 @@
 | [RESEARCH-awesome-claude-code.md](platform-integration/RESEARCH-awesome-claude-code.md) | `active` | 커뮤니티 리소스 큐레이션 |
 | [RESEARCH-claude-code-as-mcp-server.md](platform-integration/RESEARCH-claude-code-as-mcp-server.md) | `active` | Claude Code MCP 서버 활용 평가 |
 | [RESEARCH-agents-md-agentic-engineering-2026.md](platform-integration/RESEARCH-agents-md-agentic-engineering-2026.md) | `active` | AGENTS.md 에이전틱 엔지니어링 트렌드 |
+| [VERIFY-opencode-compat.md](platform-integration/VERIFY-opencode-compat.md) | `active` | OpenCode 1.14.18 호환성 실증 — CLAUDE.md/Skills ✅, Hooks bash ⚠️, oh-my-opencode 활성 확인 |
 | [RESEARCH-google-antigravity-migration.md](platform-integration/RESEARCH-google-antigravity-migration.md) | `archived` | Antigravity IDE 마이그레이션 — 현재 비활성 플랫폼 |
 | [RESEARCH-opencode-plugin-migration.md](platform-integration/RESEARCH-opencode-plugin-migration.md) | `archived` | OpenCode 플러그인 호환성 — Claude Code 집중으로 후순위 |
 | [antigravity_doc_rules_and_workflows.md](platform-integration/antigravity_doc_rules_and_workflows.md) | `archived` | Antigravity 규칙/워크플로우 스냅샷 |
@@ -86,6 +87,14 @@ Superpowers 플러그인 분석 및 에이전트 규율 강화 연구.
 | superpowers-references.md | `active` | 7패턴 × 20개 학술/산업 출처 (Meincke+ 2025, SkillReducer 2026 등) |
 | claude-code-quality-mitigation.md | `active` | GitHub #42796 품질 저하 이슈 — 6문제 중 4개 Superpowers 기법으로 완화 가능 |
 
+## benchmark/ (1) — all active
+
+메모리 시스템 성능 측정 결과.
+
+| 문서 | 상태 | 핵심 결론 |
+|------|------|----------|
+| [2026-04-24-recall-benchmark.md](benchmark/2026-04-24-recall-benchmark.md) | `active` | hop=1(342ms) vs hop=2(459ms) +34% 오버헤드. related 링크 미설정으로 현재 hop=1 적합 |
+
 ## hallucination-research/ (1) — all active
 
 LLM 할루시네이션 언어 특성 연구 및 SKILL.md 최적화 적용.
@@ -100,9 +109,9 @@ LLM 할루시네이션 언어 특성 연구 및 SKILL.md 최적화 적용.
 
 | 상태 | 개수 | 비율 |
 |------|------|------|
-| `active` | 22 | 65% |
-| `archived` | 7 | 21% |
-| `superseded` | 5 | 15% |
+| `active` | 24 | 67% |
+| `archived` | 7 | 19% |
+| `superseded` | 5 | 14% |
 
-*Total: 34 documents across 8 categories*
-*Updated: 2026-04-23 — hallucination-research 카테고리 추가*
+*Total: 36 documents across 10 categories*
+*Updated: 2026-04-24 — benchmark 카테고리 추가, OpenCode 검증 결과 추가*
