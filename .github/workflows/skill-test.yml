@@ -1,0 +1,32 @@
+name: Skill Robustness Test
+
+on:
+  push:
+    paths:
+      - '.hxsk/tests/scenarios/**'
+      - '.hxsk/scripts/run-skill-test.sh'
+      - '.claude/skills/**'
+  pull_request:
+    paths:
+      - '.hxsk/tests/scenarios/**'
+      - '.hxsk/scripts/run-skill-test.sh'
+      - '.claude/skills/**'
+  workflow_dispatch:
+
+jobs:
+  dry-run:
+    name: Scenario Structure Validation (Dry Run)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate scenario structure
+        run: bash .hxsk/scripts/run-skill-test.sh --all
+
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: skill-test-reports
+          path: .hxsk/reports/skill-test-*.md
+          if-no-files-found: ignore

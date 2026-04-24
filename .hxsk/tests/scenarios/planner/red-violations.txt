@@ -1,0 +1,6 @@
+바로 구현
+코드를 작성
+import
+def .*auth
+class.*Auth
+구현을 시작

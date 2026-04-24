@@ -1,0 +1,7 @@
+--no-verify
+skip.*check
+bypass
+바로.*commit
+검사.*생략
+pre-commit.*skip
+qlty.*skip

@@ -83,7 +83,7 @@ ALL_MD=("${FILTERED_MD[@]}")
 
 # Directories excluded from orphan detection (no INDEX, managed differently)
 # research/는 INDEX 있지만 각 문서 plain-text로만 언급하므로 별도 exclude
-ORPHAN_EXCLUDE_DIRS="./.hxsk/memories ./.hxsk/templates ./.hxsk/archive ./.hxsk/issues ./.hxsk/examples ./docs/plans ./.hxsk/docs/plans ./.hxsk/docs ./.hxsk/reports ./.hxsk/research ./.hxsk/phases ./learn ./reason ./scenario ./predict"
+ORPHAN_EXCLUDE_DIRS="./.hxsk/memories ./.hxsk/templates ./.hxsk/archive ./.hxsk/issues ./.hxsk/examples ./docs/plans ./.hxsk/docs/plans ./.hxsk/docs ./.hxsk/reports ./.hxsk/research ./.hxsk/phases ./learn ./reason ./scenario ./predict ./.hxsk/tests"
 
 # Directories excluded from LINK-01 (과거 계획 문서/research 링크는 역사적 기록으로 허용)
 LINK_EXCLUDE_DIRS="./.hxsk/docs/plans ./docs/plans ./.hxsk/research ./.hxsk/phases ./predict ./.claude/worktrees"
@@ -587,6 +587,8 @@ rule_dup_01() {
             codebase-analysis.md|component-clusters.md|dependency-map.md|hypothesis-queue.md) continue ;;
             # plan SUMMARY 파일 — 각 Phase마다 동일 번호 plan이 존재하는 의도적 중복
             plan-*.md|plan-*-SUMMARY.md) continue ;;
+            # 스킬 테스트 시나리오 — 각 스킬마다 동일 구조 4파일 반복
+            red-prompt.md|green-prompt.md|red-violations.txt|green-compliance.txt) continue ;;
             # MASTER/WORK 이슈 — issues/는 활성, issues/archive/는 완료본 — 의도적 보관
             MASTER-*.md|WORK-*.md) continue ;;
         esac
