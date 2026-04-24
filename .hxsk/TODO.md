@@ -33,10 +33,13 @@
 - [x] **build 후 3개 타겟 통합 테스트** — 3개 타겟 모두 BUILD SUCCESSFUL `medium` — 2026-03-06 ✓ 2026-03-06
 - [x] **ROADMAP.md Phase 계획 수립** — Phase 1~3 작성 완료, 상태 현행화 `medium` — 2026-03-06 ✓ 2026-03-06
 
-- [ ] **메모리 2-hop 검색 벤치마크** — Phase 2 목표. 검색 레이턴시 + 정확도 측정 `medium` — 2026-04-24
-- [ ] **강인성 테스트 인프라 (Phase 5)** — 압박 시나리오 CI 자동화. SPEC.md 작성 필요 `medium` — 2026-04-24
+- [x] **메모리 2-hop 검색 벤치마크** — hop=1(342ms) vs hop=2(459ms). related 링크 미설정으로 hop=1 권장 `medium` — 2026-04-24 ✓ 2026-04-24
+- [x] **강인성 테스트 인프라 SPEC.md** — .hxsk/specs/robustness-ci.md 작성 완료 `medium` — 2026-04-24 ✓ 2026-04-24
+- [x] **OpenCode 호환성 검증** — 공식 문서 기반 CLAUDE.md/Skills ✅, Hooks bash ❌ `medium` — 2026-04-24 ✓ 2026-04-24
+- [ ] **강인성 테스트 인프라 구현** — SPEC 기반 run-skill-test.sh + GitHub Actions `medium` — 2026-04-24
+- [ ] **OpenCode Task 2 — 세션 실행 실증** — opencode TUI에서 AGENTS.md/Skills 실제 로드 확인 `medium` — 2026-04-24
 - [ ] **한국어 할루시네이션 연구 (Phase 6)** — Watson et al. 메트릭 한국어 적용 연구 `low` — 2026-04-24
 
 ---
 
-*Last updated: 2026-04-24*
+*Last updated: 2026-04-24 (세션 2 반영)*

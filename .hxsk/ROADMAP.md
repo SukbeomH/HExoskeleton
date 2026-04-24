@@ -24,10 +24,12 @@
 | skill-doc-optimizer (DSPy BootstrapFewShot) | ✅ done | high |
 | 전체 22개 스킬 CSO description 최적화 | ✅ done | high |
 | Gate 상태 관리 자동화 (gate-check.sh pass) | ✅ done | medium |
-| 메모리 2-hop 검색 성능 벤치마크 | 📋 planned | medium |
-| 강인성 테스트 인프라 구축 (Phase 5) | 📋 planned | medium |
+| 메모리 2-hop 검색 성능 벤치마크 | ✅ done | medium |
+| 강인성 테스트 인프라 SPEC.md 작성 | ✅ done | medium |
+| OpenCode 공식 문서 기반 호환성 검증 | ✅ done | medium |
+| 강인성 테스트 인프라 구현 (Phase 5) | 📋 planned | medium |
+| OpenCode Task 2 — 세션 실행 실증 | 📋 planned | medium |
 | antigravity Rules → 실행 가능한 워크플로우 변환 연구 | 📋 planned | low |
-| OpenCode TypeScript 플러그인 실제 동작 검증 | 📋 planned | medium |
 
 ## Phase 3: 배포 최적화 (2026-Q3)
 
@@ -42,4 +44,4 @@
 
 ---
 
-*Last updated: 2026-04-24 (Phase 2 in-progress: 3/7)*
+*Last updated: 2026-04-24 (Phase 2 in-progress: 6/9)*
