@@ -148,36 +148,119 @@ show_status() {
     fi
 }
 
-# ── STATE.md 업데이트 헬퍼 ───────────────────────────────────────────────────
-# Usage: update_state_gate <gate_name>
-update_state_gate() {
-    local gate="$1"
-
-    if [ ! -f "$STATE_FILE" ]; then
-        echo "WARN: STATE.md not found, skipping update" >&2
-        return
-    fi
-
-    # current_gate 값 업데이트 (sed in-place), 실제 변경 여부 확인
-    local before
-    before=$(grep "^current_gate:" "$STATE_FILE" 2>/dev/null | head -1 || echo "")
-
-    sed -i.bak "s/^current_gate:.*/current_gate: \"$gate\"/" "$STATE_FILE" 2>/dev/null || {
-        echo "ERROR: failed to update STATE.md" >&2
-        rm -f "${STATE_FILE}.bak" 2>/dev/null
+# ── STATE.md 필드 업데이트 헬퍼 ─────────────────────────────────────────────
+# 단일 필드를 sed로 교체. 고유 필드(current_gate, plan, parent_issue, forge)에만 사용.
+_update_state_field() {
+    local field="$1"
+    local value="$2"
+    if ! grep -q "^${field}:" "$STATE_FILE" 2>/dev/null; then
+        echo "WARN: field '${field}' not found in STATE.md" >&2
         return 1
-    }
+    fi
+    sed -i.bak "s|^${field}:.*|${field}: ${value}|" "$STATE_FILE" 2>/dev/null
     rm -f "${STATE_FILE}.bak" 2>/dev/null || true
+}
 
-    local after
-    after=$(grep "^current_gate:" "$STATE_FILE" 2>/dev/null | head -1 || echo "")
+# Active Gate 필드 전체 초기화 (GATE-D0)
+_reset_active_gate() {
+    _update_state_field "plan"         '""'
+    _update_state_field "parent_issue" '""'
+    _update_state_field "current_gate" '""'
+    _update_state_field "forge"        '""'
+    sed -i.bak 's|^sub_issues:.*|sub_issues: []|' "$STATE_FILE" 2>/dev/null
+    rm -f "${STATE_FILE}.bak" 2>/dev/null || true
+}
 
-    if [ "$before" = "$after" ] && ! echo "$after" | grep -q "\"$gate\""; then
-        echo "WARN: STATE.md current_gate field not found or unchanged" >&2
-        return 1
-    fi
+# Active Dispatcher 필드 초기화 (GATE-D0) — 첫 번째 master/status 행만 교체
+_reset_active_dispatcher() {
+    sed -i.bak '0,/^master:/{s|^master:.*|master: ""|}' "$STATE_FILE" 2>/dev/null
+    sed -i.bak '0,/^status:/{s|^status:.*|status: ""|}' "$STATE_FILE" 2>/dev/null
+    rm -f "${STATE_FILE}.bak" 2>/dev/null || true
+}
 
-    echo -e "${GREEN}[STATE]${NC} current_gate → $gate"
+# (구 API 호환 — 내부에서 _update_state_field 호출)
+update_state_gate() {
+    local gate="${1:-}"
+    [ -f "$STATE_FILE" ] || { echo "WARN: STATE.md not found" >&2; return; }
+    _update_state_field "current_gate" "\"$gate\"" && \
+        echo -e "${GREEN}[STATE]${NC} current_gate → $gate"
+}
+
+# ── GATE 통과 기록 ────────────────────────────────────────────────────────────
+# Usage: gate-check.sh pass <GATE> [data]
+#   GATE-P1 <branch>     plan 브랜치명 + forge 자동 감지
+#   GATE-P2 <issue>      parent_issue 번호
+#   GATE-P3              current_gate만 갱신
+#   GATE-P4 <N,N,...>    sub_issues 목록 ([1, 2, 3])
+#   GATE-E0              current_gate + dispatcher master 기록
+#   GATE-V0|V1|V2|V3     current_gate만 갱신
+#   GATE-D0 [result_doc] Active Gate + Dispatcher 초기화, History 추가
+record_gate_pass() {
+    local gate="${1:-}"
+    local data="${2:-}"
+
+    [ -n "$gate" ] || { echo "Usage: gate-check.sh pass <GATE> [data]" >&2; return 1; }
+    [ -f "$STATE_FILE" ] || { echo "ERROR: STATE.md not found at $STATE_FILE" >&2; return 1; }
+
+    case "$gate" in
+        GATE-P1)
+            _update_state_field "current_gate" "\"$gate\""
+            [ -n "$data" ] && _update_state_field "plan" "\"$data\""
+            # forge 자동 감지
+            if [ -f "$PROJECT_DIR/.hxsk/scripts/forge-detect.sh" ]; then
+                local forge
+                forge=$(bash "$PROJECT_DIR/.hxsk/scripts/forge-detect.sh" 2>/dev/null \
+                    | grep "^FORGE_PLATFORM=" | cut -d= -f2 | tr -d '"' || echo "unknown")
+                [ -n "$forge" ] && _update_state_field "forge" "\"$forge\""
+            fi
+            ;;
+        GATE-P2)
+            _update_state_field "current_gate" "\"$gate\""
+            [ -n "$data" ] && _update_state_field "parent_issue" "\"$data\""
+            ;;
+        GATE-P4)
+            _update_state_field "current_gate" "\"$gate\""
+            if [ -n "$data" ]; then
+                local formatted
+                formatted=$(echo "$data" | tr ',' ' ' | xargs | tr ' ' ',')
+                formatted=$(echo "$data" | sed 's/,/, /g')
+                sed -i.bak "s|^sub_issues:.*|sub_issues: [$formatted]|" "$STATE_FILE" 2>/dev/null
+                rm -f "${STATE_FILE}.bak" 2>/dev/null || true
+            fi
+            ;;
+        GATE-D0)
+            # History에 완료 항목 추가 (초기화 전에 현재 값 읽기)
+            local today plan_val issue_val
+            today=$(date +%Y-%m-%d)
+            plan_val=$(_parse_state_field "plan")
+            issue_val=$(_parse_state_field "parent_issue")
+            local result="${data:-done}"
+            # ## History 섹션 주석 다음 줄에 삽입 (BSD/GNU sed 호환 — python3 사용)
+            local entry="- $today ${plan_val:-unknown}: #${issue_val:-?} → $result"
+            python3 - "$STATE_FILE" "$entry" <<'PYEOF'
+import sys
+path, entry = sys.argv[1], sys.argv[2]
+lines = open(path).readlines()
+out = []
+inserted = False
+for line in lines:
+    out.append(line)
+    if not inserted and line.strip().startswith("<!-- Format:"):
+        out.append(entry + "\n")
+        inserted = True
+open(path, "w").writelines(out)
+PYEOF
+            # Active Gate + Dispatcher 초기화
+            _reset_active_gate
+            _reset_active_dispatcher
+            ;;
+        *)
+            # GATE-P3, GATE-E0, GATE-V0~V3: current_gate만 갱신
+            _update_state_field "current_gate" "\"$gate\""
+            ;;
+    esac
+
+    echo -e "${GREEN}[GATE PASS]${NC} $gate 기록 완료 → STATE.md 갱신"
 }
 
 # ── 메인 ─────────────────────────────────────────────────────────────────────
@@ -190,8 +273,11 @@ main() {
         gate-e0)    check_gate_e0 ;;
         status)     show_status ;;
         update)     update_state_gate "${2:-}" ;;
+        pass)       record_gate_pass "${2:-}" "${3:-}" ;;
+        reset)      _reset_active_gate && _reset_active_dispatcher && \
+                        echo -e "${GREEN}[STATE]${NC} Active Gate + Dispatcher 초기화 완료" ;;
         *)
-            echo "Usage: $0 {gate-0|gate-p3|gate-e0|status|update <gate>}" >&2
+            echo "Usage: $0 {gate-0|gate-p3|gate-e0|status|update <gate>|pass <GATE> [data]|reset}" >&2
             exit 1
             ;;
     esac
