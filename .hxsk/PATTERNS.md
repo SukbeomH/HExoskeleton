@@ -12,10 +12,8 @@
 - **Self-Configure 배포**: llms.txt + AGENTS.md + setup 프롬프트. 빌드 스크립트 없음, 레포 = 배포
 
 ## Memory System
-- **저장**: `bash .hxsk/hooks/md-store-memory.sh <title> <content> [tags] [type]`
-- **검색**: `bash .hxsk/hooks/md-recall-memory.sh <query> [path] [limit] [mode]`
-- **A-Mem 필드**: `keywords`, `contextual_description`, `related` (2-hop 검색용)
-- **중복 방지**: 동일 title → `[SKIP:DUPLICATE]` 반환
+- **저장/검색**: `md-store-memory.sh <title> <content> [tags] [type]` / `md-recall-memory.sh <query> [path] [limit] [mode]`
+- **A-Mem 필드**: `keywords`, `contextual_description`, `related` (2-hop) / 중복 title → `[SKIP:DUPLICATE]`
 - **스키마**: `.hxsk/memories/_schema/` (JSON Schema + type-relations.yaml)
 
 ## Conventions
@@ -25,21 +23,18 @@
 
 ## Gotchas
 - 세션 종료 시 자동 메모리 저장 (`stop-context-save.sh`)
-- 메모리 타입 14개: architecture-decision, root-cause, debug-eliminated, debug-blocked, health-event, session-handoff, execution-summary, deviation, pattern-discovery, bootstrap, session-summary, session-snapshot, security-finding, general
-- **bash 전체 출력 로그 저장**: `exec > >(tee -a "$LOG_FILE") 2>&1` — subshell 없이 exit 코드 보존하며 stdout+stderr 파일 저장
-- **검증 스크립트 set -e 금지**: 다중 조건 검증 시 `set -e` 대신 독립 if 블록으로 처리 — 하나 실패해도 나머지 조건 계속 검사. `set -o errexit` 활성화 스크립트 내 grep은 반드시 `|| true` 패드 필요 (매칭 0건 = exit 1로 전체 abort)
+- 메모리 타입 14개 목록: `.hxsk/memories/_schema/type-relations.yaml` 참조
+- **bash 전체 출력 로그**: `exec > >(tee -a "$LOG_FILE") 2>&1` — subshell 없이 exit 코드 보존
+- **검증 스크립트 set -e 금지**: 독립 if 블록으로 처리. grep에 `|| true` 필수 (0건 = exit 1)
 
 ## Plugin (Claude Code)
-- `hooks/hooks.json`은 기본 자동 탐색 경로. 포맷: `{"hooks":{...}}` wrapper 필수. `${CLAUDE_PLUGIN_ROOT}`로 스크립트 경로 참조
-- **SubagentStop 훅 false-positive**: 평가/테스트 전용 응답(RED/GREEN/VERDICT 형식 등)도 실작업 완료로 오인함. 훅 조건은 실제 작업 완료 여부를 구별하지 않음
+- `hooks/hooks.json` 기본 탐색. 포맷: `{"hooks":{...}}` wrapper 필수. `${CLAUDE_PLUGIN_ROOT}` 경로 참조
+- **SubagentStop false-positive**: RED/GREEN/VERDICT 형식 응답도 실작업 완료로 오인 — 실제 완료 여부 미구별
 
-## LLM Hallucination Risk (Watson et al. 2026 — arXiv 2602.20300)
-- **위험/보호 인자**: 특정성 부재(OR 2.382), 절 복잡도(1.764), 부정 사용(1.364) vs 답변 가능성(OR 0.331), intention grounding
-- **적용**: SKILL.md `description`/`Iron Laws` 필드는 answerability·intention grounding 극대화 방향으로 작성. 불특정 주어·중첩 부정·깊은 절 구조 회피
+## LLM Hallucination Risk (Watson et al. 2026 — arXiv:2602.20300)
+- **위험**: 특정성 부재(OR 2.4), 절 복잡도(1.8), 부정 사용(1.4) / **보호**: answerability(0.33), intention grounding
+- **적용**: SKILL.md description/Iron Laws → 불특정 주어·중첩 부정·깊은 절 구조 회피
 
 ---
 
-> **로테이션**: 20개 도달 시 가장 오래되고 참조가 적은 패턴을 교체. 삭제 대신 `.hxsk/research/`로 아카이브.
-
-*Last updated: 2026-04-24 (Phase 4 검증)*
-*Items: 20/20*
+*Last updated: 2026-04-24 | Items: 20/20 | 로테이션: 초과 시 `.hxsk/research/`로 아카이브*
