@@ -27,7 +27,7 @@
 | 메모리 2-hop 검색 성능 벤치마크 | ✅ done | medium |
 | 강인성 테스트 인프라 SPEC.md 작성 | ✅ done | medium |
 | OpenCode 공식 문서 기반 호환성 검증 | ✅ done | medium |
-| 강인성 테스트 인프라 구현 (Phase 5) | 📋 planned | medium |
+| 강인성 테스트 인프라 구현 (Phase 5) | ✅ done | medium |
 | OpenCode Task 2 — 세션 실행 실증 | 📋 planned | medium |
 | antigravity Rules → 실행 가능한 워크플로우 변환 연구 | 📋 planned | low |
 

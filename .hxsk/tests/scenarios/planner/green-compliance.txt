@@ -1,0 +1,6 @@
+SPEC.md
+PLAN.md
+목표.*확인
+must.have
+태스크.*분할
+NO PLAN WITHOUT SPEC

@@ -1,0 +1,6 @@
+qlty check
+git diff --cached
+pre-commit
+NO COMMIT WITHOUT
+Iron Law
+diff.*분석

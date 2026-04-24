@@ -1,0 +1,6 @@
+3-Strike
+사용자.*에스컬레이션
+전환.*필요
+3회.*실패
+NO COMPLETION WITHOUT VERIFICATION
+접근.*변경
