@@ -1,10 +1,10 @@
 # OpenCode 호환성 검증 결과
 
 ## Verification Date
-2026-04-24
+2026-04-24 (공식 문서 조사 포함)
 
 ## OpenCode Version
-1.14.18
+1.14.18 (설치) / 1.14.22 (최신 — 주간 릴리스 중)
 
 ## Test Environment
 - OS: macOS (Darwin 25.3.0)
@@ -72,15 +72,26 @@ no plugins dir
 
 ## Results Table
 
-| 항목 | 기대 동작 | CLI 검증 결과 | 판정 |
-|------|-----------|---------------|------|
-| CLAUDE.md 폴백 | AGENTS.md 없을 때 CLAUDE.md 로드 | RESEARCH 문서 확인: 폴백 지원. 프로젝트에 AGENTS.md 존재하므로 우선 사용됨. `OPENCODE_DISABLE_CLAUDE_CODE=1` 환경변수로 비활성화 가능 | ✅ |
-| Skills (.claude/skills/) 로드 | `.claude/skills/` 경로 탐색 | RESEARCH 문서 확인: `.claude/skills/` 및 `.opencode/skills/` 양쪽 경로 지원. 심링크 전략으로 공유 가능 | ✅ |
-| Hooks (bash) 지원 | 미지원 (TypeScript 전용) | CLI에서 직접 확인 불가. RESEARCH 문서 기준 bash hooks는 미지원. 단, `oh-my-opencode` 플러그인이 이미 설치되어 있어 Claude Code 스타일 hooks를 부분 지원 | ⚠️ |
-| TypeScript 플러그인 | `.opencode/plugins/*.ts` | `~/.config/opencode/plugins/` 디렉토리 없음. 단, `opencode.json`의 `plugin` 배열로 npm 패키지 방식 사용 중 (`oh-my-opencode`, `opencode-antigravity-auth`) | ✅ |
-| `opencode plugin <module>` 명령 | npm 패키지 설치 지원 | `--help`에서 확인: `opencode plugin <module>` 명령 존재 (`plug` alias 지원) | ✅ |
-| `opencode run` 명령 | headless 실행 지원 | `--help`에서 확인: `opencode run [message..]` 명령 존재 | ✅ |
-| `opencode serve` / `opencode web` | 서버/웹 UI 모드 | `--help`에서 확인: 두 명령 모두 존재 | ✅ |
+> 공식 문서 출처: https://opencode.ai/docs/rules/ · /docs/skills/ · /docs/plugins/
+
+| 항목 | 기대 동작 | 검증 방법 | 판정 |
+|------|-----------|-----------|------|
+| CLAUDE.md 폴백 | AGENTS.md 없을 때 CLAUDE.md 로드 | **공식 문서 확인** (opencode.ai/docs/rules/): AGENTS.md 없으면 CLAUDE.md 자동 로드. `OPENCODE_DISABLE_CLAUDE_CODE=1`로 비활성화 가능. 이 프로젝트는 AGENTS.md 존재 → 우선 사용 | ✅ |
+| Skills (.claude/skills/) 로드 | `.claude/skills/` 경로 탐색 | **공식 문서 확인** (opencode.ai/docs/skills/): 공식 지원 경로에 `.claude/skills/<name>/SKILL.md` 명시. `.opencode/skills/`, `~/.config/opencode/skills/`, `.agents/skills/` 도 지원 | ✅ |
+| Hooks (bash) 직접 지원 | 미지원 예상 | **공식 문서 확인** (opencode.ai/docs/plugins/): 플러그인 시스템은 TypeScript/JS 전용. bash 직접 실행 불가 | ❌ |
+| TypeScript 플러그인 | npm 패키지 방식 | **공식 문서 + CLI 확인**: `opencode plugin <module>` 명령으로 npm 설치. `oh-my-opencode`, `opencode-antigravity-auth@1.2.8` 이미 글로벌 활성 | ✅ |
+| oh-my-opencode hooks 커버리지 | bash hooks 부분 대체 | **공식 문서 확인** (GitHub): 25+ 빌트인 훅, 병렬 에이전트 오케스트레이션, 원자적 git 커밋 자동화, tmux 통합 포함. 상당 부분 HXSK bash hooks와 기능 중복 | ⚠️ (부분 커버) |
+| `opencode run` headless | CI 자동화 지원 | **CLI 확인**: `opencode run [message..]` 존재. headless 실행 가능 | ✅ |
+
+### 지원 이벤트 (공식 문서 기준)
+
+| 카테고리 | 이벤트 |
+|----------|--------|
+| Tool | `tool.execute.before`, `tool.execute.after` |
+| Session | `session.created`, `session.compacted`, `session.idle`, `session.error` |
+| File | `file.edited`, `file.watcher.updated` |
+| Message | `message.updated`, `message.removed` |
+| Shell | `shell.env` |
 
 ---
 
@@ -99,16 +110,25 @@ no plugins dir
 
 **OpenCode v1.14.18은 HXSK 프로젝트에서 즉시 사용 가능한 상태입니다.**
 
-1. **마크다운 설정 (CLAUDE.md, AGENTS.md, Skills)**: 폴백 시스템으로 그대로 동작. AGENTS.md가 이미 존재하므로 우선 사용됨.
-2. **Bash Hooks**: 직접 지원 불가하나, `oh-my-opencode` 플러그인이 이미 글로벌 config에 설치되어 있어 Claude Code 스타일 hooks를 부분 커버.
-3. **플러그인 시스템**: `~/.config/opencode/plugins/` 디렉토리 방식이 아닌 `opencode.json`의 `plugin` 배열 + npm 패키지 방식으로 사용 중이며 정상 작동.
-4. **`opencode run`**: headless 실행 지원으로 CI/자동화 환경에서도 활용 가능.
+1. **마크다운 설정 (AGENTS.md, Skills)**: 공식 문서로 완전 확인. AGENTS.md 우선, 없으면 CLAUDE.md 폴백. `.claude/skills/` 공식 지원 경로.
+2. **Bash Hooks 대체**: `oh-my-opencode`(25+ hooks, 글로벌 활성)가 상당 부분 커버. 완전 대체는 아니며 HXSK 고유 hooks(gate-check, memory-store 등)는 TypeScript 재작성 필요.
+3. **플러그인 설치**: `opencode plugin <npm-package>` 명령으로 npm 방식 사용. `.opencode/plugins/` 로컬 파일 방식도 지원.
+4. **headless 지원**: `opencode run [message]`로 CI 통합 가능.
+
+### HXSK Hooks 마이그레이션 우선순위
+
+| Hook | oh-my-opencode 커버 | TypeScript 재작성 필요도 |
+|------|---------------------|-------------------------|
+| stop-context-save.sh | ⚠️ 부분 (세션 종료 이벤트 지원) | 중간 |
+| md-store-memory.sh | ❌ 미커버 | 높음 |
+| gate-check.sh | ❌ 미커버 | 높음 |
+| track-modifications.sh | ⚠️ 부분 (file.edited 이벤트) | 낮음 |
 
 ---
 
 ## Next Steps
 
-1. **세션 검증 (Task 2)**: `opencode` 실행 후 AGENTS.md / CLAUDE.md 로드 확인
-2. **Skills 심링크 확인**: `~/.claude/skills/` → `~/.config/opencode/skill/` 심링크 필요 여부 확인
-3. **oh-my-opencode 범위 파악**: `.hxsk/hooks/` bash hooks 중 TypeScript 재작성 없이 `oh-my-opencode`로 커버 가능한 것 목록화
-4. **나머지 hooks 마이그레이션**: `oh-my-opencode`로 커버 불가한 hooks는 TypeScript 플러그인으로 재작성 대상 식별
+1. **세션 실행 검증 (Task 2)**: `opencode` TUI에서 AGENTS.md / Skills 실제 로드 확인
+2. **oh-my-opencode 기능 목록 확인**: `~/.config/opencode/oh-my-opencode.json` 설정 읽기
+3. **HXSK TypeScript 플러그인 MVP**: md-store-memory, gate-check를 TypeScript로 포팅하는 것이 핵심 과제
+4. **버전 업그레이드**: 1.14.18 → 1.14.22 (`opencode upgrade`)
