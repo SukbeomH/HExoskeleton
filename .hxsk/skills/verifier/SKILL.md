@@ -1,27 +1,32 @@
 ---
+description: Use when code exists but needs validation for stubs, wiring, and anti-patterns
+  to confirm phase completion.
 name: verifier
-description: "Use after implementation is complete, before marking a phase done, to verify against SPEC.md"
-trigger: "구현 검증, 완료 확인, 페이즈 검증, verify implementation, check phase completion, validate against spec"
+trigger: 구현 검증, 완료 확인, 페이즈 검증, verify implementation, check phase completion, validate
+  against spec, stub 탐지, stub check, anti-pattern 스캔, verify wiring, 3-level 검증, 재검증,
+  re-verification, gap 식별, identify gaps, empirical validation, verify code substance,
+  check TODO/FIXME, verification report 생성, verify artifacts, verify key links, 재검증
+  모드, re-verification mode, 인간 검증 필요, human verification needed, human needed, 가짜
+  구현 탐지, fake implementation check, placeholder 탐지, placeholder check, 연결성 검증, connection
+  verification, wiring check, 증거 기반 검증, evidence based verification, 반패턴 스캔, anti-pattern
+  scan, blocker 확인, check blockers, 검증 상태 결정, determine verification status, gaps
+  식별, identify gaps, 검증 템플릿 생성, generate verification template, stub-free 확인, stub-free
+  check, TODO 스캔, TODO scan, FIXME 스캔, FIXME scan, 빈 파일 탐지, empty file check, 최소 구현
+  탐지, minimal implementation check, 외부 서비스 검증, external service verification, UI 검증,
+  UI verification, 실시간 검증, real-time verification, WebSocket 검증, WebSocket check,
+  SSE 검증, SSE check, 성능 검증, performance verification, 요구사항 커버리지, requirements coverage,
+  만족도 확인, satisfaction check, 검증 점수 계산, calculate verification score, VERIFICATION.md
+  생성, generate VERIFICATION.md, 검증 결과 저장, save verification result, 메모리 프로토콜, memory
+  protocol, 영향 분석, impact analysis, 게이트 함수 검증, gate function verification, 신뢰성 검증,
+  trust verification, 모든 것 검증, verify everything
 ---
 
 ## Quick Reference
-- **3-Level 검증**: Existence (파일 존재), Substantive (stub 아님), Wired (연결됨)
-- **Must-haves**: truths (참이어야 할 것), artifacts (존재해야 할 것), key_links (연결되어야 할 것)
-- **Status**: passed, gaps_found, human_needed
-- **Anti-patterns**: `TODO|FIXME|placeholder|return null|return {}`
-- **Output**: VERIFICATION.md with score N/M must-haves verified
-
----
-
-# HXSK Verifier Agent
-
-<role>
-You are a HXSK verifier. You validate that implemented work achieves the stated phase goal through empirical evidence, not claims.
-
-Your job: Verify must-haves, detect stubs, identify gaps, and produce VERIFICATION.md with structured findings.
-</role>
-
----
+- **Substance 검증**: `TODO/placeholder` 등 스텁 코드가 존재하면 즉시 **FAILED** 판정
+- **Wiring 확인**: 파일 존재만으로는 부족, 실제 호출/연결 (Key Links)이 있어야 **VERIFIED**
+- **Human 필요**: UI/Real-time/외부 서비스 검증이 필요하면 자동 검증 중단 및 **human_needed**
+- **Status 결정**: 모든 Truths 검증 + Blocker 없음 = **passed**, 그 외 = **gaps_found**
+- **Evidence 원칙**: 주장이 아닌 `grep` 등 실증적 증거 없이는 **VERIFIED** 불가
 
 ## Core Principle
 
@@ -133,3 +138,11 @@ Glob(pattern: "src/**/*.{ts,js,py}")
 # 파일 substance 확인 (빈 파일/최소 구현 탐지)
 Read(file_path: "{file}") → 라인 수와 내용 확인
 ```
+
+## Iron Laws
+NO VERIFY WITHOUT EVIDENCE FIRST
+NO COMPLETION WITHOUT VERIFICATION FIRST
+NO EXISTENCE WITHOUT SUBSTANCE FIRST
+NO WIRING WITHOUT CONNECTION FIRST
+NO FINAL APPROVAL WITHOUT HUMAN VERIFICATION FIRST
+NO PASS WITHOUT CLEAN CODE FIRST

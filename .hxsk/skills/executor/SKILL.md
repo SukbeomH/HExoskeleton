@@ -1,36 +1,25 @@
 ---
-name: executor
-description: "Use when executing a written PLAN.md, implementing tasks with atomic commits"
-trigger: "플랜 실행, 계획 실행, PLAN.md 실행, execute plan, start implementation"
 allowed-tools:
-  - Read
-  - Write
-  - Edit
-  - Bash
-  - Grep
-  - Glob
+- Read
+- Write
+- Edit
+- Bash
+- Grep
+- Glob
+description: Use when a PLAN.md file exists and requires execution to implement tasks
+  atomically with commits.
+name: executor
+trigger: 플랜 실행, 계획 실행, PLAN.md 실행, execute plan, start implementation, PLAN.md 실행하기,
+  plan execute, run plan, implement plan, task 실행, atomic execution, plan carry out,
+  작업 시작, plan run, execute tasks, commit tasks, start plan execution, plan 구현
 ---
 
 ## Quick Reference
-- **Deviation Rules**: Rule 1 (버그), Rule 2 (필수 기능), Rule 3 (blocking) = auto-fix; Rule 4 (아키텍처) = checkpoint
-- **Commit**: `git commit -m "feat({phase}-{plan}): {task}"` — task당 1 commit
-- **Checkpoint types**: human-verify (90%), decision (9%), human-action (1%)
-- **Output**: SUMMARY.md (`.hxsk/phases/{N}/{plan}-SUMMARY.md`)
-- **Memory 저장**: `md-store-memory.sh "Execution Summary: {plan}" "{content}" "execution,summary" "execution-summary"`
-
----
-
-# HXSK Executor Agent
-
-<role>
-You are a HXSK plan executor. You execute PLAN.md files atomically, creating per-task commits, handling deviations automatically, pausing at checkpoints, and producing SUMMARY.md files.
-
-You are spawned by `/execute` workflow.
-
-Your job: Execute the plan completely, commit each task, create SUMMARY.md, update STATE.md.
-</role>
-
----
+- **Deviation Judgment**: Rule 1-3(버그/기능/차단)은 자동 수정, Rule 4(아키텍처) 또는 불변 조건 위반 시 즉시 중단
+- **Checkpoint Protocol**: 지정된 체크포인트 도달 시 즉시 STOP, 인간의 검증/결정/행동 요청
+- **Commit Discipline**: 각 Task 완료 시 1 commit 원칙 준수 (`feat({phase}-{plan}): {task}`)
+- **Output Generation**: Plan 완료 시 SUMMARY.md 생성 및 Execution Memory 저장 필수
+- **Cross-Phase Safety**: 이전 Phase 불변 조건 위반 감지 시 즉시 Rule 4 적용
 
 ## Execution Flow
 
@@ -96,3 +85,11 @@ SUMMARY.md → `.hxsk/phases/{N}/{plan}-SUMMARY.md`
 Memory → `md-store-memory.sh "Plan {phase}-{plan} Summary" ...`
 
 **전체 프로토콜 (Phase Checkpoint, PRD Update, SUMMARY format, Anti-Patterns, 관련스킬, 네이티브도구)** → `references/commit-protocol.md`
+
+## Iron Laws
+NO EXECUTION WITHOUT STATE AND PLAN LOADING FIRST
+NO ARCHITECTURAL CHANGE WITHOUT CHECKPOINT FIRST
+NO TASK COMPLETION WITHOUT ATOMIC COMMIT FIRST
+NO CONTINUATION WITHOUT CHECKPOINT HANDLING FIRST
+NO CODE LOGIC VIOLATION WITHOUT ARCHITECTURAL CHECKPOINT FIRST
+NO SUMMARY GENERATION WITHOUT TASK EXECUTION FIRST

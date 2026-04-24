@@ -1,25 +1,19 @@
 ---
+description: Use when modifying markdown files, preparing PRs, or suspecting link/structure
+  inconsistencies in documentation.
 name: doc-lint
-description: "Use when committing docs, before PRs, or when document counts/links may be stale"
-trigger: "문서 정합성 검사, 깨진 링크, INDEX 동기화, 카운트 불일치, 고아 파일, pre-commit"
+trigger: 문서 정합성 검사, 깨진 링크, INDEX 동기화, 카운트 불일치, 고아 파일, pre-commit, 문서 구조 검사, 중복 파일,
+  경로 참조 검증, 내용 검증, 의미론적 검사, doc-lint, doc lint, markdown check, broken link, orphan
+  file, duplicate file, link check, index sync, count mismatch, ref check, structural
+  check, content validation, 문서 검사, markdown 정합성
 ---
 
 ## Quick Reference
-- **Script**: `bash .hxsk/scripts/doc-lint.sh` (구조적 검사)
-- **Single rule**: `bash .hxsk/scripts/doc-lint.sh --rule LINK-01`
-- **Rules**: LINK-01, INDEX-01, COUNT-01, REF-01, ORPHAN-01, DUP-01
-- **Output**: `[PASS|FAIL] RULE-ID: message`
-
----
-
-# Document Consistency Check
-
-<role>
-You verify that all markdown documents in the project are structurally and semantically consistent.
-Run structural checks via script, then perform content-level validation with parallel agents.
-</role>
-
----
+- **실패 시 우선순위**: REF-01 → COUNT-01 → LINK-01 순서로 수정
+- **병행 검증**: Agent A(CLAUDE/AGENTS), B(README/ARCH), C(INDEX) 동시 실행
+- **불일치 처리**: [MISMATCH] 발견 시 최소 수정 후 즉시 재검증
+- **수정 원칙**: 본문 내용과 실제 프로젝트 상태 일치 여부만 검증
+- **최종 확인**: 모든 수정 완료 후 `doc-lint.sh` 재실행으로 PASS 확인
 
 ## Workflow
 
@@ -88,3 +82,10 @@ Collect agent results. For each [MISMATCH]:
 | REF-01 | Backtick path references in L1 docs | CLAUDE.md, AGENTS.md |
 | ORPHAN-01 | Files not referenced anywhere | All .md (excl. memories, templates) |
 | DUP-01 | Same filename in multiple locations | All .md (excl. symlinks) |
+
+## Iron Laws
+NO CONTENT VALIDATION WITHOUT STRUCTURAL PASS FIRST
+NO FIX APPLICATION WITHOUT PRIORITY ORDER ADHERENCE
+NO COMPLETION WITHOUT RE-RUN LINT CHECK
+NO EDIT WITHOUT MINIMAL FIX PROPOSAL
+NO INDEX UPDATE WITHOUT FILE EXISTENCE VERIFICATION

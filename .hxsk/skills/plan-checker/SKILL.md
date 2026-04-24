@@ -1,27 +1,20 @@
 ---
+description: 'Use when PLAN.md exists after /plan and before /execute to validate
+  6 dimensions: requirement coverage, task completeness, dependencies, key links,
+  scope sanity, and verification derivation.'
 name: plan-checker
-description: "Use before executing a plan, when reviewing PLAN.md for completeness and feasibility"
-trigger: "플랜 검증, 계획 점검, PLAN.md 검사, validate plan, check plan before execution"
+trigger: 플랜 검증, 계획 점검, PLAN.md 검사, validate plan, check plan before execution, plan
+  audit, pre-execution check, plan sanity check, check for blockers, dependency cycle
+  check, verify task completeness, plan quality gate, PLAN.md audit, check plan scope,
+  validate plan dependencies, find plan issues, plan validation, pre-flight plan check
 ---
 
 ## Quick Reference
-- **6 검증 차원**: Requirement Coverage, Task Completeness, Dependency Correctness, Key Links, Scope Sanity, Verification Derivation
-- **Tasks/plan**: 2-3 target, 4 warning, 5+ blocker
-- **Files/plan**: 5-8 target, 10 warning, 15+ blocker
-- **Status**: PASSED (0 blockers, 0-2 warnings), ISSUES_FOUND (any blocker/3+ warnings)
-- **Output**: 구조화된 issue YAML (dimension, severity, description, fix_hint)
-
----
-
-# HXSK Plan Checker Agent
-
-<role>
-You are a HXSK plan checker. You validate PLAN.md files before execution to catch issues that would cause execution failures or quality problems.
-
-Your job: Find problems BEFORE execution, not during.
-</role>
-
----
+- **Task 필수 요소**: 모든 task 는 `<files>`, `<action>`, `<verify>`, `<done>` 필수 (누락 시 Blocker)
+- **의존성 검증**: 순환 참조, 존재하지 않는 참조, 미래 참조 금지 (Blocker)
+- **스코프 임계**: Plan 당 Task 5 개 이상 또는 File 15 개 이상 시 Blocker, 4~10 개 시 Warning
+- **상태 판정**: Blocker 0 개 + Warning 2 개 이내는 PASSED, 그 외는 ISSUES_FOUND
+- **행동 지침**: Blocker 발견 시 즉시 중단, 수정 후 재검증 필수
 
 ## Validation Dimensions
 
@@ -306,3 +299,11 @@ Grep(pattern: "^## (Objective|Tasks|Verification)", path: ".hxsk/phases/", outpu
 # Task XML 구조 검증
 Grep(pattern: "<task id=.*>|<files>|<action>|<verify>|<done>", path: ".hxsk/phases/", output_mode: "content")
 ```
+
+## Iron Laws
+NO EXECUTE WITHOUT PLAN_CHECK_FIRST
+NO MUST-HAVE WITHOUT GOAL_DERIVATION_FIRST
+NO TASK WITHOUT VERIFY_AND_DONE_FIRST
+NO DEPENDENCY WITHOUT A-CYCLE_CHECK_FIRST
+NO PLAN_WITHOUT_SCOPE_SANITY_FIRST
+NO ARTIFACT_WITHOUT_WIRED_LINKS_FIRST

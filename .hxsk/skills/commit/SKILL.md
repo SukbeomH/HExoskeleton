@@ -1,25 +1,29 @@
 ---
-description: Use when staging changes for HXSK plan execution, needing to split mixed
-  logical changes, or creating conventional emoji commits.
+description: Use when staged changes exist requiring qlty checks, logical split detection,
+  or HXSK phase-scoped conventional commit creation.
 name: commit
-trigger: 커밋 생성, git commit, 커밋 메시지 작성, 변경사항 커밋, conventional commit, 커밋 분할, 커밋 나누기,
+trigger: '커밋 생성, git commit, 커밋 메시지 작성, 변경사항 커밋, conventional commit, 커밋 분할, 커밋 나누기,
   변경사항 분리, pre-commit check, 커밋 전 검사, git diff 분석, 변경사항 분석, conventional commit 작성,
   emoji 커밋, HXSK 커밋, phase 커밋, commit message format, split commits, run pre-commit,
-  analyze diff
+  analyze diff, qlty check 실행, shellcheck 검사, feat 커밋, fix 커밋, docs 커밋, refactor 커밋,
+  test 커밋, chore 커밋, phase-1.2 커밋, phase scope 적용, git add all, staged changes 분석,
+  논리적 분할 제안, 커밋 메시지 보정, imperitive mood 적용, 이슈 링크 추가, resolved #N, commit types'
 ---
 
 ## Quick Reference
-- **Split check**: 다른 모듈/유형/파일 카테고리 혼합 시 반드시 분리
+- **Diff Analysis**: 커밋 전 반드시 `git diff --cached` 로 변경 사항 분석
+- **Pre-check**: `.qlty/qlty.toml` 존재 시 `qlty check` 실행 후 진행
+- **Split Logic**: 모듈/유형/파일 혼합 시 논리적 분리 (Separate Commits)
 - **Format**: `<emoji> <type>(<scope>): <description>` (Imperative mood)
-- **HXSK scope**: `(phase-N.M)` 형식 필수 사용 (예: `feat(phase-1.2)`)
-- **Body rule**: WHAT 는 생략, WHY(이유) 만 72 자 내로 설명
-- **Pre-check**: `.qlty/qlty.toml` 존재 시 `qlty check` 실행 우선
+- **HXSK Body**: `phase-N.M` 스코프 필수, 본문은 WHAT 생략하고 WHY(이유) 만 72 자 내
 
 ## Iron Laws
 - NO COMMIT WITHOUT PRE-COMMIT CHECKS FIRST
 - NO COMMIT WITHOUT DIFF ANALYSIS FIRST
 - NO COMMIT WITHOUT CONVENTIONAL FORMAT FIRST
 - NO MERGED CHANGES WITHOUT LOGICAL SPLIT FIRST
+- NO HXSK COMMIT WITHOUT PHASE SCOPE FIRST
+- NO COMMIT BODY WITHOUT WHY EXPLANATION FIRST
 
 ## Workflow
 

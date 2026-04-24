@@ -1,31 +1,33 @@
 ---
-name: memory-protocol
-description: "Use when storing or retrieving project knowledge, after architecture decisions, bug fixes, or session ends"
-version: 4.0.0
-trigger: "메모리 저장, 과거 기록 검색, 메모리 조회, store memory, recall memory, search past decisions"
 allowed-tools:
-  - Read
-  - Write
-  - Grep
-  - Glob
-  - Bash
+- Read
+- Write
+- Grep
+- Glob
+- Bash
+description: Use when starting sessions, making architecture decisions, finding root
+  causes, or ending sessions to store or recall project knowledge.
+name: memory-protocol
+trigger: 메모리 저장, 과거 기록 검색, 메모리 조회, store memory, recall memory, search past decisions,
+  저장 메모리, 기록 저장, 과거 결정 검색, 저장하기, 조회하기, bug root cause found, architecture decision,
+  pattern discovered, security finding, hypothesis eliminated, plan deviation, execution
+  summary, health event, session end, debug blocked, bootstrap record, root-cause,
+  architecture-decision, pattern-discovery, security-finding, debug-eliminated, deviation,
+  execution-summary, health-event, session-summary, session-snapshot, debug-blocked,
+  bootstrap, md-recall-memory, md-store-memory, 2-hop 검색, related 메모리 조회, A-Mem 저장,
+  세션 시작 검색, 디버그 시작 검색, 계획 생성 검색, 아키텍처 리뷰 검색, 중복 방지 저장, grep 검색, 태그 필터링, 메모리 타입 저장,
+  메모리 스키마 확인, type-relations, search chains, debugging_chain, architecture_chain,
+  session_chain, lessons-learned 저장, doc-drift, test-quality, state-sync, lifecycle,
+  compat, general 메모리
+version: 4.0.0
 ---
 
 ## Quick Reference
-- **Recall**: `Grep → Glob` 순서, 또는 `md-recall-memory.sh <query> [path] [limit] [mode] [hop]`
-- **Store**: `md-store-memory.sh <title> <content> [tags] [type] [keywords] [contextual_desc] [related]`
-- **A-Mem 필드**: `contextual_description`, `keywords`, `related` (2-hop 검색용)
-- **중복 방지**: 동일 title/slug → 자동 스킵 (Nemori Predict-Calibrate)
-- **스키마**: `.hxsk/memories/_schema/*.schema.json`, `type-relations.yaml`
-
----
-
-# Memory Protocol
-
-> **Goal**: `.hxsk/memories/` 파일 기반 메모리 시스템의 사용 규칙을 중앙 정의하여 모든 스킬과 훅이 일관된 메모리 패턴을 따르도록 한다.
-> **Scope**: search/store 순서, 필수 필드, type 레지스트리, A-Mem 확장 필드, 2-hop 검색. 모든 메모리는 마크다운 파일로 저장/검색.
-
----
+- **검색 순서**: 반드시 `Grep` 텍스트 검색 후 `Glob` 태그 필터링 적용 (파일 직접 열기 금지)
+- **저장 시점**: `root-cause`, `architecture-decision` 등 명시적 Trigger 발생 시 즉시 저장
+- **필수 필드**: `title`, `tags`(최소 2개), `type`, `contextual_description` 포함 (A-Mem 연동 필수)
+- **연결성**: 관련 메모리 간 연결을 위해 `related` 필드 명시 (2-hop 검색 활성화)
+- **중복 방지**: 저장 전 동일 `title/slug` 확인, 중복 시 자동 스킵 (Nemori Predict-Calibrate)
 
 ## Recall Protocol
 
@@ -273,3 +275,12 @@ session_chain: [session-snapshot, session-summary, session-handoff]
 | 단일 태그 사용 | 검색 정밀도 저하 | 최소 2개 태그 (type + domain) |
 | 매 커밋마다 자동 저장 | noise > signal | Trigger 테이블의 시점만 저장 |
 | 중복 저장 | 디렉토리 비대화 | 저장 전 Grep으로 중복 확인 (선택적) |
+
+## Iron Laws
+NO RECALL WITHOUT GREP SEARCH FIRST
+NO STORE WITHOUT REQUIRED METADATA (title, tags, type, created)
+NO STORE WITHOUT DUPLICATE CHECK
+NO STORE WITHOUT VALID TRIGGER TIMING
+NO FILE CONTENT WITHOUT TITLE HEADER
+NO MEMORY WITHOUT MINIMUM TWO TAGS
+NO TYPE CREATION WITHOUT REGISTRY DEFINITION

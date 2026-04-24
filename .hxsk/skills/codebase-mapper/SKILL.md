@@ -1,30 +1,21 @@
 ---
+description: Use when analyzing an existing codebase to generate ARCHITECTURE.md and
+  STACK.md, or when mapping project structure, dependencies, patterns, integrations,
+  and technical debt before planning.
 name: codebase-mapper
-description: "Use when onboarding to a new codebase, before major refactoring, or when asked about project structure"
-trigger: "코드베이스 분석, 프로젝트 구조 파악, 아키텍처 문서화, 기술 부채 조사, analyze codebase, map structure, onboarding"
+trigger: 코드베이스 분석, 프로젝트 구조 파악, 아키텍처 문서화, 기술 부채 조사, analyze codebase, map structure,
+  onboarding, 의존성 분석, 패턴 식별, 통합 매핑, 기술 스택 파악, 코드 구조 스캔, 레거시 이해, 리팩토링 준비, 아키텍처 도출,
+  기술 부채 감사, dependency map, tech stack analysis, code structure scan, legacy code
+  review, refactoring prep, architecture mapping, tech debt audit, generate architecture
+  doc, generate stack doc
 ---
 
 ## Quick Reference
-- **5 분석 영역**: Structure, Dependency, Pattern, Integration, Technical Debt
-- **Output**: `.hxsk/ARCHITECTURE.md`, `.hxsk/STACK.md` 생성
-- **스캔 순서**: Project Type → Structure → Dependencies → Patterns → Debt
-- **제외 경로**: node_modules, .git, __pycache__, dist, build, .next
-- **Grep 패턴**: `TODO|FIXME|HACK|XXX` (debt), `interface|type|schema` (types)
-
----
-
-# HXSK Codebase Mapper Agent
-
-<role>
-You are a HXSK codebase mapper. You analyze existing codebases to produce documentation that enables informed planning.
-
-**Core responsibilities:**
-- Scan and understand project structure
-- Identify patterns and conventions
-- Map dependencies and integrations
-- Surface technical debt
-- Produce ARCHITECTURE.md and STACK.md
-</role>
+- **프로젝트 타입 식별**: package.json, pyproject.toml 등 마커 파일로 생태계 먼저 확인
+- **5 핵심 분석**: Structure, Dependency, Pattern, Integration, Technical Debt 필수 수행
+- **의사결정 기준**: Entry point, Key Patterns, Integrations, Debt 항목 반드시 식별
+- **필수 출력물**: `.hxsk/ARCHITECTURE.md` 및 `.hxsk/STACK.md` 생성 완료 여부 확인
+- **체크리스트**: 9 단계 분석 항목 (타입~출력) 모두 완료되었는지 최종 점검
 
 ## Analysis Domains
 
@@ -263,3 +254,13 @@ Glob(pattern: "*.{json,yaml,toml}")
 # 구조 스캔 (bash 스크립트 사용 가능)
 bash .hxsk/skills/codebase-mapper/scripts/scan_structure.sh
 ```
+
+## Iron Laws
+NO STRUCTURE SCAN WITHOUT PROJECT TYPE DETECTION FIRST
+NO DEPENDENCY EXTRACTION WITHOUT STRUCTURE ANALYSIS FIRST
+NO PATTERN DISCOVERY WITHOUT DEPENDENCY MAPPING FIRST
+NO DEBT SURFACING WITHOUT PATTERN IDENTIFICATION FIRST
+NO SCANNING WITHOUT EXCLUSION FILTERS (node_modules, .git, etc.) FIRST
+NO DOCUMENT GENERATION (ARCHITECTURE.md, STACK.md) WITHOUT CHECKLIST COMPLETION FIRST
+NO DEBT ANALYSIS WITHOUT DEFINED GREP PATTERNS FIRST
+NO IMPORT ANALYSIS WITHOUT NATIVE TOOL USAGE (Glob/Grep) FIRST

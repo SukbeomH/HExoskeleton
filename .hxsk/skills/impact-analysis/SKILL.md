@@ -1,31 +1,25 @@
 ---
-name: impact-analysis
-description: "Use before refactoring, deleting code, or modifying shared modules to assess blast radius"
-version: 4.0.0
 allowed-tools:
-  - Read
-  - Grep
-  - Glob
-  - Bash
-trigger: "영향 분석, 변경 영향 범위, 의존성 분석, impact analysis, check what this affects, before modifying files"
+- Read
+- Grep
+- Glob
+- Bash
+description: Use when modifying any existing file (excluding new standalone files)
+  to analyze dependencies and calculate impact score.
+name: impact-analysis
+trigger: 영향 분석, 변경 영향 범위, 의존성 분석, impact analysis, check what this affects, before
+  modifying files, 수정 전 영향도 확인, 리그레이션 방지, 의존성 추적, 파급 효과 분석, 영향도 점수 계산, impact score,
+  변경 전 확인, 리팩토링 전 분석, code impact, dependency chain, affected files, 승인 필요 확인, high
+  impact check, before code change, dependency analysis
+version: 4.0.0
 ---
 
 ## Quick Reference
-- **필수**: 모든 파일 수정 전 실행 (신규 standalone 파일 제외)
-- **의존성 추적**: `Grep(pattern: "from {module} import|import {module}", path: "src/")`
-- **Impact score**: 1-10, score > 7이면 human approval 필요
-- **Memory recall**: `md-recall-memory.sh "{module}"` 로 과거 변경 이력 확인
-- **Output**: 구조화된 영향도 리포트
-
----
-
-# Skill: Impact Analysis
-
-> **Goal**: Prevent regression by understanding dependency chains before code changes.
-> **Priority**: MANDATORY - Must be executed before any file modification.
-> **Scope**: Grep/Glob 네이티브 도구로 의존성 분석. 외부 종속성 없음.
-
----
+- **실행 조건**: 모든 파일 수정 전 필수 (신규 standalone 파일 제외)
+- **승인 기준**: Impact Score > 7 일 경우 반드시 Human Approval 필요
+- **의존성 확인**: Grep 으로 import/require 체인 및 테스트 커버리지 필수 점검
+- **리스크 관리**: 과거 변경 이력 (Memory Recall) 에서 deviation 유무 확인
+- **이행 조치**: 고위험 시 STATE.md 검증 단계 추가 및 점진적 롤아웃 계획 수립
 
 ## Procedure
 
@@ -121,3 +115,9 @@ Test Coverage: YES (tests/test_utils.ts)
 Recommendation: Safe to proceed with standard testing
 ===
 ```
+
+## Iron Laws
+NO FILE MODIFICATION WITHOUT IMPACT ANALYSIS FIRST
+NO PROCEEDING WITHOUT HUMAN APPROVAL FIRST WHEN IMPACT SCORE > 7
+NO IMPACT ANALYSIS COMPLETE WITHOUT DEPENDENCY TRACING AND MEMORY RECALL FIRST
+NO SKIP OF ANALYSIS WITHOUT VERIFICATION OF STANDALONE STATUS FIRST

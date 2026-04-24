@@ -1,26 +1,23 @@
 ---
+description: Use when a PR number or URL is provided to conduct a comprehensive code
+  review and issue a merge verdict based on blocker severity.
 name: pr-review
-description: "Use when reviewing pull requests, after feature completion, or before merging to main"
-trigger: "코드 리뷰, PR 리뷰, 풀 리퀘스트 검토, review PR, code review, security review"
+trigger: 코드 리뷰, PR 리뷰, 풀 리퀘스트 검토, review PR, code review, security review, PR 검토,
+  코드 확인, 풀리퀘스트 리뷰, pr check, code audit, security audit, architecture review, devops
+  review, qa review, ux review, PR 승인, 머지 승인, PR 거절, request changes, approve PR,
+  blocker 확인, HXSK 리뷰, 스펙 준수 확인, 컨벤션 체크, 6 페르소나 리뷰, 코드 품질 평가, 테스트 커버리지 확인, 보안 취약점
+  분석, 성능 영향도 분석, /pr-review, gh pr review, 코드 점검, 풀 요청 리뷰, 개발자 리뷰, QA 리뷰, 아키텍처 리뷰,
+  데브옵스 리뷰, UX 리뷰, 보안 감사, 스펙 검증, ADR 검증, 컨벤션 검증, 레슨러너드 저장, blocker 식별, severity 분류,
+  코드 스캔, 코드 분석, PR 분석, 머지 가능 여부, 코드 smell, 오버플로우, 리팩토링 제안, 이슈 분리, SPEC.md, DECISIONS.md,
+  CONVENTIONS.md, HXSK 컨벤션, 6인 리뷰, 코드 리뷰 봇, 자동화 리뷰
 ---
 
 ## Quick Reference
-- **6 Personas**: Developer, QA, Security, Architecture, DevOps, UX
-- **Severity**: [Blocker] 머지 불가, [High] 수정 권장, [Medium] 후속 PR, [Nitpick] 선택적
-- **명령어**: `gh pr view <PR>`, `gh pr diff <PR>`
-- **Output**: Summary + Findings (severity별) + Statistics + Verdict
-- **Verdict**: APPROVE | REQUEST_CHANGES based on blocker count
-
----
-
-# HXSK PR Review Skill
-
-<role>
-You perform a structured code review from 6 expert perspectives.
-Each persona evaluates the PR independently and produces actionable findings with severity classification.
-</role>
-
----
+- **Context**: 반드시 PR 컨텍스트 로드 후 6-Persona 평가 수행
+- **Blocker**: 1개 이상 발견 시 즉시 REQUEST_CHANGES (머지 불가)
+- **Scope**: 기존 코드 문제는 새 이슈로 분리, PR 범위 엄수
+- **Alignment**: SPEC/DECISIONS 준수 여부 필수 검증
+- **Memory**: [High] 이상 발견 시 Lessons-Learned 저장 필수
 
 ## Usage
 
@@ -238,3 +235,12 @@ APPROVE인 경우에도 [High] 이상 발견이 있었다면 저장.
 ## Scripts
 
 (없음 — `gh pr diff`, `gh pr view` 등 에이전트 네이티브 도구로 직접 수행)
+
+## Iron Laws
+NO REVIEW WITHOUT CONTEXT LOADING FIRST
+NO REVIEW WITHOUT 6-PERSONA EVALUATION FIRST
+NO FINDING WITHOUT SEVERITY CLASSIFICATION FIRST
+NO APPROVAL WITHOUT SPEC_ALIGNMENT CHECK FIRST
+NO VERDICT WITHOUT SCOPE_VALIDATION FIRST
+NO REQUEST_CHANGES WITHOUT LESSONS_LEARNED STORAGE FIRST
+NO FIXING_OUT_OF_SCOPE_ISSUES_WITHOUT_NEW_ISSUE_CREATION FIRST
