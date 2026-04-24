@@ -30,21 +30,16 @@
 - **bash 전체 출력 로그 저장**: `exec > >(tee -a "$LOG_FILE") 2>&1` — subshell 없이 exit 코드 보존하며 stdout+stderr 파일 저장
 - **검증 스크립트 set -e 금지**: 다중 조건 검증 시 `set -e` 대신 독립 if 블록으로 처리 — 하나 실패해도 나머지 조건 계속 검사
 
-## Memory Triggers
-- Bug root cause → `root-cause`, Architecture decision → `architecture-decision`, Session end → `session-summary` (auto hook)
-
 ## Plugin (Claude Code)
 - `hooks/hooks.json`은 기본 자동 탐색 경로. 포맷: `{"hooks":{...}}` wrapper 필수. `${CLAUDE_PLUGIN_ROOT}`로 스크립트 경로 참조
-- heredoc 내 코드 예시가 grep 패턴 오탐 유발 가능. `$ python3` prefix로 회피
 
 ## LLM Hallucination Risk (Watson et al. 2026 — arXiv 2602.20300)
-- **최대 위험 인자**: 특정성 부재(OR 2.382), 절 복잡도(OR 1.764), 부정 사용(OR 1.364)
-- **최대 보호 인자**: 답변 가능성(OR 0.331), 의도 근거화(intention grounding)
+- **위험/보호 인자**: 특정성 부재(OR 2.382), 절 복잡도(1.764), 부정 사용(1.364) vs 답변 가능성(OR 0.331), intention grounding
 - **적용**: SKILL.md `description`/`Iron Laws` 필드는 answerability·intention grounding 극대화 방향으로 작성. 불특정 주어·중첩 부정·깊은 절 구조 회피
 
 ---
 
 > **로테이션**: 20개 도달 시 가장 오래되고 참조가 적은 패턴을 교체. 삭제 대신 `.hxsk/research/`로 아카이브.
 
-*Last updated: 2026-04-23*
+*Last updated: 2026-04-24*
 *Items: 20/20*
