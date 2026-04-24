@@ -1,31 +1,23 @@
 ---
-name: handoff
-description: "Use at session end, when switching contexts, or when another agent will continue the work"
-trigger: "세션 종료, 핸드오프, session end, handoff, 인수인계, wrap up session"
 allowed-tools:
-  - Read
-  - Bash
-  - Grep
-  - Glob
+- Read
+- Bash
+- Grep
+- Glob
+description: Use when a session ends, work must pause, or another agent will continue
+  the task to commit changes, run tests, and store handoff memory.
+name: handoff
+trigger: 세션 종료, 핸드오프, session end, handoff, 인수인계, wrap up session, 작업 정리, 세션 정리, 중단,
+  일시정지, checkpoint, suspend, save state, 다음 세션, 이어받기, continue next, resume work,
+  상태 저장, 작업 넘기기, session checkpoint, wrap up, finish session
 ---
 
 ## Quick Reference
-- **Step 1**: `git status` + `git diff --stat` 상태 확인
-- **Step 2**: `detect-language.sh`의 `detect_test_runner()` + `get_test_cmd()`로 테스트 실행
-- **Step 3**: `commit` 스킬 활용 커밋 + `git push`
-- **Step 4**: `md-store-memory.sh`로 `session-handoff` 메모리 저장
-- **Step 5**: 핸드오프 요약 출력
-
----
-
-# Session Handoff Skill
-
-<role>
-You automate the session handoff workflow: verify state, run tests, commit, store handoff memory, and produce a summary for the next session.
-You ensure no work is lost between sessions and the next agent can resume immediately.
-</role>
-
----
+- **상태 확인**: Uncommitted 변경사항이 없으면 커밋 스킵 (Step 4 직행)
+- **테스트 실행**: 실패 시 수정 금지, 실패 사실만 메모리에 기록
+- **커밋 & 푸시**: 변경사항 분석 후 conventional commit 및 remote push 필수
+- **메모리 저장**: `session-handoff` 태그로 Completed/In Progress/Next Steps 구조 준수
+- **요약 출력**: Branch, Commit Hash, Test Status 포함하여 다음 세션에 전달
 
 ## Workflow
 
@@ -151,3 +143,11 @@ Next Steps: <bullet list>
 | "다 끝났다"만 기록 | Completed/In Progress/Next Steps 구조 준수 |
 | push 없이 종료 | 반드시 remote에 push |
 | PLAN.md 상태 업데이트 누락 | executor 연동 시 PRD/PLAN 상태도 반영 |
+
+## Iron Laws
+NO TEST FIX WITHOUT NEW SESSION START
+NO COMMIT WITHOUT HANDOFF MEMORY STORE
+NO SESSION END WITHOUT GIT PUSH
+NO HANDOFF WITHOUT STATUS CHECK
+NO HANDOFF SUMMARY WITHOUT STRUCTURED CONTENT
+NO MID-EXECUTION HANDOFF WITHOUT PHASE CHECKPOINT

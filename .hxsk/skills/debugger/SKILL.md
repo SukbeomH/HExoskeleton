@@ -1,33 +1,25 @@
 ---
-name: debugger
-description: "Use when encountering bugs, test failures, or unexpected behavior before proposing fixes"
-trigger: "버그 디버깅, 오류 원인 찾기, 에러 추적, root cause, unexpected behavior, bug investigation"
 allowed-tools:
-  - Read
-  - Write
-  - Grep
-  - Glob
-  - Bash
+- Read
+- Write
+- Grep
+- Glob
+- Bash
+description: Use when debugging bugs to find root causes, or after 3 failed fix attempts
+  to stop and document state.
+name: debugger
+trigger: 버그 디버깅, 오류 원인 찾기, 에러 추적, root cause, unexpected behavior, bug investigation,
+  3 strike rule, 가설 검증, hypothesis testing, meta debugging, self code review, debug
+  memory search, 과거 디버그 기록, systematic investigation, 변수 변경 테스트, 편향 피하기, 3 회 실패 후
+  중단, fresh session, 상태 기록, root cause 분석, 증빙 기반 디버깅
 ---
 
 ## Quick Reference
-- **3-Strike Rule**: 3회 실패 시 STOP → STATE.md 기록 → fresh session 권장
-- **Memory recall**: `.hxsk/memories/{root-cause,debug-eliminated}/` 검색
-- **Hypothesis**: 반증 가능해야 함 ("state wrong" ❌, "component remounts" ✓)
-- **Output types**: ROOT_CAUSE_FOUND, INVESTIGATION_INCONCLUSIVE, CHECKPOINT_REACHED
-- **Persist**: 발견 시 `root-cause`, 배제 시 `debug-eliminated` 메모리 저장
-
----
-
-# HXSK Debugger Agent
-
-<role>
-You are a HXSK debugger. You systematically diagnose bugs using hypothesis testing, evidence gathering, and persistent state tracking.
-
-Your job: Find the root cause, not just make symptoms disappear.
-</role>
-
----
+- **3-Strike Rule**: 3회 실패 시 즉시 중단 → STATE.md 기록 → fresh session 권장
+- **Memory First**: 조사 전 `.hxsk/memories/` 검색으로 과거 유사 사례 확인
+- **Valid Hypothesis**: 반증 가능해야 함 (구체적 원인 명시, 추측 금지)
+- **One Variable**: 한 번에 하나의 변수만 변경하여 테스트 및 문서화
+- **Persist Findings**: 원인 발견 시 `root-cause`, 배제 시 `debug-eliminated` 저장
 
 ## Core Philosophy
 
@@ -117,3 +109,14 @@ Persist findings after each session (elimination, root cause, blocked state).
 ## Scripts
 
 (없음 — Bash, Read, Grep 등 에이전트 네이티브 도구로 직접 수행)
+
+## Iron Laws
+NO CONTINUE_AFTER_3_FAILURES WITHOUT STATE_RECORDING_AND_FRESH_SESSION FIRST
+NO HYPOTHESIS_FORMULATION WITHOUT FALSIFIABILITY FIRST
+NO CHANGE_WITHOUT_ISOLATING_SINGLE_VARIABLE FIRST
+NO DIAGNOSIS_WITHOUT_COMPLETE_FUNCTION_READING FIRST
+NO INVESTIGATION_WITHOUT_PAST_MEMORY_SEARCH FIRST
+NO ASKING_USER_FOR_ROOT_CAUSE FIRST
+NO INVESTIGATION_WITHOUT_3_PLUS_HYPOTHESES FIRST
+NO DEBUGGING_WITHOUT_TREATING_CODE_AS_FOREIGN FIRST
+NO SESSION_END_WITHOUT_MEMORY_PERSISTENCE FIRST

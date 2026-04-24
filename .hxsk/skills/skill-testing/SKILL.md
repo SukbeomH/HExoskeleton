@@ -1,18 +1,24 @@
 ---
+description: Use when proving a skill alters agent behavior under pressure by comparing
+  rule violations without the skill against compliance with it.
 name: skill-testing
-description: "Use when creating new skills, modifying existing skills, or verifying a skill actually changes agent behavior"
-trigger: "스킬 테스트, 스킬 검증, 스킬 품질, skill TDD, test skill, verify skill works"
+trigger: 스킬 테스트, 스킬 검증, 스킬 품질, skill TDD, test skill, verify skill works, 스킬 TDD,
+  RED GREEN REFACTOR, 압박 테스트, 압박 시나리오, 합리화 패턴, 합리화 차단, 스킬 우회 테스트, 메타 테스트, 스킬 허점 찾기,
+  스킬 강화, 스킬 재작성, 스킬 행동 검증, 스킬 위반 테스트, 스킬 규칙 준수 확인, stress test skill, skill bypass
+  test, skill refinement, skill behavior check, TDD for skills, skill failure test,
+  RED 단계, GREEN 단계, REFACTOR 단계, 기준선 수집, 스킬 적용 재검증, 허점 차단, 시간 압박 테스트, 매몰 비용 테스트, 모호한
+  완료 기준 테스트, 복합 압박 테스트, 스킬 우회 방법, 합리화 우회, 규칙 뚫기 테스트, 스킬 테스트 리포트, Skill Test Report,
+  실패 테스트 먼저, 스킬 유효성 증명, 스킬 로딩 전후 비교, 서브에이전트 테스트, 스킬 합리화 테이블, 스킬 Red Flags, 스킬 재작성
+  필요, 스킬 위반 시나리오, 스킬 준수 시나리오, skill validation, skill effectiveness check, agent behavior
+  change, rationalization blocking, meta-test skill, skill loophole detection
 ---
 
 ## Quick Reference
-- **원칙**: 실패 테스트 없이 스킬 없음. 스킬이 실제로 행동을 바꾸는지 검증
-- **사이클**: RED(스킬 없이 위반 확인) → GREEN(스킬 있으면 준수) → REFACTOR(허점 차단)
-- **도구**: 서브에이전트 + 압박 시나리오 프롬프트
-- **산출물**: 테스트 결과 + 합리화 패턴 수집
-
----
-
-# Skill Testing (TDD for Skills)
+- **RED 우선**: 실패 테스트(위반 관찰) 없이 스킬 유효성 인정 불가
+- **행동 검증**: 스킬 로딩 전후 위반→준수 변화가 명확해야 함
+- **합리화 차단**: 메타 테스트로 발견된 우회 경로 사전 차단 필수
+- **허점 대응**: GREEN 단계 위반 시 즉시 REFACTOR (합리화 테이블 추가)
+- **산출 의무**: 테스트 결과 보고서 없이 스킬 배포 금지
 
 ## Core Principle
 
@@ -141,3 +147,10 @@ GREEN에서도 위반이 발생했다면 스킬을 강화한다.
 - 추가된 합리화 테이블 항목: [있으면]
 - 수정된 스킬 내용: [있으면]
 ```
+
+## Iron Laws
+NO SKILL VALIDATION WITHOUT FAILURE TEST FIRST
+NO GREEN PHASE WITHOUT RED PHASE FIRST
+NO REFACTOR WITHOUT RATIONALIZATION PATTERN ANALYSIS FIRST
+NO SKILL DEPLOYMENT WITHOUT COUNTER-ARGUMENT BLOCKING FIRST
+NO TEST COMPLETION WITHOUT SKILL TEST REPORT FIRST

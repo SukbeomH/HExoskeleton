@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": ".hxsk/hooks/session-start.sh",
+            "command": "cd \"${CLAUDE_PROJECT_DIR:-.}\" && .hxsk/hooks/session-start.sh",
             "timeout": 10
           }
         ]
@@ -18,7 +18,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": ".hxsk/hooks/file-protect.py",
+            "command": "cd \"${CLAUDE_PROJECT_DIR:-.}\" && .hxsk/hooks/file-protect.py",
             "timeout": 5
           }
         ]
@@ -28,7 +28,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": ".hxsk/hooks/read-before-edit.py",
+            "command": "cd \"${CLAUDE_PROJECT_DIR:-.}\" && .hxsk/hooks/read-before-edit.py",
             "timeout": 5
           }
         ]
@@ -38,7 +38,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": ".hxsk/hooks/write-guard.py",
+            "command": "cd \"${CLAUDE_PROJECT_DIR:-.}\" && .hxsk/hooks/write-guard.py",
             "timeout": 5
           }
         ]
@@ -48,7 +48,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": ".hxsk/hooks/bash-guard.py",
+            "command": "cd \"${CLAUDE_PROJECT_DIR:-.}\" && .hxsk/hooks/bash-guard.py",
             "timeout": 5
           }
         ]
@@ -60,7 +60,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": ".hxsk/hooks/track-read-history.py",
+            "command": "cd \"${CLAUDE_PROJECT_DIR:-.}\" && .hxsk/hooks/track-read-history.py",
             "timeout": 2
           }
         ]
@@ -70,12 +70,12 @@
         "hooks": [
           {
             "type": "command",
-            "command": ".hxsk/hooks/auto-format.sh",
+            "command": "cd \"${CLAUDE_PROJECT_DIR:-.}\" && .hxsk/hooks/auto-format.sh",
             "timeout": 30
           },
           {
             "type": "command",
-            "command": ".hxsk/hooks/track-modifications.sh",
+            "command": "cd \"${CLAUDE_PROJECT_DIR:-.}\" && .hxsk/hooks/track-modifications.sh",
             "timeout": 2
           }
         ]
@@ -85,7 +85,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": ".hxsk/hooks/track-modifications.sh",
+            "command": "cd \"${CLAUDE_PROJECT_DIR:-.}\" && .hxsk/hooks/track-modifications.sh",
             "timeout": 2
           }
         ]
@@ -97,7 +97,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": ".hxsk/hooks/pre-compact-save.sh",
+            "command": "cd \"${CLAUDE_PROJECT_DIR:-.}\" && .hxsk/hooks/pre-compact-save.sh",
             "timeout": 10
           }
         ]
@@ -108,17 +108,17 @@
         "hooks": [
           {
             "type": "command",
-            "command": ".hxsk/hooks/post-turn-verify.sh",
+            "command": "cd \"${CLAUDE_PROJECT_DIR:-.}\" && .hxsk/hooks/post-turn-verify.sh",
             "timeout": 15
           },
           {
             "type": "command",
-            "command": ".hxsk/hooks/stop-context-save.sh",
+            "command": "cd \"${CLAUDE_PROJECT_DIR:-.}\" && .hxsk/hooks/stop-context-save.sh",
             "timeout": 10
           },
           {
             "type": "command",
-            "command": ".hxsk/hooks/collect-rationalization.sh",
+            "command": "cd \"${CLAUDE_PROJECT_DIR:-.}\" && .hxsk/hooks/collect-rationalization.sh",
             "timeout": 5
           }
         ]
@@ -139,12 +139,12 @@
         "hooks": [
           {
             "type": "command",
-            "command": ".hxsk/hooks/save-transcript.sh",
+            "command": "cd \"${CLAUDE_PROJECT_DIR:-.}\" && .hxsk/hooks/save-transcript.sh",
             "timeout": 10
           },
           {
             "type": "command",
-            "command": ".hxsk/hooks/save-session-changes.sh",
+            "command": "cd \"${CLAUDE_PROJECT_DIR:-.}\" && .hxsk/hooks/save-session-changes.sh",
             "timeout": 10
           }
         ]

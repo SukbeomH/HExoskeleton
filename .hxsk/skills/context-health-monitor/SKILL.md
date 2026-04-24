@@ -1,25 +1,25 @@
 ---
-name: context-health-monitor
-description: "Use when context feels stale, after 3+ failed attempts, or when conversation exceeds 50 turns"
-trigger: "컨텍스트 상태 확인, 세션 덤프, 3-strike 발동, 세션 인수인계, context health, session handoff"
 allowed-tools:
-  - Read
-  - Write
-  - Grep
-  - Glob
-  - Bash
+- Read
+- Write
+- Grep
+- Glob
+- Bash
+description: Use when debugging fails 3 times, same approach repeats, or context usage
+  exceeds 60% to trigger state dump and recovery.
+name: context-health-monitor
+trigger: 컨텍스트 상태 확인, 세션 덤프, 3-strike 발동, 세션 인수인계, context health, session handoff,
+  컨텍스트 압축, context compact, 세션 일시중지, session pause, 순환 감지, circular detection, 불확실성
+  로깅, uncertainty logging, 컨텍스트 회전, context rot, 패턴 추출, pattern extraction, 상태 저장,
+  state dump, 3 strike rule, circular detection, context window full, token limit
 ---
 
 ## Quick Reference
-- **3-Strike Rule**: 동일 이슈 3회 실패 → STOP → STATE.md dump → fresh session
-- **Circular**: 동일 접근 2회 → 다른 방향 제안 또는 `/pause`
-- **Context >60%**: `/compact` 실행 (auto-compaction 80% 전에)
-- **PATTERNS.md**: 2KB 제한, 20개 항목 미만 유지
-- **Memory**: `health-event`, `session-handoff` 타입으로 저장
-
----
-
-# Context Health Monitor
+- **3-Strike Rule**: 동일 이슈 3회 실패 → STOP → STATE.md 저장 → fresh session 권장
+- **Circular Detection**: 동일 접근 2회 반복 → 근본적 대안 제안 또는 `/pause`
+- **Uncertainty**: 명확하지 않을 시 추측 금지 → DECISIONS.md 기록 후 사용자 확인
+- **Context >60%**: 토큰 사용량 60% 초과 시 즉시 `/compact` 실행 (80% 자동 전)
+- **Pattern Extraction**: 핵심 학습 시 PATTERNS.md 저장 (2KB/20개 이내 유지)
 
 ## Purpose
 
@@ -248,3 +248,13 @@ This skill integrates with:
 ## Scripts
 
 - `.hxsk/hooks/compact-context.sh`: Archive old entries, prune PATTERNS.md to 2KB limit
+
+## Iron Laws
+NO CONTINUE DEBUGGING WITHOUT STATE.md DUMP FIRST (After 3 failures)
+NO REPEAT APPROACH WITHOUT ALTERNATIVE PROPOSAL OR /pause FIRST (After 2 loops)
+NO EXCEED 80% CONTEXT WITHOUT /compact FIRST (Trigger at 60%)
+NO APPEND TO PATTERNS.md WITHOUT SIZE/COUNT CHECK FIRST (Max 2KB, 20 items)
+NO GUESS SOLUTION WITHOUT USER GUIDANCE FIRST (When uncertain)
+NO STORE MEMORY WITHOUT .hxsk/memories/ DIRECTORY FIRST
+NO RECOMMEND FRESH SESSION WITHOUT DOCUMENTING STATE FIRST
+NO COMPACT MID-FINISH WITHOUT COMPLETING TASK FIRST (If task is nearly done)

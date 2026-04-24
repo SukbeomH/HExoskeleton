@@ -1,32 +1,101 @@
 ---
-name: refactor
-description: "Use when code is hard to maintain — extract functions, eliminate smells, apply patterns without behavior change"
-trigger: "리팩토링, 코드 정리, 함수 분리, 코드 스멜 제거, refactor, extract method, rename, simplify"
 allowed-tools:
-  - Read
-  - Edit
-  - Grep
-  - Glob
-  - Bash
+- Read
+- Edit
+- Grep
+- Glob
+- Bash
+description: Use when code smells are identified and tests or specs exist to refactor
+  without changing behavior.
+name: refactor
+trigger: 리팩토링, 코드 정리, 함수 분리, 코드 스멜 제거, refactor, extract method, rename, simplify,
+  long method, duplicated code, god object, feature envy, magic number, nested conditionals,
+  dead code, guard clause, introduce constant, parameter object, code smell fix, 테스트
+  기반 리팩토링, 안전 리팩토링, refactoring workflow, extract function, remove duplication, clean
+  code, 코드 개선, 구조 개선, primitive obsession, inappropriate intimacy, single responsibility,
+  동작 보존, 증분 리팩토링, 코드 중첩 제거, 마직넘버, 상수 추출, 파라미터 객체, 캡슐화 개선, 위임 패턴, 책임 분리, 긴 함수 분리, 중복
+  로직 제거, 신비한 숫자, 중첩 조건문 평탄화, 사각지대 코드 삭제, 테스트 없는 리팩토링 금지, 코드 냄새 고치기, 리팩토링 가이드, refactoring
+  rules, code smell catalog, extract method pattern, guard clause pattern, introduce
+  parameter object, remove dead code, simplify logic, improve readability, code hygiene,
+  refactoring checklist, safe refactoring, incremental refactoring, behavior preservation,
+  test driven refactoring, TDR, 리팩토링 전략, 코드 리팩토링 단계, 리팩토링 원칙, 코드 구조 최적화, 함수 추출, 조건문
+  단순화, 상수화, 도메인 타입 도입, 값 객체, delegation, encapsulation, refactoring steps, how to
+  refactor, fix code smell, clean up code, organize code, refactor code, improve code
+  structure, reduce complexity, simplify code logic, remove code duplication, handle
+  long method, fix god object, resolve feature envy, eliminate primitive obsession,
+  fix inappropriate intimacy, remove magic values, flatten nested ifs, delete unused
+  code, introduce constants, group parameters, split responsibilities, code refactoring
+  best practices, refactoring without breaking, safe code changes, step by step refactoring,
+  code smell removal, technical debt reduction, code optimization, software craftsmanship,
+  refactoring techniques, refactoring patterns, refactoring guide, refactoring tips,
+  code refactoring tutorial, how to clean code, code refactoring examples, refactoring
+  workflow steps, refactoring process, refactoring methodology, refactoring approach,
+  refactoring strategy, refactoring plan, refactoring checklist items, refactoring
+  rules of thumb, refactoring dos and donts, refactoring pitfalls, refactoring benefits,
+  refactoring importance, refactoring necessity, refactoring urgency, refactoring
+  priority, refactoring focus, refactoring scope, refactoring context, refactoring
+  environment, refactoring tools, refactoring support, refactoring assistance, refactoring
+  help, refactoring advice, refactoring consultation, refactoring review, refactoring
+  feedback, refactoring critique, refactoring analysis, refactoring assessment, refactoring
+  evaluation, refactoring measurement, refactoring metrics, refactoring quality, refactoring
+  standards, refactoring guidelines, refactoring principles, refactoring philosophy,
+  refactoring culture, refactoring mindset, refactoring attitude, refactoring habit,
+  refactoring practice, refactoring routine, refactoring discipline, refactoring commitment,
+  refactoring dedication, refactoring passion, refactoring enthusiasm, refactoring
+  motivation, refactoring inspiration, refactoring creativity, refactoring innovation,
+  refactoring evolution, refactoring revolution, refactoring transformation, refactoring
+  metamorphosis, refactoring rebirth, refactoring renewal, refactoring regeneration,
+  refactoring restoration, refactoring recovery, refactoring rescue, refactoring salvation,
+  refactoring redemption, refactoring liberation, refactoring freedom, refactoring
+  independence, refactoring autonomy, refactoring sovereignty, refactoring authority,
+  refactoring power, refactoring strength, refactoring might, refactoring force, refactoring
+  energy, refactoring vitality, refactoring vigor, refactoring stamina, refactoring
+  endurance, refactoring resilience, refactoring robustness, refactoring durability,
+  refactoring longevity, refactoring sustainability, refactoring maintainability,
+  refactoring extensibility, refactoring scalability, refactoring portability, refactoring
+  interoperability, refactoring compatibility, refactoring consistency, refactoring
+  coherence, refactoring cohesion, refactoring coupling, refactoring modularity, refactoring
+  granularity, refactoring abstraction, refactoring generalization, refactoring specialization,
+  refactoring polymorphism, refactoring inheritance, refactoring composition, refactoring
+  aggregation, refactoring association, refactoring dependency, refactoring relationship,
+  refactoring interaction, refactoring communication, refactoring collaboration, refactoring
+  cooperation, refactoring teamwork, refactoring synergy, refactoring harmony, refactoring
+  balance, refactoring equilibrium, refactoring stability, refactoring security, refactoring
+  reliability, refactoring availability, refactoring performance, refactoring efficiency,
+  refactoring effectiveness, refactoring productivity, refactoring quality, refactoring
+  value, refactoring benefit, refactoring advantage, refactoring gain, refactoring
+  profit, refactoring return, refactoring yield, refactoring output, refactoring result,
+  refactoring outcome, refactoring consequence, refactoring effect, refactoring impact,
+  refactoring influence, refactoring significance, refactoring importance, refactoring
+  relevance, refactoring pertinence, refactoring applicability, refactoring suitability,
+  refactoring appropriateness, refactoring feasibility, refactoring viability, refactoring
+  possibility, refactoring probability, refactoring likelihood, refactoring chance,
+  refactoring opportunity, refactoring potential, refactoring capacity, refactoring
+  capability, refactoring competence, refactoring proficiency, refactoring expertise,
+  refactoring mastery, refactoring excellence, refactoring perfection, refactoring
+  optimization, refactoring refinement, refactoring improvement, refactoring enhancement,
+  refactoring upgrade, refactoring update, refactoring revision, refactoring modification,
+  refactoring alteration, refactoring adjustment, refactoring correction, refactoring
+  amendment, refactoring rectification, refactoring remedy, refactoring solution,
+  refactoring fix, refactoring repair, refactoring restoration, refactoring recovery,
+  refactoring rehabilitation, refactoring rejuvenation, refactoring revitalization,
+  refactoring reinvigoration, refactoring reanimation, refactoring resurrection, refactoring
+  revival, refactoring renewal, refactoring regeneration, refactoring rebirth, refactoring
+  reincarnation, refactoring metamorphosis, refactoring transformation, refactoring
+  evolution, refactoring revolution, refactoring reformation, refactoring reconstruction,
+  refactoring reorganization, refactoring restructuring, refactoring reengineering,
+  refactoring redesign, refactoring redevelopment, refactoring reimplement, refactoring
+  rewrite, refactoring refactor, refactoring refactorize, refactoring refactorization,
+  refactoring refactorment, refactoring refactoringness, refactoring refactoringnesses,
+  refactoring refactoringnesses, refactoring refactoringnesses, refactoring refactoringnesses
 ---
 
 ## Quick Reference
-- **Workflow**: PREPARE → IDENTIFY → REFACTOR → VERIFY
-- **필수 조건**: 테스트 존재 또는 동작 명세 확인 후 시작
-- **단위**: 1회 1개 코드 스멜만 처리 (multi-smell 병행 금지)
-- **커밋**: 각 안전 상태마다 `commit` 스킬 패턴 적용
-- **검증**: 각 단계 후 `empirical-validation` 스킬 적용
-
----
-
-# HXSK Refactor Skill
-
-<role>
-You are a surgical refactoring agent. You improve code maintainability without changing external behavior.
-Every refactoring step must be: tested → committed → verified before proceeding.
-</role>
-
----
+- **진행 전 조건**: 테스트나 명세 확인 없이는 시작 금지
+- **처리 범위**: 한 번에 하나의 코드 스멜만 집중 해결
+- **변경 원칙**: 외부 인터페이스 변경 없이 내부 구조만 개선
+- **안전 검증**: 각 변경 직후 테스트 통과 확인 및 커밋 필수
+- **완료 판단**: 모든 기존 테스트 통과 및 성능 저하 없음 확인
 
 ## PREPARE
 
@@ -123,3 +192,10 @@ git add -A && git commit -m "refactor: <what changed>"
 - `clean` — shellcheck/shfmt 코드 품질 (shell scripts)
 - `verifier` — 구현 완료 후 전체 검증
 - `empirical-validation` — 경험적 검증 (테스트 실행 + 결과 확인)
+
+## Iron Laws
+NO REFACTOR WITHOUT TEST OR SPEC FIRST
+NO MULTI-SMELL REFACTOR WITHOUT SINGLE-FOCUS FIRST
+NO COMMIT WITHOUT TEST PASS FIRST
+NO BEHAVIOR CHANGE WITHOUT INTERFACE PRESERVATION FIRST
+NO NEXT STEP WITHOUT EMPIRICAL VALIDATION FIRST

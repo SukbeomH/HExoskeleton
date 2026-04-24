@@ -6,22 +6,29 @@ allowed-tools:
 - Bash
 - Grep
 - Glob
-description: Use when initializing a fresh HExoskeleton project or updating an existing
-  one by detecting .hxsk/.bootstrap-version status.
+description: Use when .hxsk/.bootstrap-version is missing (fresh install) or exists
+  (verify/update) to initialize HExoskeleton.
 name: bootstrap
 trigger: 프로젝트 초기화, 프로젝트 셋업, 처음 설정, 업데이트, 갱신, project setup, initialize project, after
   cloning, update, refresh, bootstrap 실행, bootstrap.sh, 환경 설정, 시스템 요구사항 확인, prerequisite
   check, fresh install, verify mode, update mode, 멱등성 실행, idempotent setup, .env 생성,
-  메모리 초기화, memory init, 프로젝트 준비, project ready, converge, 상태 감지, 상태 확인, 설치 모드 감지
+  메모리 초기화, memory init, 프로젝트 준비, project ready, converge, 상태 감지, 상태 확인, 설치 모드 감지,
+  bootstrap 실패, bootstrap fail, exit code 1, system prerequisite missing, 필수 요구사항
+  누락, codebase mapper 실행, codebase analysis, .hxsk 구조 확인, .hxsk directory check, 메모리
+  디렉토리 생성, memory directory create, 상태 보고서 확인, status report, result passed, project
+  ready 확인, fresh mode 실행, verify mode 실행, update mode 실행, idempotent convergence,
+  수렴 엔진 실행, 환경 변수 복사, env example copy, 메모리 저장 실패, memory store fail, 경고 처리, warn
+  handling, 에러 보고, error reporting, 초기 설치 모드, 초기화 모드, 프로젝트 컨텍스트 초기화, project context
+  init, 스택 분석, stack analysis, 아키텍처 분석, architecture analysis
 version: 5.1.0
 ---
 
 ## Quick Reference
-- **시작**: `bash .hxsk/scripts/bootstrap.sh` 실행 (멱등성 보장)
-- **정지**: Step 1에서 `[FAIL]` 또는 exit code 1 시 즉시 중단 및 해결
-- **완료**: 최종 보고 `RESULT: PASSED` 시 프로젝트 사용 가능 (READY)
-- **예외**: codebase-mapper 실패 시 FAIL, 메모리 저장 실패 시 WARN 후 진행
-- **모드**: `.hxsk/.bootstrap-version` 유무로 fresh/verify/update 자동 판별
+- **실행**: `bash .hxsk/scripts/bootstrap.sh`로 시작 (모드 자동 감지)
+- **즉시 중단**: Step 1에서 `[FAIL]` 또는 exit code 1 발생 시
+- **경고 진행**: codebase-mapper 실패 (FAIL) 또는 메모리 저장 실패 (WARN) 시 보고까지 계속
+- **완료 조건**: 최종 보고서 `RESULT: PASSED` 확인 시 프로젝트 READY
+- **확인**: `.hxsk/.bootstrap-version` 파일 생성 여부로 상태 검증
 
 ## Iron Laws
 - NO BOOTSTRAP EXECUTION WITHOUT STATE DETECTION FIRST
@@ -29,6 +36,7 @@ version: 5.1.0
 - NO PROCESS TERMINATION WITHOUT ERROR REPORTING FIRST
 - NO PROJECT READY DECLARATION WITHOUT FINAL STATUS REPORT FIRST
 - NO MEMORY STORAGE FAILURE WITHOUT CONTINUATION TO REPORTING FIRST
+- NO PROJECT READY DECLARATION WITHOUT CODEBASE ANALYSIS SUCCESS FIRST
 
 ## Procedure
 

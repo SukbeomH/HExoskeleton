@@ -1,31 +1,27 @@
 ---
-name: arch-review
-description: "Use when structural changes affect 3+ modules, before merging architecture-level PRs"
-version: 4.0.0
 allowed-tools:
-  - Read
-  - Grep
-  - Glob
-  - Bash
-trigger: "아키텍처 검토, 레이어 위반 확인, 순환 의존성, 설계 문서 검토, 설계 모순 검사, review architecture, check layer violations, before merging structural changes, design review, design contradiction check"
+- Read
+- Grep
+- Glob
+- Bash
+description: Use when validating code for circular imports, layer violations, or design
+  doc logic errors before merging architecture-level changes.
+name: arch-review
+trigger: 아키텍처 검토, 레이어 위반 확인, 순환 의존성, 설계 문서 검토, 설계 모순 검사, review architecture, check
+  layer violations, before merging structural changes, design review, design contradiction
+  check, 구조 검증, 코드 구조 점검, 아키텍처 일관성 확인, 과거 아키텍처 결정 검토, memory recall architecture,
+  boundary compliance check, 경계 준수 확인, 복잡도 검사, shellcheck 구조 분석, 설계 실현 가능성 검증, 엣지
+  케이스 아키텍처, severity 평가, arch review before merge, validate code structure, circular
+  import check, layer isolation check, design doc consistency
+version: 4.0.0
 ---
 
 ## Quick Reference
-- **순환 import**: `Grep(pattern: "from.*import", path: "src/")` → 그래프 분석
-- **복잡도 검사**: `shellcheck` + `Grep` 기반 분석
-- **레이어 검증**: UI → Service → Repository 순방향만 허용
-- **설계 문서 검토**: 논리 모순, 실현 가능성, 엣지 케이스, 기존 시스템 호환성
-- **Severity**: LOW (log), MEDIUM (DECISIONS.md 기록), HIGH (block), CRITICAL (stop)
-- **Memory recall**: `md-recall-memory.sh "architecture"` 검색 후 일관성 확인
-
----
-
-# Skill: Architecture Review
-
-> **Goal**: Validate code changes against architectural rules and patterns.
-> **Scope**: Uses Grep/Glob/Read로 architecture validation 수행. 외부 종속성 없음.
-
----
+- **Memory Recall**: `md-recall-memory.sh` 로 과거 아키텍처 결정과 일관성 필수 검증
+- **구조 무결성**: 순환 import, 레이어 위반 (UI→Service→Repo), 복잡도 즉시 차단
+- **설계 검증**: 논리 모순, 실현 불가능성, 엣지 케이스 누락 시 HIGH/CRITICAL 판정
+- **Severity 행동**: LOW(로그), MEDIUM(문서화), HIGH(차단), CRITICAL(전체 중지)
+- **보고서 생성**: 위반 사항 구조화 (JSON) 후 결정 사항 메모리 저장
 
 ## Pre-Review: Memory Recall
 
@@ -144,3 +140,12 @@ bash .hxsk/hooks/md-store-memory.sh \
 ## Scripts
 
 (없음 — shellcheck, Grep, Glob 등 에이전트 네이티브 도구로 직접 수행)
+
+## Iron Laws
+NO ARCHITECTURE REVIEW WITHOUT MEMORY RECALL FIRST
+NO LAYER VIOLATION WITHOUT UNIDIRECTIONAL FLOW (UI -> SERVICE -> REPOSITORY)
+NO CIRCULAR DEPENDENCY WITHOUT GRAPH CYCLE DETECTION
+NO DESIGN IMPLEMENTATION WITHOUT LOGIC AND FEASIBILITY VERIFICATION
+NO CRITICAL VIOLATION RESOLUTION WITHOUT STOPPING ALL WORK
+NO HIGH SEVERITY BLOCK RESOLUTION WITHOUT HUMAN APPROVAL
+NO REPORT GENERATION WITHOUT STRUCTURED VIOLATION LOGGING

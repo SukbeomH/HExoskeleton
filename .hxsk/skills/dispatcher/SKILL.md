@@ -1,32 +1,28 @@
 ---
-name: dispatcher
-description: "Use when facing 5+ independent tasks that can be parallelized across worktrees"
-version: 2.0.0
-trigger: "dispatch|병렬 실행|wave 실행|이슈 배정|이슈 분할|work split|parallel issue|마스터플랜"
 allowed-tools:
-  - Agent
-  - Read
-  - Write
-  - Bash
-  - Glob
-  - Grep
+- Agent
+- Read
+- Write
+- Bash
+- Glob
+- Grep
+description: Use when PLAN.md or SPEC.md exists and tasks require splitting into waves
+  for parallel execution in isolated worktrees.
+name: dispatcher
+trigger: dispatch, 병렬 실행, wave 실행, 이슈 배정, 이슈 분할, work split, parallel issue, 마스터플랜,
+  plan split, master work 분할, 6-phase 오케스트레이션, wave loop, subagent dispatch, 워크트리
+  병렬, git worktree 관리, issue orchestration, wave dispatch, work 병합, wave merge, 병렬
+  워크트리, 이슈 추적, track wave, crash recovery, 중단 복구, 오케스트레이터, dispatcher skill, plan
+  to work, master 생성, work 분할, wave 순차 처리, 병렬 배포, 이슈 분할 실행
+version: 2.0.0
 ---
 
 ## Quick Reference
-- **입력**: PLAN.md/SPEC.md → MASTER/WORK 이슈 문서로 분할
-- **출력**: 6-Phase 라이프사이클 (SPLIT → BRANCH → Wave Loop[DISPATCH → TRACK → MERGE] → VERIFY)
-- **Main Root**: `git worktree list | head -1 | awk '{print $1}'`
-- **규칙**: 같은 Wave 내 files + side_effect_files 겹침 금지
-- **Merge**: `.hxsk/scripts/merge-worktrees.sh` 사용
-
-# Dispatcher Skill v2
-
-<role>
-You are a 6-Phase parallel dispatch orchestrator.
-You split plans into MASTER/WORK issue documents, dispatch each wave's works
-as isolated subagents in parallel worktrees, and manage the full lifecycle
-from splitting through merge to verification.
-</role>
+- **순환 의존성**: Split 시 의존성 그래프 순환 감지 시 즉시 중단 및 재분할 요청
+- **파일 충돌**: 같은 Wave 내 files/side_effect_files 중복 시 Wave 분리 또는 재분할
+- **Wave 순서**: Wave N+1은 Wave N의 모든 Work MERGE 완료 후에만 시작
+- **3-Strike Rule**: 동일 Work 3회 연속 실패 시 즉시 사용자 에스컬레이션
+- **검증 완료**: 통합 테스트 통과 시에만 워크트리 정리 및 MASTER 상태 변경
 
 ## Orchestration Lifecycle
 
@@ -239,3 +235,17 @@ MAIN_ROOT=$(git worktree list | head -1 | awk '{print $1}')
 ```
 
 어떤 프로젝트/머신에서든 별도 설정 없이 동작.
+
+## Iron Laws
+NO DISPATCH WAVE N+1 WITHOUT MERGE WAVE N FIRST
+NO SPLIT WITHOUT CYCLIC DEPENDENCY CHECK FIRST
+NO PARALLEL DISPATCH WITHOUT FILE OWNERSHIP VERIFICATION FIRST
+NO FILE MODIFICATION WITHOUT FILES LIST SPECIFICATION FIRST
+NO WORK COMPLETION WITHOUT SELF-REVIEW TABLE FIRST
+NO MERGE WITHOUT LESSONS-LEARNED REFERENCE FIRST
+NO MERGE WITHOUT ORCHESTRATOR REVIEW FIRST
+NO ESCALATION WITHOUT 3-STRIKE FAILURE COUNT FIRST
+NO CRASH RECOVERY WITHOUT WORKTREE STATE VERIFICATION FIRST
+NO DISPATCH WITHOUT MASTER BRANCH CREATION FIRST
+NO WORKTREE REMOVAL WITHOUT FINAL VERIFICATION PASS FIRST
+NO ISSUE DOCUMENT UPDATE WITHOUT ORCHESTRATOR AUTHORITY FIRST

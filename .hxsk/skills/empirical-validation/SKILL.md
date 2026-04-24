@@ -1,19 +1,20 @@
 ---
+description: Use when claiming work is complete, successful, or fixed, and empirical
+  evidence is required to validate the change before proceeding.
 name: empirical-validation
-description: "Use when claiming work is complete, before committing, or when verifying any change actually works"
-trigger: "경험적 검증, 실행 결과 확인, 증거 기반 확인, prove it works, empirical proof, validate with output"
+trigger: 경험적 검증, 실행 결과 확인, 증거 기반 확인, prove it works, empirical proof, validate with
+  output, 실제 작동 확인, 증거 제시, 실행 로그 확인, 스크린샷으로 확인, curl 로 테스트, 빌드 결과 확인, 테스트 통과 증명, 완료
+  전 검증, 5 단계 검증 프로토콜, 게이트 통과 확인, "should work" 금지, 확신 대신 증거, UI 상태 캡처, API 응답 확인,
+  데이터 상태 쿼리, 파일 생성 확인, exit code 확인, verify before done, show me the output, capture
+  evidence, empirical validation required, run and verify
 ---
 
 ## Quick Reference
-- **원칙**: "The code looks correct" ≠ 검증. 경험적 증거 필수
-- **UI**: Screenshot으로 시각 상태 확인 (Bash: `screenshot` 또는 브라우저 MCP)
-- **API**: `curl` 명령으로 응답 확인 (Bash)
-- **Build/Test**: 성공 출력 캡처 (Bash)
-- **금지 문구**: "This should work", "Based on my understanding" 등
-
----
-
-# Empirical Validation
+- **완료 전 5 단계**: IDENTIFY(명령), RUN(전체 실행), READ(출력 확인), VERIFY(일치), CLAIM(주장) 순서 준수
+- **증거 원칙**: "The code looks correct" 금지. 실제 출력/스크린샷/exit code 필수
+- **독립 검증**: 에이전트 보고나 이전 결과 재사용 금지. 매 변경 시 직접 실행
+- **부분 성공 금지**: 1 실패도 전체 실패로 간주. 모든 테스트/빌드 통과 확인
+- **변명 차단**: "잘 될 것 같다", "확신한다" 등 추측성 문구 사용 시 즉시 중단
 
 ## Core Principle
 
@@ -184,3 +185,12 @@ If verification fails:
 2. **Document** the failure in `.hxsk/STATE.md`
 3. **Create** fix task if cause is known
 4. **Trigger** Context Health Monitor if 3+ failures
+
+## Iron Laws
+NO COMPLETION WITHOUT EMPIRICAL EVIDENCE FIRST
+NO CLAIM WITHOUT FULL OUTPUT READ FIRST
+NO VALIDATION WITHOUT FRESH EXECUTION FIRST
+NO VALIDATION WITHOUT BASH EXECUTION FIRST
+NO PARTIAL PASS WITHOUT FULL SUITE PASS FIRST
+NO TRUST WITHOUT INDEPENDENT CHECK FIRST
+NO SUCCESS RECORD WITHOUT JOURNAL ENTRY FIRST
