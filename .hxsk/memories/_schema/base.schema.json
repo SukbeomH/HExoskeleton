@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://gsd.local/schemas/memory/base",
   "title": "GSD Memory Base Schema",
-  "description": "A-Mem 확장 필드를 포함한 기본 메모리 스키마",
+  "description": "A-Mem 확장 필드를 포함한 기본 메모리 스키마 (16개 타입)",
   "type": "object",
   "properties": {
     "title": {
@@ -19,7 +19,7 @@
     },
     "type": {
       "type": "string",
-      "description": "메모리 타입 (14개 중 하나)",
+      "description": "메모리 타입 (16개 중 하나)",
       "enum": [
         "architecture-decision",
         "root-cause",
@@ -34,6 +34,8 @@
         "session-summary",
         "session-snapshot",
         "security-finding",
+        "lessons-learned",
+        "term-definition",
         "general"
       ]
     },
@@ -56,6 +58,17 @@
       "type": "array",
       "description": "A-Mem Link: 관련 메모리 파일명",
       "items": { "type": "string" }
+    },
+    "provenance": {
+      "type": "object",
+      "description": "ADR-007: GT 출처 메타데이터 (선택)",
+      "properties": {
+        "source":          { "type": "string" },
+        "authority":       { "type": "string", "enum": ["high", "medium", "low"] },
+        "derived_at":      { "type": "string", "format": "date" },
+        "verified_at":     { "type": "string", "format": "date" },
+        "contradicted_by": { "type": "array", "items": { "type": "string" }, "default": [] }
+      }
     }
   },
   "required": ["title", "tags", "type", "created"],

@@ -1,8 +1,8 @@
 # Memory Type Relations Schema
 # Based on Ontology research for structured reasoning
-# Defines relationships between 14 memory types
+# Defines relationships between 16 memory types
 
-version: "1.0"
+version: "1.1"
 
 types:
   architecture-decision:
@@ -110,6 +110,14 @@ types:
       derived_from: [deviation, root-cause]
       informs: [pattern-discovery, architecture-decision]
       prevents: [deviation]
+
+  term-definition:
+    description: "조작적 정의 — 용어 SSOT (canonical/context/aliases). ADR-006."
+    primary_tags: [glossary, term, definition]
+    relations:
+      informs: [pattern-discovery, architecture-decision]
+      validated_by: [session-summary]
+      extended_by: [term-definition]  # alias 자동 학습 시 자기 참조
 
   general:
     description: "기타"
