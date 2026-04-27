@@ -141,3 +141,7 @@ settings.local.json
 
 # HXSK HITL 런타임 (세션 임시 파일)
 .hxsk/.hitl-pending.json
+
+# HXSK Glossary 런타임 (세션 임시 파일)
+.hxsk/.glossary-candidates.tsv
+.hxsk/.glossary-pending.tsv
