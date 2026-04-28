@@ -20,6 +20,26 @@ AI 에이전트 기반 개발을 위한 경량 프로젝트 보일러플레이�
 
 SPEC.md → PLAN.md → EXECUTE → VERIFY. Working docs in `.hxsk/`
 
+## Codex CLI Usage
+
+Codex CLI는 Claude Code의 `PreToolUse`/`PostToolUse` 훅 전체를 동일하게 실행하지 못하므로, 이 레포에서는 루트 `AGENTS.md` 지침 + `.codex/hooks.json` Stop 훅 + Git hook 폴백으로 HXSK를 적용한다.
+
+### Session Start Checklist
+- 현재 위치가 레포 루트인지 확인하고, 필요 시 `rtk bash .hxsk/scripts/bootstrap.sh`로 구조를 검증한다.
+- 구현/리팩터링 전 `.hxsk/SPEC.md`와 관련 working doc을 읽는다.
+- 관련 이력은 `rtk bash .hxsk/hooks/md-recall-memory.sh "<query>" "." 5 compact`로 검색한다.
+
+### During Work
+- 기존 파일 수정 전 반드시 해당 파일을 먼저 읽는다.
+- 명령은 기본적으로 `rtk` prefix를 사용한다.
+- PLAN 없이 EXECUTE하지 않는다. 작은 단일 수정은 응답 내 짧은 계획으로 충분하지만, 다단계 작업은 `.hxsk/workflow/GATES.md` 또는 해당 이슈 문서를 기준으로 진행한다.
+- 병렬 작업/서브에이전트 사용 시 파일 소유권을 먼저 나눈다.
+
+### Completion
+- 완료 전 실제 검증 명령을 실행하고 결과를 보고한다.
+- 구조 검증이 필요한 변경은 `rtk bash .hxsk/scripts/local-verify.sh` 또는 더 좁은 검증 명령으로 확인한다.
+- 재사용 가능한 패턴, 원인 분석, 세션 요약은 `rtk bash .hxsk/hooks/md-store-memory.sh ...`로 저장한다.
+
 ## Memory Protocol
 
 파일 기반 메모리 시스템 (A-Mem 확장).
