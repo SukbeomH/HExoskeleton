@@ -1,3 +1,8 @@
+---
+description: Use when Ground Truth alignment finds memory contamination and the user explicitly requests scoped cleanup with /cleanse.
+name: cleanse-memory
+---
+
 # cleanse-memory Skill
 
 ## Quick Reference

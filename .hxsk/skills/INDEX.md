@@ -1,17 +1,19 @@
 # Skills Index
 
-> 22 skills available. Agents fetch only what they need.
+> 24 skills available. Agents fetch only what they need.
 
 | Skill | Description | Path |
 |-------|-------------|------|
 | arch-review | Validates architectural rules and ensures design quality | `skills/arch-review/SKILL.md` |
 | bootstrap | Complete initial project setup -- system verification, memory initialization, codebase analysis | `skills/bootstrap/SKILL.md` |
 | clean | Runs shell script quality checks (shellcheck, shfmt) across the codebase | `skills/clean/SKILL.md` |
+| cleanse-memory | Use when Ground Truth alignment finds memory contamination and scoped HITL cleanup is required | `skills/cleanse-memory/SKILL.md` |
 | codebase-mapper | Analyzes existing codebases to understand structure, patterns, and technical debt | `skills/codebase-mapper/SKILL.md` |
 | commit | Analyzes diffs, splits logical changes, creates conventional emoji commits aligned with HXSK atomic commit protocol | `skills/commit/SKILL.md` |
 | context-health-monitor | Monitors context complexity and triggers state dumps before quality degrades | `skills/context-health-monitor/SKILL.md` |
 | create-pr | Analyzes changes, creates branch, splits commits logically, pushes and creates pull request via gh CLI | `skills/create-pr/SKILL.md` |
 | debugger | Systematic debugging with persistent state and fresh context advantages | `skills/debugger/SKILL.md` |
+| define-term | Use when registering, reviewing, merging, or rebuilding HXSK glossary term definitions | `skills/define-term/SKILL.md` |
 | dispatcher | MASTER/WORK 기반 6-Phase 병렬 이슈 오케스트레이션 (v2.0.0) | `skills/dispatcher/SKILL.md` |
 | doc-lint | Verifies document consistency -- broken links, INDEX sync, counts, orphan files, and duplicates | `skills/doc-lint/SKILL.md` |
 | empirical-validation | Requires proof before marking work complete -- no "trust me, it works" | `skills/empirical-validation/SKILL.md` |

@@ -10,10 +10,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - name: Run consistency check
-        run: bash .hxsk/hooks/check-consistency.sh
-
-      - name: Run pre-PR check
-        run: bash .hxsk/hooks/pre-pr-check.sh
+      - name: Run local verification bundle
+        run: bash .hxsk/scripts/local-verify.sh
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          HXSK_SKIP_GITHUB: "1"

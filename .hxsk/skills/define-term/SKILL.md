@@ -1,3 +1,8 @@
+---
+description: Use when registering, reviewing, merging, or rebuilding HXSK glossary term definitions after glossary-detect suggests a candidate or the user invokes /define.
+name: define-term
+---
+
 # define-term
 
 Use when: 새 용어 등록(/define <term>), 펜딩 검토(/define review), 두 정의 병합(/define merge a b), 인덱스 재생성(/define rebuild), 또는 glossary-detect.sh가 등록 권유 메시지를 출력한 직후.
