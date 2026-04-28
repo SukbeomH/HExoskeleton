@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://gsd.local/schemas/memory/term-definition",
+  "title": "HXSK Term Definition Schema",
+  "description": "조작적 정의(ADR-006) — 용어 SSOT. canonical+context 조합이 고유 키.",
+  "type": "object",
+  "properties": {
+    "canonical": {
+      "type": "string",
+      "description": "정규 용어명. context와 함께 고유 키를 구성한다.",
+      "minLength": 1,
+      "maxLength": 100
+    },
+    "context": {
+      "type": "string",
+      "description": "Bounded context. 추천: hxsk | domain | library | <custom>",
+      "minLength": 1
+    },
+    "aliases": {
+      "type": "array",
+      "description": "동의어·이형. 자동 학습 시 여기에만 추가.",
+      "items": { "type": "string" },
+      "default": []
+    },
+    "disambiguates_from": {
+      "type": "array",
+      "description": "동음이의 명시. 같은 canonical이지만 다른 context인 항목 목록.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "canonical": { "type": "string" },
+          "context":   { "type": "string" }
+        },
+        "required": ["canonical", "context"]
+      },
+      "default": []
+    },
+    "definition": {
+      "type": "string",
+      "description": "1-3줄 정의.",
+      "minLength": 1,
+      "maxLength": 500
+    },
+    "examples": {
+      "type": "array",
+      "description": "사용 예시 (선택).",
+      "items": { "type": "string" }
+    },
+    "sources": {
+      "type": "array",
+      "description": "출처 파일 경로 또는 URL (선택).",
+      "items": { "type": "string" }
+    },
+    "learned": {
+      "type": "boolean",
+      "description": "true = 자동 학습된 항목. 사용자 검토 대상.",
+      "default": false
+    },
+    "provenance": {
+      "type": "object",
+      "description": "ADR-007 오염 정화용 출처 메타데이터.",
+      "properties": {
+        "source":           { "type": "string" },
+        "authority":        { "type": "string", "enum": ["high", "medium", "low"] },
+        "derived_at":       { "type": "string", "format": "date" },
+        "verified_at":      { "type": "string", "format": "date" },
+        "contradicted_by":  { "type": "array", "items": { "type": "string" }, "default": [] }
+      }
+    }
+  },
+  "required": ["canonical", "context", "definition"],
+  "additionalProperties": true
+}

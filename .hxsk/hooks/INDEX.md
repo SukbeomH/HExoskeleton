@@ -1,6 +1,6 @@
 # Hooks Index
 
-> 26 hook scripts. Claude Code only -- other agents use AGENTS.md rules instead.
+> 27 hook scripts. Claude Code only -- other agents use AGENTS.md rules instead.
 
 | Hook | Event | Purpose | File |
 |------|-------|---------|------|
@@ -30,3 +30,4 @@
 | collect-rationalization.sh | Stop | Detect Iron Law violation signals in agent output | `hooks/collect-rationalization.sh` |
 | pre-commit-doc-lint.sh | (git pre-commit) | Run doc-lint on staged .md files | `hooks/pre-commit-doc-lint.sh` |
 | pre-commit-version-check.sh | (git pre-commit) | Verify bootstrap.sh version matches .bootstrap-version | `hooks/pre-commit-version-check.sh` |
+| glossary-detect.sh | UserPromptSubmit (utility) | Glossary 후보 감지 + 힌트 주입 (ADR-006) | `hooks/glossary-detect.sh` |

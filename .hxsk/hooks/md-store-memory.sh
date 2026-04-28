@@ -136,6 +136,22 @@ fi
 
 echo "$FILEPATH"
 
+# ── Contradiction Check (ADR-007) ──────────────────────────────────────────────
+# 신규 메모리 저장 시 동일 scope 기존 메모리와 사실 충돌 감지 신호 출력
+# Claude(인라인)가 다음 턴에 비교 후 HITL 처리. 저장 자동 차단 안 함.
+# 우회: HXSK_CONTRADICTION_CHECK=0
+if [[ "${HXSK_CONTRADICTION_CHECK:-1}" == "1" ]]; then
+  RECALL_SCRIPT="$(dirname "$0")/md-recall-memory.sh"
+  if [[ -f "$RECALL_SCRIPT" && -n "$TAGS" ]]; then
+    QUERY_TAG=$(echo "$TAGS" | tr ',' '\n' | head -1 | tr -d ' ')
+    EXISTING=$(bash "$RECALL_SCRIPT" "$QUERY_TAG" "$PROJECT_DIR" 5 compact 1 2>/dev/null || true)
+    if [[ -n "$EXISTING" ]]; then
+      EXIST_COUNT=$(echo "$EXISTING" | grep -c "^- \*\*" 2>/dev/null || echo "?")
+      echo "[CONTRADICTION_CHECK] scope=${QUERY_TAG} existing=${EXIST_COUNT} — Claude: 신규 메모리와 기존 내용 비교 후 모순 시 HITL 처리" >&2
+    fi
+  fi
+fi
+
 # ── Opportunistic prune tick (하네스 독립) ──
 # Claude Code 훅이 없는 하네스(Cursor/Gemini CLI/OpenCode 등)에서도 메모리 저장 시
 # 자연 발화. cooldown·lock 내장이라 과다 호출 안전. 백그라운드 실행으로 호출자 블로킹 없음.
