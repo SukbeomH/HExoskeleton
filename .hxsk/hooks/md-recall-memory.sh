@@ -73,6 +73,24 @@ if [ -n "$RELATED_FILES" ]; then
     fi
 fi
 
+# ── ADR-007: Provenance 우선순위 후처리 ──
+# contradicted_by 비어있지 않은 항목을 후순위로 이동
+if [[ -n "$RESULTS" ]]; then
+    CLEAN_LIST=""
+    CONTAMINATED_LIST=""
+    while IFS= read -r _f; do
+        [ -f "$_f" ] || continue
+        # contradicted_by 필드가 없거나 빈 배열이면 clean
+        if grep -q "contradicted_by:" "$_f" 2>/dev/null && \
+           ! grep -q "contradicted_by: \[\]" "$_f" 2>/dev/null; then
+            CONTAMINATED_LIST="${CONTAMINATED_LIST}${_f}"$'\n'
+        else
+            CLEAN_LIST="${CLEAN_LIST}${_f}"$'\n'
+        fi
+    done <<< "$RESULTS"
+    RESULTS=$(printf "%s%s" "$CLEAN_LIST" "$CONTAMINATED_LIST" | grep -v "^$" | head -"$LIMIT" || true)
+fi
+
 # 각 파일에서 메타데이터 추출
 while IFS= read -r filepath; do
     [ -f "$filepath" ] || continue
