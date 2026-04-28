@@ -450,7 +450,7 @@ bash .hxsk/scripts/bootstrap.sh
 | **Gemini CLI** | 최신 | `mkdir -p .gemini && cp .hxsk/adapters/gemini-settings.json .gemini/settings.json` (프로젝트 우선, 글로벌은 `~/.gemini/`) | [geminicli.com/docs/hooks](https://geminicli.com/docs/hooks/) |
 | **Copilot CLI** | 2026-02 GA+ | `mkdir -p .copilot && cp .hxsk/adapters/copilot-hooks.json .copilot/hooks.json` | [GitHub Docs](https://docs.github.com/en/copilot/how-tos/copilot-cli/use-hooks) |
 | **Windsurf** | Cascade 활성 | `mkdir -p .windsurf && cp .hxsk/adapters/windsurf-hooks.json .windsurf/hooks.json` | [docs.windsurf.com/windsurf/cascade/hooks](https://docs.windsurf.com/windsurf/cascade/hooks) |
-| **Codex CLI** | `codex_hooks=true` 활성 | `codex config set experimental.codex_hooks true && mkdir -p .codex && cp .hxsk/adapters/codex-hooks.json .codex/hooks.json` | [developers.openai.com/codex/hooks](https://developers.openai.com/codex/hooks) |
+| **Codex CLI** | `codex_hooks=true` 활성 | `bash .hxsk/scripts/install.sh --harness codex` (`.codex/hooks.json` + `.hxsk/githooks/pre-push`) | [developers.openai.com/codex/hooks](https://developers.openai.com/codex/hooks) |
 | **OpenCode** | Bun 런타임 필요 | `mkdir -p ~/.config/opencode/plugin && cp .hxsk/adapters/opencode-plugin.ts ~/.config/opencode/plugin/hxsk.ts` | [opencode.ai/docs/plugins](https://opencode.ai/docs/plugins/) |
 | **Aider** | lifecycle 훅 부재 | `git config core.hooksPath .hxsk/githooks` | [aider.chat](https://aider.chat/) |
 | **Continue.dev** | 동일 (VS Code 확장 제약) | 동일 | [docs.continue.dev](https://docs.continue.dev/) |
