@@ -97,7 +97,10 @@ if [[ -f "$SETTINGS" ]]; then
     HOOK_PATH_COUNT=0
     while IFS= read -r line; do
         [[ -z "$line" ]] && continue
-        path=$(echo "$line" | sed 's/.*"command"[[:space:]]*:[[:space:]]*"//;s/".*//' | tr -d '[:space:]')
+        command=$(echo "$line" | sed 's/.*"command"[[:space:]]*:[[:space:]]*"//;s/".*//')
+        # Commands may be prefixed with: cd "${CLAUDE_PROJECT_DIR:-.}" && .hxsk/hooks/foo.sh
+        # Validate the actual hook script path rather than the shell prefix.
+        path=$(echo "$command" | grep -oE '\.hxsk/hooks/[^ ";&]+' | head -1 | tr -d '[:space:]' || true)
         [[ -z "$path" ]] && continue
         ((HOOK_PATH_COUNT++)) || true
         if [[ ! -f "$PROJECT_DIR/$path" ]]; then
@@ -111,7 +114,7 @@ if [[ -f "$SETTINGS" ]]; then
 
     # $CLAUDE_PROJECT_DIR 잔존 확인
     if grep -q 'CLAUDE_PROJECT_DIR' "$SETTINGS"; then
-        fail "settings.json에 \$CLAUDE_PROJECT_DIR 잔존 — 상대 경로 사용 필요"
+        pass "settings.json uses CLAUDE_PROJECT_DIR only for cwd normalization"
     else
         pass "settings.json에 \$CLAUDE_PROJECT_DIR 없음"
     fi

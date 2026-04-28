@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+# HXSK git pre-push hook — PR/CI 이전 로컬 검증.
+#
+# 설치:
+#   git config core.hooksPath .hxsk/githooks
+#
+# 우회:
+#   HXSK_SKIP_LOCAL_VERIFY=1 git push
+
+set -euo pipefail
+
+[[ "${HXSK_SKIP_LOCAL_VERIFY:-0}" == "1" ]] && {
+  echo "[HXSK pre-push] skipped by HXSK_SKIP_LOCAL_VERIFY=1"
+  exit 0
+}
+
+REPO_ROOT=$(git rev-parse --show-toplevel 2>/dev/null) || exit 0
+VERIFY="$REPO_ROOT/.hxsk/scripts/local-verify.sh"
+
+[[ -f "$VERIFY" ]] || {
+  echo "[HXSK pre-push] local-verify.sh not found; skipping"
+  exit 0
+}
+
+echo "[HXSK pre-push] running local verification before push..."
+CLAUDE_PROJECT_DIR="$REPO_ROOT" HXSK_SKIP_GITHUB=1 bash "$VERIFY"

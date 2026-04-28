@@ -175,7 +175,9 @@ fi
 echo ""
 echo "=== GitHub release ==="
 
-if command -v gh &>/dev/null && [[ -n "$FILE_VER" ]]; then
+if [[ "${HXSK_SKIP_GITHUB:-0}" == "1" ]]; then
+    warn "GitHub release check skipped (HXSK_SKIP_GITHUB=1)"
+elif command -v gh &>/dev/null && [[ -n "$FILE_VER" ]]; then
     RELEASE_TAG="setup-v${FILE_VER}"
     LATEST_RELEASE=$(gh release list --limit 1 --json tagName -q '.[0].tagName' 2>/dev/null || true)
 
