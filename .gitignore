@@ -86,7 +86,9 @@ secrets/
 .hxsk/SESSION_HANDOFF.md
 
 .hxsk/archive/
-.hxsk/reports/
+.hxsk/reports/*
+!.hxsk/reports/
+!.hxsk/reports/iteration-log.tsv
 .hxsk/.modified-this-session
 .hxsk/.session-active
 .hxsk/.track-modifications.log
