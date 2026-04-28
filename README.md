@@ -124,7 +124,7 @@ Claude · Gemini · Copilot · Cursor · Windsurf (10+ 하네스)
 
 ### 2. 8-Event Hook 생명주기
 
-Claude Code의 훅 시스템으로 에이전트 행동을 자동화합니다. 7개 이벤트, 26개 스크립트.
+Claude Code의 훅 시스템으로 에이전트 행동을 자동화합니다. 7개 이벤트, 27개 스크립트.
 
 
 ```
@@ -256,7 +256,7 @@ make setup
 └── .hxsk/                     # Single Source of Truth
     ├── skills/                # 스킬 정의 (21) — How
     ├── agents/                # 에이전트 정의 (18) — When/With What
-    ├── hooks/                 # 훅 스크립트 (26) — 자동화
+    ├── hooks/                 # 훅 스크립트 (27) — 자동화
     ├── scripts/               # 유틸리티 (bootstrap, issue, merge, forge-detect)
     ├── workflow/              # 게이트 기반 작업 관리 (GATES.md)
     ├── docs/                  # 상세 문서 (26)

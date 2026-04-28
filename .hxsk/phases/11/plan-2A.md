@@ -1,0 +1,212 @@
+---
+phase: 11
+plan: "2A"
+wave: 2
+depends_on: ["11/plan-1A"]
+files_modified:
+  - .hxsk/memories/term-definition/2026-04-28_agent-hxsk.md
+  - .hxsk/memories/term-definition/2026-04-28_skill-hxsk.md
+  - .hxsk/memories/term-definition/2026-04-28_plan-hxsk.md
+  - .hxsk/memories/term-definition/2026-04-28_spec-hxsk.md
+  - .hxsk/memories/term-definition/2026-04-28_phase-hxsk.md
+  - .hxsk/memories/term-definition/2026-04-28_gate-hxsk.md
+  - .hxsk/memories/term-definition/2026-04-28_memory-hxsk.md
+  - .hxsk/memories/term-definition/2026-04-28_hook-hxsk.md
+  - .hxsk/memories/term-definition/2026-04-28_session-hxsk.md
+  - .hxsk/memories/term-definition/2026-04-28_handoff-hxsk.md
+  - .hxsk/scripts/glossary-rebuild.sh
+  - .hxsk/GLOSSARY.md
+  - .hxsk/hooks/glossary-detect.sh
+  - .hxsk/skills/define-term/SKILL.md
+autonomous: true
+user_setup: []
+
+must_haves:
+  truths:
+    - "시드 term-definition 메모리 10개가 term-definition 스키마를 준수한다"
+    - "glossary-rebuild.sh 실행 시 .hxsk/GLOSSARY.md가 canonical|context|aliases 1줄 표 형태로 생성된다"
+    - "glossary-detect.sh가 입력 텍스트에서 미등록 후보어를 .hxsk/.glossary-candidates.tsv에 누적한다"
+    - "define-term 스킬이 register/review/merge/rebuild 4 모드를 명시한다"
+    - "GLOSSARY.md가 canonical 컬럼만 포함하고 aliases는 포함하지 않는다 (lazy lookup 정책)"
+  artifacts:
+    - "ls .hxsk/memories/term-definition/*.md | wc -l | grep -E '^10$'"
+    - "bash .hxsk/scripts/glossary-rebuild.sh && test -f .hxsk/GLOSSARY.md"
+    - "cat .hxsk/GLOSSARY.md | grep -c '|' | awk '{if ($1 >= 10) print \"OK\"}'"
+  key_links:
+    - "glossary-detect.sh → .hxsk/.glossary-candidates.tsv (gitignore 대상)"
+    - "glossary-rebuild.sh → .hxsk/memories/term-definition/*.md → .hxsk/GLOSSARY.md"
+    - "define-term --rebuild 모드가 glossary-rebuild.sh를 내부 호출"
+
+cross_phase_invariants:
+  inherit:
+    - "HITL 어댑터 규약: exit 0=응답, 1=skip, 2=timeout. stdout은 선택값 문자열"
+    - "term-definition 스키마: canonical + context 조합이 고유 키 (중복 등록 시 충돌)"
+    - "base.schema.json 수정 시 additionalProperties: true 유지 (기존 메모리 하위 호환)"
+  new:
+    - "GLOSSARY.md는 자동 생성 파일 — 직접 편집 금지, glossary-rebuild.sh로만 갱신"
+    - ".glossary-candidates.tsv / .glossary-pending.tsv는 gitignore 대상 (세션 런타임 파일)"
+    - "자동 학습은 aliases 추가만 허용 — canonical/context 변경은 항상 HITL"
+---
+
+# Plan 11.2A: ADR-006 — 조작적 정의 (Glossary + detect hook + define-term skill)
+
+<objective>
+ADR-006 조작적 정의 시스템의 애플리케이션 레이어를 구현한다.
+시드 용어 10개로 term-definition 메모리를 초기화하고, 인덱스 자동 생성과
+사용자 쿼리 후보 감지 훅, 그리고 HITL 등록 스킬을 추가한다.
+
+Purpose: "사용자가 '역량 추가해줘'라고 했을 때 Claude가 Skill 작업으로 환원"이 가능하도록
+SessionStart에서 GLOSSARY.md 인덱스를 컨텍스트로 제공하고,
+UserPromptSubmit에서 미등록 후보어를 감지·큐잉한다.
+Output: 시드 10개 + rebuild 스크립트 + detect 훅 + define-term 스킬.
+</objective>
+
+---
+
+## Task 1: 시드 메모리 10개 + GLOSSARY 인덱스
+
+<files>
+- .hxsk/memories/term-definition/2026-04-28_agent-hxsk.md
+- .hxsk/memories/term-definition/2026-04-28_skill-hxsk.md
+- .hxsk/memories/term-definition/2026-04-28_plan-hxsk.md
+- .hxsk/memories/term-definition/2026-04-28_spec-hxsk.md
+- .hxsk/memories/term-definition/2026-04-28_phase-hxsk.md
+- .hxsk/memories/term-definition/2026-04-28_gate-hxsk.md
+- .hxsk/memories/term-definition/2026-04-28_memory-hxsk.md
+- .hxsk/memories/term-definition/2026-04-28_hook-hxsk.md
+- .hxsk/memories/term-definition/2026-04-28_session-hxsk.md
+- .hxsk/memories/term-definition/2026-04-28_handoff-hxsk.md
+- .hxsk/scripts/glossary-rebuild.sh  (신규)
+- .hxsk/GLOSSARY.md                  (자동 생성)
+</files>
+
+<action>
+**시드 메모리 10개 작성** (각 파일 frontmatter 필수):
+각 파일은 term-definition.schema.json의 required 필드를 모두 포함.
+
+| canonical | context | aliases (예시) | disambiguates_from |
+|---|---|---|---|
+| Agent | hxsk | 에이전트, agent | Agent(anthropic-sdk), agent(general-ai) |
+| Skill | hxsk | 스킬, 역량, capability | - |
+| Plan | hxsk | 플랜, 계획서, PLAN.md | Plan(비즈니스) |
+| Spec | hxsk | 스펙, 명세, SPEC.md | spec(기술사양 일반) |
+| Phase | hxsk | 페이즈, 단계, 실행단계 | phase(일반 단계) |
+| Gate | hxsk | 게이트, 진입조건, 완료조건 | - |
+| Memory | hxsk | 메모리, 기억, .hxsk/memories | Memory(RAM), memory(일반) |
+| Hook | hxsk | 훅, 이벤트훅, lifecycle hook | hook(git hook) |
+| Session | hxsk | 세션, 대화세션 | session(HTTP 세션) |
+| Handoff | hxsk | 핸드오프, 세션인계, 인수인계 | - |
+
+각 파일 frontmatter 예시:
+```yaml
+---
+title: "Skill (HXSK context)"
+type: term-definition
+canonical: "Skill"
+context: "hxsk"
+aliases: ["스킬", "역량", "capability"]
+disambiguates_from: []
+definition: ".hxsk/skills/{name}/SKILL.md에 정의된 How 레이어 래퍼. Agent가 언제/무엇으로 쓸지를 결정하고, Skill이 방법을 담는다."
+examples:
+  - "'역량 추가해줘' → Skill 작업"
+  - "'define-term 스킬 호출' → Skill(define-term)"
+sources: [".hxsk/CLAUDE.md", ".hxsk/skills/INDEX.md"]
+learned: false
+created: 2026-04-28T00:00:00Z
+tags: [glossary, hxsk]
+keywords: [skill, how, wrapper, hxsk]
+contextual_description: "HXSK How 레이어 — 에이전트가 사용하는 방법론 모듈"
+---
+```
+
+**glossary-rebuild.sh 작성**:
+- `find .hxsk/memories/term-definition -name "*.md"` 로 전체 탐색
+- 각 파일에서 `canonical`, `context`, `definition`(1줄만) 추출 (grep/awk)
+- .hxsk/GLOSSARY.md 자동 생성:
+  ```
+  <!-- AUTO-GENERATED by glossary-rebuild.sh — DO NOT EDIT -->
+  # GLOSSARY.md
+
+  | canonical | context | definition |
+  |---|---|---|
+  | Agent | hxsk | .hxsk/agents/ When/With-What 래퍼 |
+  ...
+  ```
+- 실행 후 "GLOSSARY rebuilt: N terms" 출력
+
+AVOID: aliases 컬럼을 GLOSSARY.md에 포함 금지 (lazy lookup 정책, 컨텍스트 비용 절감).
+AVOID: python3 의존 금지 — bash + grep + awk만 사용 (외부 종속성 제로 원칙).
+</action>
+
+<verify>
+ls .hxsk/memories/term-definition/*.md | wc -l
+bash .hxsk/scripts/glossary-rebuild.sh
+cat .hxsk/GLOSSARY.md | head -20
+grep -c "|" .hxsk/GLOSSARY.md
+</verify>
+
+<done>
+- term-definition/*.md 파일 10개 존재
+- GLOSSARY.md 존재 + "AUTO-GENERATED" 헤더 + 10행 이상 표 행
+- glossary-rebuild.sh 실행 exit 0 + "GLOSSARY rebuilt: 10 terms" 출력
+</done>
+
+---
+
+## Task 2: detect 훅 + define-term 스킬
+
+<files>
+- .hxsk/hooks/glossary-detect.sh      (신규)
+- .hxsk/skills/define-term/SKILL.md   (신규)
+</files>
+
+<action>
+**glossary-detect.sh** (UserPromptSubmit 훅 용도):
+인터페이스: stdin 또는 $1으로 사용자 메시지 텍스트 수신.
+
+처리 흐름:
+1. GLOSSARY.md 로드 → canonical 목록 + alias 목록 구성
+2. 입력 텍스트에서 한글 명사(2자+) + 영문 PascalCase/camelCase 토큰 추출 (grep -oE)
+3. 목록에 없는 토큰 → `.hxsk/.glossary-candidates.tsv`에 누적
+   TSV 컬럼: term, count, first_seen, last_seen
+   동일 term 재등장 시 count++ + last_seen 갱신 (awk로 처리)
+4. 목록에 있는 토큰 → stdout으로 힌트 출력:
+   `💡 '역량' → HXSK Skill (context: hxsk) 의미로 해석합니다.`
+5. candidates count ≥ 3인 항목 → stdout으로 등록 권유:
+   `📝 '리텐션' 3회 감지. /define 리텐션 으로 등록을 권장합니다.`
+
+AVOID: 훅에서 HITL 직접 발동 금지 (큐잉만). HITL은 define-term 스킬 컨텍스트에서만.
+AVOID: GLOSSARY.md가 없는 경우 exit 0으로 무음 실패 (훅은 사용자 흐름 차단 금지).
+AVOID: .glossary-candidates.tsv가 git add되지 않도록 .gitignore 확인 (없으면 추가).
+
+**define-term/SKILL.md 작성** (≤200줄, SKILL.md 규약 준수):
+
+4 모드 명시:
+- `register <term>`: 신규 용어 등록. HITL 어댑터 호출 → canonical/context/aliases/definition 수집 → term-definition.schema.json 검증 → 중복 확인(canonical+context 충돌 시 차단) → 메모리 파일 저장 → rebuild 자동 실행
+- `review`: .glossary-pending.tsv 일괄 처리. 각 항목 HITL → 등록/거부/skip
+- `merge <a> <b>`: 두 term-definition 파일 병합. HITL로 canonical 선택 → 나머지를 alias로 흡수 → 원본 파일 1개 삭제 → rebuild
+- `rebuild`: glossary-rebuild.sh 실행 + 결과 보고
+
+Quick Reference (5줄 이내):
+```
+Use when: 새 용어 등록(/define <term>), 펜딩 검토(/define review), 병합(/define merge a b), 인덱스 재생성(/define rebuild)
+충돌 정책: canonical+context 중복 시 HITL 차단 → 사용자가 alias 추가 또는 신규 context 지정 선택
+학습 정책: aliases만 자동 추가. canonical/context는 항상 HITL
+인덱스: rebuild 후 .hxsk/GLOSSARY.md 자동 갱신
+```
+
+AVOID: Agent 정의 파일 추가 금지 (Skill=How 원칙. 학습 항목 검토는 review 모드로 충분).
+</action>
+
+<verify>
+echo "역량 추가해줘 Skill 등록" | bash .hxsk/hooks/glossary-detect.sh
+test -f .hxsk/skills/define-term/SKILL.md && wc -l .hxsk/skills/define-term/SKILL.md
+grep -c "register\|review\|merge\|rebuild" .hxsk/skills/define-term/SKILL.md
+</verify>
+
+<done>
+- glossary-detect.sh: 실행 exit 0. 알려진 용어("Skill") 포함 입력 시 힌트 stdout 출력
+- define-term/SKILL.md: 4 모드(register/review/merge/rebuild) 모두 grep 히트
+- SKILL.md 줄 수 ≤200
+- .gitignore에 .glossary-candidates.tsv, .glossary-pending.tsv 포함
+</done>
