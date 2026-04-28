@@ -1,0 +1,60 @@
+# .hxsk/ground-truth/sources.yaml
+# Ground Truth 소스 카탈로그 (ADR-007)
+# authority: high | medium | low
+# type: docs | file | repo | api
+# scope: 이 GT가 적용되는 태그·심볼·디렉토리 목록
+# 의심스러운 등록 조건 (HITL 재질문): url 빈 docs 타입, 빈 scope, 중복 id
+
+version: "1.0"
+
+sources:
+  - id: hxsk-spec
+    type: file
+    path: .hxsk/SPEC.md
+    authority: high
+    scope: [hxsk, workflow, gates, memory, spec]
+    description: "HXSK 프로젝트 공식 스펙 — Goals/Non-Goals/Architecture"
+
+  - id: hxsk-agents-md
+    type: file
+    path: AGENTS.md
+    authority: high
+    scope: [agent-boundaries, iron-laws, workflow, execution-constraints]
+    description: "에이전트 경계·Iron Law·워크플로우 규칙 (전 하네스 공통)"
+
+  - id: hxsk-claude-md
+    type: file
+    path: .hxsk/CLAUDE.md
+    authority: high
+    scope: [hxsk, skill, agent, hook, document-hierarchy, compaction]
+    description: "Claude Code 전용 지침 — Hook 시스템·문서 계층·Prompt 관리 규칙"
+
+  - id: anthropic-sdk-docs
+    type: docs
+    url: ""
+    authority: high
+    scope: [Agent, tool_use, messages, anthropic-sdk, claude-api]
+    description: "Anthropic SDK 공식 문서 (URL은 /define-gt 시 입력)"
+    # NOTE: url이 비어있어 HITL 재질문 대상. 사용자가 URL 제공 시 채울 것.
+
+  - id: hxsk-repo
+    type: repo
+    path: .
+    authority: medium
+    scope: [skills, agents, hooks, scripts, phases]
+    description: "Hexoskeleton 로컬 레포지토리 전체"
+
+  - id: hxsk-decisions
+    type: file
+    path: .hxsk/DECISIONS.md
+    authority: high
+    scope: [adr, architecture-decision, design-intent]
+    description: "HXSK Architecture Decision Records — ADR-001~007"
+
+  - id: github-api
+    type: api
+    url: ""
+    authority: medium
+    scope: [github, gh-cli, forge, pull-request, issue]
+    description: "GitHub REST API 레퍼런스 (URL은 등록 시 입력, gh CLI 사용 시)"
+    # NOTE: url이 비어있어 HITL 재질문 대상. 사용자가 URL 제공 시 채울 것.
