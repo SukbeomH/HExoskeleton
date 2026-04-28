@@ -1,0 +1,11 @@
+{
+  "$comment": "OpenAI Codex CLI hook config — HXSK prune. Requires feature flag codex_hooks=true.",
+  "hooks": {
+    "Stop": [
+      {
+        "command": "bash",
+        "args": [".hxsk/scripts/prune-memories.sh", "--auto"]
+      }
+    ]
+  }
+}

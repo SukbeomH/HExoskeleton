@@ -59,7 +59,10 @@ install_harness() {
     codex)
       mkdir -p .codex
       safe_copy "$ADAPTER_DIR/codex-hooks.json" ".codex/hooks.json"
-      echo "[OK] OpenAI Codex CLI: .codex/hooks.json 설치 완료" ;;
+      git config core.hooksPath .hxsk/githooks
+      echo "[OK] OpenAI Codex CLI: .codex/hooks.json 설치 완료"
+      echo "[OK] git 훅 폴백: core.hooksPath .hxsk/githooks 설정 완료"
+      echo "[INFO] Codex hooks require codex_hooks=true in Codex config." ;;
     git-hook)
       git config core.hooksPath .hxsk/githooks
       echo "[OK] git 훅 폴백: core.hooksPath .hxsk/githooks 설정 완료" ;;

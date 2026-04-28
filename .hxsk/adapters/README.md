@@ -20,7 +20,7 @@ HXSK 메모리 prune 정책을 Claude Code 외의 에이전트 하네스에서�
 | **GitHub Copilot CLI** | `.copilot/hooks.json` | sessionEnd, agentStop | [copilot-hooks.json](copilot-hooks.json) 참고 |
 | **Windsurf Cascade** | `.windsurf/hooks.json` | post_cascade_response | SessionEnd·PreCompact 부재, 턴 종료로 대체 |
 | **OpenCode** | `~/.config/opencode/plugin/hxsk.ts` (JS 플러그인) | session.idle, session.compacting | 순수 bash 불가, 얇은 JS wrapper 필요 |
-| **OpenAI Codex CLI** | `.codex/hooks.json` (`codex_hooks=true` 필요) | stop | PreCompact 없음 |
+| **OpenAI Codex CLI** | `.codex/hooks.json` (`codex_hooks=true` 필요) + `.hxsk/githooks/pre-push` | stop, git pre-push | PreCompact 없음. 프로젝트 공용 `.codex/hooks.json` 제공 |
 | **Aider / Continue / Antigravity** | (lifecycle 훅 미지원) | — | git 훅 폴백 사용 |
 
 ## 설치 (선택)
@@ -31,6 +31,10 @@ HXSK 메모리 prune 정책을 Claude Code 외의 에이전트 하네스에서�
 # Cursor 예시
 mkdir -p .cursor
 cp .hxsk/adapters/cursor-hooks.json .cursor/hooks.json
+
+# Codex 예시 (프로젝트 공용 hooks.json + 로컬 검증 git hook)
+bash .hxsk/scripts/install.sh --harness codex
+# Codex 전역 설정에서 codex_hooks=true 활성 필요
 
 # git 훅 폴백 (모든 하네스 공통)
 git config core.hooksPath .hxsk/githooks

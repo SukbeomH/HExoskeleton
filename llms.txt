@@ -54,6 +54,10 @@
 1. `.hxsk/prompts/setup.md` Step 1·4·6(필수) 실행
 2. `.hxsk/adapters/README.md` 의 해당 하네스 섹션 참조
 
+### OpenAI Codex CLI
+1. `bash .hxsk/scripts/install.sh --harness codex`
+2. Codex 설정에서 `codex_hooks=true` 활성
+
 ### Aider / Continue / Antigravity (Tier 3 — 커뮤니티 기여)
 1. `.hxsk/prompts/setup.md` Step 1·4(필수) 실행
 2. `bash .hxsk/scripts/install.sh --harness git-hook`
