@@ -13,6 +13,12 @@ QUESTION="${HXSK_HITL_QUESTION:-}"
 OPTIONS="${HXSK_HITL_OPTIONS:-}"
 PENDING_FILE="${HXSK_PROJECT_DIR:-.}/.hxsk/.hitl-pending.json"
 
+# JSON-safe 이스케이핑 (백슬래시 → \\, 쌍따옴표 → \")
+json_safe() { printf '%s' "${1:-}" | sed 's/\\/\\\\/g; s/"/\\"/g'; }
+TERM_SAFE=$(json_safe "$TERM")
+QUESTION_SAFE=$(json_safe "$QUESTION")
+OPTIONS_SAFE=$(json_safe "$OPTIONS")
+
 if [[ -z "$QUESTION" ]]; then
   echo "[HITL:claude-code] QUESTION 미설정" >&2
   exit 2
@@ -22,9 +28,9 @@ fi
 cat > "$PENDING_FILE" <<JSON
 {
   "harness": "claude-code",
-  "term": "${TERM}",
-  "question": "${QUESTION}",
-  "options": "${OPTIONS}",
+  "term": "${TERM_SAFE}",
+  "question": "${QUESTION_SAFE}",
+  "options": "${OPTIONS_SAFE}",
   "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
   "status": "pending"
 }
