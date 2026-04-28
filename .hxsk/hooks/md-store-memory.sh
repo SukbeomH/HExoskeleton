@@ -146,7 +146,7 @@ if [[ "${HXSK_CONTRADICTION_CHECK:-1}" == "1" ]]; then
     QUERY_TAG=$(echo "$TAGS" | tr ',' '\n' | head -1 | tr -d ' ')
     EXISTING=$(bash "$RECALL_SCRIPT" "$QUERY_TAG" "$PROJECT_DIR" 5 compact 1 2>/dev/null || true)
     if [[ -n "$EXISTING" ]]; then
-      EXIST_COUNT=$(echo "$EXISTING" | grep -c "^\[" 2>/dev/null || echo "?")
+      EXIST_COUNT=$(echo "$EXISTING" | grep -c "^- \*\*" 2>/dev/null || echo "?")
       echo "[CONTRADICTION_CHECK] scope=${QUERY_TAG} existing=${EXIST_COUNT} — Claude: 신규 메모리와 기존 내용 비교 후 모순 시 HITL 처리" >&2
     fi
   fi

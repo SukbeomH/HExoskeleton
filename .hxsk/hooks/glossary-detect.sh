@@ -7,6 +7,9 @@
 
 set -euo pipefail
 
+# 한글 정규식이 바이트 범위로 해석되지 않도록 UTF-8 강제
+export LC_ALL=en_US.UTF-8 2>/dev/null || export LC_ALL=C.UTF-8 2>/dev/null || true
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # 훅은 프로젝트 루트 CWD에서 실행됨. SCRIPT_DIR/../.. 또는 git root 사용.
 PROJECT_PATH="${HXSK_PROJECT_DIR:-$(git -C "${SCRIPT_DIR}" rev-parse --show-toplevel 2>/dev/null || pwd)}"
