@@ -13,7 +13,7 @@ HExoskeleton은 Claude Code 네이티브 환경에 최적화된 AI 에이전틱 
 ## Goals
 
 1. **외부 종속성 제로** — 순수 bash + 마크다운. 프로덕션 외부 패키지 의존 없음
-2. **파일 기반 에이전트 메모리** — `.hxsk/memories/` 14개 타입, 2-hop 그래프 검색, 중복 방지
+2. **파일 기반 에이전트 메모리** — `.hxsk/memories/` 16개 타입, 2-hop 그래프 검색, 중복 방지
 3. **Agent-Skill 래핑 구조** — Skill(How) + Agent(When/With What) 분리로 재사용성 극대화
 4. **HXSK 워크플로우** — `SPEC → PLAN → EXECUTE → VERIFY` 사이클로 계획-실행 추적
 5. **멀티 플랫폼 빌드** — Claude Code Plugin / Google Antigravity / OpenCode 동시 지원
@@ -36,7 +36,7 @@ HExoskeleton은 Claude Code 네이티브 환경에 최적화된 AI 에이전틱 
 ## Success Criteria
 
 - [x] 외부 종속성 없이 Claude Code CLI만으로 에이전트 워크플로우 실행
-- [x] 14개 메모리 타입 + 2-hop 검색으로 세션 간 컨텍스트 유지
+- [x] 16개 메모리 타입 + 2-hop 검색으로 세션 간 컨텍스트 유지
 - [x] 19개 Agent + 22개 Skill (공유 스킬 2개 포함) 정의 완료
 - [x] 3개 빌드 타겟(Plugin/Antigravity/OpenCode) 스크립트 작성
 - [x] shellcheck 복잡도 CLEAN, 레이어 경계 PASS

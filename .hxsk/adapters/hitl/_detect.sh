@@ -12,6 +12,7 @@ if [[ -n "${HXSK_HARNESS:-}" ]]; then
 fi
 
 # 2. Claude Desktop / Claude Code 시그니처
+# NOTE: CLAUDE_CODE 는 비공식 env var — 향후 Claude Code 공식 변수 확정 시 교체 필요
 if [[ -n "${CLAUDE_DESKTOP_APP:-}" ]] || [[ -n "${ANTHROPIC_API_KEY:-}" && -n "${CLAUDE_CODE:-}" ]]; then
   echo "claude-code"
   exit 0
