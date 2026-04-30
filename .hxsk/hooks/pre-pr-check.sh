@@ -20,6 +20,45 @@ pass() { printf "  [PASS] %s\n" "$1"; ((PASS++)) || true; }
 fail() { printf "  [FAIL] %s\n" "$1"; ((FAIL++)) || true; }
 warn() { printf "  [WARN] %s\n" "$1"; ((WARN++)) || true; }
 
+semver_key() {
+    local version="$1"
+    local core prerelease major minor patch weight prekey
+
+    core="${version%%-*}"
+    prerelease=""
+    if [[ "$version" == *-* ]]; then
+        prerelease="${version#*-}"
+        prerelease="${prerelease%%+*}"
+    fi
+
+    IFS='.' read -r major minor patch <<< "$core"
+    major="${major:-0}"
+    minor="${minor:-0}"
+    patch="${patch:-0}"
+
+    if [[ -z "$prerelease" ]]; then
+        weight="1"
+        prekey="~"
+    else
+        weight="0"
+        prekey="$prerelease"
+    fi
+
+    printf '%09d.%09d.%09d.%s.%s\n' "$major" "$minor" "$patch" "$weight" "$prekey"
+}
+
+semver_gt() {
+    local left="$1"
+    local right="$2"
+    [[ "$left" != "$right" ]] && [[ "$(printf '%s\n%s\n' "$(semver_key "$left")" "$(semver_key "$right")" | sort | tail -n1)" == "$(semver_key "$left")" ]]
+}
+
+semver_lt() {
+    local left="$1"
+    local right="$2"
+    [[ "$left" != "$right" ]] && [[ "$(printf '%s\n%s\n' "$(semver_key "$left")" "$(semver_key "$right")" | sort | head -n1)" == "$(semver_key "$left")" ]]
+}
+
 echo "================================================================"
 echo " PRE-PR CHECK"
 echo "================================================================"
@@ -195,13 +234,15 @@ elif command -v gh &>/dev/null && [[ -n "$FILE_VER" ]]; then
     if [[ -n "$LATEST_RELEASE" ]]; then
         LATEST_VER=$(echo "$LATEST_RELEASE" | sed 's/^setup-v//')
         pass "Latest release: $LATEST_RELEASE"
-        # 현재 버전이 최신 릴리즈보다 높은지 (단순 문자열 비교)
-        if [[ "$FILE_VER" != "$LATEST_VER" && "$FILE_VER" > "$LATEST_VER" ]]; then
+        # 현재 버전과 최신 릴리즈를 semver 기준으로 비교
+        if semver_gt "$FILE_VER" "$LATEST_VER"; then
             pass "Version $FILE_VER > latest release $LATEST_VER (new release expected)"
         elif [[ "$FILE_VER" == "$LATEST_VER" ]]; then
             pass "Version matches latest release"
-        else
+        elif semver_lt "$FILE_VER" "$LATEST_VER"; then
             fail "Version $FILE_VER < latest release $LATEST_VER — version downgrade?"
+        else
+            warn "Could not compare versions reliably: current=$FILE_VER latest=$LATEST_VER"
         fi
     fi
 else
@@ -312,7 +353,7 @@ if [[ -n "$FILE_VER" ]] && git rev-parse "$BASE_BRANCH" &>/dev/null 2>&1; then
             pass "Version $FILE_VER matches recommendation ($BUMP: $REASON)"
         elif [[ -n "$REC_VER" && "$FILE_VER" != "$REC_VER" ]]; then
             # 현재 버전이 추천보다 높으면 OK (이미 올렸을 수 있음)
-            if [[ "$FILE_VER" > "$REC_VER" ]]; then
+            if semver_gt "$FILE_VER" "$REC_VER"; then
                 pass "Version $FILE_VER >= recommended $REC_VER ($BUMP: $REASON)"
             else
                 warn "Version bump recommended: $FILE_VER -> $REC_VER ($BUMP: $REASON)"

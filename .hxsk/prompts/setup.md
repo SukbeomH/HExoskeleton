@@ -1,6 +1,6 @@
 # HXSK Setup
 
-> **Last aligned with: v5.5.0** — 이 파일은 릴리즈마다 갱신됩니다. `TARGET_VERSION` 값이 실제 타겟 버전과 다르면 상위 setup.md를 가져오세요.
+> **Last aligned with: v5.6.1** — 이 파일은 릴리즈마다 갱신됩니다. `TARGET_VERSION` 값이 실제 타겟 버전과 다르면 상위 setup.md를 가져오세요.
 >
 > **지원 하네스**: Claude Code, Gemini CLI, Cursor, Windsurf, GitHub Copilot CLI, OpenCode, Codex CLI, Aider, Continue.dev, Antigravity
 >
@@ -11,10 +11,10 @@
 > **빠른 시작 (약 5분):** Step 1 → Step 4 → Step 6 만 완료하면 기본 동작합니다.
 > 나머지(Step 2·3·5·7·8·9)는 필요에 따라 선택 적용하세요.
 
-## Step 0: 상태 감지 (3분기)
+## Step 0: 상태 감지 (4분기)
 
 ```bash
-TARGET_VERSION=5.5.0
+TARGET_VERSION=5.6.1
 VERSION_FILE=".hxsk/.bootstrap-version"
 if [ ! -f "$VERSION_FILE" ]; then
     echo "FRESH"
