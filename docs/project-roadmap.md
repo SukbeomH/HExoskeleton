@@ -4,16 +4,16 @@
 >
 > 원본 로드맵: `.hxsk/ROADMAP.md` · 전체 CHANGELOG: `.hxsk/CHANGELOG.md`
 
-## 1. Current Version: v5.5.0
+## 1. Current Version: v5.5.x
 
-**릴리스일**: 2026-04-16
-**주제**: 하네스 독립 메모리 프룬
+**기준일**: 2026-04-30
+**현재 라인**: v5.5.0 기반에 2026-04-22~23 문서화된 후속 개선(신뢰성, 보안, Progressive Disclosure)이 누적된 상태
 
-### 핵심 변경
-- **Opportunistic 프룬 트리거** — cron/launchd 의존 없이 메모리 툴 호출 시 자연 발화 (sentinel mtime + mkdir atomic lock)
-- **통합 cap=5** — 모든 local-tier에 일괄 적용 (이전: tier별 하드코딩)
-- **하네스 어댑터** — Cursor/Gemini/Copilot/Windsurf/OpenCode/Codex 6종 + git hook 폴백(Aider/Continue/Antigravity)
-- **`.hxsk/.prune-config`** — shell-sourceable 사용자 오버라이드
+### 현재 라인의 핵심 변경
+- **하네스 독립 메모리 프룬** — cron/launchd 의존 없이 메모리 툴 호출 시 자연 발화 (sentinel mtime + mkdir atomic lock)
+- **신뢰성 17건 수정** — YAML injection, race condition, stale lock, TYPE_DIR 자동 생성 등 핵심 결함 보강
+- **보안 강화(Phase 8)** — bash-guard/file-protect/SHA256 필수화 등 P0/P1 반영
+- **Progressive Disclosure(Phase 9)** — refactor 스킬 추가, 핵심 스킬 entry ≤200줄 정리
 
 ## 2. Release Timeline
 
@@ -58,7 +58,10 @@
 
 | Task | 상태 | 우선순위 |
 |------|------|---------|
+| 메모리 age-based prune 티어 추가 | 📋 planned | medium |
 | 메모리 2-hop 검색 성능 벤치마크 | 📋 planned | medium |
+| spec-reviewer 2단계 리뷰 플로우를 기본 경로에 편입할지 결정 | 🧪 experimental | medium |
+| define-term / glossary 용어 계층을 기본 운영 표면으로 승격할지 결정 | 🧪 experimental | medium |
 | Antigravity Rules → 실행 가능 워크플로우 변환 연구 | 📋 planned | low |
 | release-please 멀티 패키지 지원 검토 | 📋 planned | low |
 | OpenCode TypeScript 플러그인 실동작 검증 | 📋 planned | medium |
@@ -92,7 +95,7 @@
 
 ### PR #138 (2026-04-22) — execution-summary + test 메모리 타입 + reason 세션 출력
 
-- `.hxsk/memories/test/` 디렉토리 신규 추가 (16번째 메모리 타입)
+- `.hxsk/memories/test/` 디렉토리 신규 추가 (테스트/검증용 확장 메모리 타입)
 - execution-summary 메모리 타입 개선
 - reason 세션 출력 기능 추가
 
@@ -187,7 +190,7 @@
 | FTS5 + RRF 하이브리드 검색 | 메모리 검색 성능 | active 연구 |
 | 컨텍스트 98% 압축 기법 | 장기 세션 지원 | active 연구 |
 | RLM (Recursive Language Models) | Skill 재귀 구조 | active 연구 |
-| Ontology for LLM Agents | 14 타입 분류 + type-relations | active |
+| Ontology for LLM Agents | 메모리/용어 taxonomy + type-relations 정리 | active |
 
 전체: `.hxsk/research/INDEX.md`.
 

@@ -38,6 +38,7 @@
 #   이동된 파일은 git으로 장기 보존됨 (사용자가 다음 커밋에 포함).
 #
 # 멀티 리모트: gitignored 파일이므로 각 환경에서 독립적으로 수행.
+# strict-mode-exempt: retention/promote utility intentionally continues past per-file failures and config fallbacks
 
 set -uo pipefail
 

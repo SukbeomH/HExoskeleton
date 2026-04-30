@@ -7,7 +7,7 @@
 #
 # Exit codes: 0=GREEN, 1=RED or FAIL, 2=SKIP (시나리오 없음)
 
-set -uo pipefail
+set -euo pipefail
 
 PROJECT_DIR="${CLAUDE_PROJECT_DIR:-.}"
 SCENARIOS_DIR="$PROJECT_DIR/.hxsk/tests/scenarios"

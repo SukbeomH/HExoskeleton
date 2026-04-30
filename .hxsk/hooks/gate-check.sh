@@ -8,7 +8,7 @@
 #   - 파일 소유권 선언 없는 병렬 작업 감지
 #   - STATE.md Active Gate 상태 표시
 
-set -uo pipefail
+set -euo pipefail
 
 PROJECT_DIR="${CLAUDE_PROJECT_DIR:-.}"
 HXSK_DIR="$PROJECT_DIR/.hxsk"

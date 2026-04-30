@@ -8,15 +8,15 @@
 
 HExoskeleton은 Claude Code 네이티브 환경에 최적화된 AI 에이전틱 워크플로우 보일러플레이트다.
 순수 bash + 마크다운만으로 A-Mem(파일 기반 에이전트 메모리), ReWOO(계획-실행 분리), Nemori(중복 방지) 연구 개념을 구현한다.
-외부 종속성(Node.js, Python 패키지, Vector DB, MCP 서버) 없이 Claude Code CLI만으로 동작하며, Claude Code Plugin·Google Antigravity·OpenCode 세 가지 배포 형식으로 빌드된다.
+외부 종속성(Node.js, Python 패키지, Vector DB, MCP 서버) 없이 Claude Code 중심으로 동작하며, Cursor·Copilot·Gemini·Windsurf·OpenCode·Codex 등은 thin adapter로 확장된다.
 
 ## Goals
 
 1. **외부 종속성 제로** — 순수 bash + 마크다운. 프로덕션 외부 패키지 의존 없음
-2. **파일 기반 에이전트 메모리** — `.hxsk/memories/` 16개 타입, 2-hop 그래프 검색, 중복 방지
+2. **파일 기반 에이전트 메모리** — `.hxsk/memories/` 코어 16개 타입 + 확장 타입(`term-definition`, `test`), 2-hop 그래프 검색, 중복 방지
 3. **Agent-Skill 래핑 구조** — Skill(How) + Agent(When/With What) 분리로 재사용성 극대화
 4. **HXSK 워크플로우** — `SPEC → PLAN → EXECUTE → VERIFY` 사이클로 계획-실행 추적
-5. **멀티 플랫폼 빌드** — Claude Code Plugin / Google Antigravity / OpenCode 동시 지원
+5. **멀티 하네스 적응층** — Claude Code 네이티브 + thin adapter로 Cursor/Copilot/Gemini/Windsurf/OpenCode/Codex 지원
 
 ## Non-Goals (Out of Scope)
 
@@ -36,14 +36,14 @@ HExoskeleton은 Claude Code 네이티브 환경에 최적화된 AI 에이전틱 
 ## Success Criteria
 
 - [x] 외부 종속성 없이 Claude Code CLI만으로 에이전트 워크플로우 실행
-- [x] 16개 메모리 타입 + 2-hop 검색으로 세션 간 컨텍스트 유지
-- [x] 19개 Agent + 22개 Skill (공유 스킬 2개 포함) 정의 완료
-- [x] 3개 빌드 타겟(Plugin/Antigravity/OpenCode) 스크립트 작성
+- [x] 코어 16개 메모리 타입 + 확장 타입(`term-definition`, `test`)과 2-hop 검색으로 세션 간 컨텍스트 유지
+- [x] 24개 Skill + 18개 Agent + 27개 Hook 인덱스 운영
+- [x] Claude Code 네이티브 + 다중 하네스 적응층 구축
 - [x] shellcheck 복잡도 CLEAN, 레이어 경계 PASS
 - [x] 하네스 비종속 신뢰성 + 1-liner 설치 (Phase 7, v5.5.0)
 - [x] Git Forge GATES + forge-detect + gate-check (Phase 7)
 - [x] 보안 감사 STRIDE/OWASP 15건 (Phase 8, 2026-04-23)
-- [ ] 보안 수정 P0/P1 (bash-guard 패턴 + file-protect + SHA256 검증)
+- [x] 보안 수정 P0/P1 (bash-guard 패턴 + file-protect + SHA256 검증)
 - [ ] 메모리 age-based prune 티어 추가
 - [ ] release-please 멀티 패키지 설정 검토
 
@@ -62,4 +62,4 @@ HExoskeleton은 Claude Code 네이티브 환경에 최적화된 AI 에이전틱 
 
 ---
 
-*Last updated: 2026-04-23*
+*Last updated: 2026-04-30*

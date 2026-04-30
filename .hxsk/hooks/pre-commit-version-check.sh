@@ -2,6 +2,8 @@
 # Pre-commit hook: bootstrap.sh 버전과 .bootstrap-version 파일 동기화 검증
 # 둘 중 하나라도 스테이징에 포함되면 버전 일치 여부 확인
 
+set -euo pipefail
+
 HXSK_DIR=".hxsk"
 VERSION_FILE="$HXSK_DIR/.bootstrap-version"
 BOOTSTRAP_SH="$HXSK_DIR/scripts/bootstrap.sh"

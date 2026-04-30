@@ -2,7 +2,7 @@
 # pre-release-check.sh — 릴리스 전 무결성 검증
 # Usage: bash .hxsk/scripts/pre-release-check.sh [--dry-run]
 # Output: .hxsk/logs/pre-release-check.log (상세), stdout (요약)
-set -uo pipefail
+set -euo pipefail
 
 DRY_RUN=0
 [[ "${1:-}" == "--dry-run" ]] && DRY_RUN=1

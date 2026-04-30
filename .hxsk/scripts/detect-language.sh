@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # detect-language.sh — 언어/패키지 관리자/테스트 러너 감지
+# strict-mode-exempt: sourced library; must not mutate caller shell options globally
 # source하여 함수 사용
 
 # detect_language [project_dir]

@@ -4,7 +4,7 @@
 # source 미제공 시 .session-active 마커로 fallback 판별
 
 main() {
-    set -uo pipefail
+    set -euo pipefail
 
     PROJECT_DIR="${CLAUDE_PROJECT_DIR:-.}"
     HXSK_DIR="$PROJECT_DIR/.hxsk"

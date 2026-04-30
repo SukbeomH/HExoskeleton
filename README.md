@@ -20,11 +20,13 @@
   <img src="https://img.shields.io/badge/dependencies-zero-brightgreen?style=flat-square" alt="Zero Dependencies" />
   <img src="https://img.shields.io/badge/stack-bash%20%2B%20markdown-blue?style=flat-square" alt="Bash + Markdown" />
   <img src="https://img.shields.io/badge/multi--agent-5%20platforms-blueviolet?style=flat-square" alt="Multi-Agent" />
-  <img src="https://img.shields.io/badge/v5.5.0%20%C2%B7%2021%20skills%20%C2%B7%2018%20agents%20%C2%B7%2026%20hooks-orange?style=flat-square" alt="Components" />
+  <img src="https://img.shields.io/badge/v5.5.x%20%C2%B7%2024%20skills%20%C2%B7%2018%20agents%20%C2%B7%2027%20hooks-orange?style=flat-square" alt="Components" />
   <img src="https://img.shields.io/github/license/SukbeomH/HExoskeleton?style=flat-square" alt="License" />
 </p>
 
 ---
+
+> Canonical 카운트와 런타임 표면은 `.hxsk/.bootstrap-version`, `.hxsk/skills/INDEX.md`, `.hxsk/agents/INDEX.md`, `.hxsk/hooks/INDEX.md`를 기준으로 관리합니다. README는 그 구조를 설명하는 공개 진입 문서입니다.
 
 ## 빠른 시작 — 3선택
 
@@ -64,7 +66,7 @@ HExoskeleton은 세 가지 관찰에서 출발합니다.
 | SQLite/JSON | 파일 수준 가독성 저하, Git diff 불가 |
 | Python/Node 런타임 | 환경 구성 필수, 에이전트 도구만으로 충분 |
 
-> **결론**: 외부 종속성 0. 빌드 스크립트 0. 레포지토리 자체가 배포 단위 (Self-Configure 모델).
+> **결론**: 코어 런타임은 외부 패키지 종속성 0. 빌드 산출물도 없다. 레포지토리 자체가 배포 단위이며, `install.sh`는 복사·링크·설정 병합을 돕는 편의 진입점이다.
 
 ---
 
@@ -72,7 +74,7 @@ HExoskeleton은 세 가지 관찰에서 출발합니다.
 
 ### Self-Configure 모델
 
-`llms.txt` → `setup.md` → `bootstrap.sh` 수렴 엔진. **빌드 없음, 설치 명령 없음.** 에이전트가 파일을 읽고 링크하는 것이 곧 설치입니다.
+`llms.txt` → `setup.md` → `bootstrap.sh` 수렴 엔진. **빌드 산출물은 없고**, `install.sh`는 파일 읽기·복사·심볼릭 링크·설정 병합을 자동화하는 편의 명령입니다.
 
 ### 멀티 에이전트 수렴
 
@@ -120,10 +122,10 @@ Claude · Gemini · Copilot · Cursor · Windsurf (10+ 하네스)
 
 | 구성요소 | 개수 | 위치 | 상세 |
 |----------|------|------|------|
-| **Skills** | 21 | `.hxsk/skills/` | [docs/SKILLS.md](.hxsk/docs/SKILLS.md) |
+| **Skills** | 24 | `.hxsk/skills/` | [docs/SKILLS.md](.hxsk/docs/SKILLS.md) |
 | **Agents** | 18 | `.hxsk/agents/` | [docs/AGENTS.md](.hxsk/docs/AGENTS.md) |
 
-### 2. 8-Event Hook 생명주기
+### 2. 7-Event Hook 생명주기
 
 Claude Code의 훅 시스템으로 에이전트 행동을 자동화합니다. 7개 이벤트, 27개 스크립트.
 
@@ -154,7 +156,7 @@ SessionStart ──→ [작업 수행] ──→ SessionEnd
 |------|------|-----------|
 | Frontmatter 메타데이터 | A-Mem | YAML frontmatter (`title`, `tags`, `keywords`, `related`) |
 | 2-Hop 그래프 검색 | A-Mem | `related` 필드 → 관련 메모리까지 자동 추적 |
-| 타입별 분리 | Nemori | 16개 디렉토리 (root-cause, architecture-decision, test 등, PR #138에서 `test` 추가) |
+| 타입별 분리 | Nemori | canonical 17개 + historical ADR-006 + `_schema` |
 | 중복 방지 | Nemori | 동일 제목 저장 시 `[SKIP:DUPLICATE]` |
 
 ```bash
@@ -166,9 +168,9 @@ bash .hxsk/hooks/md-recall-memory.sh "검색어" "." 5 compact 2
 ```
 
 <details>
-<summary><strong>16개 메모리 타입 (v5.5.0+)</strong></summary>
+<summary><strong>canonical 17개 메모리 디렉토리 + ADR-006 historical (v5.5.x)</strong></summary>
 
-디버깅: `root-cause`, `debug-eliminated`, `debug-blocked` · 아키텍처: `architecture-decision`, `pattern-discovery` · 실행: `execution-summary`, `deviation`, `lessons-learned` · 세션: `session-summary`, `session-snapshot`, `session-handoff` · 시스템: `health-event`, `bootstrap`, `security-finding`, `general` · 테스트: `test` (PR #138 신규)
+디버깅: `root-cause`, `debug-eliminated`, `debug-blocked` · 아키텍처: `architecture-decision`, `pattern-discovery` · 실행: `execution-summary`, `deviation`, `lessons-learned` · 세션: `session-summary`, `session-snapshot`, `session-handoff` · 시스템: `health-event`, `bootstrap`, `security-finding`, `general` · 용어: `term-definition` · 테스트: `test` · historical: `ADR-006`
 
 > `tags: [decision|root-cause|incident]` 보유 파일은 shared-tier로 자동 승격. v5.5.0부터 하네스 독립 prune (cap=5, cooldown=60s).
 
@@ -220,7 +222,7 @@ AI 에이전트에게 setup 프롬프트를 전달하면 자동으로 프로젝�
 
 **[setup.md](.hxsk/prompts/setup.md)** — Claude Code, Gemini, Copilot, Cursor, Windsurf 모두 지원.
 
-> 초기 설치/업데이트를 자동 감지합니다. 빌드 명령 없음.
+> 초기 설치/업데이트를 자동 감지합니다. 별도 빌드 단계는 없고, 설치는 파일 배치와 설정 병합으로 수렴합니다.
 
 <details>
 <summary><strong>직접 코드를 받고 싶다면</strong></summary>
@@ -253,18 +255,18 @@ make setup
 ├── .cursorrules → AGENTS.md   # Cursor symlink
 ├── .windsurfrules → AGENTS.md # Windsurf symlink
 ├── llms.txt                   # LLM 진입점 (Self-Configure 시작)
-├── .claude/settings.json      # 훅 설정 (8개 이벤트)
+├── .claude/settings.json      # 훅 설정 (7개 이벤트)
 └── .hxsk/                     # Single Source of Truth
-    ├── skills/                # 스킬 정의 (21) — How
+    ├── skills/                # 스킬 정의 (24) — How
     ├── agents/                # 에이전트 정의 (18) — When/With What
     ├── hooks/                 # 훅 스크립트 (27) — 자동화
-    ├── scripts/               # 유틸리티 (bootstrap, issue, merge, forge-detect)
+    ├── scripts/               # 유틸리티 (bootstrap, verify, issue, forge, release)
     ├── workflow/              # 게이트 기반 작업 관리 (GATES.md)
-    ├── docs/                  # 상세 문서 (26)
+    ├── docs/                  # 상세 운영 문서
     ├── prompts/               # Setup + 마이그레이션 프롬프트
-    ├── templates/             # 문서 템플릿 (32)
-    ├── memories/              # 파일 기반 메모리 (16 타입)
-    ├── research/              # 연구 문서 (38개, 7개 카테고리)
+    ├── templates/             # 문서 템플릿
+    ├── memories/              # 파일 기반 메모리 + 스키마
+    ├── research/              # 연구·근거 문서
     ├── issues/                # 파일 기반 이슈 레지스트리
     ├── STATE.md               # 현재 작업 상태
     ├── SPEC.md                # 프로젝트 명세
@@ -294,9 +296,9 @@ make setup
 
 ## 로드맵
 
-현재 버전 **v5.5.0** (2026-04-16). 최근 변경: PR #138 test 메모리 타입 추가 · PR #137 신뢰성 17건 수정.
+현재 공개 문서 기준 라인은 **v5.5.x**입니다. 최근 반영된 완료 범위는 하네스 독립 prune(v5.5.0), 신뢰성 17건 수정(PR #137), test 메모리 확장(PR #138), 보안 강화(Phase 8), Progressive Disclosure(PR #144)입니다.
 
-주요 완료 마일스톤: Iron Laws · 합리화 테이블 · CSO · Git Forge 통합(GATES.md) · 하네스 독립 prune · 16개 메모리 타입.
+주요 완료 마일스톤: Iron Laws · 합리화 테이블 · CSO · Git Forge 통합(GATES.md) · 하네스 독립 prune · 보안 강화 · Progressive Disclosure.
 
 상세 로드맵: [docs/project-roadmap.md](docs/project-roadmap.md)
 

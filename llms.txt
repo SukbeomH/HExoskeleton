@@ -2,7 +2,7 @@
 
 > AI 에이전트 기반 개발 방법론. 순수 bash + 마크다운 기반, 외부 종속성 없음.
 > 어떤 코딩 에이전트든 이 문서를 읽고 프로젝트에 HXSK를 구성할 수 있습니다.
-> Last Updated: 2026-04-02 · Format: llms.txt v1.0 · HXSK v5.2.0
+> Last Updated: 2026-04-30 · Format: llms.txt v1.0 · HXSK v5.5.1
 
 ## Setup
 - [Setup Prompt](.hxsk/prompts/setup.md): 어떤 에이전트든 이 프롬프트를 실행하면 HXSK 구성 완료 (Claude Code 포함)
@@ -13,20 +13,20 @@
 - [GEMINI.md](GEMINI.md): Gemini CLI 지침
 
 ## Skills
-- [Skills Index](.hxsk/skills/INDEX.md): 19개 스킬 목록 + 설명
+- [Skills Index](.hxsk/skills/INDEX.md): 24개 스킬 목록 + 설명
 
 ## Hooks
-- [Hooks Index](.hxsk/hooks/INDEX.md): 17개 훅 스크립트 목록 (Claude Code 전용)
+- [Hooks Index](.hxsk/hooks/INDEX.md): 27개 훅 스크립트 목록
 
 ## Agents
-- [Agents Index](.hxsk/agents/INDEX.md): 17개 에이전트 정의
+- [Agents Index](.hxsk/agents/INDEX.md): 18개 에이전트 정의
 
 ## Templates
-- [Templates](.hxsk/templates/): 30개 문서 템플릿
+- [Templates](.hxsk/templates/): 33개 문서 템플릿
 
 ## Architecture
 - [ARCHITECTURE.md](.hxsk/ARCHITECTURE.md): 시스템 아키텍처 + 기술 부채 현황
-- [Research Index](.hxsk/research/INDEX.md): 30개 리서치 문서 카탈로그 (7개 카테고리)
+- [Research Index](.hxsk/research/INDEX.md): 42개 리서치 문서 카탈로그 (13개 카테고리)
 
 ## Optional
 - [Memory System](.hxsk/docs/MEMORY.md): 파일 기반 메모리 시스템 상세

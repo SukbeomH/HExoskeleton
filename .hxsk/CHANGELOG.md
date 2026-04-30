@@ -4,6 +4,20 @@
 
 ---
 
+### [2026-04-30] v5.5.1 — 정합성/검증 하드닝 + 메타데이터 동기화
+
+#### 수정
+- **check-consistency.sh** — `settings.json` 훅 경로 검증을 JSON 파싱 기반으로 보강하고, `strict-mode-exempt:` 예외를 헤더 주석 기준으로만 인정하도록 조정.
+- **pre-commit-doc-lint.sh** — strict mode 하에서도 doc-lint 종료 코드를 안전하게 수집하도록 수정.
+- **pre-pr-check.sh** — uncommitted change count 계산의 `0\n0` 표현식 오류를 제거.
+- **bootstrap.sh / .bootstrap-version** — canonical memory count를 17로 정렬하고 bootstrap 버전을 `v5.5.1`로 갱신.
+
+#### 문서
+- **README.md / docs/codebase-summary.md / docs/project-roadmap.md / docs/testing-guide.md** — canonical counts, memory surface, template 수, make target 설명을 실제 저장소 상태와 일치하도록 정리.
+- **llms.txt** — HXSK 버전, 업데이트 날짜, skills/hooks/agents/templates/research 카운트를 현행 상태로 갱신.
+
+---
+
 ### [2026-04-23] v5.6.0 — 전체 22개 스킬 CSO 최적화 + hook CWD 고정
 
 #### 신규
