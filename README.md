@@ -224,27 +224,6 @@ AI 에이전트에게 setup 프롬프트를 전달하면 자동으로 프로젝�
 
 > 초기 설치/업데이트를 자동 감지합니다. 별도 빌드 단계는 없고, 설치는 파일 배치와 설정 병합으로 수렴합니다.
 
-<details>
-<summary><strong>직접 코드를 받고 싶다면</strong></summary>
-<br>
-
-```bash
-git clone https://github.com/SukbeomH/HExoskeleton.git
-cd HExoskeleton
-make setup
-```
-
-| 명령어 | 설명 |
-|--------|------|
-| `/bootstrap` | 프로젝트 분석 및 메모리 초기화 |
-| `/planner` | SPEC 기반 실행 계획 수립 |
-| `/executor` | 계획 실행 (atomic commits) |
-| `/verifier` | 경험적 증거 기반 결과 검증 |
-
-</details>
-
----
-
 ## 디렉토리 구조
 
 ```
