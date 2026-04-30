@@ -4,10 +4,10 @@
 >
 > 원본 로드맵: `.hxsk/ROADMAP.md` · 전체 CHANGELOG: `.hxsk/CHANGELOG.md`
 
-## 1. Current Version: v5.5.x
+## 1. Current Version: v5.6.1
 
 **기준일**: 2026-04-30
-**현재 라인**: v5.5.0 기반에 2026-04-22~23 문서화된 후속 개선(신뢰성, 보안, Progressive Disclosure)이 누적된 상태
+**현재 라인**: v5.6.1 공개 문서 기준. v5.5.0의 하네스 독립 prune 위에 Phase 8 보안 강화, Phase 9 Progressive Disclosure, Phase 10 CSO 최적화, Phase 11 용어/메모리 정화, Codex/OpenCode 표면 정비, release lineage 정렬이 누적된 상태.
 
 ### 현재 라인의 핵심 변경
 - **하네스 독립 메모리 프룬** — cron/launchd 의존 없이 메모리 툴 호출 시 자연 발화 (sentinel mtime + mkdir atomic lock)
@@ -21,6 +21,10 @@
 
 | 버전 | 날짜 | 주제 | PR |
 |------|------|------|-----|
+| **v5.6.1** | 2026-04-30 | 공개 version lineage 정렬, README/docs 현행화 | #172 |
+| **v5.6.1** | 2026-04-30 | release lineage 재정렬 | #171 |
+| **v5.6.x** | 2026-04-30 | 검증/정합성 하드닝 + Codex harness 지원 | #167, #169 |
+| **v5.6.0** | 2026-04-24~28 | Phase 10/11: CSO 최적화, hook CWD 고정, ADR-006/007 용어·메모리 정화 표면 | #150, #160, #164 |
 | **v5.5.0+** | 2026-04-23 | Phase 9: Progressive Disclosure + refactor 스킬 (skills 21→22, entry ≤200줄) | #144 |
 | **v5.5.0+** | 2026-04-23 | Phase 8: 보안 강화 (bash-guard DESTRUCTIVE_FS, file-protect .secrets, grep option-injection, yaml_safe backslash, SHA256 필수) | — |
 | **v5.5.0+** | 2026-04-22 | execution-summary + test 메모리 타입 + reason 세션 출력 | #138 |
@@ -226,6 +230,7 @@ Non-goals로 설계된 항목. 단기에 변경 없음:
 
 | HXSK 버전 | Claude Code | Gemini | Cursor | Copilot | Windsurf | OpenCode | Codex | Aider | Continue | Antigravity |
 |----------|-------------|--------|--------|---------|----------|----------|-------|-------|----------|-------------|
+| v5.6.x | ✅ | ✅ | ✅ 1.7+ | ✅ | ✅ | ✅ | ✅ | ✅ (git) | ✅ (git) | ✅ (git) |
 | v5.5.x | ✅ | ✅ | ✅ 1.7+ | ✅ | ✅ | ✅ | ✅ | ✅ (git) | ✅ (git) | ✅ (git) |
 | v5.4.x | ✅ | ✅ | ⚠️ 일부 | — | — | ⚠️ | — | — | — | — |
 | v5.3.x | ✅ | ⚠️ | — | — | — | — | — | — | — | — |
