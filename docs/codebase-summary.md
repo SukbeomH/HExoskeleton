@@ -2,15 +2,15 @@
 
 > HExoskeleton 리포지토리의 파일 인벤토리, 의존성, 구성 요소 카운트.
 >
-> Version 5.5.x 문서 스냅샷 · 2026-04-30 기준 로컬 스캔 반영
+> Version 5.6.1 문서 스냅샷 · 2026-04-30 기준 로컬 스캔 반영
 
 ## 1. Repository Layout
 
 ```
 HExoskeleton/
-├── README.md                  # 공개 랜딩 페이지 (462 lines)
-├── CLAUDE.md                  # Claude Code 진입점 (38 lines)
-├── AGENTS.md                  # 하네스 공용 지침 (97 lines)
+├── README.md                  # 공개 랜딩 페이지 (312 lines)
+├── CLAUDE.md                  # Claude Code 진입점
+├── AGENTS.md                  # 하네스 공용 지침 (125 lines)
 ├── GEMINI.md                  # Gemini CLI 진입점 (12 lines)
 ├── llms.txt                   # Self-Configure 인덱스 (35 lines)
 ├── CHANGELOG.md               # 릴리스 히스토리
@@ -42,7 +42,7 @@ HExoskeleton/
     ├── memories/              # 파일 기반 메모리 + 스키마
     ├── research/              # L3 근거 문서 (42 markdown / 8 subdirs + root-level studies)
     ├── issues/                # 파일 기반 이슈 레지스트리
-    ├── docs/                  # 내부 심화 문서 (31 markdown)
+    ├── docs/                  # 내부 심화 문서 (15 root markdown + plans/)
     ├── reports/               # 생성 보고서
     ├── archive/               # 아카이브된 구 버전
     └── examples/              # 워크플로우 예제
@@ -57,7 +57,7 @@ HExoskeleton/
 | **Hooks** | 27 | index 기준 | 7개 Claude Code 이벤트 + 보조 훅 |
 | **Scripts** | 22 | 로컬 스캔 기준 | 설치·검증·릴리스·유지보수 유틸리티 |
 | **Templates** | 33 | 로컬 스캔 기준 | 문서 생성 표준 |
-| **Internal Docs** | 31 | 로컬 스캔 기준 | `.hxsk/docs/` markdown |
+| **Internal Docs** | 15 root markdown | 로컬 스캔 기준 | `.hxsk/docs/` + `plans/` 심화 문서 |
 | **Prompts** | 3 | 로컬 스캔 기준 | setup 프롬프트 |
 | **Adapters** | mixed | 설정 파일/문서 혼합 | 하네스별 훅 설정 |
 | **Memory Surface** | canonical 17 + ADR-006 historical | 스키마/디렉토리 혼합 | `term-definition`, `test`, `lessons-learned` 포함 |
@@ -182,7 +182,7 @@ HExoskeleton/
 | `generate-llms-txt.sh` (61) | llms.txt 자동 생성 |
 | `forge-detect.sh` (170) | GitHub/GitLab/Gitea + auth 감지 |
 | `verify-self-configure.sh` (341) | 자가 구성 검증 |
-| `check-reliability.sh` (NEW) | 11-패턴 신뢰성 이슈 카운터; `bash .hxsk/scripts/check-reliability.sh` → `ISSUE COUNT: N` 출력 |
+| `check-reliability.sh` | 14-패턴 신뢰성 이슈 카운터; `bash .hxsk/scripts/check-reliability.sh` → `ISSUE COUNT: N` 출력 |
 | `install.sh` (70) | 하네스별 1-liner 설치 — `--harness <name>` (Tier 1: claude-code·cursor·copilot 완전 지원) |
 | `install-hooks.sh` (228) | Claude Code settings.json 훅 설치/병합 — `--merge` 기존 설정 보존, python3 원자적 교체 |
 | `hxsk-harness-sync.sh` (35) | 어댑터 드리프트 감지/동기화 — `--check`/`--sync` 모드 |

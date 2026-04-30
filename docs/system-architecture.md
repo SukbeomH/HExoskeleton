@@ -21,10 +21,10 @@ graph TB
     end
 
     subgraph HXSK[".hxsk/ — 공유 외골격"]
-        Skills[skills/<br/>22 재사용 절차]
+        Skills[skills/<br/>24 재사용 절차]
         Agents[agents/<br/>18 오케스트레이터]
-        Hooks[hooks/<br/>21 이벤트 훅]
-        Scripts[scripts/<br/>12 유틸리티]
+        Hooks[hooks/<br/>27 이벤트 훅]
+        Scripts[scripts/<br/>22 유틸리티]
         Memory[memories/<br/>17 타입 × 2-hop]
         Workflow[workflow/GATES.md<br/>8 게이트]
         Templates[templates/<br/>33 템플릿]
@@ -314,7 +314,7 @@ graph LR
     PluginOut -.GitHub Release.-> Artifact[hxsk-plugin-{ver}.zip]
 ```
 
-**경로 전략(DECISION-001)**: `scripts/md-*.sh`는 `.hxsk/hooks/`의 심볼릭 링크. 빌드 시 `${CLAUDE_PLUGIN_ROOT}/scripts/`로 자동 치환되어 플러그인 환경에서도 동작.
+**경로 전략(DECISION-001)**: `scripts/md-*.sh`는 `.hxsk/hooks/`의 심볼릭 링크로 시작했으며, Self-Configure 전환 이후에는 `.hxsk/hooks/`의 실제 실행 표면을 각 하네스 어댑터가 직접 참조한다. 과거 플러그인 빌드 산출물은 현재 배포 경로가 아니다.
 
 ## 9. Data Flow: "/skill executor" 실행 예시
 
