@@ -2,7 +2,7 @@
 
 > **H**Exoskeleton: AI 에이전트를 위한 외골격 — 절제된 제약이 자율성을 만든다.
 >
-> Version 5.5.0 · Pure bash + markdown · Zero external dependencies
+> Version 5.6.1 · Pure bash + markdown · Zero external dependencies
 
 ## 1. Problem Statement
 
@@ -127,7 +127,7 @@ claude code         # 또는 Cursor/Gemini/Copilot 등
 
 ## 8. Versioning & Release
 
-- **Current**: v5.5.0 (2026-04-16)
+- **Current**: v5.6.1 (2026-04-30)
 - **Scheme**: SemVer (Major.Minor.Patch)
 - **Breaking changes**: `.hxsk/CHANGELOG.md`에 명시
 - **Major milestones**: @project-roadmap.md
