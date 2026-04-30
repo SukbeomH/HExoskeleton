@@ -360,7 +360,7 @@ cross_phase_invariants:
 ```yaml
 ---
 name: title-slug
-type: root-cause                   # 16 타입 중 하나
+type: root-cause                   # canonical 17 타입 중 하나
 keywords: [specific, terms]        # grep 타겟
 contextual_description: "≤200자 요약"
 related: [other-memory-slug-1, ...]  # 2-hop 링크
