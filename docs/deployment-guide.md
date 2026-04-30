@@ -63,22 +63,28 @@ llms.txt → .hxsk/prompts/setup.md 순서로 읽고 실행
 
 ### Step 2: 감지 스크립트 실행 (자동)
 
-setup.md의 Step 0이 3분기 분류를 자동 수행. **CORRUPTED 브랜치 감지**도 포함 — `git status` 실패 시 CORRUPTED로 분류하고 수동 복구를 안내한다.
+setup.md의 Step 0은 `.bootstrap-version` 존재 여부와 `version:` 라인 유무를 기준으로 **4분기**를 수행한다. `CORRUPTED`는 `git status` 실패가 아니라 **`.bootstrap-version`이 존재하지만 `version:` 필드가 없거나 손상된 경우**에 진입한다.
 
 ```bash
-TARGET_VERSION=5.5.0
-CUR_VERSION=$(grep '^version:' .hxsk/.bootstrap-version 2>/dev/null | awk '{print $2}')
-case "${CUR_VERSION:-}" in
-    "")                echo "FRESH" ;;
-    "$TARGET_VERSION") echo "VERIFY" ;;
-    *)                 echo "UPGRADE"; echo "  from=$CUR_VERSION to=$TARGET_VERSION" ;;
-esac
+TARGET_VERSION=5.6.1
+VERSION_FILE=".hxsk/.bootstrap-version"
+if [ ! -f "$VERSION_FILE" ]; then
+    echo "FRESH"
+elif ! grep -q '^version:' "$VERSION_FILE"; then
+    echo "CORRUPTED"
+else
+    CUR_VERSION=$(grep '^version:' "$VERSION_FILE" | awk '{print $2}')
+    case "$CUR_VERSION" in
+        "$TARGET_VERSION") echo "VERIFY" ;;
+        *)                 echo "UPGRADE"; echo "  from=$CUR_VERSION to=$TARGET_VERSION" ;;
+    esac
+fi
 ```
 
 - **FRESH** → Step 1~9 (초기 설치 전체)
 - **VERIFY** → 빠른 검증만
 - **UPGRADE** → Step U1~U6 (마이그레이션)
-- **CORRUPTED** → 수동 복구 필요 (setup.md 지시에 따라 처리)
+- **CORRUPTED** → `.bootstrap-version` 수동 복구 후 재실행
 
 ### Step 3: 필수 스킬 설치
 
@@ -164,7 +170,7 @@ git pull --rebase
 |------|-----|---------|------------|
 | v5.3.x | v5.4.0 | Git Forge + lessons-learned A-E + 메모리 티어 | 자동 |
 | v5.4.x | v5.5.0 | 하네스 독립 prune + cap=5 + local-tier 전체 | `.hxsk/.prune-config` 새로 생성 |
-| v5.5.0 | v5.5.0+ | Phase 8 보안 강화 + Phase 9 Progressive Disclosure | 자동 (setup.md 재실행) |
+| v5.5.x | v5.6.x | setup release lineage 정렬 + Codex/OpenCode 표면 정비 + 검증/정합성 하드닝 | 자동 (setup.md 재실행 후 local-verify 권장) |
 
 ## 5. Harness-Specific Installation
 

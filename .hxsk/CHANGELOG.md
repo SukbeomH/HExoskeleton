@@ -4,6 +4,15 @@
 
 ---
 
+### [2026-04-30] v5.6.1 — release lineage 정렬 + metadata baseline 승격
+
+#### 변경
+- **version baseline** — 내부 HXSK 메타데이터 기준을 `v5.5.1`에서 `v5.6.1`로 올려 공개된 `setup-v5.6.0` release lineage와 다시 정렬.
+- **setup/deployment docs** — `TARGET_VERSION` 및 `.bootstrap-version` 예시를 `v5.6.1` 기준으로 갱신.
+- **pre-pr-check.sh** — GitHub release / 추천 버전 비교를 단순 문자열 비교에서 semver-aware 비교로 교체해 `5.10.x` 및 prerelease 태그에서도 더 예측 가능하게 동작하도록 수정.
+
+---
+
 ### [2026-04-30] v5.5.1 — 정합성/검증 하드닝 + 메타데이터 동기화
 
 #### 수정
