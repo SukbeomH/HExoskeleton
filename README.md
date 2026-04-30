@@ -296,7 +296,7 @@ make setup
 
 ## 로드맵
 
-현재 공개 문서 기준 라인은 **v5.5.x**입니다. 최근 반영된 완료 범위는 하네스 독립 prune(v5.5.0), 신뢰성 17건 수정(PR #137), test 메모리 확장(PR #138), 보안 강화(Phase 8), Progressive Disclosure(PR #144)입니다.
+현재 공개 문서 기준 라인은 **v5.6.x**입니다. 최근 반영된 완료 범위는 하네스 독립 prune(v5.5.0), 신뢰성 17건 수정(PR #137), test 메모리 확장(PR #138), 보안 강화(Phase 8), Progressive Disclosure(PR #144), 그리고 release lineage 재정렬(v5.6.1)입니다.
 
 주요 완료 마일스톤: Iron Laws · 합리화 테이블 · CSO · Git Forge 통합(GATES.md) · 하네스 독립 prune · 보안 강화 · Progressive Disclosure.
 
