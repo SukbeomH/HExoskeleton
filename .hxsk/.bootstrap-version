@@ -1,7 +1,7 @@
-version: 5.5.0
-last_run: 2026-04-28
+version: 5.5.1
+last_run: 2026-04-30
 components:
   skills: 24
   agents: 18
   hooks: 27
-  memories: 18
+  memories: 17

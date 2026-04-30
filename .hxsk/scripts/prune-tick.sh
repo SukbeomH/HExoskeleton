@@ -19,6 +19,7 @@
 #   PRUNE_TICK_COOLDOWN=60          # 재실행 쿨다운(초)
 #   PRUNE_DEFAULT_CAP=5             # tier별 기본 cap
 #   PRUNE_CAP_bootstrap=1           # tier별 개별 오버라이드
+# strict-mode-exempt: opportunistic background adapter; top-level errexit would over-escalate tolerated probe failures
 
 set -uo pipefail
 

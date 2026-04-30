@@ -29,7 +29,7 @@ find "$LOG_DIR" -name "bootstrap-*.log" -type f 2>/dev/null \
 # Version & Mode Detection
 # ─────────────────────────────────────────────────────
 
-BOOTSTRAP_VERSION="5.5.0"
+BOOTSTRAP_VERSION="5.5.1"
 VERSION_FILE=".hxsk/.bootstrap-version"
 HOOK_DIR=".hxsk/hooks"
 MODE="fresh"
@@ -126,7 +126,7 @@ report_context() {
 count_skills()   { mkdir -p .hxsk/skills;   find .hxsk/skills -name "SKILL.md" 2>/dev/null | wc -l | tr -d ' '; }
 count_agents()   { mkdir -p .hxsk/agents;   find .hxsk/agents -name "*.md" -not -name "INDEX.md" 2>/dev/null | wc -l | tr -d ' '; }
 count_hooks()    { mkdir -p .hxsk/hooks;    find .hxsk/hooks -name "*.sh" -o -name "*.py" 2>/dev/null | wc -l | tr -d ' '; }
-count_memories() { mkdir -p .hxsk/memories; find .hxsk/memories -mindepth 1 -maxdepth 1 -type d -not -name "_schema" 2>/dev/null | wc -l | tr -d ' '; }
+count_memories() { mkdir -p .hxsk/memories; find .hxsk/memories -mindepth 1 -maxdepth 1 -type d -not -name "_schema" -not -name "ADR-006" 2>/dev/null | wc -l | tr -d ' '; }
 
 # ─────────────────────────────────────────────────────
 # Redirect all output to log file (tee: screen + file)
@@ -244,7 +244,8 @@ echo ""
 echo "--- HXSK Structure ---"
 
 # Memory directories — 존재 여부와 무관하게 누락 타입 보충
-MEMORY_TYPES=(architecture-decision root-cause debug-eliminated debug-blocked health-event session-handoff execution-summary deviation pattern-discovery bootstrap session-summary session-snapshot security-finding general _schema)
+# ADR-006 디렉토리는 historical research artifact로 유지하되 canonical type count에서는 제외
+MEMORY_TYPES=(architecture-decision bootstrap debug-blocked debug-eliminated deviation execution-summary general health-event lessons-learned pattern-discovery root-cause security-finding session-handoff session-snapshot session-summary term-definition test _schema)
 CREATED_MEM=0
 for mtype in "${MEMORY_TYPES[@]}"; do
     if [[ ! -d ".hxsk/memories/$mtype" ]]; then

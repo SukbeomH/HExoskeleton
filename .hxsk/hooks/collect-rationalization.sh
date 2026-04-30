@@ -3,7 +3,7 @@
 # 에이전트 출력에서 Iron Law 위반 시그널을 감지하여 기록
 # 수집된 패턴은 합리화 테이블 갱신 시 참조
 
-set -o pipefail
+set -euo pipefail
 
 PROJECT_DIR="${CLAUDE_PROJECT_DIR:-.}"
 HXSK_DIR="$PROJECT_DIR/.hxsk"

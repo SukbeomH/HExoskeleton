@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 # Pre-commit hook: .md 파일이 스테이징되면 doc-lint 구조적 검사 실행
 # 설치: ln -sf ../../.hxsk/hooks/pre-commit-doc-lint.sh .git/hooks/pre-commit
-#        (또는 기존 pre-commit에서 이 스크립트를 source)
+#        (또는 기존 pre-commit에서 이 스크립트를 exec)
+
+set -euo pipefail
 
 HXSK_DIR=".hxsk"
 DOC_LINT="$HXSK_DIR/scripts/doc-lint.sh"
@@ -19,8 +21,8 @@ if [[ ! -f "$DOC_LINT" ]]; then
 fi
 
 echo "=== doc-lint: .md staged, running checks ==="
-bash "$DOC_LINT"
-exit_code=$?
+exit_code=0
+bash "$DOC_LINT" || exit_code=$?
 
 if [[ $exit_code -ne 0 ]]; then
     echo ""

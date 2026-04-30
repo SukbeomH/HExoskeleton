@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # Hook: Stop — 세션 컨텍스트 저장 (외부 종속성 없음)
+# strict-mode-exempt: background/cleanup-heavy hook; top-level errexit would break best-effort save/prune flow
 # .hxsk/.modified-this-session 플래그가 있을 때만 실행
 # 1) 순수 bash 템플릿으로 CURRENT.md 생성 (Nemori 서사 형태)
 # 2) 파일 기반 메모리로 세션 메모리 저장 (A-Mem 확장)

@@ -109,9 +109,10 @@ LLM 할루시네이션 언어 특성 연구 및 SKILL.md 최적화 적용.
 
 | 상태 | 개수 | 비율 |
 |------|------|------|
-| `active` | 24 | 67% |
-| `archived` | 7 | 19% |
-| `superseded` | 5 | 14% |
+| `active` | 28 | 68% |
+| `archived` | 8 | 20% |
+| `superseded` | 5 | 12% |
 
-*Total: 36 documents across 10 categories*
-*Updated: 2026-04-24 — benchmark 카테고리 추가, OpenCode 검증 결과 추가*
+*Total: 41 indexed research documents + 1 index file (42 markdown files total)*
+*Structure: 10 thematic sections spanning 8 subdirectories + 5 root-level studies*
+*Updated: 2026-04-30 — actual file/layout counts resynced to repository state*

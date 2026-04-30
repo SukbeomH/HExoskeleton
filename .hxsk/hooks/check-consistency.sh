@@ -92,22 +92,47 @@ echo "=== settings.json 훅 경로 ==="
 
 SETTINGS="$PROJECT_DIR/.claude/settings.json"
 if [[ -f "$SETTINGS" ]]; then
-    # command 필드에서 경로 추출 (macOS 호환)
+    # command hook에서 실제 .hxsk/hooks/* 경로를 추출
     ALL_VALID=true
     HOOK_PATH_COUNT=0
-    while IFS= read -r line; do
-        [[ -z "$line" ]] && continue
-        command=$(echo "$line" | sed 's/.*"command"[[:space:]]*:[[:space:]]*"//;s/".*//')
-        # Commands may be prefixed with: cd "${CLAUDE_PROJECT_DIR:-.}" && .hxsk/hooks/foo.sh
-        # Validate the actual hook script path rather than the shell prefix.
-        path=$(echo "$command" | grep -oE '\.hxsk/hooks/[^ ";&]+' | head -1 | tr -d '[:space:]' || true)
-        [[ -z "$path" ]] && continue
-        ((HOOK_PATH_COUNT++)) || true
-        if [[ ! -f "$PROJECT_DIR/$path" ]]; then
-            fail "settings.json 경로 미존재: $path"
-            ALL_VALID=false
-        fi
-    done < <(grep '"command"' "$SETTINGS")
+    if command -v python3 &>/dev/null; then
+        while IFS= read -r path; do
+            [[ -z "$path" ]] && continue
+            ((HOOK_PATH_COUNT++)) || true
+            if [[ ! -f "$PROJECT_DIR/$path" ]]; then
+                fail "settings.json 경로 미존재: $path"
+                ALL_VALID=false
+            fi
+        done < <(python3 - <<'PY' "$SETTINGS"
+import json, re, sys
+from pathlib import Path
+settings = Path(sys.argv[1])
+data = json.loads(settings.read_text())
+pat = re.compile(r'\.hxsk/hooks/[^\s";&]+')
+for event_entries in data.get('hooks', {}).values():
+    for entry in event_entries:
+        for hook in entry.get('hooks', []):
+            if hook.get('type') != 'command':
+                continue
+            cmd = hook.get('command', '')
+            m = pat.search(cmd)
+            if m:
+                print(m.group(0))
+PY
+)
+    else
+        while IFS= read -r line; do
+            [[ -z "$line" ]] && continue
+            command=$(echo "$line" | sed 's/.*"command"[[:space:]]*:[[:space:]]*"//;s/".*//')
+            path=$(echo "$command" | grep -oE '\.hxsk/hooks/[^ ";&]+' | head -1 | tr -d '[:space:]' || true)
+            [[ -z "$path" ]] && continue
+            ((HOOK_PATH_COUNT++)) || true
+            if [[ ! -f "$PROJECT_DIR/$path" ]]; then
+                fail "settings.json 경로 미존재: $path"
+                ALL_VALID=false
+            fi
+        done < <(grep '"command"' "$SETTINGS")
+    fi
     if $ALL_VALID; then
         pass "settings.json 훅 경로 모두 유효 ($HOOK_PATH_COUNT)"
     fi
@@ -359,7 +384,8 @@ for wdoc in "$HXSK_DIR/SPEC.md" "$HXSK_DIR/STATE.md" "$HXSK_DIR/DECISIONS.md" "$
     [[ ! -f "$wdoc" ]] && continue
     bn=$(basename "$wdoc")
     # {Goal 1}, {Brief description} 등 — ${VAR} 환경변수 패턴 제외
-    PLACEHOLDERS=$(grep -n '{[A-Z]' "$wdoc" 2>/dev/null | grep -v '\$\{' | grep -v '```' | head -3 || true)
+    # grep -F로 ${ 리터럴을 제외해 BRE의 \{ interval 경고를 피한다.
+    PLACEHOLDERS=$(grep -nE '\{[A-Z][^}]*\}' "$wdoc" 2>/dev/null | grep -F -v '${' | grep -F -v '```' | head -3 || true)
     if [[ -n "$PLACEHOLDERS" ]]; then
         fail "$bn: placeholder found — $(echo "$PLACEHOLDERS" | head -1)"
         ((PH_FAIL++)) || true
@@ -375,7 +401,8 @@ fi
 echo ""
 echo "=== Memory type coverage ==="
 
-REQUIRED_TYPES="architecture-decision root-cause debug-eliminated debug-blocked health-event session-handoff execution-summary deviation pattern-discovery bootstrap session-summary session-snapshot security-finding general"
+REQUIRED_TYPES="architecture-decision bootstrap debug-blocked debug-eliminated deviation execution-summary general health-event lessons-learned pattern-discovery root-cause security-finding session-handoff session-snapshot session-summary term-definition test"
+EXPECTED_MEM_TYPES=$(wc -w <<< "$REQUIRED_TYPES" | tr -d ' ')
 MEM_MISSING=0
 for mtype in $REQUIRED_TYPES; do
     if [[ ! -d "$HXSK_DIR/memories/$mtype" ]]; then
@@ -385,7 +412,7 @@ for mtype in $REQUIRED_TYPES; do
 done
 
 if [[ "$MEM_MISSING" -eq 0 ]]; then
-    pass "Memory types: all 14 present"
+    pass "Memory types: all $EXPECTED_MEM_TYPES canonical dirs present"
 else
     warn "Memory dirs are gitignored — created at bootstrap, not in CI"
 fi
@@ -397,7 +424,11 @@ echo "=== Dead component detection ==="
 
 DEAD_COUNT=0
 # 모든 참조 가능 파일을 하나의 검색 풀로 결합
-SEARCH_FILES=$(find "$PROJECT_DIR" -maxdepth 1 -name "*.md" 2>/dev/null || true; find "$HXSK_DIR/skills" -name "SKILL.md" 2>/dev/null || true; find "$HXSK_DIR/agents" -name "*.md" 2>/dev/null || true; find "$HXSK_DIR/docs" -name "*.md" 2>/dev/null || true)
+SEARCH_FILES=$(find "$PROJECT_DIR" -maxdepth 1 -name "*.md" 2>/dev/null || true; \
+    find "$PROJECT_DIR/docs" -name "*.md" 2>/dev/null || true; \
+    find "$HXSK_DIR/skills" -name "SKILL.md" 2>/dev/null || true; \
+    find "$HXSK_DIR/agents" -name "*.md" 2>/dev/null || true; \
+    find "$HXSK_DIR/docs" -name "*.md" 2>/dev/null || true)
 
 for agent_file in "$HXSK_DIR/agents/"*.md; do
     [[ ! -f "$agent_file" ]] && continue
@@ -440,6 +471,10 @@ while IFS= read -r sh_file; do
     bn=$(basename "$sh_file")
     # _json_parse.sh 같은 라이브러리 파일은 제외
     [[ "$bn" == _* ]] && continue
+    if grep -qE '^# strict-mode-exempt:' "$sh_file" 2>/dev/null; then
+        pass "$bn: strict mode exempt (documented)"
+        continue
+    fi
     if ! grep -q 'set -o errexit\|set -euo\|set -e' "$sh_file" 2>/dev/null; then
         warn "$bn: no strict mode (set -e/errexit)"
         ((STRICT_FAIL++)) || true

@@ -3,7 +3,7 @@
 # 컨텍스트 압축 전 HXSK 상태 문서를 백업하여 컨텍스트 손실 방지
 
 main() {
-    set -uo pipefail
+    set -euo pipefail
 
     PROJECT_DIR="${CLAUDE_PROJECT_DIR:-.}"
     HXSK_DIR="$PROJECT_DIR/.hxsk"

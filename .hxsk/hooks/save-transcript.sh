@@ -11,7 +11,7 @@
 #
 
 main() {
-    set -uo pipefail
+    set -euo pipefail
 
     PROJECT_DIR="${CLAUDE_PROJECT_DIR:-.}"
     SESSION_DIR="$PROJECT_DIR/.sessions"

@@ -11,7 +11,7 @@
 
 # 메인 로직을 함수로 분리
 main() {
-    set -uo pipefail
+    set -euo pipefail
 
     PROJECT_DIR="${CLAUDE_PROJECT_DIR:-.}"
     CHANGELOG="$PROJECT_DIR/.hxsk/CHANGELOG.md"

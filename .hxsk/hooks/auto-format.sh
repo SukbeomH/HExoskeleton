@@ -1,7 +1,7 @@
 #!/bin/bash
 # Hook: PostToolUse (Edit|Write) — 소스 파일 자동 포맷
 # Qlty 우선 → 확장자별 fallback (하위 호환)
-set -uo pipefail
+set -euo pipefail
 
 # JSON 파싱 추상화 로드
 HOOK_DIR="$(cd "$(dirname "$0")" && pwd)"

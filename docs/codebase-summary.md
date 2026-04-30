@@ -2,7 +2,7 @@
 
 > HExoskeleton 리포지토리의 파일 인벤토리, 의존성, 구성 요소 카운트.
 >
-> Version 5.5.0 · ~418 추적 파일
+> Version 5.5.x 문서 스냅샷 · 2026-04-30 기준 로컬 스캔 반영
 
 ## 1. Repository Layout
 
@@ -30,19 +30,19 @@ HExoskeleton/
     ├── VERIFICATION.md        # 검증 프레임워크
     ├── CHANGELOG.md           # 내부 CHANGELOG
     ├── context-config.yaml    # 컨텍스트/프룬 설정
-    ├── skills/   (22)         # 재사용 절차
+    ├── skills/   (24)         # 재사용 절차
     ├── agents/   (18)         # 스킬 오케스트레이션
-    ├── hooks/    (26)          # 이벤트 훅
-    ├── scripts/  (17)         # 유틸리티
+    ├── hooks/    (27)         # 이벤트 훅
+    ├── scripts/  (22)         # 유틸리티 bash/Python
     ├── workflow/ (1)          # GATES.md
     ├── prompts/  (3)          # setup 프롬프트
     ├── templates/ (33)        # 문서 템플릿
-    ├── adapters/ (8)          # 하네스별 어댑터
+    ├── adapters/              # 하네스별 어댑터 + 설정 파일
     ├── githooks/              # git post-commit/post-merge
-    ├── memories/ (16 types)   # 파일 기반 메모리
-    ├── research/              # L3 근거 문서
+    ├── memories/              # 파일 기반 메모리 + 스키마
+    ├── research/              # L3 근거 문서 (42 markdown / 8 subdirs + root-level studies)
     ├── issues/                # 파일 기반 이슈 레지스트리
-    ├── docs/                  # 내부 심화 문서 (11)
+    ├── docs/                  # 내부 심화 문서 (31 markdown)
     ├── reports/               # 생성 보고서
     ├── archive/               # 아카이브된 구 버전
     └── examples/              # 워크플로우 예제
@@ -52,18 +52,18 @@ HExoskeleton/
 
 | 영역 | 개수 | 총 LOC | 비고 |
 |------|------|--------|------|
-| **Skills** | 22 | ~3,500 (entry) + refs/ | 각 `{name}/SKILL.md` ≤200줄 + `references/` |
-| **Agents** | 18 | ~622 | 각 `{name}.md` 파일 |
-| **Hooks** | 26 | ~3,246 | Claude Code 이벤트별 |
-| **Scripts** | 17 | ~2,606+ | 유틸리티 bash |
-| **Templates** | 33 | ~2,386 | 문서 생성 표준 |
-| **Internal Docs** | 11 | varied | `.hxsk/docs/` |
-| **Prompts** | 3 | ~495 | setup 프롬프트 |
-| **Adapters** | 8 | ~280–884 each | 하네스별 훅 설정 |
-| **Memory Types** | 16 | 런타임 생성 | A-Mem 확장 |
-| **Workflow Gates** | 8 | 133 | GATES.md 정의 |
+| **Skills** | 24 | index 기준 | 각 `{name}/SKILL.md` + `references/` |
+| **Agents** | 18 | index 기준 | 각 `{name}.md` 파일 |
+| **Hooks** | 27 | index 기준 | 7개 Claude Code 이벤트 + 보조 훅 |
+| **Scripts** | 22 | 로컬 스캔 기준 | 설치·검증·릴리스·유지보수 유틸리티 |
+| **Templates** | 33 | 로컬 스캔 기준 | 문서 생성 표준 |
+| **Internal Docs** | 31 | 로컬 스캔 기준 | `.hxsk/docs/` markdown |
+| **Prompts** | 3 | 로컬 스캔 기준 | setup 프롬프트 |
+| **Adapters** | mixed | 설정 파일/문서 혼합 | 하네스별 훅 설정 |
+| **Memory Surface** | canonical 17 + ADR-006 historical | 스키마/디렉토리 혼합 | `term-definition`, `test`, `lessons-learned` 포함 |
+| **Workflow Gates** | 8 | GATES.md 기준 | 게이트 정의 |
 
-## 3. Skills Inventory (22)
+## 3. Skills Inventory (24)
 
 | Skill | 핵심 역할 |
 |-------|----------|
@@ -81,7 +81,7 @@ HExoskeleton/
 | `executor` | PLAN.md → 원자 커밋 + 4-규칙 편차 처리 |
 | `handoff` | 세션 종료: 테스트→커밋→메모리→요약 |
 | `impact-analysis` | 변경 blast radius 평가 |
-| `memory-protocol` | 17 타입 메모리 저장/회상(2-hop) |
+| `memory-protocol` | 코어 메모리 저장/회상(2-hop) 및 타입 규약 |
 | `plan-checker` | PLAN.md 6차원 검증 |
 | `planner` | 목표→PLAN.md 작성 (goal-backward) |
 | `pr-review` | 6-페르소나 코드 리뷰 (Dev/QA/Security/Arch/DevOps/UX) |
@@ -89,6 +89,8 @@ HExoskeleton/
 | `skill-testing` | 스킬 TDD (RED/GREEN/REFACTOR) |
 | `verifier` | SPEC.md must-haves 대조 검증 |
 | `write-report` | 솔루션 비교 보고서 작성 (TCO+가중점수) |
+| `cleanse-memory` | 오염/저품질 메모리 정리 및 승격/제거 판단 |
+| `define-term` | 용어 정의 등록/검토/병합/재생성 (ADR-006 기반, 기본 경로 편입 전 실험적) |
 | (+ INDEX.md) | 스킬 카탈로그 인덱스 |
 
 상세: `.hxsk/skills/{name}/SKILL.md` (entry ≤200줄) + `{name}/references/` (상세, 선택 로드).
@@ -112,13 +114,13 @@ HExoskeleton/
 | `plan-checker` | plan-checker | opus |
 | `planner` | planner + impact-analysis + memory-protocol | opus |
 | `pr-review` | pr-review | opus |
-| `spec-reviewer` | (implied) | sonnet |
+| `spec-reviewer` | verifier + empirical-validation 기반 스펙 적합성 1차 심사 | sonnet |
 | `verifier` | verifier + empirical-validation | sonnet |
 | `write-report` | write-report | opus |
 
 상세: `.hxsk/agents/{name}.md`.
 
-## 5. Hooks Catalog (26)
+## 5. Hooks Catalog (27)
 
 ### 이벤트별 분류
 
@@ -158,13 +160,14 @@ HExoskeleton/
 - `organize-docs.sh` — 문서 구조 정리
 - `compact-context.sh` — PATTERNS/JOURNAL 프룬
 - `collect-rationalization.sh` — 합리화 노트 수집
+- `glossary-detect.sh` — 용어 후보 감지 및 glossary 워크플로우 트리거
 - `scaffold-hxsk.sh` / `scaffold-infra.sh` — 초기 스캐폴드
 
 **Pre-commit Git**:
 - `pre-commit-doc-lint.sh` — doc-lint 검사 (INDEX-01은 `references/` 서브디렉토리 자동 제외)
 - `pre-commit-version-check.sh` — 버전 정합성 검증
 
-## 6. Utility Scripts (17)
+## 6. Utility Scripts (22)
 
 | Script | 목적 |
 |--------|------|
@@ -186,7 +189,7 @@ HExoskeleton/
 | `setup-verify.sh` (200) | 설치 검증 5개 독립 조건 — `PASS N/5 | FAIL M/5` 출력 |
 | `pre-release-check.sh` (100) | 릴리스 전 4-체크: SHA256·CHANGELOG·ISSUE COUNT·실행권한 |
 
-## 7. Memory System (17 Types)
+## 7. Memory System (Canonical 17 + ADR-006 historical)
 
 `.hxsk/memories/` 하위 디렉토리:
 
@@ -207,9 +210,12 @@ HExoskeleton/
 | `session-handoff` | 세션 간 브리지 |
 | `session-snapshot` | pre-compact 스냅샷 |
 | `session-summary` | 세션 종료 요약 |
+| `term-definition` | ADR-006 기반 용어 정의 확장 표면 |
 | `test` | 테스트 메모리 저장 (PR #138) |
 
 스키마: `.hxsk/memories/_schema/base.schema.json` + `type-relations.yaml`.
+
+보충: `ADR-006/` 디렉토리는 historical research artifact로 유지되며, canonical memory type count에는 포함하지 않는다.
 
 ## 8. Harness Adapters (8)
 
@@ -226,15 +232,17 @@ HExoskeleton/
 | `windsurf-hooks.json` | Windsurf Cascade | post_cascade_response |
 | **git 폴백** | Aider/Continue/Antigravity | `.hxsk/githooks/post-commit` & `post-merge` |
 
-## 9. Build Targets (3)
+## 9. Makefile Entry Targets
 
-| 타겟 | 명령 | 출력 |
+| 타겟 | 명령 | 역할 |
 |------|------|------|
-| Claude Code Plugin | `make build-plugin` | `hxsk-plugin/` |
-| Google Antigravity | `make build-antigravity` | `antigravity-boilerplate/` |
-| OpenCode | `make build-opencode` | `opencode-boilerplate/` |
+| `check-deps` | `make check-deps` | `bootstrap.sh` 실행으로 환경/구조 점검 |
+| `init-env` | `make init-env` | `.env.example` → `.env` 초기화 |
+| `status` | `make status` | `.env`와 `.hxsk/memories/` 상태 요약 |
+| `setup` | `make setup` | `install-deps` + `init-env` 전체 초기 설정 |
+| `help` | `make help` | 사용 가능한 엔트리 타겟 표시 |
 
-상세: @deployment-guide.md.
+상세: `Makefile` 및 [deployment-guide.md](deployment-guide.md).
 
 ## 10. Key Dependencies
 
@@ -276,17 +284,19 @@ HExoskeleton/
 
 ## 11. Research Foundation
 
-`.hxsk/research/` 에는 33개 연구 문서가 7개 카테고리로 정리되어 있다:
+`.hxsk/research/` 에는 **42개 markdown 문서**가 있으며, 이 중 **41개 연구 문서 + 1개 인덱스**로 구성된다. 구조는 **8개 하위 디렉토리 + 5개 루트 문서** 기준으로 정리된다:
 
 - **memory-systems/** (8) — A-Mem, Nemori, ReWOO, RLM, 컨텍스트 압축, 하이브리드 검색
-- **platform-integration/** (8) — Claude Code/OpenCode/Antigravity 통합 연구
+- **platform-integration/** (9) — Claude Code/OpenCode/Antigravity 통합 및 OpenCode 실증 검증
 - **deployment-strategy/** (6) — 플러그인 vs Self-Configure 결정 과정
-- **language-support/** (3) — 다국어 확장 타당성 (archived)
+- **language-support/** (3) — 다국어 확장 타당성 (archived/superseded)
 - **tooling/** (2) — bash CLI vs MCP 트레이드오프
 - **architecture/** (3) — 코드 엔트로피, 솔루션 비교 프레임워크
 - **workflow/** (5) — GitHub 워크플로우, 멀티플랫폼 호환성, 토큰 최적화, Git 이슈 메모리, AutoResearch 방법론 비교
+- **benchmark/** (1) — 메모리 recall 성능 측정
+- **root-level studies** (5) — `INDEX.md`, `superpowers-analysis.md`, `superpowers-references.md`, `claude-code-quality-mitigation.md`, `2026-04-23-hallucination-linguistic-features.md`
 
-인덱스: `.hxsk/research/INDEX.md`.
+인덱스: `.hxsk/research/INDEX.md`. thematic section 요약은 디렉토리 구조와 완전히 동일하지 않을 수 있으므로, 카운트성 판단은 로컬 스캔 기준을 우선한다.
 
 ## See Also
 
