@@ -12,6 +12,10 @@
 | `.hxsk/context-config.yaml` | HXSK | ✅ | 컨텍스트/프룬 설정 |
 | `.hxsk/.prune-config` | HXSK | ❌ (gitignored) | 메모리 프룬 세부 |
 | `.hxsk/.bootstrap-version` | HXSK | ✅ | 설치된 HXSK 버전 |
+| `.hxsk/CURRENT.md` | HXSK runtime | ❌ (gitignored) | 현재 세션 서사 / 최근 실행 문맥 |
+| `.hxsk/STATE.md` | HXSK runtime | ❌ (gitignored) | 구조화된 현재 상태 / blockers / next checkpoint |
+| `.hxsk/SESSION_HANDOFF.md` | HXSK runtime | ❌ (gitignored) | 다음 세션 재진입용 최소 handoff |
+| `.hxsk/VERIFICATION.md` | HXSK | ✅ | 검증 truth / evidence / verdict |
 | `.claude/settings.json` | Claude Code | ✅ | 훅 바인딩 (팀 공유) |
 | `.claude/settings.local.json` | Claude Code | ❌ (gitignored) | 개인 설정 |
 | `.hxsk/adapters/*` | 하네스별 | ✅ | Gemini/Cursor/Copilot 등 훅 설정 |
@@ -273,12 +277,43 @@ export default {
 ### 6.6 OpenAI Codex (`.hxsk/adapters/codex-hooks.json`)
 ```json
 {
-  "skills_dir": ".agents/skills/",
-  "invocation": "$autoresearch"
+  "hooks": {
+    "Stop": [
+      {
+        "command": "bash",
+        "args": [".hxsk/scripts/prune-memories.sh", "--auto"]
+      }
+    ]
+  }
 }
 ```
 
-### 6.7 Git Hook Fallback (Aider/Continue/Antigravity)
+필수 조건:
+- Codex 전역 설정에서 `codex_hooks=true`
+- 필요 시 `bash .hxsk/scripts/install.sh --harness codex`
+
+공존 규칙:
+- 전역 `context-mode`를 쓴다면 `~/.codex/hooks.json`은 라우팅/세션 추적용으로 유지
+- repo-local HXSK 규칙은 `AGENTS.md`, `.hxsk/`, `git config core.hooksPath .hxsk/githooks`로 유지
+- Stop hook을 repo-local에서 추가해야 하면 `context-mode hook codex stop` 뒤에 HXSK prune/verify 단계를 병합
+
+### 6.7 Hermes Agent (`.hxsk/adapters/hermes/README.md`)
+
+Hermes는 설정 파일 한 장보다 **repo-local 문서 surface와 Hermes 기능 매핑**이 중요하다.
+
+- 읽기 순서: `llms.txt` → `AGENTS.md` → `.hxsk/CURRENT.md` → `.hxsk/STATE.md` → `.hxsk/VERIFICATION.md`
+- Hermes built-in memory: 짧은 사용자/환경 포인터만 저장
+- canonical long-form memory: `.hxsk/memories/`
+- Hermes `todo`: 세션 큐
+- `.hxsk/TODO.md`: repo backlog
+- Hermes `session_search`: 과거 대화 회수
+- `md-recall-memory.sh`: repo-local decision/pattern/memory 회수
+
+상세는 `.hxsk/adapters/hermes/README.md` 참조.
+
+Codex와 context-mode를 함께 쓸 때의 계층 분리 규칙은 `codex-context-mode-hxsk-coexistence.md` 참조.
+
+### 6.8 Git Hook Fallback (Aider/Continue/Antigravity)
 `.hxsk/githooks/post-commit`:
 ```bash
 #!/usr/bin/env bash   # 표준 shebang — /bin/bash 대신 env를 통한 경로 독립
@@ -384,7 +419,23 @@ files: [.hxsk/skills/executor/, .hxsk/agents/executor.md]
 ---
 ```
 
-## 12. STATE.md 스키마
+## 12. Active-State Surface
+
+HXSK runtime에서 자주 갱신되는 canonical active-state 문서는 다음과 같다.
+
+- `CURRENT.md` — 현재 세션 서사 / 최근 실행 문맥
+- `STATE.md` — 구조화된 현재 상태 / active gate / blockers / next checkpoint
+- `SESSION_HANDOFF.md` — 다음 세션 재진입용 최소 handoff
+- `VERIFICATION.md` — 현재 검증 verdict 와 evidence
+
+권장 재진입 순서:
+1. `llms.txt`
+2. `AGENTS.md`
+3. `.hxsk/CURRENT.md`
+4. `.hxsk/STATE.md`
+5. `.hxsk/VERIFICATION.md`
+
+## 13. STATE.md 스키마
 
 현재 활성 작업 상태:
 ```yaml
@@ -405,7 +456,7 @@ tasks:
     status: in_progress
 ```
 
-## 13. llms.txt (Self-Configure 진입점)
+## 14. llms.txt (Self-Configure 진입점)
 
 루트의 `llms.txt`는 `llms.txt v1.0` 스펙 준수. HXSK 버전이 포함:
 ```
@@ -419,7 +470,7 @@ tasks:
 - **Architecture** — ARCHITECTURE.md, research/INDEX.md
 - **Optional** — 심화 문서
 
-## 14. Version File (`.hxsk/.bootstrap-version`)
+## 15. Version File (`.hxsk/.bootstrap-version`)
 
 ```yaml
 version: 5.6.1
@@ -433,7 +484,7 @@ components:
 
 `setup.md` Step 0이 이 파일을 읽어 FRESH/VERIFY/UPGRADE 분기.
 
-## 15. Direnv (`.envrc`)
+## 16. Direnv (`.envrc`)
 
 ```bash
 # .envrc — direnv 사용 시
@@ -443,7 +494,7 @@ export CLAUDE_PROJECT_DIR=$(pwd)
 
 활성화: `direnv allow`
 
-## 16. Git Ignore Recommendations
+## 17. Git Ignore Recommendations
 
 `.gitignore`에 포함되어야 할 항목:
 ```gitignore
@@ -469,7 +520,7 @@ export CLAUDE_PROJECT_DIR=$(pwd)
 *.swp
 ```
 
-## 17. Configuration Precedence
+## 18. Configuration Precedence
 
 값 해결 순서 (높은 우선순위 → 낮은):
 1. **Shell 환경 변수** (세션 내 `export`)

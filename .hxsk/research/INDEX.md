@@ -67,7 +67,7 @@
 | solution_comparison_report_guide.md | `active` | 솔루션 비교 보고서 작성 프레임워크 |
 | HOOK_ISSUE_REPORT.md | `archived` | macOS 훅 실행 이슈 (2026-02-11, 일시적) |
 
-## workflow/ (1) — all active
+## workflow/ (6) — all active
 
 | 문서 | 상태 | 핵심 결론 |
 |------|------|----------|
@@ -76,6 +76,7 @@
 | [RESEARCH-token-optimization-multi-hop.md](workflow/RESEARCH-token-optimization-multi-hop.md) | `active` | 멀티홉 핸드오프 토큰 최적화 — 경로 전달·구조화 WORK 문서·요약 보고로 60-75% 절감 |
 | [RESEARCH-git-issue-as-memory.md](workflow/RESEARCH-git-issue-as-memory.md) | `active` | Git 이슈·커밋·코멘트를 단기 실행 메모리로 활용 — 로컬 파일은 장기 메모리로 역할 분리 |
 | [RESEARCH-autoresearch-methodology.md](workflow/RESEARCH-autoresearch-methodology.md) | `active` | Karpathy 원조 vs Goenka 일반화 비교 — 7원칙 추출, HXSK 수입 권장: 자동 revert 루프 + TSV 로그 + Guard 이중 게이트 |
+| [RESEARCH-harness-neutral-active-state-spine.md](workflow/RESEARCH-harness-neutral-active-state-spine.md) | `active` | context continuity / compaction aftercare / hook restore 개념을 HXSK의 harness-neutral active-state spine으로 재해석 |
 
 ## agent-discipline/ (3) — all active
 
@@ -109,10 +110,10 @@ LLM 할루시네이션 언어 특성 연구 및 SKILL.md 최적화 적용.
 
 | 상태 | 개수 | 비율 |
 |------|------|------|
-| `active` | 28 | 68% |
-| `archived` | 8 | 20% |
+| `active` | 29 | 69% |
+| `archived` | 8 | 19% |
 | `superseded` | 5 | 12% |
 
-*Total: 41 indexed research documents + 1 index file (42 markdown files total)*
+*Total: 42 indexed research documents + 1 index file (43 markdown files total)*
 *Structure: 10 thematic sections spanning 8 subdirectories + 5 root-level studies*
-*Updated: 2026-04-30 — actual file/layout counts resynced to repository state*
+*Updated: 2026-05-04 — active-state spine study added and counts resynced to repository state*

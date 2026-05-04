@@ -28,7 +28,7 @@ graph TB
         Memory[memories/<br/>17 타입 × 2-hop]
         Workflow[workflow/GATES.md<br/>8 게이트]
         Templates[templates/<br/>33 템플릿]
-        State[STATE.md<br/>CURRENT.md<br/>SPEC.md]
+        State[CURRENT.md<br/>STATE.md<br/>SESSION_HANDOFF.md<br/>VERIFICATION.md<br/>SPEC.md]
         Research[research/<br/>L3 근거]
     end
 
@@ -103,6 +103,7 @@ sequenceDiagram
     participant SS as session-start.sh
     participant S as .hxsk/STATE.md
     participant C as .hxsk/CURRENT.md
+    participant Handoff as .hxsk/SESSION_HANDOFF.md
     participant M as memories/
     participant A as Agent/Skill
     participant Mod as track-modifications.sh
@@ -128,6 +129,7 @@ sequenceDiagram
     U->>H: Ctrl+C (session end)
     H->>Stop: Stop event
     Stop->>C: Regenerate CURRENT.md (Nemori narrative)<br/>atomic mv flag claim (race-condition 방지)
+    Stop->>Handoff: Write minimum next-session handoff
     Stop->>M: Store session-summary memory
 ```
 
@@ -207,7 +209,7 @@ stateDiagram-v2
 
 게이트 조건 상세: `.hxsk/workflow/GATES.md`.
 
-각 게이트는 `gate-check.sh`에 의해 검증되며, STATE.md에 기록된다.
+각 게이트는 `gate-check.sh`에 의해 검증되며, `STATE.md`에 구조화된 현재 상태로 기록된다. `CURRENT.md`는 서사형 요약, `SESSION_HANDOFF.md`는 다음 세션 재진입용 최소 surface 를 담당한다.
 
 ## 6. Multi-Harness Adapter Pattern
 

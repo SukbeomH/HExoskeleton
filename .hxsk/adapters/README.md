@@ -21,6 +21,7 @@ HXSK 메모리 prune 정책을 Claude Code 외의 에이전트 하네스에서�
 | **Windsurf Cascade** | `.windsurf/hooks.json` | post_cascade_response | SessionEnd·PreCompact 부재, 턴 종료로 대체 |
 | **OpenCode** | `~/.config/opencode/plugin/hxsk.ts` (JS 플러그인) | session.idle, session.compacting | 순수 bash 불가, 얇은 JS wrapper 필요 |
 | **OpenAI Codex CLI** | `.codex/hooks.json` (`codex_hooks=true` 필요) + `.hxsk/githooks/pre-push` | stop, git pre-push | PreCompact 없음. 프로젝트 공용 `.codex/hooks.json` 제공 |
+| **Hermes Agent** | `.hxsk/adapters/hermes/README.md` | Hermes tool/session lifecycle를 repo-local 문서 surface로 매핑 | 훅 파일보다 read order / memory split / verification discipline 이 핵심 |
 | **Aider / Continue / Antigravity** | (lifecycle 훅 미지원) | — | git 훅 폴백 사용 |
 
 ## 설치 (선택)
@@ -46,3 +47,35 @@ git config core.hooksPath .hxsk/githooks
 - **Cooldown + atomic lock**: `prune-tick.sh`가 60초 cooldown과 `mkdir` atomic lock을 내장해 스팸·race 방지
 - **git 훅**: `core.hooksPath`로 리포지토리 내부 훅 관리, Husky 불필요
 - **OS 스케줄러 제외**: launchd/cron/systemd는 크로스 플랫폼·외부 종속성 측면에서 HXSK 원칙(순수 bash + 외부 종속성 0)에 위배
+
+## Hermes Agent Bridge
+
+Hermes는 HXSK에 대해 별도 hook 파일을 강하게 요구하지 않는다. 대신 다음 매핑을 고정한다.
+
+- **Entry order**: `llms.txt` → `AGENTS.md` → `.hxsk/CURRENT.md` → `.hxsk/STATE.md` → `.hxsk/VERIFICATION.md`
+- **Long-form memory**: Hermes built-in memory는 짧은 포인터만, canonical long-form context는 `.hxsk/memories/`
+- **Task tracking**: Hermes `todo`는 세션 큐, `.hxsk/TODO.md`는 repo backlog
+- **Recall**: 과거 repo 판단은 `md-recall-memory.sh`, cross-session chat recall은 Hermes `session_search`
+- **Verification**: 완료 판정은 항상 repo-local verification command와 artifact 기준
+
+상세는 [`hermes/README.md`](hermes/README.md) 참조.
+
+추가로 Codex 공존 규칙은 [`../../docs/codex-context-mode-hxsk-coexistence.md`](../../docs/codex-context-mode-hxsk-coexistence.md) 참조.
+
+## Codex + context-mode + HXSK Coexistence
+
+Codex에서 전역 `context-mode`와 repo-local HXSK를 함께 쓰는 경우 우선순위는 다음과 같다.
+
+1. **전역 Codex 설정 (`~/.codex/config.toml`, `~/.codex/hooks.json`)**
+   - context-mode MCP 등록
+   - 라우팅/세션 추적/compaction continuity
+2. **repo-local HXSK surface (`AGENTS.md`, `.hxsk/`, `.hxsk/githooks/`)**
+   - read order, file ownership, verify discipline, memory storage 규칙
+3. **repo-local Codex hooks.json**
+   - 필요한 경우 Stop hook chain 에 HXSK prune/verify 단계를 merge
+
+권장 규칙:
+- context-mode 훅은 **전역**에서 유지
+- HXSK는 **repo-local 문서와 git-hook fallback**으로 유지
+- Stop hook을 repo-local에서 따로 두어야 한다면, `context-mode hook codex stop` 뒤에 `bash .hxsk/scripts/prune-memories.sh --auto` 또는 더 좁은 verify command를 체인으로 병합한다.
+- 둘 중 하나를 덮어쓰는 대신 **병합**을 기본으로 한다.

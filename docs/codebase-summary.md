@@ -20,14 +20,16 @@ HExoskeleton/
 ├── docs/                      # 공개 문서 (이 디렉토리) ← 본 문서 포함
 └── .hxsk/                     # HXSK 작업 상태 + 런타임
     ├── SPEC.md                # 프로젝트 스펙
-    ├── STATE.md               # 활성 게이트 + 디스패처 상태
+    ├── CURRENT.md             # 현재 세션 서사 / 최근 실행 문맥
+    ├── STATE.md               # 구조화된 현재 상태 / next checkpoint / blockers
+    ├── SESSION_HANDOFF.md     # 다음 세션 재진입용 최소 handoff
     ├── ARCHITECTURE.md        # 아키텍처 스냅샷
     ├── STACK.md               # 기술 스택 인벤토리
     ├── DECISIONS.md           # ADR
     ├── PATTERNS.md            # 학습된 패턴 (≤2KB/20 items)
     ├── ROADMAP.md             # 로드맵
-    ├── TODO.md / CURRENT.md / SESSION_HANDOFF.md
-    ├── VERIFICATION.md        # 검증 프레임워크
+    ├── TODO.md                # backlog / follow-up
+    ├── VERIFICATION.md        # 검증 truth / evidence / verdict
     ├── CHANGELOG.md           # 내부 CHANGELOG
     ├── context-config.yaml    # 컨텍스트/프룬 설정
     ├── skills/   (24)         # 재사용 절차
@@ -49,6 +51,19 @@ HExoskeleton/
 ```
 
 ## 2. Core Components Count
+
+### Canonical Active-State Surface
+
+HXSK의 작업 재진입 표면은 아래 문서를 canonical로 본다.
+
+- `SPEC.md` — 목표/제약/성공 기준
+- `CURRENT.md` — 현재 세션 서사와 최근 실행 문맥
+- `STATE.md` — 구조화된 현재 상태, next checkpoint, blockers
+- `SESSION_HANDOFF.md` — 다음 세션이 바로 재진입할 최소 handoff
+- `VERIFICATION.md` — 검증 truth / evidence / verdict
+- `DECISIONS.md` — 구조적 결정
+- `PATTERNS.md` — distilled reusable learnings
+- `TODO.md` — backlog / follow-up
 
 | 영역 | 개수 | 총 LOC | 비고 |
 |------|------|--------|------|

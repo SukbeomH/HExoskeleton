@@ -83,7 +83,19 @@ Claude · Gemini · Copilot · Cursor · Windsurf (10+ 하네스)
          ↓ 각자의 진입점 (CLAUDE.md / GEMINI.md / symlink)
          ▼
     .hxsk/ (공유 상태)
-    STATE · SPEC · PATTERNS · memories · skills · agents · hooks
+    CURRENT · STATE · SESSION_HANDOFF · VERIFICATION
+    SPEC · PATTERNS · memories · skills · agents · hooks
+```
+
+```mermaid
+flowchart TD
+    A[Harness entrypoints\nCLAUDE.md / AGENTS.md / llms.txt] --> B[HXSK core surface]
+    B --> C[CURRENT.md]
+    B --> D[STATE.md]
+    B --> E[SESSION_HANDOFF.md]
+    B --> F[VERIFICATION.md]
+    B --> G[skills / hooks / scripts / workflow]
+    G --> H[bootstrap / session-start / stop / verify]
 ```
 
 에이전트 지침은 분리, 워킹 상태(`.hxsk/`)는 공유. Lock-in 없음, 동시 사용 가능.
@@ -235,22 +247,25 @@ AI 에이전트에게 setup 프롬프트를 전달하면 자동으로 프로젝�
 ├── .windsurfrules → AGENTS.md # Windsurf symlink
 ├── llms.txt                   # LLM 진입점 (Self-Configure 시작)
 ├── .claude/settings.json      # 훅 설정 (7개 이벤트)
-└── .hxsk/                     # Single Source of Truth
-    ├── skills/                # 스킬 정의 (24) — How
-    ├── agents/                # 에이전트 정의 (18) — When/With What
-    ├── hooks/                 # 훅 스크립트 (27) — 자동화
-    ├── scripts/               # 유틸리티 (bootstrap, verify, issue, forge, release)
-    ├── workflow/              # 게이트 기반 작업 관리 (GATES.md)
-    ├── docs/                  # 상세 운영 문서
-    ├── prompts/               # Setup + 마이그레이션 프롬프트
-    ├── templates/             # 문서 템플릿
-    ├── memories/              # 파일 기반 메모리 + 스키마
-    ├── research/              # 연구·근거 문서
-    ├── issues/                # 파일 기반 이슈 레지스트리
-    ├── STATE.md               # 현재 작업 상태
-    ├── SPEC.md                # 프로젝트 명세
-    ├── PATTERNS.md            # 학습된 패턴
-    └── DECISIONS.md           # 아키텍처 결정 기록
+├── .hxsk/                     # Single Source of Truth
+│   ├── skills/                # 스킬 정의 (24) — How
+│   ├── agents/                # 에이전트 정의 (18) — When/With What
+│   ├── hooks/                 # 훅 스크립트 (27) — 자동화
+│   ├── scripts/               # 유틸리티 (bootstrap, verify, issue, forge, release)
+│   ├── workflow/              # 게이트 기반 작업 관리 (GATES.md)
+│   ├── docs/                  # 상세 운영 문서
+│   ├── prompts/               # Setup + 마이그레이션 프롬프트
+│   ├── templates/             # 문서 템플릿
+│   ├── memories/              # 파일 기반 메모리 + 스키마
+│   ├── research/              # 연구·근거 문서
+│   ├── issues/                # 파일 기반 이슈 레지스트리
+│   ├── CURRENT.md             # 최신 세션 서사 snapshot
+│   ├── STATE.md               # 구조화된 coordination 상태
+│   ├── SESSION_HANDOFF.md     # 다음 세션 최소 재진입 포인터
+│   ├── VERIFICATION.md        # 검증 truth / evidence / verdict
+│   ├── SPEC.md                # 프로젝트 명세
+│   ├── PATTERNS.md            # 학습된 패턴
+│   └── DECISIONS.md           # 아키텍처 결정 기록
 ```
 
 ---
@@ -261,15 +276,23 @@ AI 에이전트에게 setup 프롬프트를 전달하면 자동으로 프로젝�
 
 핵심 출처: [A-Mem](https://arxiv.org/html/2502.12110v11) · [Nemori](https://arxiv.org/html/2508.03341v3) · [ReWOO](https://github.com/weitianxin/Awesome-Agentic-Reasoning) · [RLM](https://arxiv.org/html/2512.24601v2) · [Anthropic Context Engineering](https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents) · [Superpowers](https://github.com/obra/superpowers) · [SkillReducer (2026)](https://arxiv.org/abs/2603.29919) · [Meincke et al. (2025)](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=5357179) · [Sharma et al. ICLR 2024](https://arxiv.org/abs/2310.13548)
 
+### 최근 반영 연구 메모
+- [RESEARCH-harness-neutral-active-state-spine.md](.hxsk/research/workflow/RESEARCH-harness-neutral-active-state-spine.md)
+  - 외부의 context continuity / compaction aftercare / hook restore 개념을 HXSK의 **harness-neutral active-state spine** 으로 재해석한 문서입니다.
+- [ACTIVE-STATE-SPINE-IMPLEMENTATION.md](.hxsk/docs/ACTIVE-STATE-SPINE-IMPLEMENTATION.md)
+  - 실제 구현 파일, 검증 결과, 병렬 작업 운영 규칙까지 정리한 작업 기록입니다.
+- [SKILL-INTENT-CATALOG.md](.hxsk/docs/SKILL-INTENT-CATALOG.md)
+  - 24개 스킬 각각의 제작 의도, canonical SKILL 문서 링크, 연결된 대표 리서치 문서를 한눈에 볼 수 있는 카탈로그입니다.
+
 > 상세: [.hxsk/research/INDEX.md](.hxsk/research/INDEX.md)
 
 ---
 
 ## 상세 문서
 
-[Design Philosophy](.hxsk/docs/DESIGN-PHILOSOPHY.md) · [Skills](.hxsk/docs/SKILLS.md) · [Agents](.hxsk/docs/AGENTS.md) · [Hooks](.hxsk/docs/HOOKS.md) · [Memory](.hxsk/docs/MEMORY.md) · [Workflows](.hxsk/docs/WORKFLOWS.md) · [Conventions](.hxsk/docs/CONVENTIONS.md) · [Build](.hxsk/docs/BUILD.md) · [Research](.hxsk/research/INDEX.md)
+[Design Philosophy](.hxsk/docs/DESIGN-PHILOSOPHY.md) · [Skills](.hxsk/docs/SKILLS.md) · [Skill Intent Catalog](.hxsk/docs/SKILL-INTENT-CATALOG.md) · [Agents](.hxsk/docs/AGENTS.md) · [Hooks](.hxsk/docs/HOOKS.md) · [Memory](.hxsk/docs/MEMORY.md) · [Workflows](.hxsk/docs/WORKFLOWS.md) · [Conventions](.hxsk/docs/CONVENTIONS.md) · [Build](.hxsk/docs/BUILD.md) · [Active-State Spine Implementation](.hxsk/docs/ACTIVE-STATE-SPINE-IMPLEMENTATION.md) · [Research](.hxsk/research/INDEX.md)
 
-공개 문서: [docs/](docs/) — codebase-summary · system-architecture · deployment-guide · testing-guide · configuration-guide · code-standards · project-roadmap · project-overview-pdr
+공개 문서: [docs/](docs/) — codebase-summary · system-architecture · deployment-guide · testing-guide · configuration-guide · codex-context-mode-hxsk-coexistence · code-standards · project-roadmap · project-overview-pdr
 
 ---
 
