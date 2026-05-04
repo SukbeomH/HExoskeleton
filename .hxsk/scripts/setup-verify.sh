@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # setup-verify.sh — HExoskeleton 설치 상태 자동 검증
-# 5개 필수 조건을 독립적으로 검사하고 PASS/FAIL 집계 출력.
+# 6개 필수 조건을 독립적으로 검사하고 PASS/FAIL 집계 출력.
 #
 # Usage: bash .hxsk/scripts/setup-verify.sh
 #
@@ -12,7 +12,7 @@
 
 PASS_COUNT=0
 FAIL_COUNT=0
-TOTAL=5
+TOTAL=6
 
 # ─────────────────────────────────────────────────────
 # Helpers
@@ -128,6 +128,22 @@ if [[ -n "$PARSED_VERSION" ]]; then
 else
     fail ".bootstrap-version 파싱 실패 또는 파일 없음" \
         "setup.md Step 1 재실행: bash .hxsk/scripts/bootstrap.sh"
+fi
+
+# ─────────────────────────────────────────────────────
+# 조건 6: canonical active-state surface 존재
+# ─────────────────────────────────────────────────────
+
+ACTIVE_MISSING=()
+for f in .hxsk/CURRENT.md .hxsk/STATE.md .hxsk/SESSION_HANDOFF.md .hxsk/VERIFICATION.md; do
+    [[ -f "$f" ]] || ACTIVE_MISSING+=("$f")
+done
+
+if [[ "${#ACTIVE_MISSING[@]}" -eq 0 ]]; then
+    pass "canonical active-state surface 존재 (.hxsk/{CURRENT,STATE,SESSION_HANDOFF,VERIFICATION}.md)"
+else
+    fail "active-state surface 누락: ${ACTIVE_MISSING[*]}" \
+        "bash .hxsk/scripts/active-state.sh ensure 또는 bash .hxsk/scripts/bootstrap.sh 실행"
 fi
 
 # ─────────────────────────────────────────────────────

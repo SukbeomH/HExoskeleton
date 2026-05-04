@@ -1,5 +1,5 @@
-version: 5.6.1
-last_run: 2026-04-30
+version: 5.7.0
+last_run: 2026-05-04
 components:
   skills: 24
   agents: 18

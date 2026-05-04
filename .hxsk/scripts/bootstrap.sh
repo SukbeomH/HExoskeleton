@@ -29,7 +29,7 @@ find "$LOG_DIR" -name "bootstrap-*.log" -type f 2>/dev/null \
 # Version & Mode Detection
 # ─────────────────────────────────────────────────────
 
-BOOTSTRAP_VERSION="5.6.1"
+BOOTSTRAP_VERSION="5.7.0"
 VERSION_FILE=".hxsk/.bootstrap-version"
 HOOK_DIR=".hxsk/hooks"
 MODE="fresh"
@@ -312,6 +312,15 @@ else
     else
         report_warn "context-config.yaml" "missing — no template found"
     fi
+fi
+
+# Canonical active-state surface
+ACTIVE_STATE_SCRIPT=".hxsk/scripts/active-state.sh"
+if [[ -f "$ACTIVE_STATE_SCRIPT" ]]; then
+    bash "$ACTIVE_STATE_SCRIPT" ensure
+    report_ok "active-state" "CURRENT/STATE/SESSION_HANDOFF/VERIFICATION ensured"
+else
+    report_warn "active-state" "missing .hxsk/scripts/active-state.sh"
 fi
 
 # ─────────────────────────────────────────────────────

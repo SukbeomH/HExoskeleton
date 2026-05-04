@@ -210,10 +210,10 @@ layer2() {
     mkdir -p "$SIM_DIR/.hxsk"
     # Create minimal working docs
     echo "# SPEC" > "$SIM_DIR/.hxsk/SPEC.md"
-    echo "# STATE" > "$SIM_DIR/.hxsk/STATE.md"
     echo "# PATTERNS" > "$SIM_DIR/.hxsk/PATTERNS.md"
+    CLAUDE_PROJECT_DIR="$SIM_DIR" bash "$REPO_ROOT/.hxsk/scripts/active-state.sh" ensure >/dev/null 2>&1
 
-    for doc in SPEC.md STATE.md PATTERNS.md; do
+    for doc in SPEC.md CURRENT.md STATE.md SESSION_HANDOFF.md VERIFICATION.md PATTERNS.md; do
         if [ -f "$SIM_DIR/.hxsk/$doc" ]; then
             pass ".hxsk/$doc created"
         else
@@ -283,7 +283,7 @@ SETTINGSEOF
         fi
     done
 
-    EXPECTED_FILES="CLAUDE.md .claude/settings.json .hxsk/SPEC.md .hxsk/STATE.md .hxsk/PATTERNS.md"
+    EXPECTED_FILES="CLAUDE.md .claude/settings.json .hxsk/SPEC.md .hxsk/CURRENT.md .hxsk/STATE.md .hxsk/SESSION_HANDOFF.md .hxsk/VERIFICATION.md .hxsk/PATTERNS.md"
     for f in $EXPECTED_FILES; do
         if [ -f "$SIM_DIR/$f" ]; then
             pass "File: $f"

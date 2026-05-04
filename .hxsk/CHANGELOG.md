@@ -4,6 +4,28 @@
 
 ---
 
+### [2026-05-04] v5.7.0 — harness-neutral active-state spine + documentation hardening
+
+#### 신규
+- **active-state core helper** — `.hxsk/scripts/active-state.sh` 추가. canonical active-state surface(`CURRENT.md`, `STATE.md`, `SESSION_HANDOFF.md`, `VERIFICATION.md`)를 ensure/stop/status 단위로 관리.
+- **Hermes adapter bridge** — `.hxsk/adapters/hermes/README.md` 추가. Hermes를 repo-local active-state contract 소비자 관점의 thin bridge로 문서화.
+- **작업/리서치 문서** — `ACTIVE-STATE-SPINE-IMPLEMENTATION.md`, `SKILL-INTENT-CATALOG.md`, `RESEARCH-harness-neutral-active-state-spine.md` 추가.
+
+#### 개선
+- **session lifecycle hooks** — `session-start.sh`, `pre-compact-save.sh`, `stop-context-save.sh`가 handoff/verification 포함 ordered restore + snapshot aftercare를 수행하도록 보강.
+- **bootstrap / scaffold / self-configure** — `bootstrap.sh`, `scaffold-hxsk.sh`, `setup-verify.sh`, `verify-self-configure.sh`, `check-consistency.sh`에 active-state contract 생성/검증을 반영.
+- **public docs / README** — active-state surface, 병렬 작업 규칙, skill intent catalog, 관련 리서치 링크, Mermaid 도식을 추가해 재진입성과 설명력을 보강.
+- **parallel execution policy** — same-worktree multi-writer를 비권장/미지원으로 명시하고 `1 branch = 1 worktree = 1 active writer` 원칙을 문서화.
+
+#### 검증
+- `bash .hxsk/scripts/doc-lint.sh`
+- `bash .hxsk/hooks/check-consistency.sh`
+- `bash .hxsk/scripts/setup-verify.sh`
+- `bash .hxsk/scripts/verify-self-configure.sh --all`
+- `bash .hxsk/scripts/local-verify.sh`
+
+---
+
 ### [2026-04-30] v5.6.1 — release lineage 정렬 + metadata baseline 승격
 
 #### 변경

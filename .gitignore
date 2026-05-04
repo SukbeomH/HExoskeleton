@@ -93,6 +93,7 @@ secrets/
 .hxsk/.session-active
 .hxsk/.track-modifications.log
 .hxsk/.context-save.log
+.hxsk/runtime/
 .hxsk/.last-prune-ts
 .hxsk/.prune-lock/
 .hxsk/.prune-config

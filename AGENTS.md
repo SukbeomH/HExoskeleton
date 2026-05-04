@@ -20,22 +20,52 @@ AI 에이전트 기반 개발을 위한 경량 프로젝트 보일러플레이�
 
 SPEC.md → PLAN.md → EXECUTE → VERIFY. Working docs in `.hxsk/`
 
+### Canonical Active-State Surface
+- `.hxsk/CURRENT.md` — latest local session snapshot
+- `.hxsk/STATE.md` — structured coordination state
+- `.hxsk/SESSION_HANDOFF.md` — minimal next-session re-entry handoff
+- `.hxsk/VERIFICATION.md` — verification truth / evidence / verdict
+
+### Parallel Execution Rule
+- 기본 원칙은 **1 branch = 1 worktree = 1 active writer** 입니다.
+- same-worktree multi-writer 병렬 작업은 기본 금지입니다. 병렬화가 필요하면 worktree를 분리합니다.
+- `CURRENT.md` / `SESSION_HANDOFF.md` 는 local latest snapshot 성격이고, `STATE.md` / `VERIFICATION.md` 는 coordination/integration surface 성격입니다.
+
 ## Codex CLI Usage
 
 Codex CLI는 Claude Code의 `PreToolUse`/`PostToolUse` 훅 전체를 동일하게 실행하지 못하므로, 이 레포에서는 루트 `AGENTS.md` 지침 + `.codex/hooks.json` Stop 훅 + Git hook 폴백으로 HXSK를 적용한다.
 
+## Hermes Agent Usage
+
+Hermes는 Claude Code 네이티브 훅 모델과 다르므로, 이 레포에서는 **repo-local canonical surface 우선 + Hermes 내장 기능을 thin bridge로 연결**하는 방식으로 HXSK를 적용한다.
+
 ### Session Start Checklist
+- 먼저 `llms.txt` → `AGENTS.md` → `.hxsk/CURRENT.md` → `.hxsk/STATE.md` → `.hxsk/VERIFICATION.md` 순서로 읽는다.
+- 관련 이력은 `rtk bash .hxsk/hooks/md-recall-memory.sh "<query>" "." 5 compact`로 검색한다.
+- 장문 메모리는 Hermes built-in memory에 복제하지 않고 `.hxsk/memories/`를 canonical long-form store로 사용한다.
+
+### During Work
+- Hermes `todo`는 세션용 작업 큐, `.hxsk/TODO.md`는 repo backlog로 구분한다.
+- Hermes `delegate_task` 사용 시에도 HXSK 파일 소유권 규칙과 GATES 규칙을 우선한다.
+- repo-local policy, plans, verification 문서를 글로벌 Hermes 규칙보다 우선한다.
+
+### Completion
+- 완료 전 실제 검증 명령을 실행하고 결과를 `.hxsk/VERIFICATION.md` 또는 관련 artifact에 남긴다.
+- 다음 세션 재진입 정보는 `.hxsk/SESSION_HANDOFF.md`와 `.hxsk/CURRENT.md`에 압축한다.
+- 재사용 가능한 패턴/원인 분석은 `md-store-memory.sh`로 `.hxsk/memories/`에 저장한다.
+
+### Codex Session Start Checklist
 - 현재 위치가 레포 루트인지 확인하고, 필요 시 `rtk bash .hxsk/scripts/bootstrap.sh`로 구조를 검증한다.
 - 구현/리팩터링 전 `.hxsk/SPEC.md`와 관련 working doc을 읽는다.
 - 관련 이력은 `rtk bash .hxsk/hooks/md-recall-memory.sh "<query>" "." 5 compact`로 검색한다.
 
-### During Work
+### Codex During Work
 - 기존 파일 수정 전 반드시 해당 파일을 먼저 읽는다.
 - 명령은 기본적으로 `rtk` prefix를 사용한다.
 - PLAN 없이 EXECUTE하지 않는다. 작은 단일 수정은 응답 내 짧은 계획으로 충분하지만, 다단계 작업은 `.hxsk/workflow/GATES.md` 또는 해당 이슈 문서를 기준으로 진행한다.
 - 병렬 작업/서브에이전트 사용 시 파일 소유권을 먼저 나눈다.
 
-### Completion
+### Codex Completion
 - 완료 전 실제 검증 명령을 실행하고 결과를 보고한다.
 - 구조 검증이 필요한 변경은 `rtk bash .hxsk/scripts/local-verify.sh` 또는 더 좁은 검증 명령으로 확인한다.
 - 재사용 가능한 패턴, 원인 분석, 세션 요약은 `rtk bash .hxsk/hooks/md-store-memory.sh ...`로 저장한다.

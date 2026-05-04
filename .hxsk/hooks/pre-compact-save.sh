@@ -11,6 +11,8 @@ main() {
     JOURNAL_FILE="$HXSK_DIR/JOURNAL.md"
     PATTERNS_FILE="$HXSK_DIR/PATTERNS.md"
     CURRENT_FILE="$HXSK_DIR/CURRENT.md"
+    HANDOFF_FILE="$HXSK_DIR/SESSION_HANDOFF.md"
+    VERIFICATION_FILE="$HXSK_DIR/VERIFICATION.md"
     TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 
     # Skip if .hxsk/ doesn't exist
@@ -39,6 +41,16 @@ main() {
     # CURRENT.md 백업 (현재 세션 컨텍스트)
     if [ -f "$CURRENT_FILE" ]; then
         cp "$CURRENT_FILE" "${CURRENT_FILE}.pre-compact.bak"
+    fi
+
+    # SESSION_HANDOFF.md 백업
+    if [ -f "$HANDOFF_FILE" ]; then
+        cp "$HANDOFF_FILE" "${HANDOFF_FILE}.pre-compact.bak"
+    fi
+
+    # VERIFICATION.md 백업
+    if [ -f "$VERIFICATION_FILE" ]; then
+        cp "$VERIFICATION_FILE" "${VERIFICATION_FILE}.pre-compact.bak"
     fi
 
     # compact-context.sh 실행 (자동 아카이빙)

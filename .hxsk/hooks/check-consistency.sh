@@ -502,6 +502,48 @@ if [[ -f "$SETTINGS" ]]; then
     fi
 fi
 
+# ─── 15. Active-state contract ─────────────────────
+
+echo ""
+echo "=== Active-state contract ==="
+
+ACTIVE_FAIL=0
+for f in "$HXSK_DIR/CURRENT.md" "$HXSK_DIR/STATE.md" "$HXSK_DIR/SESSION_HANDOFF.md" "$HXSK_DIR/VERIFICATION.md" "$HXSK_DIR/scripts/active-state.sh"; do
+    if [[ -f "$f" ]]; then
+        pass "$(basename "$f") exists"
+    else
+        fail "$(basename "$f") missing"
+        ((ACTIVE_FAIL++)) || true
+    fi
+done
+
+SESSION_START="$HXSK_DIR/hooks/session-start.sh"
+STOP_HOOK="$HXSK_DIR/hooks/stop-context-save.sh"
+if grep -q 'SESSION_HANDOFF.md' "$SESSION_START" 2>/dev/null && grep -q 'VERIFICATION.md' "$SESSION_START" 2>/dev/null; then
+    pass "session-start.sh reads handoff + verification"
+else
+    fail "session-start.sh does not load full active-state surface"
+    ((ACTIVE_FAIL++)) || true
+fi
+
+if grep -q 'active-state.sh' "$STOP_HOOK" 2>/dev/null; then
+    pass "stop-context-save.sh delegates snapshot update to active-state.sh"
+else
+    fail "stop-context-save.sh not wired to active-state.sh"
+    ((ACTIVE_FAIL++)) || true
+fi
+
+if grep -q '^# VERIFICATION.md Template' "$HXSK_DIR/VERIFICATION.md" 2>/dev/null; then
+    fail "VERIFICATION.md is still a template, not a runtime verification surface"
+    ((ACTIVE_FAIL++)) || true
+else
+    pass "VERIFICATION.md is a runtime verification surface"
+fi
+
+if [[ "$ACTIVE_FAIL" -eq 0 ]]; then
+    pass "Active-state contract checks OK"
+fi
+
 # ─── Summary ──────────────────────────────────────
 
 echo ""

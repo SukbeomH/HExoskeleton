@@ -30,50 +30,17 @@ RECENT_COMMITS=$(git -C "$PROJECT_DIR" log --oneline -3 2>/dev/null)
 (
     TS=$(date '+%Y-%m-%d %H:%M:%S')
 
-    # ── 1. CURRENT.md 생성 (순수 bash 템플릿, Nemori 서사 형태) ──
-    mkdir -p "$(dirname "$CURRENT_MD")"
-
-    # 변경 파일 수 계산
-    FILE_COUNT=$(echo "$MODIFIED" | grep -c '.' 2>/dev/null || echo "0")
-
-    # 변경 파일 목록 추출 (상태 코드 제거)
-    FILE_LIST=$(echo "$MODIFIED" | sed 's/^[[:space:]MADRC?]*//' | head -10)
-
-    # 최근 커밋에서 작업 내용 추론
-    LAST_COMMIT_MSG=$(echo "$RECENT_COMMITS" | head -1 | sed 's/^[a-f0-9]* //')
-
-    # 주요 변경 디렉토리 추출
-    MAIN_DIRS=$(echo "$FILE_LIST" | xargs -I{} dirname {} 2>/dev/null | sort -u | head -3 | tr '\n' ', ' | sed 's/,$//')
-
-    # Nemori 서사 형태 템플릿
-    cat > "$CURRENT_MD" <<EOF
-# Current Session Context
-
-## Session Narrative
-> On $TS, the developer was working on the **$BRANCH** branch, modifying $FILE_COUNT files across \`${MAIN_DIRS:-the project}\`. ${LAST_COMMIT_MSG:+The recent work involved: "$LAST_COMMIT_MSG".}
-
-## Context Snapshot
-- **Active Task**: ${LAST_COMMIT_MSG:-Ongoing development}
-- **Branch**: $BRANCH
-- **Files Changed**: $FILE_COUNT
-- **Last Updated**: $TS
-
-## Working Files
-\`\`\`
-${MODIFIED:-No changes detected}
-\`\`\`
-
-## Recent Commits
-\`\`\`
-${RECENT_COMMITS:-No recent commits}
-\`\`\`
-
-## Diff Stats
-\`\`\`
-${DIFF_STAT:-No diff available}
-\`\`\`
-EOF
-    echo "[$TS] CURRENT.md saved (pure bash template)" >> "$LOG_FILE"
+    # ── 1. Canonical active-state latest snapshot 갱신 ──
+    ACTIVE_STATE_SCRIPT="$PROJECT_DIR/.hxsk/scripts/active-state.sh"
+    if [[ -f "$ACTIVE_STATE_SCRIPT" ]]; then
+        ACTIVE_STATE_TS="$TS" \
+        ACTIVE_STATE_BRANCH="$BRANCH" \
+        ACTIVE_STATE_MODIFIED="$MODIFIED" \
+        ACTIVE_STATE_DIFF_STAT="$DIFF_STAT" \
+        ACTIVE_STATE_RECENT_COMMITS="$RECENT_COMMITS" \
+            bash "$ACTIVE_STATE_SCRIPT" stop >> "$LOG_FILE" 2>&1 || true
+        echo "[$TS] active-state snapshot saved" >> "$LOG_FILE"
+    fi
 
     # ── 2. 파일 기반 메모리 저장 (변경 파일이 1개 이상일 때) ──
     # Nemori + A-Mem: 서사 형태 + 확장 필드로 저장
@@ -89,7 +56,7 @@ EOF
     # 훅이 생성하는 파일(CURRENT.md, STATE.md, .hxsk 내부 로그)만 있는 세션은
     # session-summary로 남길 가치가 없음 → 저장 생략
     MEANINGFUL=$(echo "$MODIFIED" | sed 's/^[[:space:]MADRC?]*//' \
-        | grep -v -E '^(\.hxsk/CURRENT\.md|\.hxsk/STATE\.md|\.hxsk/\..*\.log|\.hxsk/\.modified-this-session)$' \
+        | grep -v -E '^(\.hxsk/CURRENT\.md|\.hxsk/STATE\.md|\.hxsk/SESSION_HANDOFF\.md|\.hxsk/runtime/.*|\.hxsk/\..*\.log|\.hxsk/\.modified-this-session)$' \
         | grep -c '.' 2>/dev/null || echo "0")
 
     if [[ "$MEANINGFUL" -ge 1 ]]; then

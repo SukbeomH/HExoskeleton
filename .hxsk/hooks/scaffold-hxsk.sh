@@ -26,6 +26,7 @@ declare -A DIRECT_TEMPLATES=(
     ["todo.md"]="TODO.md"
     ["stack.md"]="STACK.md"
     ["current.md"]="CURRENT.md"
+    ["session_handoff.md"]="SESSION_HANDOFF.md"
 )
 
 CREATED=0
@@ -58,32 +59,68 @@ else
 fi
 
 # ── 템플릿이 없는 파일: 최소 헤더로 생성 ──
-# STATE.md — state.md 템플릿은 메타(설명) 형식이므로 stub 생성
+# STATE.md — gate-check와 active-state core가 읽을 수 있는 stub 생성
 if [ ! -f "$TARGET/STATE.md" ]; then
     cat > "$TARGET/STATE.md" <<'STATEEOF'
-# Project State
-
-## Current Position
-**Status:** idle
-
-## Last Action
-None — freshly initialized.
-
-## Next Steps
-1. Define project spec in SPEC.md
-2. Create plan in PLAN.md
-
-## Blockers
-None
-
+---
+updated: 1970-01-01
+owner: master
+status: maintain
 ---
 
-*Last updated: —*
+# Project State
+
+## Active Gate
+plan: ""
+parent_issue: ""
+current_gate: ""
+sub_issues: []
+forge: ""
+
+## Active Dispatcher
+master: ""
+status: ""
+tasks: []
+
+## Current Position
+- **Milestone:** —
+- **Phase:** —
+- **Status:** maintain
+- **Plan:** Define the first SPEC/PLAN pair.
+
+## Last Action
+- None — freshly initialized.
+
+## Next Steps
+1. Define project spec in `.hxsk/SPEC.md`
+2. Create plan in `PLAN.md`
+3. Run verification before completion claims
+
+## Blockers
+- 없음
+
+## Concerns
+- same-worktree concurrent writers are unsupported; use a fresh worktree for parallel slices.
+
+## History
+<!-- Format: - YYYY-MM-DD branch-or-plan: #issue -> result -->
 STATEEOF
     echo "  [created] STATE.md (stub)"
     CREATED=$((CREATED + 1))
 elif [ -f "$TARGET/STATE.md" ]; then
     echo "  [exists]  STATE.md"
+    SKIPPED=$((SKIPPED + 1))
+fi
+
+# VERIFICATION.md — tracked/shared verification surface baseline
+if [ ! -f "$TARGET/VERIFICATION.md" ]; then
+    if [ -f "$TEMPLATES_SRC/VERIFICATION.md" ]; then
+        cp "$TEMPLATES_SRC/VERIFICATION.md" "$TARGET/VERIFICATION.md"
+        echo "  [created] VERIFICATION.md (from templates/VERIFICATION.md)"
+        CREATED=$((CREATED + 1))
+    fi
+else
+    echo "  [exists]  VERIFICATION.md"
     SKIPPED=$((SKIPPED + 1))
 fi
 

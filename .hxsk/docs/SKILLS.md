@@ -9,9 +9,12 @@ Claude Code의 **Skills**는 Claude가 작업 컨텍스트를 기반으로 **자
 | 항목 | 설명 |
 |------|------|
 | **위치** | `.hxsk/skills/*/SKILL.md` |
-| **개수** | 19개 |
+| **개수** | 24개 |
 | **호출 방식** | Claude가 작업 컨텍스트 기반으로 자율적 결정 |
 | **컨텍스트** | 메인 대화에서 실행 (컨텍스트 공유) |
+| **의도 카탈로그** | [SKILL-INTENT-CATALOG.md](SKILL-INTENT-CATALOG.md) |
+
+> 빠른 목적/근거 조회는 [SKILL-INTENT-CATALOG.md](SKILL-INTENT-CATALOG.md)를 먼저 보고, 실제 절차는 각 `SKILL.md`를 canonical source로 사용합니다.
 
 ---
 

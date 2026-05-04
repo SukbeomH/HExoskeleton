@@ -43,10 +43,21 @@ main() {
         # Read history 초기화 (read-before-edit 훅 연동)
         : > "$HXSK_DIR/.read-history.log" 2>/dev/null || true
 
-        # 1. CURRENT.md 로드
+        # 1. SESSION_HANDOFF.md 로드
+        HANDOFF_FILE="$HXSK_DIR/SESSION_HANDOFF.md"
+        if [ -f "$HANDOFF_FILE" ]; then
+            HANDOFF_CONTENT=$(head -20 "$HANDOFF_FILE" 2>/dev/null || true)
+            if [ -n "$HANDOFF_CONTENT" ]; then
+                CONTEXT_PARTS+=("")
+                CONTEXT_PARTS+=("## Session Handoff (from .hxsk/SESSION_HANDOFF.md)")
+                CONTEXT_PARTS+=("$HANDOFF_CONTENT")
+            fi
+        fi
+
+        # 2. CURRENT.md 로드
         CURRENT_FILE="$HXSK_DIR/CURRENT.md"
         if [ -f "$CURRENT_FILE" ]; then
-            CURRENT_CONTENT=$(head -15 "$CURRENT_FILE" 2>/dev/null || true)
+            CURRENT_CONTENT=$(head -20 "$CURRENT_FILE" 2>/dev/null || true)
             if [ -n "$CURRENT_CONTENT" ] && ! grep -q "^<!-- Current task ID" "$CURRENT_FILE"; then
                 CONTEXT_PARTS+=("")
                 CONTEXT_PARTS+=("## Current Session Context (from .hxsk/CURRENT.md)")
@@ -54,7 +65,7 @@ main() {
             fi
         fi
 
-        # 2. STATE.md 로드 (상위 30줄)
+        # 3. STATE.md 로드 (상위 30줄)
         STATE_FILE="$HXSK_DIR/STATE.md"
         if [ -f "$STATE_FILE" ]; then
             STATE_CONTENT=$(head -30 "$STATE_FILE" 2>/dev/null || true)
@@ -65,7 +76,18 @@ main() {
             fi
         fi
 
-        # 3. Git 미커밋 변경사항 요약
+        # 4. VERIFICATION.md 요약
+        VERIFICATION_FILE="$HXSK_DIR/VERIFICATION.md"
+        if [ -f "$VERIFICATION_FILE" ]; then
+            VERIFICATION_CONTENT=$(head -18 "$VERIFICATION_FILE" 2>/dev/null || true)
+            if [ -n "$VERIFICATION_CONTENT" ]; then
+                CONTEXT_PARTS+=("")
+                CONTEXT_PARTS+=("## Verification Snapshot (from .hxsk/VERIFICATION.md)")
+                CONTEXT_PARTS+=("$VERIFICATION_CONTENT")
+            fi
+        fi
+
+        # 5. Git 미커밋 변경사항 요약
         GIT_STATUS=$(git -C "$PROJECT_DIR" status --short 2>/dev/null || true)
         if [ -n "$GIT_STATUS" ]; then
             FILE_COUNT=$(echo "$GIT_STATUS" | wc -l | tr -d ' ')
@@ -92,7 +114,17 @@ main() {
 
     # ─── resume: 최소 컨텍스트 ───
     elif [ "$SOURCE" = "resume" ]; then
-        # CURRENT.md만
+        # SESSION_HANDOFF.md + CURRENT.md
+        HANDOFF_FILE="$HXSK_DIR/SESSION_HANDOFF.md"
+        if [ -f "$HANDOFF_FILE" ]; then
+            HANDOFF_CONTENT=$(head -16 "$HANDOFF_FILE" 2>/dev/null || true)
+            if [ -n "$HANDOFF_CONTENT" ]; then
+                CONTEXT_PARTS+=("")
+                CONTEXT_PARTS+=("## Session Handoff (from .hxsk/SESSION_HANDOFF.md)")
+                CONTEXT_PARTS+=("$HANDOFF_CONTENT")
+            fi
+        fi
+
         CURRENT_FILE="$HXSK_DIR/CURRENT.md"
         if [ -f "$CURRENT_FILE" ]; then
             CURRENT_CONTENT=$(head -15 "$CURRENT_FILE" 2>/dev/null || true)
@@ -114,7 +146,17 @@ main() {
 
     # ─── compact: 핵심 상태만 ───
     elif [ "$SOURCE" = "compact" ]; then
-        # STATE.md 첫 15줄만
+        # SESSION_HANDOFF.md + STATE.md 핵심만
+        HANDOFF_FILE="$HXSK_DIR/SESSION_HANDOFF.md"
+        if [ -f "$HANDOFF_FILE" ]; then
+            HANDOFF_CONTENT=$(head -12 "$HANDOFF_FILE" 2>/dev/null || true)
+            if [ -n "$HANDOFF_CONTENT" ]; then
+                CONTEXT_PARTS+=("")
+                CONTEXT_PARTS+=("## Session Handoff (from .hxsk/SESSION_HANDOFF.md)")
+                CONTEXT_PARTS+=("$HANDOFF_CONTENT")
+            fi
+        fi
+
         STATE_FILE="$HXSK_DIR/STATE.md"
         if [ -f "$STATE_FILE" ]; then
             STATE_CONTENT=$(head -15 "$STATE_FILE" 2>/dev/null || true)
