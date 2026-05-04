@@ -54,9 +54,9 @@ EOF
 
 ensure_state() {
     if [[ ! -f "$STATE_FILE" ]]; then
-        cat > "$STATE_FILE" <<EOF
+        cat > "$STATE_FILE" <<'EOF'
 ---
-updated: $(iso_date)
+updated: __ISO_DATE__
 owner: master
 status: maintain
 ---
@@ -105,6 +105,13 @@ tasks: []
 ## History
 <!-- Format: - YYYY-MM-DD branch-or-plan: #issue -> result -->
 EOF
+        python3 - "$STATE_FILE" "$(iso_date)" <<'PY'
+from pathlib import Path
+import sys
+path = Path(sys.argv[1])
+iso = sys.argv[2]
+path.write_text(path.read_text().replace('__ISO_DATE__', iso))
+PY
         return 0
     fi
 
@@ -158,16 +165,19 @@ EOF
 
 ensure_verification() {
     [[ -f "$VERIFICATION_FILE" ]] && return 0
-    if [[ -f "$TEMPLATES_DIR/VERIFICATION.md" ]]; then
-        cp "$TEMPLATES_DIR/VERIFICATION.md" "$VERIFICATION_FILE"
-    else
-        cat > "$VERIFICATION_FILE" <<'EOF'
+    cat > "$VERIFICATION_FILE" <<'EOF'
 # Verification
 
 ## Summary
 - No verification recorded yet.
+- Treat this file as the current truth / evidence / verdict surface.
+
+## Latest Checks
+- No checks executed yet.
+
+## Verdict
+- PENDING
 EOF
-    fi
 }
 
 ensure_all() {
@@ -220,44 +230,50 @@ stop_snapshot() {
     task="${last_commit:-Ongoing development}"
     key="$(session_key)"
 
-    cat > "$CURRENT_FILE" <<EOF
-# Current Session Context
+    python3 - "$CURRENT_FILE" "$HANDOFF_FILE" "$ts" "$branch" "$file_count" "$main_dirs" "$last_commit" "$task" "$modified" "$recent_commits" "$diff_stat" "$key" <<'PY'
+from pathlib import Path
+import sys
+current_path = Path(sys.argv[1])
+handoff_path = Path(sys.argv[2])
+ts, branch, file_count, main_dirs, last_commit, task, modified, recent_commits, diff_stat, key = sys.argv[3:13]
+main_dirs = main_dirs or 'the project'
+last_commit_sentence = f'The recent work involved: "{last_commit}".' if last_commit else ''
+current_text = f'''# Current Session Context
 
 ## Session Scope
 - **Latest Snapshot Owner**: local worktree
 - **Parallel Rule**: same-worktree concurrent writers are unsupported; use a fresh worktree per execution slice.
 
 ## Session Narrative
-> On $ts, the developer was working on the **$branch** branch, modifying $file_count files across \`${main_dirs:-the project}\`. ${last_commit:+The recent work involved: "$last_commit".}
+> On {ts}, the developer was working on the **{branch}** branch, modifying {file_count} files across `{main_dirs}`. {last_commit_sentence}
 
 ## Context Snapshot
-- **Active Task**: ${task}
-- **Branch**: $branch
-- **Files Changed**: $file_count
-- **Last Updated**: $ts
+- **Active Task**: {task}
+- **Branch**: {branch}
+- **Files Changed**: {file_count}
+- **Last Updated**: {ts}
 
 ## Working Files
-\`\`\`
-${modified:-No changes detected}
-\`\`\`
+```
+{modified or 'No changes detected'}
+```
 
 ## Recent Commits
-\`\`\`
-${recent_commits:-No recent commits}
-\`\`\`
+```
+{recent_commits or 'No recent commits'}
+```
 
 ## Diff Stats
-\`\`\`
-${diff_stat:-No diff available}
-\`\`\`
-EOF
+```
+{diff_stat or 'No diff available'}
+```
+'''
 
-    cat > "$HANDOFF_FILE" <<EOF
----
-updated: $(iso_date)
-branch: $branch
+handoff_text = f'''---
+updated: {ts.split()[0]}
+branch: {branch}
 next_owner: next-session
-session_key: $key
+session_key: {key}
 ---
 
 # Session Handoff
@@ -271,10 +287,10 @@ session_key: $key
 6. 필요 시 `.hxsk/DECISIONS.md`, `.hxsk/PATTERNS.md`, `.hxsk/memories/`
 
 ## Last Stable Context
-- 브랜치: `$branch`
+- 브랜치: `{branch}`
 - 상태: latest local snapshot stored for the canonical active-state surface
-- 태스크: ${task}
-- 세션 키: `$key`
+- 태스크: {task}
+- 세션 키: `{key}`
 
 ## Immediate Next Action
 - `.hxsk/CURRENT.md` 와 `.hxsk/STATE.md`를 읽고, 필요한 경우 새 worktree에서 다음 execution slice를 여십시오.
@@ -286,7 +302,10 @@ session_key: $key
 ## Notes
 - 이 파일은 latest local handoff snapshot 입니다.
 - 병렬 작업은 same-worktree writer 대신 worktree 분리로 운영하십시오.
-EOF
+'''
+current_path.write_text(current_text)
+handoff_path.write_text(handoff_text)
+PY
 
     update_state_metadata "$branch" "$task"
     write_runtime_snapshot "$key"

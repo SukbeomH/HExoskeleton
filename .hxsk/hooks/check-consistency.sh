@@ -533,6 +533,13 @@ else
     ((ACTIVE_FAIL++)) || true
 fi
 
+if grep -q '^# VERIFICATION.md Template' "$HXSK_DIR/VERIFICATION.md" 2>/dev/null; then
+    fail "VERIFICATION.md is still a template, not a runtime verification surface"
+    ((ACTIVE_FAIL++)) || true
+else
+    pass "VERIFICATION.md is a runtime verification surface"
+fi
+
 if [[ "$ACTIVE_FAIL" -eq 0 ]]; then
     pass "Active-state contract checks OK"
 fi
