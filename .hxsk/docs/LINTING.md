@@ -13,10 +13,10 @@
 
 ```bash
 # ShellCheck: 모든 스크립트 검사
-find scripts .hxsk/hooks -name '*.sh' -exec shellcheck {} +
+find .hxsk/scripts .hxsk/hooks -name '*.sh' -exec shellcheck {} +
 
 # shfmt: 포매팅 검사
-find scripts .hxsk/hooks -name '*.sh' -exec shfmt -d {} +
+find .hxsk/scripts .hxsk/hooks -name '*.sh' -exec shfmt -d {} +
 ```
 
 ## Markdown

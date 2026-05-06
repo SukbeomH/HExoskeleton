@@ -10,7 +10,7 @@ Claude Code의 **Hooks**는 특정 이벤트에 자동으로 응답하는 스크
 |------|------|
 | **설정 파일** | `.claude/settings.json` |
 | **스크립트 위치** | `.hxsk/hooks/` |
-| **개수** | 17개 스크립트 |
+| **개수** | 27개 스크립트 (`.hxsk/hooks/INDEX.md` 기준) |
 | **이벤트 종류** | SessionStart, PreToolUse, PostToolUse, PreCompact, Stop, SubagentStop, SessionEnd |
 
 ---
