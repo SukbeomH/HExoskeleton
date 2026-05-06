@@ -2,17 +2,17 @@
 
 > HExoskeleton 리포지토리의 파일 인벤토리, 의존성, 구성 요소 카운트.
 >
-> Version 5.6.1 문서 스냅샷 · 2026-04-30 기준 로컬 스캔 반영
+> Version 5.7.0 문서 스냅샷 · 2026-05-06 기준 로컬 스캔 반영
 
 ## 1. Repository Layout
 
 ```
 HExoskeleton/
-├── README.md                  # 공개 랜딩 페이지 (312 lines)
+├── README.md                  # 공개 랜딩 페이지 (314 lines)
 ├── CLAUDE.md                  # Claude Code 진입점
-├── AGENTS.md                  # 하네스 공용 지침 (125 lines)
+├── AGENTS.md                  # 하네스 공용 지침 (155 lines)
 ├── GEMINI.md                  # Gemini CLI 진입점 (12 lines)
-├── llms.txt                   # Self-Configure 인덱스 (35 lines)
+├── llms.txt                   # Self-Configure 인덱스 (67 lines)
 ├── CHANGELOG.md               # 릴리스 히스토리
 ├── Makefile                   # 빌드 타겟 (74 lines)
 ├── .envrc / .env.example      # 환경 설정
@@ -35,14 +35,14 @@ HExoskeleton/
     ├── skills/   (24)         # 재사용 절차
     ├── agents/   (18)         # 스킬 오케스트레이션
     ├── hooks/    (27)         # 이벤트 훅
-    ├── scripts/  (22)         # 유틸리티 bash/Python
+    ├── scripts/  (23)         # 유틸리티 bash/Python
     ├── workflow/ (1)          # GATES.md
     ├── prompts/  (3)          # setup 프롬프트
-    ├── templates/ (33)        # 문서 템플릿
+    ├── templates/ (34)        # 문서 템플릿
     ├── adapters/              # 하네스별 어댑터 + 설정 파일
     ├── githooks/              # git post-commit/post-merge
     ├── memories/              # 파일 기반 메모리 + 스키마
-    ├── research/              # L3 근거 문서 (42 markdown / 8 subdirs + root-level studies)
+    ├── research/              # L3 근거 문서 (43 markdown / 8 subdirs + root-level studies)
     ├── issues/                # 파일 기반 이슈 레지스트리
     ├── docs/                  # 내부 심화 문서 (15 root markdown + plans/)
     ├── reports/               # 생성 보고서
@@ -70,9 +70,9 @@ HXSK의 작업 재진입 표면은 아래 문서를 canonical로 본다.
 | **Skills** | 24 | index 기준 | 각 `{name}/SKILL.md` + `references/` |
 | **Agents** | 18 | index 기준 | 각 `{name}.md` 파일 |
 | **Hooks** | 27 | index 기준 | 7개 Claude Code 이벤트 + 보조 훅 |
-| **Scripts** | 22 | 로컬 스캔 기준 | 설치·검증·릴리스·유지보수 유틸리티 |
-| **Templates** | 33 | 로컬 스캔 기준 | 문서 생성 표준 |
-| **Internal Docs** | 15 root markdown | 로컬 스캔 기준 | `.hxsk/docs/` + `plans/` 심화 문서 |
+| **Scripts** | 23 | 로컬 스캔 기준 | 설치·검증·릴리스·유지보수 유틸리티 |
+| **Templates** | 34 | 로컬 스캔 기준 | 문서 생성 표준 |
+| **Internal Docs** | 35 root markdown | 로컬 스캔 기준 | `.hxsk/docs/` + `plans/` 심화 문서 |
 | **Prompts** | 3 | 로컬 스캔 기준 | setup 프롬프트 |
 | **Adapters** | mixed | 설정 파일/문서 혼합 | 하네스별 훅 설정 |
 | **Memory Surface** | canonical 17 + ADR-006 historical | 스키마/디렉토리 혼합 | `term-definition`, `test`, `lessons-learned` 포함 |
@@ -182,13 +182,13 @@ HXSK의 작업 재진입 표면은 아래 문서를 canonical로 본다.
 - `pre-commit-doc-lint.sh` — doc-lint 검사 (INDEX-01은 `references/` 서브디렉토리 자동 제외)
 - `pre-commit-version-check.sh` — 버전 정합성 검증
 
-## 6. Utility Scripts (22)
+## 6. Utility Scripts (23)
 
 | Script | 목적 |
 |--------|------|
-| `bootstrap.sh` (458 lines) | 환경 수렴 엔진 — fresh/update/verify; FAIL 시 "다음 단계: setup.md 열어 수동 수정" 안내 |
+| `bootstrap.sh` | 환경 수렴 엔진 — fresh/update/verify; FAIL 시 setup.md 또는 setup-verify.sh 안내 |
 | `detect-language.sh` (221) | Python/Node/Go/Rust + 패키지 매니저 감지 |
-| `doc-lint.sh` (619) | 마크다운 구조 검증; ORPHAN_EXCLUDE_DIRS에 `./scenario ./predict ./.hxsk/docs ./.hxsk/phases` 포함 |
+| `doc-lint.sh` | 마크다운 구조 검증; ORPHAN_EXCLUDE_DIRS에 `./scenario ./predict ./.hxsk/docs ./.hxsk/phases` 포함 |
 | `issue-create.sh` (166) | master/work/legacy 모드 이슈 생성 |
 | `issue-list.sh` (137) | 이슈 인덱스 출력 |
 | `merge-worktrees.sh` (63) | 워크트리 병합 |
@@ -196,13 +196,16 @@ HXSK의 작업 재진입 표면은 아래 문서를 canonical로 본다.
 | `prune-tick.sh` (75) | 하네스 독립 opportunistic 트리거 (60s 쿨다운); stale lock 300s 감지·제거; `.prune-config` source 안전 검증 |
 | `generate-llms-txt.sh` (61) | llms.txt 자동 생성 |
 | `forge-detect.sh` (170) | GitHub/GitLab/Gitea + auth 감지 |
-| `verify-self-configure.sh` (341) | 자가 구성 검증 |
+| `verify-self-configure.sh` | 자가 구성 검증 |
 | `check-reliability.sh` | 14-패턴 신뢰성 이슈 카운터; `bash .hxsk/scripts/check-reliability.sh` → `ISSUE COUNT: N` 출력 |
 | `install.sh` (70) | 하네스별 1-liner 설치 — `--harness <name>` (Tier 1: claude-code·cursor·copilot 완전 지원) |
 | `install-hooks.sh` (228) | Claude Code settings.json 훅 설치/병합 — `--merge` 기존 설정 보존, python3 원자적 교체 |
 | `hxsk-harness-sync.sh` (35) | 어댑터 드리프트 감지/동기화 — `--check`/`--sync` 모드 |
 | `setup-verify.sh` (200) | 설치 검증 5개 독립 조건 — `PASS N/5 | FAIL M/5` 출력 |
 | `pre-release-check.sh` (100) | 릴리스 전 4-체크: SHA256·CHANGELOG·ISSUE COUNT·실행권한 |
+| `local-verify.sh` | 로컬 우선 검증 번들 — doc-lint, consistency, skill test dry-run, pre-pr 순서 실행 |
+| `active-state.sh` | CURRENT/STATE/SESSION_HANDOFF/VERIFICATION active-state spine 관리 유틸리티 |
+| `glossary-rebuild.sh` / `hitl-ask.sh` | ADR-006 용어/정의 재빌드와 HITL 어댑터 질의 지원 |
 
 ## 7. Memory System (Canonical 17 + ADR-006 historical)
 
@@ -299,7 +302,7 @@ HXSK의 작업 재진입 표면은 아래 문서를 canonical로 본다.
 
 ## 11. Research Foundation
 
-`.hxsk/research/` 에는 **42개 markdown 문서**가 있으며, 이 중 **41개 연구 문서 + 1개 인덱스**로 구성된다. 구조는 **8개 하위 디렉토리 + 5개 루트 문서** 기준으로 정리된다:
+`.hxsk/research/` 에는 **43개 markdown 문서**가 있으며, 이 중 **42개 연구 문서 + 1개 인덱스**로 구성된다. 구조는 **8개 하위 디렉토리 + 루트 문서** 기준으로 정리된다:
 
 - **memory-systems/** (8) — A-Mem, Nemori, ReWOO, RLM, 컨텍스트 압축, 하이브리드 검색
 - **platform-integration/** (9) — Claude Code/OpenCode/Antigravity 통합 및 OpenCode 실증 검증
