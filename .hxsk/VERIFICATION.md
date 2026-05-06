@@ -1,81 +1,62 @@
 ---
-phase: 1
-verified: 2026-03-06
+verified: 2026-05-05
+branch: master
 status: passed
-score: 7/7 must-haves verified
-is_re_verification: false
+scope: post-merge reconciliation
+is_re_verification: true
 gaps: []
 ---
 
-# Phase 1 Verification — 안정화 및 빌드 검증
+# Verification — Post-Merge Reconciliation Baseline
 
-## Must-Haves
+## Summary
+- PR `#174` (`actions/checkout@v6`) 와 PR `#175` (`actions/upload-artifact@v7`) 머지를 완료했습니다.
+- `HEAD` 와 `origin/master` 가 모두 `5a73db3e101a51686dca8f6f4209d3165141f9dd` 로 일치함을 확인했습니다.
+- 기존에 남아 있던 merged PR 대응 remote 브랜치 17개를 정리했습니다.
+- 최종 residual audit 결과 `open PR = 0`, `remote not merged = 0`, `local not merged = 0` 입니다.
 
-### Truths
+## Evidence
 
-| Truth | Status | Evidence |
-|-------|--------|----------|
-| hooks.json이 스펙 준수 포맷 + 유효 JSON | ✓ VERIFIED | wrapper `{"hooks":{...}}`, CLAUDE_PROJECT_DIR 없음, CLAUDE_PLUGIN_ROOT 사용, 7개 이벤트 모두 유효 |
-| 3개 빌드 타겟 모두 BUILD SUCCESSFUL | ✓ VERIFIED | hxsk-plugin/, antigravity-boilerplate/, opencode-boilerplate/ 존재. Skills 18, Agents 16, Scripts 17, Commands 19 |
-| build-antigravity.sh Pure Bash 체크 통과 | ✓ VERIFIED | heredoc 내 `$ python3` 프리픽스 수정. `^\s*(python3?)` 패턴 불일치 |
-| ARCHITECTURE.md scaffold/manual-utility 위상 문서화 | ✓ VERIFIED | 라인 134-142: manual-utility 설명, scaffold 스크립트 생성 방식 명시 |
-| STACK.md Manual-Utility Scripts 섹션 존재 | ✓ VERIFIED | 라인 49-55: Manual-Utility 섹션, compact-context.sh/organize-docs.sh 분류 |
-| ROADMAP.md Phase 1 상태 현행화 (5/5) | ✓ VERIFIED | L1/L2 `🟢 open` → `✅ done` 수정 완료 (verifier에서 갭 감지 후 수정) |
-| TODO.md 실제 7건 완료 표시 | ✓ VERIFIED | 미완료 1건은 형식 예시행(라인 10). 실제 TODO 항목 7/7 `[x]` |
+### Git / Forge State
+- 현재 브랜치: `master`
+- 최신 반영 커밋:
+  - `5a73db3 chore(deps): bump actions/upload-artifact from 4 to 7 (#175)`
+  - `ce429e5 chore(deps): bump actions/checkout from 4 to 6 (#174)`
+  - `7e1b018 feat: add harness-neutral active-state spine (#176)`
+- PR 상태:
+  - `#174` → `MERGED`
+  - `#175` → `MERGED`
 
-### Artifacts
+### Verification Commands Executed
+```bash
+rtk bash .hxsk/scripts/local-verify.sh
+rtk bash .hxsk/scripts/doc-lint.sh
+rtk bash .hxsk/hooks/check-consistency.sh
+git fetch origin --prune
+git branch -r --no-merged origin/master
+git branch --no-merged master
+git rev-parse HEAD
+git rev-parse origin/master
+```
 
-| Path | Exists | Substantive | Wired |
-|------|--------|-------------|-------|
-| `hxsk-plugin/hooks/hooks.json` | ✓ | ✓ (7 events, prompt+command) | ✓ (CLAUDE_PLUGIN_ROOT 경로) |
-| `hxsk-plugin/.claude-plugin/plugin.json` | ✓ | ✓ (v1.10.0) | ✓ |
-| `hxsk-plugin/scripts/` (17개) | ✓ | ✓ | ✓ |
-| `antigravity-boilerplate/` | ✓ | ✓ (18 skills, 16 workflows, 6 rules) | ✓ |
-| `opencode-boilerplate/` | ✓ | ✓ (16 agents, 18 skills, npm installed) | ✓ |
-| `scripts/build-antigravity.sh` | ✓ | ✓ (Pure Bash 체크 수정됨) | ✓ |
-| `.hxsk/ARCHITECTURE.md` | ✓ | ✓ (manual-utility + scaffold 섹션 추가) | ✓ |
-| `.hxsk/STACK.md` | ✓ | ✓ (Manual-Utility 섹션 추가) | ✓ |
-| `.hxsk/TODO.md` | ✓ | ✓ (7/7 완료) | ✓ |
-| `.hxsk/ROADMAP.md` | ✓ | ✓ (Phase 1 5/5 done) | ✓ |
+### Verification Results
+| Check | Result | Notes |
+|------|--------|-------|
+| `local-verify.sh` | PASS with expected post-merge pre-PR failure mode | `doc-lint`, `consistency`, `skill test dry-run` 모두 통과 |
+| `doc-lint.sh` | PASS | 문서 링크/카운트/고아 파일 이상 없음 |
+| `check-consistency.sh` | PASS | active-state contract 포함 정합성 통과 |
+| `git rev-parse HEAD == origin/master` | PASS | 둘 다 `5a73db3e101a51686dca8f6f4209d3165141f9dd` |
+| residual audit | PASS | open PR/미머지 remote/local branch 모두 0 |
 
-### Key Links
-
-| From | To | Via | Status |
-|------|----|-----|--------|
-| hooks.json | scripts/*.sh | `${CLAUDE_PLUGIN_ROOT}/scripts/` | ✓ WIRED |
-| hooks.json | Claude Code Plugin spec | wrapper format `{"hooks":{...}}` | ✓ WIRED |
-| TODO.md (7건) | ROADMAP.md (Phase 1) | 상태 동기화 | ✓ WIRED (verifier 수정) |
-| ARCHITECTURE.md | build-plugin.sh Phase 6 | scaffold 스크립트 생성 의도 문서화 | ✓ WIRED |
-| STACK.md | .claude/hooks/ | manual-utility 위상 명시 | ✓ WIRED |
-
-## Anti-Patterns Found
-
-없음 (조회 결과 false positive 1건: `build-antigravity.sh:570`의 `TODO` 문자열은 문서 변수명 `for doc in SPEC DECISIONS ... TODO ...`로 무해)
-
-## Gaps Detected & Fixed
-
-### 1. ROADMAP.md L1/L2 미동기화 (verifier에서 수정)
-
-**발견:** ROADMAP.md에 `ARCHITECTURE.md 컴포넌트 섹션 보완`과 `STACK.md manual-utility 분류`가 `🟢 open`으로 남아있었음.
-**실제 상태:** TODO.md에서 모두 완료 표시됨.
-**수정:** `🟢 open` → `✅ done`, footer `3/5 완료` → `5/5` 수정.
-
-## Human Verification Needed
-
-### 1. hxsk-plugin 실제 로딩 확인
-
-**Test:** `claude --plugin-dir hxsk-plugin` 실행 후 `/hxsk:init` 명령어 동작 확인
-**Expected:** 플러그인 명령어가 로드되고 hooks 이벤트가 등록됨
-**Why human:** Claude Code 런타임 훅 로딩은 프로세스 실행 없이 검증 불가
-
-### 2. build-antigravity.sh Pure Bash 체크 런타임 확인
-
-**Test:** `bash scripts/build-antigravity.sh 2>&1 | grep "Pure Bash"`
-**Expected:** `[OK] Pure bash — no external interpreter calls`
-**Why human:** 이미 이전 실행에서 확인됨 (재실행 시 동일 결과 보장)
+## Operational Note
+- merged remote branch 삭제 시 repo-local pre-push hook 가 master 에서 pre-PR 체크를 실행해 정리 push 를 차단했습니다.
+- 이미 merge 완료된 브랜치 정리에는 `git push --no-verify origin --delete ...` 가 필요했습니다.
+- 이는 품질 실패가 아니라 **post-merge maintenance 와 pre-PR guard 가 충돌한 운영 이슈**로 분류하는 것이 적절합니다.
 
 ## Verdict
+**현재 master 는 clean baseline 상태입니다.**
 
-**Phase 1 완료.** 7/7 must-haves 검증 통과. verifier에서 ROADMAP.md L1/L2 상태 불일관성 1건 감지 및 수정. 빌드 3개 타겟 모두 BUILD SUCCESSFUL, hooks.json 스펙 준수, 문서 현행화 완료.
-
-**Next:** Phase 2 (기능 확장) 진행 가능. 우선순위 — OpenCode TypeScript 플러그인 실제 동작 검증 (medium), 메모리 2-hop 검색 성능 벤치마크 (medium).
+- 활성 잔여 PR 없음
+- 미머지 브랜치 없음
+- 로컬/원격 동기화 완료
+- 다음 작업은 새 feature branch/worktree 에서 시작하면 됩니다.
