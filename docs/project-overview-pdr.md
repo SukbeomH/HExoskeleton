@@ -2,7 +2,7 @@
 
 > **H**Exoskeleton: AI 에이전트를 위한 외골격 — 절제된 제약이 자율성을 만든다.
 >
-> Version 5.6.1 · Pure bash + markdown · Zero external dependencies
+> Version 5.7.0 · Pure bash + markdown · Zero external dependencies
 
 ## 1. Problem Statement
 
@@ -18,7 +18,7 @@ HXSK는 이 세 문제를 **단일 외부 의존성 없는 파일 기반 보일�
 
 > "AI 에이전트가 팀원처럼 일하게 하려면, 팀원에게 주는 것을 똑같이 주라 — 공유 메모리, 일관된 워크플로우, 그리고 질문 대신 규율."
 
-HXSK는 Claude Code 네이티브 환경에 최적화되었지만, Gemini·Copilot·Cursor·Windsurf·OpenCode·Codex·Antigravity·Aider·Continue까지 9개 하네스에서 동일한 `.hxsk/` 상태 디렉토리를 공유하도록 설계되었다. 플랫폼이 바뀌어도 에이전트의 "외골격"은 따라간다.
+HXSK는 Claude Code 네이티브 환경에 최적화되었지만, Gemini·Copilot·Cursor·Windsurf·OpenCode·Codex·Hermes·Antigravity·Aider·Continue까지 10+ 하네스에서 동일한 `.hxsk/` 상태 디렉토리를 공유하도록 설계되었다. 플랫폼이 바뀌어도 에이전트의 "외골격"은 따라간다.
 
 ## 3. Core Principles (Why)
 
@@ -76,10 +76,10 @@ HXSK는 Claude Code 네이티브 환경에 최적화되었지만, Gemini·Copilo
     │ skills/  (24)    │  How — 재사용 가능한 절차
     │ agents/  (18)    │  When/With What — 스킬 오케스트레이션
     │ hooks/   (27)    │  Event-driven 가드레일
-    │ scripts/ (22)    │  유틸리티 (이슈/메모리/설치/검증)
+    │ scripts/ (23)    │  유틸리티 (이슈/메모리/설치/검증)
     │ memories/        │  17 types × 2-hop search
     │ workflow/        │  GATES.md
-    │ templates/       │  33 templates
+    │ templates/       │  34 templates
     │ research/        │  L3 근거 자료
     └──────────────────┘
 ```
@@ -127,7 +127,7 @@ claude code         # 또는 Cursor/Gemini/Copilot 등
 
 ## 8. Versioning & Release
 
-- **Current**: v5.6.1 (2026-04-30)
+- **Current**: v5.7.0 (2026-05-04)
 - **Scheme**: SemVer (Major.Minor.Patch)
 - **Breaking changes**: `.hxsk/CHANGELOG.md`에 명시
 - **Major milestones**: @project-roadmap.md

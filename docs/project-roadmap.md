@@ -4,10 +4,10 @@
 >
 > 원본 로드맵: `.hxsk/ROADMAP.md` · 전체 CHANGELOG: `.hxsk/CHANGELOG.md`
 
-## 1. Current Version: v5.6.1
+## 1. Current Version: v5.7.0
 
-**기준일**: 2026-04-30
-**현재 라인**: v5.6.1 공개 문서 기준. v5.5.0의 하네스 독립 prune 위에 Phase 8 보안 강화, Phase 9 Progressive Disclosure, Phase 10 CSO 최적화, Phase 11 용어/메모리 정화, Codex/OpenCode 표면 정비, release lineage 정렬이 누적된 상태.
+**기준일**: 2026-05-06
+**현재 라인**: v5.7.0 공개 문서 기준. v5.5.0의 하네스 독립 prune 위에 Phase 8 보안 강화, Phase 9 Progressive Disclosure, Phase 10 CSO 최적화, Phase 11 용어/메모리 정화, Codex/OpenCode 표면 정비, release lineage 정렬, active-state spine / Hermes / HITL 표면 정비가 누적된 상태.
 
 ### 현재 라인의 핵심 변경
 - **하네스 독립 메모리 프룬** — cron/launchd 의존 없이 메모리 툴 호출 시 자연 발화 (sentinel mtime + mkdir atomic lock)
@@ -21,6 +21,7 @@
 
 | 버전 | 날짜 | 주제 | PR |
 |------|------|------|-----|
+| **v5.7.0** | 2026-05-04 | active-state spine, Hermes/HITL surface, local verification sync | — |
 | **v5.6.1** | 2026-04-30 | 공개 version lineage 정렬, README/docs 현행화 | #172 |
 | **v5.6.1** | 2026-04-30 | release lineage 재정렬 | #171 |
 | **v5.6.x** | 2026-04-30 | 검증/정합성 하드닝 + Codex harness 지원 | #167, #169 |
@@ -230,6 +231,7 @@ Non-goals로 설계된 항목. 단기에 변경 없음:
 
 | HXSK 버전 | Claude Code | Gemini | Cursor | Copilot | Windsurf | OpenCode | Codex | Aider | Continue | Antigravity |
 |----------|-------------|--------|--------|---------|----------|----------|-------|-------|----------|-------------|
+| v5.7.x | ✅ | ✅ | ✅ 1.7+ | ✅ | ✅ | ✅ | ✅ | ✅ (git) | ✅ (git) | ✅ (git) |
 | v5.6.x | ✅ | ✅ | ✅ 1.7+ | ✅ | ✅ | ✅ | ✅ | ✅ (git) | ✅ (git) | ✅ (git) |
 | v5.5.x | ✅ | ✅ | ✅ 1.7+ | ✅ | ✅ | ✅ | ✅ | ✅ (git) | ✅ (git) | ✅ (git) |
 | v5.4.x | ✅ | ✅ | ⚠️ 일부 | — | — | ⚠️ | — | — | — | — |

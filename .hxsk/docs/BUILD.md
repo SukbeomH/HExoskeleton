@@ -14,7 +14,7 @@
 | `AGENTS.md` | 범용 에이전트 지침 (Copilot, Cursor, Windsurf 등) |
 | `CLAUDE.md` | Claude Code 전용 설정 |
 | `GEMINI.md` | Gemini CLI 전용 설정 |
-| `.hxsk/prompts/setup.md | 통합 setup 프롬프트 (모든 에이전트 지원) |
+| `.hxsk/prompts/setup.md` | 통합 setup 프롬프트 (모든 에이전트 지원) |
 
 ### 사용법
 

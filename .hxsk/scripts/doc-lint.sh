@@ -63,6 +63,7 @@ mapfile -t ALL_MD < <(
         -not -path "./.hxsk/memories/*" \
         -not -path "./.hxsk/archive/*" \
         -not -path "./.hxsk/reports/*" \
+        -not -path "./.hxsk/runtime/*" \
         -not -path "./.claude/worktrees/*" \
         -not -path "*/.venv/*" \
         -not -path "*/venv/*" \
@@ -582,7 +583,7 @@ rule_dup_01() {
             # write-report.md: agents/는 에이전트 정의, examples/는 사용 예시 — 의도적 구분
             write-report.md) continue ;;
             # autoresearch 세션 출력 파일 — scenario/predict/learn/reason 세션마다 생성
-            overview.md|summary.md|findings.md|scenarios.md|edge-cases.md) continue ;;
+            overview.md|summary.md|findings.md|scenarios.md|edge-cases.md|scout-context.md|validation-report.md) continue ;;
             # predict 세션 분석 파일 — 세션마다 생성되는 의도적 중복
             codebase-analysis.md|component-clusters.md|dependency-map.md|hypothesis-queue.md) continue ;;
             # plan SUMMARY 파일 — 각 Phase마다 동일 번호 plan이 존재하는 의도적 중복

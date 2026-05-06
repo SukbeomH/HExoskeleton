@@ -24,18 +24,18 @@ graph TB
         Skills[skills/<br/>24 재사용 절차]
         Agents[agents/<br/>18 오케스트레이터]
         Hooks[hooks/<br/>27 이벤트 훅]
-        Scripts[scripts/<br/>22 유틸리티]
+        Scripts[scripts/<br/>23 유틸리티]
         Memory[memories/<br/>17 타입 × 2-hop]
         Workflow[workflow/GATES.md<br/>8 게이트]
-        Templates[templates/<br/>33 템플릿]
+        Templates[templates/<br/>34 템플릿]
         State[CURRENT.md<br/>STATE.md<br/>SESSION_HANDOFF.md<br/>VERIFICATION.md<br/>SPEC.md]
         Research[research/<br/>L3 근거]
     end
 
-    subgraph Outputs["빌드 타겟"]
-        Plugin[hxsk-plugin/]
-        Antigrav[antigravity-<br/>boilerplate/]
-        OpenCodeOut[opencode-<br/>boilerplate/]
+    subgraph Outputs["레거시/보조 산출물"]
+        Plugin[hxsk-plugin/<br/>superseded]
+        Antigrav[antigravity-<br/>boilerplate/<br/>superseded]
+        OpenCodeOut[opencode-<br/>boilerplate/<br/>superseded]
     end
 
     User --> Harness
@@ -48,7 +48,7 @@ graph TB
     Skills -->|Use| Templates
     Skills -->|Reference| Research
 
-    HXSK -.Build.-> Outputs
+    HXSK -.historical build path.-> Outputs
 
     style HXSK fill:#f0f8ff,stroke:#4a90e2
     style Harness fill:#fffacd,stroke:#daa520
@@ -233,11 +233,13 @@ graph TB
         Copilot[copilot-hooks.json]
         Windsurf[windsurf-hooks.json]
         OpenCode[opencode-plugin.ts]
+        Hermes[hermes/README.md]
         Cursor --> Tick
         Gemini --> Tick
         Copilot --> Tick
         Windsurf --> Tick
         OpenCode --> Tick
+        Hermes --> Tick
     end
 
     subgraph Tier3["Tier 3: Git Hook Fallback (lifecycle 훅 미지원 하네스)"]
@@ -296,7 +298,9 @@ graph LR
 - lockfile 수정 태스크는 `parallel: false` 필수
 - 파일 소유권 선언 없이 병렬 작업 금지 (AGENTS.md Iron Law)
 
-## 8. Build Pipeline (멀티 플랫폼)
+## 8. Legacy Build Pipeline (superseded)
+
+현재 배포 기본값은 **Self-Configure**이다. 사용자는 리포를 clone/pull 하고 `.hxsk/prompts/setup.md` 또는 `install.sh --harness <name>`으로 로컬 상태를 수렴시킨다. 아래 빌드 파이프라인은 과거 플러그인/보일러플레이트 배포 경로를 설명하는 historical reference이며, 현재 운영 경로가 아니다.
 
 ```mermaid
 graph LR

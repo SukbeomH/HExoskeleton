@@ -70,7 +70,7 @@ qlty fmt                # 자동 포맷
 
 ## 3. Layer 2 — Doc & Consistency
 
-### 3.1 doc-lint.sh (619 lines)
+### 3.1 doc-lint.sh
 
 검증 규칙 (각 규칙은 독립 실행 가능):
 
@@ -112,7 +112,7 @@ git config core.hooksPath .hxsk/githooks
 # 이후 commit 시 doc-lint.sh 자동 실행
 ```
 
-### 3.4 pre-pr-check.sh (344 lines)
+### 3.4 pre-pr-check.sh
 PR 생성 직전 종합 검증:
 ```bash
 bash .hxsk/hooks/pre-pr-check.sh
@@ -201,7 +201,7 @@ REFACTOR → 중복 제거, 설명 압축
 
 ## 6. Self-Configure Verification
 
-### 6.1 verify-self-configure.sh (341 lines)
+### 6.1 verify-self-configure.sh
 
 설치·업그레이드 후 환경 검증:
 ```bash
@@ -223,6 +223,15 @@ bash .hxsk/scripts/verify-self-configure.sh
 bash .hxsk/scripts/setup-verify.sh
 ```
 
+### 6.3 local-verify.sh — 로컬 종합 검증
+
+변경 완료 전 권장 기본값:
+```bash
+bash .hxsk/scripts/local-verify.sh
+```
+
+이 번들은 `doc-lint.sh`, `check-consistency.sh`, 스킬 테스트 dry-run(시나리오가 있을 때), `pre-pr-check.sh`를 순서대로 실행한다. 네트워크 의존 검사는 기본 비활성화하고 로컬에서 먼저 실패하도록 설계되어 있다.
+
 | 조건 | 확인 내용 |
 |------|---------|
 | 스킬 수 | `.claude/skills/` 내 스킬 디렉토리 ≥1 |
@@ -231,7 +240,7 @@ bash .hxsk/scripts/setup-verify.sh
 | 메모리 디렉토리 | `.hxsk/memories/` 하위 타입 디렉토리 존재 |
 | bootstrap 버전 | `.hxsk/.bootstrap-version` 파싱 성공 |
 
-### 6.3 Smoke Test
+### 6.4 Smoke Test
 
 설치 직후 수동 확인:
 ```bash
@@ -292,7 +301,7 @@ hxsk-ci:
 ```
 git commit 시도
     ↓
-1. pre-commit-doc-lint.sh (31 lines)
+1. pre-commit-doc-lint.sh
     └─ doc-lint.sh 실행 → 실패 시 commit 거부
     ↓
 2. pre-commit-version-check.sh (21 lines)
