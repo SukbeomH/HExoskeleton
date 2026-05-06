@@ -460,7 +460,7 @@ tasks:
 
 루트의 `llms.txt`는 `llms.txt v1.0` 스펙 준수. HXSK 버전이 포함:
 ```
-> Last Updated: 2026-04-30 · Format: llms.txt v1.0 · HXSK v5.6.1
+> Last Updated: 2026-05-04 · Format: llms.txt v1.0 · HXSK v5.7.0
 ```
 
 주요 섹션:
@@ -473,8 +473,8 @@ tasks:
 ## 15. Version File (`.hxsk/.bootstrap-version`)
 
 ```yaml
-version: 5.6.1
-last_run: 2026-04-30
+version: 5.7.0
+last_run: 2026-05-04
 components:
   skills: 24
   agents: 18

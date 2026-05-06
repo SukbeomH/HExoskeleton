@@ -66,7 +66,7 @@ llms.txt → .hxsk/prompts/setup.md 순서로 읽고 실행
 setup.md의 Step 0은 `.bootstrap-version` 존재 여부와 `version:` 라인 유무를 기준으로 **4분기**를 수행한다. `CORRUPTED`는 `git status` 실패가 아니라 **`.bootstrap-version`이 존재하지만 `version:` 필드가 없거나 손상된 경우**에 진입한다.
 
 ```bash
-TARGET_VERSION=5.6.1
+TARGET_VERSION=5.7.0
 VERSION_FILE=".hxsk/.bootstrap-version"
 if [ ! -f "$VERSION_FILE" ]; then
     echo "FRESH"
@@ -171,6 +171,7 @@ git pull --rebase
 | v5.3.x | v5.4.0 | Git Forge + lessons-learned A-E + 메모리 티어 | 자동 |
 | v5.4.x | v5.5.0 | 하네스 독립 prune + cap=5 + local-tier 전체 | `.hxsk/.prune-config` 새로 생성 |
 | v5.5.x | v5.6.x | setup release lineage 정렬 + Codex/OpenCode 표면 정비 + 검증/정합성 하드닝 | 자동 (setup.md 재실행 후 local-verify 권장) |
+| v5.6.x | v5.7.x | active-state spine 정비 + Hermes/HITL 표면 보강 + docs/verification sync | 자동 (setup.md 재실행 후 `bash .hxsk/scripts/local-verify.sh`) |
 
 ## 5. Harness-Specific Installation
 
@@ -239,13 +240,21 @@ setup.md의 완료 체크리스트 각 항목에는 검증 명령이 포함되�
 
 ## 6. Self-Configure 검증
 
-설치 후 검증: `bash .hxsk/scripts/setup-verify.sh` → PASS 5/5 확인
+설치 후 1차 검증: `bash .hxsk/scripts/setup-verify.sh` → PASS 5/5 확인. 변경/PR 전 종합 검증은 `bash .hxsk/scripts/local-verify.sh`를 우선 실행한다.
 
 ### 6.1 verify-self-configure.sh
 설치 후 검증:
 ```bash
 bash .hxsk/scripts/verify-self-configure.sh
 ```
+
+### 6.1.1 local-verify.sh
+문서·구조·PR 전 검증을 한 번에 묶은 로컬 우선 진입점:
+```bash
+bash .hxsk/scripts/local-verify.sh
+```
+
+실행 순서: `doc-lint.sh` → `check-consistency.sh` → 스킬 테스트 dry-run(시나리오 존재 시) → `pre-pr-check.sh`.
 
 검증 항목:
 - 훅이 Claude 설정에 등록되었는가
