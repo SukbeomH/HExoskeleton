@@ -20,7 +20,7 @@
   <img src="https://img.shields.io/badge/dependencies-zero-brightgreen?style=flat-square" alt="Zero Dependencies" />
   <img src="https://img.shields.io/badge/stack-bash%20%2B%20markdown-blue?style=flat-square" alt="Bash + Markdown" />
   <img src="https://img.shields.io/badge/multi--agent-5%20platforms-blueviolet?style=flat-square" alt="Multi-Agent" />
-  <img src="https://img.shields.io/badge/v5.5.x%20%C2%B7%2024%20skills%20%C2%B7%2018%20agents%20%C2%B7%2027%20hooks-orange?style=flat-square" alt="Components" />
+  <img src="https://img.shields.io/badge/v5.7.x%20%C2%B7%2024%20skills%20%C2%B7%2018%20agents%20%C2%B7%2027%20hooks-orange?style=flat-square" alt="Components" />
   <img src="https://img.shields.io/github/license/SukbeomH/HExoskeleton?style=flat-square" alt="License" />
 </p>
 
@@ -180,7 +180,7 @@ bash .hxsk/hooks/md-recall-memory.sh "검색어" "." 5 compact 2
 ```
 
 <details>
-<summary><strong>canonical 17개 메모리 디렉토리 + ADR-006 historical (v5.5.x)</strong></summary>
+<summary><strong>canonical 17개 메모리 타입 + ADR-006 historical (v5.7.x)</strong></summary>
 
 디버깅: `root-cause`, `debug-eliminated`, `debug-blocked` · 아키텍처: `architecture-decision`, `pattern-discovery` · 실행: `execution-summary`, `deviation`, `lessons-learned` · 세션: `session-summary`, `session-snapshot`, `session-handoff` · 시스템: `health-event`, `bootstrap`, `security-finding`, `general` · 용어: `term-definition` · 테스트: `test` · historical: `ADR-006`
 
@@ -255,7 +255,7 @@ AI 에이전트에게 setup 프롬프트를 전달하면 자동으로 프로젝�
 │   ├── workflow/              # 게이트 기반 작업 관리 (GATES.md)
 │   ├── docs/                  # 상세 운영 문서
 │   ├── prompts/               # Setup + 마이그레이션 프롬프트
-│   ├── templates/             # 문서 템플릿
+│   ├── templates/             # 문서 템플릿 (34)
 │   ├── memories/              # 파일 기반 메모리 + 스키마
 │   ├── research/              # 연구·근거 문서
 │   ├── issues/                # 파일 기반 이슈 레지스트리
@@ -298,7 +298,7 @@ AI 에이전트에게 setup 프롬프트를 전달하면 자동으로 프로젝�
 
 ## 로드맵
 
-현재 공개 문서 기준 라인은 **v5.6.x**입니다. 최근 반영된 완료 범위는 하네스 독립 prune(v5.5.0), 신뢰성 17건 수정(PR #137), test 메모리 확장(PR #138), 보안 강화(Phase 8), Progressive Disclosure(PR #144), 그리고 release lineage 재정렬(v5.6.1)입니다.
+현재 공개 문서 기준 라인은 **v5.7.x**입니다. 최근 반영된 완료 범위는 하네스 독립 prune(v5.5.0), 신뢰성 17건 수정(PR #137), test 메모리 확장(PR #138), 보안 강화(Phase 8), Progressive Disclosure(PR #144), release lineage 재정렬(v5.6.1), 그리고 active-state / Hermes / HITL 표면 정비(v5.7.0)입니다.
 
 주요 완료 마일스톤: Iron Laws · 합리화 테이블 · CSO · Git Forge 통합(GATES.md) · 하네스 독립 prune · 보안 강화 · Progressive Disclosure.
 
