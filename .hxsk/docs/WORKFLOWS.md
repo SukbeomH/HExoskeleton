@@ -8,12 +8,12 @@ Claude Code의 **Workflows**는 슬래시 명령어(`/command`)로 호출되는 
 
 | 항목 | 설명 |
 |------|------|
-| **소스** | `.hxsk/agents/*.md` (빌드 시 워크플로우로 변환) |
-| **빌드 출력** | Plugin: `commands/`, Antigravity: `.agent/workflows/`, OpenCode: `.opencode/commands/` |
-| **호출 방식** | `/hxsk:<command>` 또는 `/<command>` |
+| **소스** | `.hxsk/skills/*/SKILL.md`, `.hxsk/agents/*.md`, `.hxsk/workflow/GATES.md` |
+| **배포 방식** | Self-Configure: `llms.txt` → `.hxsk/prompts/setup.md` → `install.sh --harness <name>` |
+| **호출 방식** | 하네스별 스킬/에이전트 호출 (`/skill ...`, Task 위임, 또는 어댑터 명령) |
 | **인자 전달** | `$ARGUMENTS` 변수로 전달 |
 
-> **Note**: 워크플로우 파일은 소스에 직접 존재하지 않고, `scripts/build-*.sh`가 agents에서 자동 생성합니다.
+> **Note**: 과거 `scripts/build-*.sh` 기반 플러그인/보일러플레이트 생성 경로는 superseded 상태입니다. 현재 운영 경로는 레포 자체를 배포 단위로 두고 setup/install 스크립트가 각 하네스 표면을 수렴시키는 Self-Configure 모델입니다.
 
 ---
 
