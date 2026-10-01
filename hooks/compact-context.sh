@@ -26,7 +26,7 @@ YEAR_MONTH=$(date +%Y-%m)
 # Check if .hxsk directory exists
 if [[ ! -d "$HXSK_DIR" ]]; then
     echo "[SKIP] .hxsk/ directory not found at $HXSK_DIR"
-    echo "Run /hxsk:init to initialize HExoskeleton documents."
+    echo "Run the hxsk-init skill (scripts/init-project.sh) to initialize HExoskeleton."
     exit 0
 fi
 

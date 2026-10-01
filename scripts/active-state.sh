@@ -114,7 +114,10 @@ path.write_text(path.read_text().replace('__ISO_DATE__', iso))
 PY
         return 0
     fi
+}
 
+# 기존 STATE.md 에 누락 섹션 보충 — stop 에서만 실행 (ensure/status 는 기존 파일을 건드리지 않음)
+migrate_state() {
     python3 - "$STATE_FILE" <<'PY'
 from pathlib import Path
 import sys
@@ -216,6 +219,7 @@ write_runtime_snapshot() {
 
 stop_snapshot() {
     ensure_all
+    migrate_state
 
     local ts branch modified diff_stat recent_commits file_count file_list main_dirs last_commit task key
     ts="${ACTIVE_STATE_TS:-$(ts_human)}"
