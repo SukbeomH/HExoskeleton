@@ -147,8 +147,8 @@ npm run build
 단일 Verify 외에 Guard를 추가하면 **목표 달성 + 사이드 이펙트 없음**을 동시에 검증한다.
 
 ```
-Verify: bash .hxsk/scripts/doc-lint.sh   # 목표 달성?
-Guard:  bash .hxsk/hooks/check-consistency.sh  # 기존 기능 깨지지 않음?
+Verify: npm test -- auth.spec.ts      # 목표 달성? (변경 대상 테스트)
+Guard:  npm test && npm run lint      # 기존 기능 깨지지 않음? (전체 스위트)
 ```
 
 Guard 실패 시 → Verify 성공이라도 BLOCK. Guard 명령은 이진 exit code(0/1)만 허용.
