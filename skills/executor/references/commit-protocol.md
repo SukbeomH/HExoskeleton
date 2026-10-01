@@ -156,7 +156,7 @@ PLAN.md 파싱과 상태 관리는 네이티브 도구로 수행:
 
 ```
 # PLAN.md에서 태스크 추출
-Grep(pattern: "<task id=", path: ".hxsk/phases/", output_mode: "content")
+Grep(pattern: "<task type=", path: ".hxsk/phases/", output_mode: "content")
 
 # 완료된 태스크 확인
 Grep(pattern: "status:.*done|status:.*completed", path: ".hxsk/", output_mode: "files_with_matches")

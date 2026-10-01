@@ -289,10 +289,10 @@ PLAN.md 검증은 네이티브 도구로 수행:
 Read(file_path: ".hxsk/phases/{N}/{M}-PLAN.md") → frontmatter 파싱
 
 # 필수 섹션 존재 확인
-Grep(pattern: "^## (Objective|Tasks|Verification)", path: ".hxsk/phases/", output_mode: "content")
+Grep(pattern: "<(objective|tasks|verification)>", path: ".hxsk/phases/", output_mode: "content")
 
 # Task XML 구조 검증
-Grep(pattern: "<task id=.*>|<files>|<action>|<verify>|<done>", path: ".hxsk/phases/", output_mode: "content")
+Grep(pattern: "<task type=.*>|<files>|<action>|<verify>|<done>", path: ".hxsk/phases/", output_mode: "content")
 ```
 
 ## Iron Laws
