@@ -39,8 +39,8 @@ description: "Requires executed evidence (command output, exit codes, test resul
    - Capture the output/evidence
 
 3. **Document Evidence**
-   - Add to `.hxsk/JOURNAL.md` under the task
-   - Include actual output, not just "passed"
+   - Append a dated section to `.hxsk/VERIFICATION.md` (format: `../verifier/references/verification-templates.md`), or add to the current run's section
+   - Include the command, exit code and actual output, not just "passed"
 
 4. **Confirm Against Criteria**
    - Does evidence match expected outcome?
@@ -178,7 +178,7 @@ This skill integrates with:
 If verification fails:
 
 1. **Do NOT mark task complete**
-2. **Document** the failure in `.hxsk/STATE.md`
+2. **Document** the failure in `.hxsk/VERIFICATION.md` (status `gaps_found`) and the blocker in `.hxsk/STATE.md` `## Blockers`
 3. **Create** fix task if cause is known
 4. **Trigger** Context Health Monitor if 3+ failures
 
@@ -189,4 +189,4 @@ NO VALIDATION WITHOUT FRESH EXECUTION FIRST
 NO VALIDATION WITHOUT BASH EXECUTION FIRST
 NO PARTIAL PASS WITHOUT FULL SUITE PASS FIRST
 NO TRUST WITHOUT INDEPENDENT CHECK FIRST
-NO SUCCESS RECORD WITHOUT JOURNAL ENTRY FIRST
+NO SUCCESS RECORD WITHOUT VERIFICATION.md ENTRY FIRST

@@ -1,25 +1,43 @@
-# VERIFICATION.md Templates
+# VERIFICATION.md Format
 
-## Full VERIFICATION.md Format
+`.hxsk/VERIFICATION.md` (created by `hxsk-init`) is the **only** verification record. Do not create per-phase `*-VERIFICATION.md` files.
 
-```markdown
----
-phase: {N}
-verified: {timestamp}
-status: {passed | gaps_found | human_needed}
-score: {N}/{M} must-haves verified
-is_re_verification: {true | false}
-gaps: [...]  # If gaps_found
----
+- Each verification run **appends one dated section** at the end of the file, in the format below.
+- After appending, update the `## Latest` line near the top so it points at the newest section (session start shows only the top of the file).
+- The `verifier` agent has no write tools: it returns the section text, and the caller appends it and updates `## Latest`.
+- Executor, plan-checker, empirical-validation and the gate conventions all record executed evidence here, in this format.
 
-# Phase {N} Verification
+## File Layout
 
-## Must-Haves
+````markdown
+# Verification
+
+## Latest
+- {YYYY-MM-DD} — {scope} — {passed | gaps_found | human_needed} ({N}/{M})
+
+<!-- One dated section per verification run, appended below (oldest first). -->
+
+## {YYYY-MM-DD} — {scope}
+...
+````
+
+## Section Format
+
+````markdown
+## {YYYY-MM-DD} — {scope: phase N / plan N.M / task / PR #}
+- **Status:** passed | gaps_found | human_needed
+- **Score:** {N}/{M} must-haves verified
+- **Re-verification:** yes | no
+
+### Commands Run
+| Command | Exit | Key output |
+|---------|------|------------|
+| `npm test` | 0 | 42 passed, 0 failed |
 
 ### Truths
 | Truth | Status | Evidence |
 |-------|--------|----------|
-| {truth 1} | ✓ VERIFIED | {how verified} |
+| {truth 1} | ✓ VERIFIED | {command + output excerpt} |
 | {truth 2} | ✗ FAILED | {what's missing} |
 
 ### Artifacts
@@ -32,80 +50,15 @@ gaps: [...]  # If gaps_found
 |------|-----|-----|--------|
 | Chat.tsx | api/chat | fetch | ✗ NOT_WIRED |
 
-## Anti-Patterns Found
+### Anti-Patterns
 - 🛑 {blocker}
 - ⚠️ {warning}
 
-## Human Verification Needed
-### 1. Visual Review
-**Test:** Open http://localhost:3000/chat
-**Expected:** Message list renders with real data
-**Why human:** Visual layout verification
+### Human Verification Needed
+1. **Test:** {what to do} — **Expected:** {what should happen} — **Why human:** {why it can't be checked programmatically}
 
-## Gaps (if any)
-{Structured gap analysis for planner}
-
-## Verdict
-{Status explanation}
-```
-
-## Must-Haves Structure
-
-### Truths (from PLAN frontmatter or derived)
+### Gaps
 ```yaml
-truths:
-  - "User can see existing messages"
-  - "User can send a message"
-```
-
-### Artifacts
-```yaml
-artifacts:
-  - path: "src/components/Chat.tsx"
-    provides: "Message list rendering"
-```
-
-### Key Links
-```yaml
-key_links:
-  - from: "Chat.tsx"
-    to: "api/chat"
-    via: "fetch in useEffect"
-```
-
-## Anti-Patterns Found
-
-**Categories:**
-- 🛑 Blocker: Prevents goal achievement
-- ⚠️ Warning: Indicates incomplete work
-- ℹ️ Info: Notable but not problematic
-
-## Human Verification Needed
-
-**Always needs human:**
-- Visual appearance (does it look right?)
-- User flow completion
-- Real-time behavior (WebSocket, SSE)
-- External service integration
-- Performance feel
-- Error message clarity
-
-**Format:**
-```markdown
-### 1. {Test Name}
-**Test:** {What to do}
-**Expected:** {What should happen}
-**Why human:** {Why can't verify programmatically}
-```
-
-## Gaps (Structured for `/plan --gaps`)
-
-```yaml
----
-phase: {N}
-verified: {timestamp}
-status: gaps_found
-score: {N}/{M} must-haves verified
 gaps:
   - truth: "User can see existing messages"
     status: failed
@@ -115,39 +68,54 @@ gaps:
         issue: "No useEffect with fetch call"
     missing:
       - "API call in useEffect to /api/chat"
-      - "State for storing fetched messages"
       - "Render messages array in JSX"
----
 ```
 
-## Verdict
+### Verdict
+{Why this status, in one short paragraph}
+````
 
-**Status: passed**
-- All truths VERIFIED
-- All artifacts pass levels 1-3
-- All key links WIRED
-- No blocker anti-patterns
+Status, Commands Run and Verdict are always present. Omit other subsections that do not apply (e.g. no Key Links for a CLI change, no Gaps when `passed`).
 
-**Status: gaps_found**
-- One or more truths FAILED
-- OR artifacts MISSING/STUB
-- OR key links NOT_WIRED
-- OR blocker anti-patterns found
+## Must-Haves Structure
 
-**Status: human_needed**
-- All automated checks pass
-- BUT items flagged for human verification
+Read from PLAN frontmatter (`must_haves`, see `../planner/references/plan-structure.md`) or derive from the goal:
+
+```yaml
+must_haves:
+  truths:
+    - "User can see existing messages"
+  artifacts:
+    - path: "src/components/Chat.tsx"
+      provides: "Message list rendering"
+  key_links:
+    - from: "Chat.tsx"
+      to: "api/chat"
+      via: "fetch in useEffect"
+```
+
+## Anti-Pattern Categories
+
+- 🛑 Blocker: prevents goal achievement
+- ⚠️ Warning: indicates incomplete work
+- ℹ️ Info: notable but not problematic
+
+## Human Verification
+
+Always needs a human: visual appearance, user flow completion, real-time behavior (WebSocket, SSE), external service integration, performance feel, error message clarity.
+
+## Status Rules
+
+- **passed** — all truths VERIFIED, all artifacts pass levels 1-3, all key links WIRED, no blocker anti-patterns
+- **gaps_found** — any truth FAILED, artifact MISSING/STUB, key link NOT_WIRED, or blocker anti-pattern. The `Gaps` YAML is what the `planner` skill turns into gap-closure plans (`gap_closure: true`).
+- **human_needed** — all automated checks pass, but items are flagged for human verification
 
 ## Success Criteria
 
-- [ ] Previous VERIFICATION.md checked
+- [ ] Previous section for the same scope checked (re-verification mode if it had gaps)
 - [ ] Must-haves established (from frontmatter or derived)
-- [ ] All truths verified with status and evidence
-- [ ] All artifacts checked at 3 levels (exists, substantive, wired)
-- [ ] All key links verified
-- [ ] Anti-patterns scanned and categorized
-- [ ] Human verification items identified
-- [ ] Overall status determined
+- [ ] Every truth has a status and executed evidence
+- [ ] Artifacts checked at 3 levels (exists, substantive, wired); key links verified
+- [ ] Anti-patterns scanned and categorized; human items identified
 - [ ] Gaps structured in YAML (if gaps_found)
-- [ ] VERIFICATION.md created
-- [ ] Results returned to orchestrator
+- [ ] Section appended to `.hxsk/VERIFICATION.md` and `## Latest` updated — or, as the `verifier` agent, the section text returned to the caller

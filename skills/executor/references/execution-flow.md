@@ -57,7 +57,7 @@ Parse:
   - Dispatch wave items as parallel subagents (`Agent` tool, `isolation: "worktree"`)
   - Wait for all subagents to complete
   - Review results and merge worktrees (`bash ../dispatcher/scripts/merge-worktrees.sh`)
-- After all waves: run overall verification
+- After all waves: run overall verification and append the result to `.hxsk/VERIFICATION.md`
 - Use `dispatcher` skill for detailed orchestration protocol
 
 **Pattern selection:**
@@ -85,7 +85,7 @@ For each task:
    - Return structured checkpoint message
    - You will NOT continue — a fresh agent will be spawned
 
-4. Run overall verification checks
+4. Run overall verification checks and append the result to `.hxsk/VERIFICATION.md` (format: `../verifier/references/verification-templates.md`)
 5. Document all deviations in Summary
 
 ---

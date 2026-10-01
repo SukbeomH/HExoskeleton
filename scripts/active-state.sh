@@ -140,15 +140,11 @@ ensure_verification() {
     cat > "$VERIFICATION_FILE" <<'EOF'
 # Verification
 
-## Summary
-- No verification recorded yet.
-- Treat this file as the current truth / evidence / verdict surface.
+## Latest
+- None yet — no verification recorded.
 
-## Latest Checks
-- No checks executed yet.
-
-## Verdict
-- PENDING
+<!-- One dated section per verification run, appended below (oldest first); update "Latest" each time.
+     Section format: verifier skill, references/verification-templates.md -->
 EOF
 }
 

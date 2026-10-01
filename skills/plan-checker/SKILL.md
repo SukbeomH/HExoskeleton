@@ -208,11 +208,13 @@ Run all 6 dimension checks, collect issues.
 
 ### Step 5: Output Results
 
+Return the result to the caller. A plan check is not executed evidence, so it is not recorded in `.hxsk/VERIFICATION.md`; that file holds the verification runs after execution (`verifier` skill format).
+
 ---
 
 ## Output Formats
 
-### VERIFICATION PASSED
+### PASSED
 ```
 ## Plan Check Passed ✓
 

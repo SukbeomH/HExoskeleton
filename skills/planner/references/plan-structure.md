@@ -196,9 +196,9 @@ wave: {W}
 
 ## Planning from Verification Gaps
 
-When `/verify` finds gaps, create targeted fix plans:
+When the `verifier` skill records `gaps_found` in `.hxsk/VERIFICATION.md`, create targeted fix plans:
 
-1. **Load gap report** from VERIFICATION.md
+1. **Load the `Gaps` YAML** from the latest section of `.hxsk/VERIFICATION.md`
 2. **For each gap:**
    - Identify root cause
    - Create minimal fix task
@@ -209,6 +209,6 @@ When `/verify` finds gaps, create targeted fix plans:
    ```
 
 Gap closure plans:
-- Execute with `/execute {N} --gaps-only`
+- Execute with the `executor` skill like any other plan
 - Smaller scope than normal plans
 - Focus on single issue per plan
