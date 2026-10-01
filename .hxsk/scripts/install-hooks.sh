@@ -153,22 +153,6 @@ HXSK_HOOKS=$(cat <<'HXSK_JSON'
           }
         ]
       }
-    ],
-    "SessionEnd": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": ".hxsk/hooks/save-transcript.sh",
-            "timeout": 10
-          },
-          {
-            "type": "command",
-            "command": ".hxsk/hooks/save-session-changes.sh",
-            "timeout": 10
-          }
-        ]
-      }
     ]
   }
 }

@@ -123,22 +123,6 @@
           }
         ]
       }
-    ],
-    "SessionEnd": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "cd \"${CLAUDE_PROJECT_DIR:-.}\" && .hxsk/hooks/save-transcript.sh",
-            "timeout": 10
-          },
-          {
-            "type": "command",
-            "command": "cd \"${CLAUDE_PROJECT_DIR:-.}\" && .hxsk/hooks/save-session-changes.sh",
-            "timeout": 10
-          }
-        ]
-      }
     ]
   },
   "permissions": {
