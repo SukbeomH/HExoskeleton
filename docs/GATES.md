@@ -2,6 +2,7 @@
 
 > Git forge(이슈·PR) 기반 큰 작업의 진입/완료 조건 **관례**. 어떤 훅·스크립트도 집행하지 않으며, 에이전트와 사람이 수동으로 확인한다.
 > 진행 상태는 `.hxsk/STATE.md`의 `## Active Gate` / `## Active Dispatcher` 필드에 기록한다.
+> 브랜치는 `dispatcher` 스킬과 같은 관례를 쓴다: 플랜(이슈) 브랜치 `feat/master-{id}`, 작업 브랜치 `work/{WORK_ID}`. forge 이슈 대신 `dispatcher`의 `.hxsk/issues/` MASTER/WORK 문서만 쓸 때는 이슈 번호 자리에 그 id를 기록한다.
 
 ---
 
@@ -9,14 +10,14 @@
 
 진입 조건:
   - SPEC.md 존재
-  - SPEC.md 내 `## Goals`, `## Scope` 섹션 포함
+  - SPEC.md 내 `## Goals`, `## Non-Goals (Out of Scope)` 섹션 포함 (`hxsk-init`이 만드는 템플릿의 섹션)
 
 ---
 
 ## GATE-P1: 계획 브랜치 생성 완료
 
 완료 조건:
-  - `feat/plan-{name}` 브랜치 존재 (`git branch --list feat/plan-*`)
+  - `feat/master-{id}` 브랜치 존재 (`git branch --list 'feat/master-*'`)
   - STATE.md `## Active Gate` plan 필드에 브랜치명 기록
 
 ---
@@ -83,7 +84,7 @@
 
 진입 조건:
   - 모든 하위 이슈 closed
-  - 모든 `task/*` 브랜치 merged
+  - 모든 `work/*` 브랜치 merged
   - STATE.md `## Active Dispatcher` status: done
 
 ---
@@ -91,7 +92,7 @@
 ## GATE-V1: 컨플릭트 해결 완료
 
 완료 조건:
-  - `feat/plan-{name}` 브랜치에서 컨플릭트 없음
+  - `feat/master-{id}` 브랜치에서 컨플릭트 없음
   - 빌드/테스트 통과 (프로젝트 테스트 명령 기준) — 실행 결과를 `.hxsk/VERIFICATION.md`에 날짜별 섹션으로 추가 (`verifier` 스킬 형식)
 
 ---
@@ -122,6 +123,6 @@
   - 결과 보고서 생성 (`write-report` 스킬)
   - 이슈 코멘트에서 핵심 결정 추출 → `memory-protocol` 스킬로 `execution-summary` 타입 저장
   - 임시 워크트리 삭제 (`git worktree remove`)
-  - `task/*` 브랜치 삭제
+  - `work/*` 브랜치 삭제
   - STATE.md `## Active Gate` 초기화
   - STATE.md `## Active Dispatcher` 초기화
