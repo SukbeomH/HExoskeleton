@@ -238,7 +238,7 @@ This skill integrates with:
 - `/pause` — Full HXSK session handoff with state archival
 - `/resume` — Loads the state dump context
 - `PATTERNS.md` — Pattern extraction on session end
-- `.gemini/GEMINI.md` Rule 3 (Context Hygiene) — After 3 failed debug attempts: STOP, summarize to STATE.md, document blocker in DECISIONS.md, recommend fresh session
+- 3-Strike Rule (Context Hygiene) — After 3 failed debug attempts: STOP, summarize to STATE.md, document blocker in DECISIONS.md, recommend fresh session
 
 ## Scripts
 

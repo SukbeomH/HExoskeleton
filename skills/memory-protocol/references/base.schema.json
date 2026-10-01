@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://gsd.local/schemas/memory/base",
-  "title": "GSD Memory Base Schema",
+  "$id": "https://hxsk.local/schemas/memory/base",
+  "title": "HXSK Memory Base Schema",
   "description": "A-Mem 확장 필드를 포함한 기본 메모리 스키마 (16개 타입)",
   "type": "object",
   "properties": {

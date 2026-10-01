@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://gsd.local/schemas/memory/term-definition",
+  "$id": "https://hxsk.local/schemas/memory/term-definition",
   "title": "HXSK Term Definition Schema",
   "description": "조작적 정의(ADR-006) — 용어 SSOT. canonical+context 조합이 고유 키.",
   "type": "object",

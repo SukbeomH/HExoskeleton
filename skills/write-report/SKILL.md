@@ -10,7 +10,7 @@ allowed-tools:
 ---
 
 ## Quick Reference
-- **가이드 로드**: `.hxsk/research/solution_comparison_report_guide.md` 로드 없이 진행 금지
+- **가이드 로드**: `references/solution_comparison_report_guide.md` 로드 없이 진행 금지
 - **역피라미드**: 결론과 추천이 Executive Summary 최상단에 없으면 즉시 재작성
 - **후보 스크리닝**: 비교 대상 5 개 초과 시 Pugh 매트릭스로 사전 필터링 필수
 - **현상 유지 리스크**: "무행동 비용"이 명시되지 않으면 보고서 무효 처리
@@ -38,7 +38,7 @@ NO REPORT SAVE WITHOUT STANDARD FILE PATH STRUCTURE FIRST
 ### Step 1: 가이드 로드
 
 보고서 작성 요청을 받으면:
-1. `.hxsk/research/solution_comparison_report_guide.md` 전체를 Read로 로드
+1. `references/solution_comparison_report_guide.md` 전체를 Read로 로드
 2. 보고서 주제에 맞는 평가 프레임워크 선택 (기본: 가중 평점 매트릭스)
 3. 대상 독자 계층 확인 (CEO 1쪽 / C-Suite 3쪽 / 전체 10-20쪽)
 
@@ -143,7 +143,7 @@ NO REPORT SAVE WITHOUT STANDARD FILE PATH STRUCTURE FIRST
 ## 참고 자료
 
 상세 프레임워크, 출처 목록, 정부 조달 템플릿:
-→ `.hxsk/research/solution_comparison_report_guide.md`
+→ `references/solution_comparison_report_guide.md`
 
 ## Output
 

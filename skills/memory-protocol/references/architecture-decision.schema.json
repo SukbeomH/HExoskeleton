@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://gsd.local/schemas/memory/architecture-decision",
+  "$id": "https://hxsk.local/schemas/memory/architecture-decision",
   "title": "Architecture Decision Memory Schema",
   "description": "아키텍처 결정 메모리 스키마 (ADR 스타일)",
   "allOf": [

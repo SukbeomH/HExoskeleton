@@ -33,7 +33,7 @@ archive:
 # 삭제 직전 shared-tier로 자동 승격되어 git으로 보존됨.
 #
 # 실제 설정 값은 .hxsk/.prune-config (shell-sourceable)를 사용:
-#   cp .hxsk/templates/prune-config.sample .hxsk/.prune-config
+#   cp <hxsk 플러그인 루트>/templates/prune-config.sample .hxsk/.prune-config
 # YAML은 문서화 용도. 스크립트는 bash 변수를 직접 소스.
 memory:
   default_cap: 5            # 모든 local-tier 기본 cap (PRUNE_DEFAULT_CAP)

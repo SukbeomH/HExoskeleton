@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://gsd.local/schemas/memory/session-summary",
+  "$id": "https://hxsk.local/schemas/memory/session-summary",
   "title": "Session Summary Memory Schema",
   "description": "세션 요약 메모리 스키마 (Nemori 서사 형태)",
   "allOf": [

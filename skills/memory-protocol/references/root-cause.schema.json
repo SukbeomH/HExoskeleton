@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://gsd.local/schemas/memory/root-cause",
+  "$id": "https://hxsk.local/schemas/memory/root-cause",
   "title": "Root Cause Memory Schema",
   "description": "디버깅 근본 원인 메모리 스키마",
   "allOf": [

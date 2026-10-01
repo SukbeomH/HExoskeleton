@@ -47,7 +47,7 @@ Grep(pattern: "from.*ui.*import|import.*ui", path: "src/repository/", output_mod
 
 복잡도 검사 (shellcheck 기반):
 ```bash
-shellcheck .hxsk/hooks/*.sh 2>&1 || true
+git ls-files -z '*.sh' | xargs -0 shellcheck 2>&1 || true
 ```
 
 ### Step 2: Verify Boundary Compliance

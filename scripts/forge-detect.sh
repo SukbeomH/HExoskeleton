@@ -1,7 +1,7 @@
 #!/bin/bash
 # forge-detect.sh — Git 플랫폼 감지 + CLI 추상화
 # strict-mode-exempt: sourced library; must not mutate caller shell options globally
-# Usage: source .hxsk/scripts/forge-detect.sh
+# Usage: source <hxsk 플러그인 루트>/scripts/forge-detect.sh
 #
 # 제공 함수:
 #   detect_forge              → "github" | "gitlab" | "gitea" | "unknown"

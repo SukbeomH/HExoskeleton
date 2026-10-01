@@ -1,12 +1,12 @@
 ---
 name: cleanse-memory
-description: "Finds and, after human confirmation, deletes .hxsk/memories entries that contradict a Ground Truth source, within an explicitly scoped cleanup. Use only when the user explicitly asks for it (/cleanse <gt-id>, /cleanse --all, /cleanse --dry-run)."
+description: "Finds and, after human confirmation, deletes .hxsk/memories entries that contradict a Ground Truth source, within an explicitly scoped cleanup. Use only when the user explicitly asks for it (/cleanse <ground-truth> <scope-tags>, /cleanse --dry-run)."
 ---
 
 # cleanse-memory Skill
 
 ## Quick Reference
-- **Use when**: GT 소스 대비 메모리 오염 의심 시 — `/cleanse <gt-id>` 또는 `/cleanse --all`
+- **Use when**: GT(Ground Truth) 대비 메모리 오염 의심 시 — `/cleanse <gt> <scope-tag...>`
 - **트리거**: 사용자 명시 호출만 (자동 sweep 없음)
 - **삭제 정책**: HITL 확정 후 영구 삭제 + `.hxsk/.purge-log.tsv` append
 - **우회**: `HXSK_CONTRADICTION_CHECK=0`으로 신규 저장 시 contradiction check 비활성화
@@ -17,26 +17,22 @@ description: "Finds and, after human confirmation, deletes .hxsk/memories entrie
 ## 명령 형식
 
 ```
-/cleanse <gt-source-id>       # 특정 GT 소스 scope 내 메모리만 검사
-/cleanse --all                 # sources.yaml 내 모든 GT 소스 순회
-/cleanse --dry-run <gt-id>    # 삭제 없이 후보 목록만 출력
+/cleanse <gt> <scope-tag...>            # GT 기준으로 scope 태그에 해당하는 메모리만 검사
+/cleanse --dry-run <gt> <scope-tag...>  # 삭제 없이 후보 목록만 출력
 ```
 
-`gt-source-id`는 `.hxsk/ground-truth/sources.yaml`의 `id` 필드값.
+`<gt>`는 Ground Truth 문서의 프로젝트 내 경로 또는 사용자가 준 URL. `<scope-tag>`는 메모리 태그(예: `auth`, `api`).
 
-예시: `/cleanse hxsk-spec`, `/cleanse anthropic-sdk-docs`
+예시: `/cleanse .hxsk/SPEC.md auth session`, `/cleanse docs/api.md api`
 
 ---
 
 ## 처리 흐름
 
-### Step 1: GT 소스 로드
-```bash
-cat .hxsk/ground-truth/sources.yaml
-```
-- `<gt-id>`에 해당하는 항목의 `scope`, `authority`, `type`, `path/url` 추출
-- `type: docs`이고 `url: ""`이면 → **HITL 재질문**: "GT URL을 입력해주세요. 없으면 Skip."
-- `scope: []`이면 → **HITL 재질문**: "scope가 비어있습니다. 적용 범위를 지정해주세요."
+### Step 1: GT 로드
+- `<gt>`가 경로면 Read, 사용자가 준 URL이면 WebFetch로 로드
+- `<gt>`가 없거나 읽을 수 없으면 → **HITL 재질문**: "GT 문서 경로/URL을 알려주세요. 없으면 Skip."
+- scope 태그가 없으면 → **HITL 재질문**: "적용 범위(태그)를 지정해주세요."
 
 ### Step 2: scope 내 메모리 검색 (≤20개 제한)
 ```bash
@@ -63,8 +59,9 @@ HITL 선택지:
 # 1. 파일 삭제
 rm "<memory_filepath>"
 
-# 2. purge-log.tsv append
-echo "$(date -u +%Y-%m-%dT%H:%M:%SZ)\t<memory_id>\t<reason>\t<gt-id>\t<summary_≤200chars>\t<hitl_choice>" \
+# 2. purge-log.tsv append (없으면 헤더부터 생성)
+[ -f .hxsk/.purge-log.tsv ] || printf 'deleted_at\tmemory_id\treason\tgt_source\toriginal_summary\thitl_decision\n' > .hxsk/.purge-log.tsv
+printf '%s\t%s\t%s\t%s\t%s\t%s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "<memory_id>" "<reason>" "<gt>" "<summary_≤200chars>" "<hitl_choice>" \
   >> .hxsk/.purge-log.tsv
 
 # 3. 관련 메모리의 contradicted_by 갱신 (있는 경우)
@@ -77,13 +74,13 @@ purge-log 컬럼 형식:
 | deleted_at | ISO-8601 UTC |
 | memory_id | 파일 basename |
 | reason | 1줄 삭제 사유 (≤80자) |
-| gt_source | GT id (sources.yaml id 값) |
+| gt_source | GT 경로 또는 URL |
 | original_summary | contextual_description ≤200자 |
 | hitl_decision | D / K / G / S |
 
 ### Step 5: 정화 보고서 출력
 ```
-🔍 Cleanse Report: <gt-id>
+🔍 Cleanse Report: <gt>
   검사: N건 | 삭제: M건 | 보관: K건 | Skip: S건
   purge-log: .hxsk/.purge-log.tsv (M행 추가)
 ```
@@ -93,14 +90,13 @@ purge-log 컬럼 형식:
 ## Scope 경계 규칙
 
 - scope 외 메모리는 절대 삭제 금지
-- `--all` 모드도 각 GT의 scope 경계 준수 (GT별 독립 sweep)
-- scope가 겹치는 GT 여러 개 있을 경우, 첫 번째 GT 기준 판단 후 나머지 GT에 동일 결정 전파
+- 한 번의 sweep 은 GT 하나 기준. 여러 GT 는 각각 따로 실행
 
 ---
 
 ## 제약 조건
 
-- `type: docs`이고 `url: ""`인 GT → 자동 fetch 금지, HITL로 URL 요청
+- 사용자가 주지 않은 URL 은 fetch 금지 — HITL로 요청
 - scope 외 파일 삭제 금지 — scope 경계 위반 시 즉시 중단
 - purge-log.tsv를 gitignore 대상으로 만들지 말 것 (audit trail은 git 추적 필수)
 - `--dry-run` 시 실제 삭제·purge-log 기록 금지, 후보 목록과 예상 삭제 수만 출력
@@ -118,8 +114,6 @@ purge-log 컬럼 형식:
 
 ## 관련 파일
 
-- `.hxsk/ground-truth/sources.yaml` — GT 소스 카탈로그
 - `.hxsk/.purge-log.tsv` — 삭제 audit trail (git 추적)
 - `../memory-protocol/scripts/md-recall-memory.sh` — 메모리 검색 (provenance 우선순위 적용)
 - `../memory-protocol/scripts/md-store-memory.sh` — 저장 시 contradiction check (ADR-007)
-- `.hxsk/adapters/hitl/` — HITL 어댑터 (하네스별)

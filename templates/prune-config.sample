@@ -1,7 +1,7 @@
 # HXSK prune 설정 샘플 (shell-sourceable)
 #
 # 사용:
-#   cp .hxsk/templates/prune-config.sample .hxsk/.prune-config
+#   cp <hxsk 플러그인 루트>/templates/prune-config.sample .hxsk/.prune-config
 #   # 이후 필요한 값만 수정
 #
 # prune-memories.sh --auto / prune-tick.sh / Claude Code 훅이 모두 참조.

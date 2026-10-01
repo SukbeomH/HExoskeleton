@@ -19,7 +19,7 @@ description: "Lints and formats shell scripts with shellcheck and shfmt and fixe
 find . -name "*.sh" -exec shellcheck {} \;
 
 # shfmt 포맷팅
-shfmt -w -i 4 .hxsk/hooks/*.sh
+git ls-files -z '*.sh' | xargs -0 shfmt -w -i 4
 ```
 
 Report what was found:
