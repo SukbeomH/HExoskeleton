@@ -105,7 +105,7 @@ Persist findings after each session (elimination, root cause, blocked state).
 
 ## Scripts
 
-(없음 — Bash, Read, Grep 등 에이전트 네이티브 도구로 직접 수행)
+- `scripts/collect_diagnostics.sh [project_root]` — OS·런타임 버전·git 상태·의존성 파일·Docker 컨테이너를 한 번에 출력하는 진단 리포트 (`.env`는 존재 여부만). 실행: `bash scripts/collect_diagnostics.sh .`
 
 ## Iron Laws
 NO CONTINUE_AFTER_3_FAILURES WITHOUT STATE_RECORDING_AND_FRESH_SESSION FIRST

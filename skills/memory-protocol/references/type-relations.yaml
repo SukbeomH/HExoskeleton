@@ -1,6 +1,6 @@
 # Memory Type Relations Schema
 # Based on Ontology research for structured reasoning
-# Defines relationships between 16 memory types
+# Defines relationships between memory types
 
 version: "1.1"
 
@@ -112,7 +112,7 @@ types:
       prevents: [deviation]
 
   term-definition:
-    description: "조작적 정의 — 용어 SSOT (canonical/context/aliases). ADR-006."
+    description: "조작적 정의 — 용어 SSOT (canonical/context/aliases)."
     primary_tags: [glossary, term, definition]
     relations:
       informs: [pattern-discovery, architecture-decision]

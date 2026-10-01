@@ -43,10 +43,10 @@ Parse:
 **Pattern B: Has checkpoints**
 - Execute tasks until checkpoint
 - At checkpoint: STOP and return structured checkpoint message
-- Fresh continuation agent resumes
+- Record the resume point in `.hxsk/SESSION_HANDOFF.md` and wait for the user to resume
 
-**Pattern C: Continuation (spawned to continue)**
-- Check completed tasks in your prompt
+**Pattern C: Continuation (user resumed after a checkpoint)**
+- Check completed tasks in `.hxsk/SESSION_HANDOFF.md` (or the prompt)
 - Verify those commits exist
 - Resume from specified task
 
@@ -57,7 +57,7 @@ Parse:
   - Dispatch wave items as parallel subagents (`Agent` tool, `isolation: "worktree"`)
   - Wait for all subagents to complete
   - Review results and merge worktrees (`bash ../dispatcher/scripts/merge-worktrees.sh`)
-- After all waves: run overall verification
+- After all waves: run overall verification and append the result to `.hxsk/VERIFICATION.md`
 - Use `dispatcher` skill for detailed orchestration protocol
 
 **Pattern selection:**
@@ -83,9 +83,9 @@ For each task:
 3. **If `type="checkpoint:*"`:**
    - STOP immediately
    - Return structured checkpoint message
-   - You will NOT continue — a fresh agent will be spawned
+   - Do NOT continue — record the resume point in `.hxsk/SESSION_HANDOFF.md` and wait for the user to resume
 
-4. Run overall verification checks
+4. Run overall verification checks and append the result to `.hxsk/VERIFICATION.md` (format: `../verifier/references/verification-templates.md`)
 5. Document all deviations in Summary
 
 ---

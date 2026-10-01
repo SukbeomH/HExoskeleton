@@ -19,7 +19,7 @@
 | SessionStart (startup\|resume) | `session-start.sh` | 상태 | STATE/HANDOFF 등 작업 상태를 컨텍스트로 주입 |
 | PreCompact (auto\|manual) | `pre-compact-save.sh` | 상태 | 압축 전 상태 문서 백업 |
 | Stop | `post-turn-verify.sh` | 포맷 + 상태 | 변경 파일 CRLF 정리·lint 경고는 항상, "완료" 선언에 검증 실행 기록이 없을 때의 경고는 `.hxsk/`에서만 |
-| Stop | `stop-context-save.sh` | 상태 | CURRENT.md·SESSION_HANDOFF.md 스냅샷 갱신, session-summary 메모리 저장, 메모리 prune |
+| Stop | `stop-context-save.sh` | 상태 | `CURRENT.md` 스냅샷만 다시 씀(`STATE.md`·`SESSION_HANDOFF.md`는 없을 때 템플릿으로 만들 뿐 이후 건드리지 않음), session-summary 메모리 저장, 메모리 prune |
 | Stop | `collect-rationalization.sh` | 상태 | Iron Law 위반 시그널 수집 |
 
 `_json_parse.sh`(jq → python3 → node 순 JSON 파서)와 `compact-context.sh`는 훅이 내부적으로 쓰는 헬퍼다.

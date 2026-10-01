@@ -17,7 +17,7 @@ description: "Validates PLAN.md before execution across six dimensions: requirem
 **Question:** Does every phase requirement have task(s) addressing it?
 
 **Process:**
-1. Extract phase goal from ROADMAP.md
+1. Extract the goal from `.hxsk/SPEC.md` (`## Goals`, `## Success Criteria`) and the plan's `<objective>`
 2. Decompose goal into requirements (what must be true)
 3. For each requirement, find covering task(s)
 4. Flag requirements with no coverage
@@ -185,8 +185,7 @@ issue:
 ### Step 1: Load Context
 ```
 Read:
-- .hxsk/ROADMAP.md (phase goals)
-- .hxsk/REQUIREMENTS.md (if exists)
+- .hxsk/SPEC.md (goals, success criteria)
 - .hxsk/phases/{N}/*-PLAN.md (all plans)
 ```
 
@@ -208,11 +207,13 @@ Run all 6 dimension checks, collect issues.
 
 ### Step 5: Output Results
 
+Return the result to the caller. A plan check is not executed evidence, so it is not recorded in `.hxsk/VERIFICATION.md`; that file holds the verification runs after execution (`verifier` skill format).
+
 ---
 
 ## Output Formats
 
-### VERIFICATION PASSED
+### PASSED
 ```
 ## Plan Check Passed ✓
 
@@ -251,7 +252,7 @@ Warnings (optional):
 
 | Severity | Meaning | Action |
 |----------|---------|--------|
-| blocker | Will cause execution failure | Must fix before /execute |
+| blocker | Will cause execution failure | Must fix before the `executor` skill runs |
 | warning | Quality/efficiency risk | Should fix, can proceed |
 | info | Observation | No action needed |
 
@@ -273,8 +274,8 @@ issue:
 
 ## When to Run
 
-- After `/plan` completes
-- Before `/execute` starts
+- After the `planner` skill writes plans
+- Before the `executor` skill starts
 - After plan modifications
 
 Plan checker is the quality gate between planning and execution.
@@ -288,10 +289,10 @@ PLAN.md 검증은 네이티브 도구로 수행:
 Read(file_path: ".hxsk/phases/{N}/{M}-PLAN.md") → frontmatter 파싱
 
 # 필수 섹션 존재 확인
-Grep(pattern: "^## (Objective|Tasks|Verification)", path: ".hxsk/phases/", output_mode: "content")
+Grep(pattern: "<(objective|tasks|verification)>", path: ".hxsk/phases/", output_mode: "content")
 
 # Task XML 구조 검증
-Grep(pattern: "<task id=.*>|<files>|<action>|<verify>|<done>", path: ".hxsk/phases/", output_mode: "content")
+Grep(pattern: "<task type=.*>|<files>|<action>|<verify>|<done>", path: ".hxsk/phases/", output_mode: "content")
 ```
 
 ## Iron Laws

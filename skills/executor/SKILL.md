@@ -28,7 +28,7 @@ allowed-tools:
 | 5 | Handle Deviations | Rule 1-3=auto-fix; Rule 4=checkpoint |
 | 6 | Commit Tasks | One task = one commit (see commit protocol) |
 | 7 | Create SUMMARY.md | `.hxsk/phases/{N}/{plan}-SUMMARY.md` |
-| 8 | Store Memory | `md-store-memory.sh` execution-summary |
+| 8 | Store Memory | `../memory-protocol/scripts/md-store-memory.sh` execution-summary |
 
 **상세 흐름** → `references/execution-flow.md`
 
@@ -78,9 +78,9 @@ git add -A && git commit -m "feat({phase}-{plan}): {task}"
 ```
 
 SUMMARY.md → `.hxsk/phases/{N}/{plan}-SUMMARY.md`
-Memory → `md-store-memory.sh "Plan {phase}-{plan} Summary" ...`
+Memory → `bash ../memory-protocol/scripts/md-store-memory.sh "Plan {phase}-{plan} Summary" ...`
 
-**전체 프로토콜 (Phase Checkpoint, PRD Update, SUMMARY format, Anti-Patterns, 관련스킬, 네이티브도구)** → `references/commit-protocol.md`
+**전체 프로토콜 (Phase Checkpoint, SUMMARY format, Anti-Patterns, 관련스킬, 네이티브도구)** → `references/commit-protocol.md`
 
 ## Iron Laws
 NO EXECUTION WITHOUT STATE AND PLAN LOADING FIRST

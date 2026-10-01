@@ -97,7 +97,12 @@ MASTER 문서의 branch 필드 기록. status를 `in-progress`로 변경.
    ```
 3. WORK 문서에 worktree, worktree_branch 기록
 
-**서브에이전트 프롬프트 템플릿:**
+**서브에이전트 프롬프트 템플릿:** 디스패치 전에 오케스트레이터가 placeholder를 실제 값으로 바꿔 넣는다.
+
+- `{WORK_ID}` — WORK 문서 id (예: `WORK-1-2`)
+- `{task description}` — WORK 제목
+- `{HXSK_SKILLS_DIR}` — 스킬 디렉터리의 **절대경로** = 이 SKILL.md가 있는 디렉터리(`…/dispatcher`)의 부모. 서브에이전트는 워크트리 루트에서 실행되므로 `../memory-protocol/…` 같은 스킬 기준 상대경로가 풀리지 않는다.
+
 ````
 You are executing {WORK_ID}.
 Main root: resolve via `git worktree list | head -1 | awk '{print $1}'`
@@ -115,8 +120,9 @@ Rules:
 
 실행 전 관련 패턴 조회:
 ```bash
-bash ../memory-protocol/scripts/md-recall-memory.sh "{WORK_ID} {task description} lessons-learned" \
-  "." 5 compact
+MAIN_ROOT=$(git worktree list | head -1 | awk '{print $1}')
+bash {HXSK_SKILLS_DIR}/memory-protocol/scripts/md-recall-memory.sh "{WORK_ID} {task description} lessons-learned" \
+  "$MAIN_ROOT" 5 compact
 ```
 해당 A/B/C/D/E 패턴 확인 후 동일 실수 방지.
 
@@ -217,7 +223,7 @@ bash scripts/merge-worktrees.sh <worktree-path> <branch-name>
 4. **실패 격리**: 하나의 서브에이전트 실패가 다른 서브에이전트에 영향 없음
 5. **결과 리뷰**: merge 전 각 서브에이전트 결과를 오케스트레이터가 리뷰
 6. **오케스트레이터 단독 쓰기**: 이슈 문서는 오케스트레이터만 생성/업데이트
-7. **워크트리 브랜치 네이밍**: `feat/master-{id}/work-{seq}`
+7. **워크트리 브랜치 네이밍**: `work/{WORK_ID}` (예: `work/WORK-1-2`). Agent 도구가 다른 이름을 만들면 그 이름을 WORK 문서 `worktree_branch`에 기록한다. `feat/master-{id}/…`는 이슈 브랜치 `feat/master-{id}`와 git ref가 충돌하므로 쓰지 않는다.
 
 ## Main Root Resolve
 

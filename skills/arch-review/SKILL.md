@@ -125,13 +125,9 @@ bash ../memory-protocol/scripts/md-store-memory.sh \
 | Severity | Action |
 |----------|--------|
 | LOW | Log warning, proceed |
-| MEDIUM | Require acknowledgment in DECISIONS.md |
+| MEDIUM | Require acknowledgment, stored as an `architecture-decision` memory (`../memory-protocol/scripts/md-store-memory.sh`) |
 | HIGH | Block and require human approval |
 | CRITICAL | Stop all work, escalate to tech lead |
-
-## Scripts
-
-(없음 — shellcheck, Grep, Glob 등 에이전트 네이티브 도구로 직접 수행)
 
 ## Iron Laws
 NO ARCHITECTURE REVIEW WITHOUT MEMORY RECALL FIRST

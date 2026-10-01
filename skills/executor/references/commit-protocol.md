@@ -57,66 +57,6 @@ TEST_CMD=$(get_test_cmd "$RUNNER" "$PKG")
 
 ---
 
-## PRD Update Protocol
-
-작업 완료 후 PRD 상태를 업데이트하여 진행 상황을 추적합니다.
-
-### When to Update PRD
-
-1. **Task 커밋 직후** — 각 task가 커밋되면 즉시 PRD 업데이트
-2. **Plan 완료 시** — SUMMARY.md 작성 후 해당 plan의 모든 task 완료 확인
-
-### PRD 상태 관리
-
-PRD 파일은 직접 편집하거나 메모리 시스템을 통해 기록:
-
-```bash
-# 실행 결과 메모리에 저장
-bash ../memory-protocol/scripts/md-store-memory.sh \
-  "Execution: Plan 1.2" \
-  "Task 완료. Commit: abc1234" \
-  "execution,summary,phase-1" \
-  "execution-summary"
-```
-
-### Integration with Task Commit
-
-Task 완료 시 통합 프로세스:
-
-```bash
-# 1. Task 커밋
-git add -A
-git commit -m "feat(1-2): implement user authentication"
-
-# 2. 커밋 해시 획득
-COMMIT_HASH=$(git rev-parse --short HEAD)
-
-# 3. 메모리에 실행 결과 저장
-bash ../memory-protocol/scripts/md-store-memory.sh "Plan 1.2 Complete" "Commit: $COMMIT_HASH" "execution" "execution-summary"
-```
-
-### PRD File Structure
-
-- `.hxsk/prd-active.json` — 진행 중인 tasks (pending, in_progress, blocked)
-- `.hxsk/prd-done.json` — 완료된 tasks (done)
-
-완료 시 task가 active에서 done으로 자동 이동됩니다.
-
-### Output Format
-
-모든 명령은 JSON 형식으로 결과를 출력합니다:
-
-```json
-{
-  "success": true,
-  "action": "completed",
-  "task": {"id": "TASK-001", "title": "...", "status": "done"},
-  "remaining": 5
-}
-```
-
----
-
 ## SUMMARY.md Format
 
 After plan completion, create `.hxsk/phases/{N}/{plan}-SUMMARY.md`:
@@ -185,7 +125,7 @@ Load ONLY what's necessary for current task:
 Checkpoints mean STOP. Never continue after checkpoint.
 
 ### Redoing committed work
-If continuation agent, verify commits exist, don't redo.
+When resuming after a checkpoint, verify commits exist, don't redo.
 
 ### Loading everything
 Don't load all SUMMARYs, all plans. Need-to-know only.
@@ -216,7 +156,7 @@ PLAN.md 파싱과 상태 관리는 네이티브 도구로 수행:
 
 ```
 # PLAN.md에서 태스크 추출
-Grep(pattern: "<task id=", path: ".hxsk/phases/", output_mode: "content")
+Grep(pattern: "<task type=", path: ".hxsk/phases/", output_mode: "content")
 
 # 완료된 태스크 확인
 Grep(pattern: "status:.*done|status:.*completed", path: ".hxsk/", output_mode: "files_with_matches")

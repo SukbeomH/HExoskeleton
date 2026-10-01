@@ -78,7 +78,7 @@ body:
       placeholder: |
         - OS: macOS 15
         - Agent harness + version: Claude Code 2.1.x / Codex / ...
-        - HXSK version (.claude-plugin/plugin.json) or commit: 6.0.0
+        - HXSK version (.claude-plugin/plugin.json) or commit: <version>
     validations:
       required: true
 

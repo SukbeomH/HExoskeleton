@@ -1,93 +1,66 @@
 # PLAN.md Template
 
-> Copy this template when creating execution plans.
+> Verbatim copy of the format in `skills/planner/references/plan-structure.md` (the single source — edit there first, then copy here).
 
 ```markdown
 ---
 phase: {N}
 plan: {M}
 wave: {W}
+depends_on: []
+files_modified: []
+autonomous: true
 gap_closure: false
+user_setup: []
 cross_phase_invariants:
-  inherit: []   # 직전 phase의 inherit + new를 그대로 복사
-  new: []       # 이번 phase에서 새로 추가되는 불변 조건
+  inherit: []   # copy the previous plan's inherit + new verbatim
+  new: []       # invariants introduced by this phase
+
+must_haves:
+  truths: []
+  artifacts: []
+  key_links: []
 ---
 
 # Plan {N}.{M}: {Descriptive Name}
 
-## Objective
-{One paragraph explaining what this plan delivers and why it matters}
+<objective>
+{What this plan accomplishes}
 
-## Context
-Load these files for context:
+Purpose: {Why this matters}
+Output: {What artifacts will be created}
+</objective>
+
+<context>
+Load for context:
 - .hxsk/SPEC.md
-- .hxsk/ARCHITECTURE.md
+- .hxsk/ARCHITECTURE.md (if exists)
 - {relevant source files}
+</context>
 
-## Tasks
+<tasks>
 
 <task type="auto">
-  <name>{Clear, specific task name}</name>
-  <files>
-    {exact/file/path1.ext}
-    {exact/file/path2.ext}
-  </files>
+  <name>{Clear task name}</name>
+  <files>{exact/file/paths.ext}</files>
   <action>
-    {Specific implementation instructions}
-    
-    Steps:
-    1. {Step 1}
-    2. {Step 2}
-    3. {Step 3}
-    
+    {Specific instructions}
     AVOID: {common mistake} because {reason}
-    USE: {preferred approach} because {reason}
   </action>
-  <verify>
-    {Executable command or check}
-    Example: npm test -- --testNamePattern="auth"
-    Example: curl -X POST localhost:3000/api/login
-  </verify>
-  <done>
-    {Measurable acceptance criteria}
-    Example: Valid credentials → 200 + Set-Cookie, invalid → 401
-  </done>
+  <verify>{command or check}</verify>
+  <done>{measurable criteria}</done>
 </task>
 
-<task type="auto">
-  <name>{Task 2 name}</name>
-  <files>{files}</files>
-  <action>{instructions}</action>
-  <verify>{command}</verify>
-  <done>{criteria}</done>
-</task>
+</tasks>
 
-## Must-Haves
-After all tasks complete, verify:
-- [ ] {Must-have 1 — derived from phase goal}
+<verification>
+After all tasks, verify:
+- [ ] {Must-have 1}
 - [ ] {Must-have 2}
+</verification>
 
-## Success Criteria
-- [ ] All tasks verified passing
+<success_criteria>
+- [ ] All tasks verified
 - [ ] Must-haves confirmed
-- [ ] No regressions in tests
+</success_criteria>
 ```
-
-## Task Types
-
-| Type | Use For | Behavior |
-|------|---------|----------|
-| `auto` | Everything Claude can do independently | Fully autonomous |
-| `checkpoint:human-verify` | Visual/functional verification | Pauses for user |
-| `checkpoint:decision` | Implementation choices | Pauses for user |
-
-## Wave Assignment
-
-| Wave | Use For |
-|------|---------|
-| 1 | Foundation (types, schemas, utilities) |
-| 2 | Core implementations |
-| 3 | Integration and validation |
-
-Plans in the same wave can run in parallel.
-Later waves depend on earlier waves.

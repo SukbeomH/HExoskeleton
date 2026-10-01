@@ -73,7 +73,7 @@ if [ -n "$RELATED_FILES" ]; then
     fi
 fi
 
-# ── ADR-007: Provenance 우선순위 후처리 ──
+# ── Provenance 우선순위 후처리 (cleanse-memory 의 contradicted_by) ──
 # contradicted_by 비어있지 않은 항목을 후순위로 이동
 if [[ -n "$RESULTS" ]]; then
     CLEAN_LIST=""

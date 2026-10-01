@@ -1,6 +1,6 @@
 ---
 name: verifier
-description: "Verifies implemented work against the spec at three levels (exists, substantive, wired), scans for stubs, placeholders and anti-patterns, and writes VERIFICATION.md. Use when code exists and phase completion must be confirmed (구현 검증, 완료 확인)."
+description: "Verifies implemented work against the spec at three levels (exists, substantive, wired), scans for stubs, placeholders and anti-patterns, and appends a dated section to .hxsk/VERIFICATION.md. Use when code exists and phase completion must be confirmed (구현 검증, 완료 확인)."
 ---
 
 ## Quick Reference
@@ -26,10 +26,10 @@ description: "Verifies implemented work against the spec at three levels (exists
 ### Step 0: Check for Previous Verification
 
 ```bash
-ls .hxsk/phases/{N}/*-VERIFICATION.md 2>/dev/null
+grep -n '^## ' .hxsk/VERIFICATION.md   # dated sections; find the latest one for this scope
 ```
 
-**RE-VERIFICATION MODE** (previous exists with gaps): Extract must-haves + gaps → set `is_re_verification = true` → Skip to Step 3 (failed items: full check; passed items: quick regression).
+**RE-VERIFICATION MODE** (latest section for this scope has `gaps_found`): Extract must-haves + gaps → set `is_re_verification = true` → Skip to Step 3 (failed items: full check; passed items: quick regression).
 
 **INITIAL MODE** (no previous): set `is_re_verification = false`, proceed Step 1.
 
@@ -37,7 +37,7 @@ ls .hxsk/phases/{N}/*-VERIFICATION.md 2>/dev/null
 
 ```bash
 ls .hxsk/phases/{N}/*-PLAN.md && ls .hxsk/phases/{N}/*-SUMMARY.md
-grep "Phase {N}" .hxsk/ROADMAP.md
+cat .hxsk/SPEC.md   # Goals + Success Criteria
 ```
 
 ### Step 2: Establish Must-Haves (Initial Mode Only)
@@ -64,9 +64,7 @@ Check each link exists: Component→API (`grep "fetch.*api/chat"`), API→DB (`g
 
 ### Step 6: Check Requirements Coverage
 
-```bash
-grep "Phase {N}" .hxsk/REQUIREMENTS.md
-```
+Requirements are the `## Goals` and `## Success Criteria` items in `.hxsk/SPEC.md` that this scope covers.
 
 Status per requirement: ✓ SATISFIED / ✗ BLOCKED / ? NEEDS HUMAN.
 
@@ -90,15 +88,15 @@ Always human: visual appearance, user flow, real-time behavior (WebSocket/SSE), 
 
 ### Step 10: Structure Gap Output
 
-Structure gaps in YAML for `/plan --gaps` (truth, status, reason, artifacts, missing items).
+Structure gaps in YAML (truth, status, reason, artifacts, missing items) so the `planner` skill can write gap-closure plans (`gap_closure: true`).
 
 ---
 
-## VERIFICATION.md Format
+## Recording the Result
 
-Sections to include: frontmatter (phase/verified/status/score/is_re_verification/gaps), Must-Haves (Truths table, Artifacts table, Key Links table), Anti-Patterns Found, Human Verification Needed, Gaps, Verdict.
+Append **one dated section** to `.hxsk/VERIFICATION.md` (the only verification record — no per-phase files) and update its `## Latest` line. When running as the `verifier` agent (no write tools), return the section text instead; the caller appends it.
 
-**VERIFICATION.md 전체 템플릿** → `references/verification-templates.md`
+**Section format (single source)** → `references/verification-templates.md`
 
 ---
 

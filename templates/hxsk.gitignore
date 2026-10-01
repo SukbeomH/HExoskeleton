@@ -9,4 +9,5 @@
 runtime/
 # 매 턴 Stop 훅이 다시 쓰는 로컬 스냅샷 (호스트마다 달라 머지 충돌)
 CURRENT.md
+# 이 클론 전용 재진입 메모 — 직접(또는 handoff 스킬로) 관리, 훅은 다시 쓰지 않음
 SESSION_HANDOFF.md

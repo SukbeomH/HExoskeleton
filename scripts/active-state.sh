@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 # active-state.sh — HXSK canonical active-state surface 보장 및 최신 snapshot 갱신
+# ensure: 없는 상태 파일만 템플릿으로 생성. stop: CURRENT.md(자동 스냅샷)만 다시 쓴다.
+# STATE.md / SESSION_HANDOFF.md / VERIFICATION.md 는 사람·에이전트가 관리하며, 생성 후에는 건드리지 않는다.
 set -euo pipefail
 
 PROJECT_DIR="${CLAUDE_PROJECT_DIR:-.}"
@@ -100,7 +102,7 @@ tasks: []
 - 없음
 
 ## Concerns
-- `CURRENT.md` / `SESSION_HANDOFF.md` 는 latest local snapshot 이므로 same-worktree 병렬 writer 를 허용하지 않습니다.
+- `CURRENT.md` 는 Stop 훅이 매 턴 다시 쓰는 local snapshot 이므로 same-worktree 병렬 writer 를 허용하지 않습니다.
 
 ## History
 <!-- Format: - YYYY-MM-DD branch-or-plan: #issue -> result -->
@@ -116,38 +118,6 @@ PY
     fi
 }
 
-# 기존 STATE.md 에 누락 섹션 보충 — stop 에서만 실행 (ensure/status 는 기존 파일을 건드리지 않음)
-migrate_state() {
-    python3 - "$STATE_FILE" <<'PY'
-from pathlib import Path
-import sys
-path = Path(sys.argv[1])
-text = path.read_text()
-if '## Active Gate' not in text:
-    insert = '''## Active Gate
-plan: ""
-parent_issue: ""
-current_gate: ""
-sub_issues: []
-forge: ""
-
-## Active Dispatcher
-master: ""
-status: ""
-tasks: []
-
-'''
-    marker = '# Project State\n\n'
-    if marker in text:
-        text = text.replace(marker, marker + insert, 1)
-    else:
-        text = insert + text
-if '## History' not in text:
-    text = text.rstrip() + '\n\n## History\n<!-- Format: - YYYY-MM-DD branch-or-plan: #issue -> result -->\n'
-path.write_text(text)
-PY
-}
-
 ensure_handoff() {
     [[ -f "$HANDOFF_FILE" ]] && return 0
     if [[ -f "$TEMPLATES_DIR/session_handoff.md" ]]; then
@@ -157,11 +127,10 @@ ensure_handoff() {
 # Session Handoff
 
 ## Resume Order
-1. `llms.txt`
-2. `AGENTS.md`
-3. `.hxsk/CURRENT.md`
-4. `.hxsk/STATE.md`
-5. `.hxsk/VERIFICATION.md`
+1. `AGENTS.md`
+2. `.hxsk/CURRENT.md`
+3. `.hxsk/STATE.md`
+4. `.hxsk/VERIFICATION.md`
 EOF
     fi
 }
@@ -171,15 +140,11 @@ ensure_verification() {
     cat > "$VERIFICATION_FILE" <<'EOF'
 # Verification
 
-## Summary
-- No verification recorded yet.
-- Treat this file as the current truth / evidence / verdict surface.
+## Latest
+- None yet — no verification recorded.
 
-## Latest Checks
-- No checks executed yet.
-
-## Verdict
-- PENDING
+<!-- One dated section per verification run, appended below (oldest first); update "Latest" each time.
+     Section format: verifier skill, references/verification-templates.md -->
 EOF
 }
 
@@ -191,35 +156,15 @@ ensure_all() {
     ensure_verification
 }
 
-update_state_metadata() {
-    local branch="$1"
-    local task="$2"
-    python3 - "$STATE_FILE" "$branch" "$task" "$(iso_date)" <<'PY'
-from pathlib import Path
-import re, sys
-path = Path(sys.argv[1])
-branch, task, updated = sys.argv[2], sys.argv[3], sys.argv[4]
-text = path.read_text()
-text = re.sub(r'(?m)^updated:\s*.*$', f'updated: {updated}', text)
-if '## Last Action' in text:
-    text = re.sub(r'## Last Action\n(?:- .*\n)?', f'## Last Action\n- Latest local snapshot captured from `{branch}` — {task}.\n', text, count=1)
-if '## Next Steps' in text:
-    text = re.sub(r'## Next Steps\n(?:.*\n){0,4}', '## Next Steps\n1. Continue from `.hxsk/SESSION_HANDOFF.md` immediate next action\n2. Re-run verification before completion claims\n3. Use a fresh worktree for concurrent execution slices\n', text, count=1)
-path.write_text(text)
-PY
-}
-
 write_runtime_snapshot() {
     local key="$1"
     local dir="$RUNTIME_DIR/$key"
     mkdir -p "$dir"
     cp "$CURRENT_FILE" "$dir/CURRENT.md"
-    cp "$HANDOFF_FILE" "$dir/SESSION_HANDOFF.md"
 }
 
 stop_snapshot() {
     ensure_all
-    migrate_state
 
     local ts branch modified diff_stat recent_commits file_count file_list main_dirs last_commit task key
     ts="${ACTIVE_STATE_TS:-$(ts_human)}"
@@ -234,12 +179,11 @@ stop_snapshot() {
     task="${last_commit:-Ongoing development}"
     key="$(session_key)"
 
-    python3 - "$CURRENT_FILE" "$HANDOFF_FILE" "$ts" "$branch" "$file_count" "$main_dirs" "$last_commit" "$task" "$modified" "$recent_commits" "$diff_stat" "$key" <<'PY'
+    python3 - "$CURRENT_FILE" "$ts" "$branch" "$file_count" "$main_dirs" "$last_commit" "$task" "$modified" "$recent_commits" "$diff_stat" <<'PY'
 from pathlib import Path
 import sys
 current_path = Path(sys.argv[1])
-handoff_path = Path(sys.argv[2])
-ts, branch, file_count, main_dirs, last_commit, task, modified, recent_commits, diff_stat, key = sys.argv[3:13]
+ts, branch, file_count, main_dirs, last_commit, task, modified, recent_commits, diff_stat = sys.argv[2:11]
 main_dirs = main_dirs or 'the project'
 last_commit_sentence = f'The recent work involved: "{last_commit}".' if last_commit else ''
 current_text = f'''# Current Session Context
@@ -273,44 +217,9 @@ current_text = f'''# Current Session Context
 ```
 '''
 
-handoff_text = f'''---
-updated: {ts.split()[0]}
-branch: {branch}
-next_owner: next-session
-session_key: {key}
----
-
-# Session Handoff
-
-## Resume Order
-1. `llms.txt`
-2. `AGENTS.md`
-3. `.hxsk/CURRENT.md`
-4. `.hxsk/STATE.md`
-5. `.hxsk/VERIFICATION.md`
-6. 필요 시 `.hxsk/DECISIONS.md`, `.hxsk/PATTERNS.md`, `.hxsk/memories/`
-
-## Last Stable Context
-- 브랜치: `{branch}`
-- 상태: latest local snapshot stored for the canonical active-state surface
-- 태스크: {task}
-- 세션 키: `{key}`
-
-## Immediate Next Action
-- `.hxsk/CURRENT.md` 와 `.hxsk/STATE.md`를 읽고, 필요한 경우 새 worktree에서 다음 execution slice를 여십시오.
-
-## Verification Pointer
-- 검증 기록: `.hxsk/VERIFICATION.md` (완료 주장 전 프로젝트의 테스트/빌드 명령 재실행)
-
-## Notes
-- 이 파일은 latest local handoff snapshot 입니다.
-- 병렬 작업은 same-worktree writer 대신 worktree 분리로 운영하십시오.
-'''
 current_path.write_text(current_text)
-handoff_path.write_text(handoff_text)
 PY
 
-    update_state_metadata "$branch" "$task"
     write_runtime_snapshot "$key"
 }
 

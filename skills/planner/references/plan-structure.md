@@ -2,6 +2,8 @@
 
 ## PLAN.md Structure
 
+This is the single PLAN format. The plugin's `templates/PLAN.md` is a verbatim copy of the block below.
+
 ```markdown
 ---
 phase: {N}
@@ -10,11 +12,16 @@ wave: {W}
 depends_on: []
 files_modified: []
 autonomous: true
+gap_closure: false
 user_setup: []
+cross_phase_invariants:
+  inherit: []   # copy the previous plan's inherit + new verbatim
+  new: []       # invariants introduced by this phase
 
 must_haves:
   truths: []
   artifacts: []
+  key_links: []
 ---
 
 # Plan {N}.{M}: {Descriptive Name}
@@ -72,8 +79,10 @@ After all tasks, verify:
 | `depends_on` | Yes | Plan IDs this plan requires |
 | `files_modified` | Yes | Files this plan touches |
 | `autonomous` | Yes | `true` if no checkpoints |
+| `gap_closure` | No | `true` for plans that close verification gaps |
 | `user_setup` | No | Human-required setup items |
-| `must_haves` | Yes | Goal-backward verification |
+| `cross_phase_invariants` | Yes | `inherit` (previous plan's inherit + new) and `new` invariants; violating one is a Rule 4 architecture checkpoint |
+| `must_haves` | Yes | Goal-backward verification (`truths`, `artifacts`, `key_links`) — read by the `verifier` skill |
 
 ---
 
@@ -187,9 +196,9 @@ wave: {W}
 
 ## Planning from Verification Gaps
 
-When `/verify` finds gaps, create targeted fix plans:
+When the `verifier` skill records `gaps_found` in `.hxsk/VERIFICATION.md`, create targeted fix plans:
 
-1. **Load gap report** from VERIFICATION.md
+1. **Load the `Gaps` YAML** from the latest section of `.hxsk/VERIFICATION.md`
 2. **For each gap:**
    - Identify root cause
    - Create minimal fix task
@@ -200,6 +209,6 @@ When `/verify` finds gaps, create targeted fix plans:
    ```
 
 Gap closure plans:
-- Execute with `/execute {N} --gaps-only`
+- Execute with the `executor` skill like any other plan
 - Smaller scope than normal plans
 - Focus on single issue per plan

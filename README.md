@@ -33,7 +33,7 @@ git clone https://github.com/SukbeomH/HExoskeleton
 HExoskeleton/scripts/init-project.sh --skills /path/to/your-project
 ```
 
-스킬을 `<project>/.agents/skills/`로 복사하고, `.hxsk/`를 만들고, `AGENTS.md`에 HXSK 블록을 추가한다. 기존 파일은 덮어쓰지 않는다.
+스킬을 `<project>/.agents/skills/`로 복사하고, `.hxsk/`를 만들고, `AGENTS.md`에 HXSK 블록을 추가한다. `.hxsk/`의 기존 파일과 `AGENTS.md`는 덮어쓰지 않지만, `--skills`는 실행할 때마다 `.agents/skills/`의 복사본을 덮어써 갱신한다(그 안에서 직접 고친 내용은 사라진다).
 
 > **훅은 Claude Code 플러그인에서만 검증되어 있다.** 다른 하네스에서는 스킬과 `AGENTS.md` 지침만 동작한다고 가정한다.
 
@@ -41,7 +41,7 @@ HExoskeleton/scripts/init-project.sh --skills /path/to/your-project
 
 Claude Code에서 `/hxsk:hxsk-init`을 실행한다(또는 "HXSK 초기화해줘"). 프로젝트에 `.hxsk/`(SPEC, STATE, VERIFICATION, 메모리 등)를 만들고 `SPEC.md` 작성을 안내한다. 상태를 기록하는 훅은 `.hxsk/`가 있는 프로젝트에서만 동작하므로, 초기화하지 않은 프로젝트에는 가드 훅만 적용된다.
 
-`.hxsk/`에서 `SPEC.md`·`STATE.md`·`VERIFICATION.md`·`memories/`는 커밋하고, 매 턴 다시 쓰이는 `CURRENT.md`·`SESSION_HANDOFF.md`와 런타임 로그는 `.hxsk/.gitignore`로 제외된다.
+`.hxsk/`에서 `SPEC.md`·`STATE.md`·`VERIFICATION.md`·`memories/`는 직접 관리하며 커밋한다. Stop 훅이 매 턴 다시 쓰는 `CURRENT.md`, 이 클론 전용 재진입 메모인 `SESSION_HANDOFF.md`(직접 또는 `handoff` 스킬로 작성), 런타임 로그는 `.hxsk/.gitignore`로 제외된다. 훅은 `STATE.md`와 `SESSION_HANDOFF.md`를 없을 때 만들기만 하고 다시 쓰지 않는다.
 
 ## 워크플로우
 

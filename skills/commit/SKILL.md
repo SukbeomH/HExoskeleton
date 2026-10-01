@@ -27,7 +27,7 @@ Run quality checks before committing:
 **Qlty 경로** (`.qlty/qlty.toml` 존재 시):
 ```bash
 qlty check                        # Lint (all detected linters)
-# Test: project-config.yaml의 tools.test_runner.command
+# Test: .hxsk/project-config.yaml(선택, 없으면 프로젝트의 테스트 명령)의 tools.test_runner.command
 ```
 
 **Shell 스크립트 검사**:

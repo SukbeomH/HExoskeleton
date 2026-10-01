@@ -79,4 +79,15 @@ for _ in $(seq 50); do ls "$HX"/.hxsk/memories/session-summary/*.md >/dev/null 2
 expect "hxsk stop-context-save CURRENT.md" yes "$([ -f "$HX/.hxsk/CURRENT.md" ] && echo yes || echo no)"
 expect "hxsk stop-context-save session-summary" yes "$(ls "$HX"/.hxsk/memories/session-summary/*.md >/dev/null 2>&1 && echo yes || echo no)"
 
+# Stop 스냅샷(active-state.sh stop)은 CURRENT.md 만 다시 쓴다 — 손으로 고친 STATE.md / SESSION_HANDOFF.md 는 그대로
+printf -- '---\nupdated: 2020-01-01\n---\n## Last Action\n- hand edit\n## Next Steps\n1. mine\n' >"$HX/.hxsk/STATE.md"
+printf '# Handoff\nnext: hand edit\n' >"$HX/.hxsk/SESSION_HANDOFF.md"
+echo stale >"$HX/.hxsk/CURRENT.md"
+cp "$HX/.hxsk/STATE.md" "$TMP/state.before" && cp "$HX/.hxsk/SESSION_HANDOFF.md" "$TMP/handoff.before"
+(cd "$HX" && CLAUDE_PROJECT_DIR="$HX" bash "$ROOT/scripts/active-state.sh" stop >/dev/null 2>&1)
+same() { cmp -s "$1" "$2" && echo yes || echo no; }
+expect "stop snapshot keeps hand-edited STATE.md" yes "$(same "$TMP/state.before" "$HX/.hxsk/STATE.md")"
+expect "stop snapshot keeps hand-edited SESSION_HANDOFF.md" yes "$(same "$TMP/handoff.before" "$HX/.hxsk/SESSION_HANDOFF.md")"
+expect "stop snapshot regenerates CURRENT.md" yes "$(has '^## Session Narrative' "$HX/.hxsk/CURRENT.md")"
+
 [ "$FAILS" -eq 0 ] && echo "PASS: hooks smoke" || { echo "FAIL: $FAILS hook checks"; exit 1; }

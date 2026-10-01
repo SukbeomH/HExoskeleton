@@ -96,7 +96,7 @@ Apply these rules automatically. Track all deviations for Summary documentation.
 2. Return checkpoint with architectural decision
 3. Include: what you found, proposed change, impact, alternatives
 4. WAIT for user decision
-5. Fresh agent continues with decision
+5. Stop, record the decision point in `.hxsk/SESSION_HANDOFF.md`, and resume with the user's decision
 
 **User decision required.** These changes affect system design.
 

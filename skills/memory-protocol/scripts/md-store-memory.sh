@@ -24,7 +24,7 @@ if [ ! -d "$PROJECT_DIR/.hxsk" ]; then
 fi
 MEMORIES_DIR="$PROJECT_DIR/.hxsk/memories"
 
-# Type 검증 — 잘못된 인자(예: "ADR-006/007 ...")가 임의 디렉토리로 생성되는 것을 막는다.
+# Type 검증 — 잘못된 인자(예: type 자리에 들어간 "a/b 문장", "../escape")가 임의 디렉토리로 생성되는 것을 막는다.
 # 허용: ../references/type-relations.yaml (이 스킬 소유) 의 types 키, 또는 lessons-learned/<subcategory>
 if ! [[ "$TYPE" =~ ^[a-z0-9-]+(/[A-Za-z0-9-]+)?$ ]]; then
     echo "[ERROR] md-store-memory: invalid memory type '$TYPE' (expected [a-z0-9-]+ or lessons-learned/<category>)" >&2
@@ -159,7 +159,7 @@ fi
 
 echo "$FILEPATH"
 
-# ── Contradiction Check (ADR-007) ──────────────────────────────────────────────
+# ── Contradiction Check ──────────────────────────────────────────────
 # 신규 메모리 저장 시 동일 scope 기존 메모리와 사실 충돌 감지 신호 출력
 # Claude(인라인)가 다음 턴에 비교 후 HITL 처리. 저장 자동 차단 안 함.
 # 우회: HXSK_CONTRADICTION_CHECK=0

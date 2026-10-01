@@ -1,34 +1,16 @@
-# Context Management Configuration
-# Controls automatic cleanup and archiving of .hxsk files
+# Context Management Configuration — 문서화 용도 (스크립트는 이 파일을 읽지 않는다)
+# .hxsk 상태 파일의 크기 한도와 메모리 보존 정책을 기록한다.
 
 # Active layer limits (files read every session)
 active:
   patterns:
     max_items: 20
-    max_kb: 2
-    auto_prune: true  # Remove oldest when limit exceeded
+    max_kb: 2           # PreCompact 훅이 초과 시 경고
   current:
-    max_kb: 1
-    reset_on_session_start: true
-  prd_active:
-    max_kb: 3
-
-# Archive layer settings (files not read routinely)
-archive:
-  journal:
-    keep_sessions: 5
-    archive_older: true
-    archive_format: "journal-{year}-{month}.md"
-  changelog:
-    keep_entries: 20
-    archive_monthly: true
-    archive_format: "changelog-{year}-{month}.md"
-  prd_done:
-    retention_days: 30
-    archive_format: "prd-{year}-{month}.json"
+    max_kb: 1           # Stop 훅이 매 턴 다시 씀
 
 # Memory retention policy (.hxsk/memories/)
-# v5.5+ 정책: local-tier cap 기반 FIFO + opportunistic tick (하네스 독립).
+# local-tier cap 기반 FIFO + opportunistic tick (하네스 독립).
 # 가치 태그(decision, root-cause, incident, security, pattern, lesson)는
 # 삭제 직전 shared-tier로 자동 승격되어 git으로 보존됨.
 #
@@ -46,15 +28,3 @@ memory:
   # shared-tier (git 관리, 자동 정리 제외):
   #   architecture-decision, root-cause, pattern-discovery, security-finding,
   #   lessons-learned, execution-summary
-
-# Folder organization
-folders:
-  reports: reports/      # REPORT-*.md auto-moved here
-  research: research/    # RESEARCH-*.md auto-moved here
-  archive: archive/      # Monthly archives
-
-# Auto-cleanup triggers
-triggers:
-  on_session_end: true
-  on_compact: true
-  manual_only: false

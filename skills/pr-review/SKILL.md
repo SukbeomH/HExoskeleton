@@ -7,13 +7,13 @@ description: "Reviews a pull request through six personas (developer, QA, securi
 - **Context**: 반드시 PR 컨텍스트 로드 후 6-Persona 평가 수행
 - **Blocker**: 1개 이상 발견 시 즉시 REQUEST_CHANGES (머지 불가)
 - **Scope**: 기존 코드 문제는 새 이슈로 분리, PR 범위 엄수
-- **Alignment**: SPEC/DECISIONS 준수 여부 필수 검증
+- **Alignment**: SPEC·아키텍처 결정(`architecture-decision` 메모리) 준수 여부 필수 검증
 - **Memory**: [High] 이상 발견 시 Lessons-Learned 저장 필수
 
 ## Usage
 
 ```
-/pr-review <PR number or URL>
+/hxsk:pr-review <PR number or URL>
 ```
 
 ---
@@ -178,8 +178,8 @@ PR 리뷰 시 `../commit/references/CONVENTIONS.md` 기반으로 추가 검증:
 ## HXSK Alignment
 
 - **SPEC 검증**: 변경 사항이 `.hxsk/SPEC.md`의 must-haves를 충족하는지 확인
-- **DECISIONS 참조**: 아키텍처 변경이 `.hxsk/DECISIONS.md`에 기록된 ADR과 일치하는지 확인
-- **Impact 분석**: `analyze_code_impact`를 사용하여 변경 영향 범위 사전 파악
+- **결정 참조**: 아키텍처 변경이 기존 `architecture-decision` 메모리와 일치하는지 확인 (`bash ../memory-protocol/scripts/md-recall-memory.sh "<topic> architecture-decision" "." 5 compact`)
+- **Impact 분석**: `impact-analysis` 스킬로 변경 영향 범위 사전 파악
 
 ---
 
@@ -225,7 +225,7 @@ APPROVE인 경우에도 [High] 이상 발견이 있었다면 저장.
 
 ## Scripts
 
-(없음 — `gh pr diff`, `gh pr view` 등 에이전트 네이티브 도구로 직접 수행)
+- `scripts/extract_pr_diff.sh [pr_number | branch]` — PR 번호면 `gh`로 제목·변경 파일·diff를, 브랜치(기본: 현재 브랜치)면 기본 브랜치(main, 없으면 master) 대비 변경 파일·커밋·diff를 출력. 실행: `bash scripts/extract_pr_diff.sh 123`
 
 ## Iron Laws
 NO REVIEW WITHOUT CONTEXT LOADING FIRST
