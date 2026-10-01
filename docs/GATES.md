@@ -32,11 +32,14 @@
 
 ## GATE-P3: 초안 분석 완료
 
+PLAN 형식은 [`planner` 스킬의 plan-structure.md](../skills/planner/references/plan-structure.md) 하나뿐이다. 확인은 `plan-checker` 스킬로 한다.
+
 완료 조건:
-  - PLAN.md 태스크 분할 목록 존재 (`- [ ]` 형식, 최소 1개)
-  - 각 태스크에 `files:` 필드로 파일 소유권 선언
-  - 동일 파일을 2개 이상 태스크가 소유하지 않음
-  - Lockfile/config 변경 태스크는 `parallel: false` 명시
+  - PLAN.md frontmatter 필수 필드 존재 (`phase`, `plan`, `wave`, `depends_on`, `files_modified`, `autonomous`, `cross_phase_invariants`, `must_haves`)
+  - `<tasks>` 안에 `<task>` 블록 최소 1개, 각 블록에 `<files>`·`<action>`·`<verify>`·`<done>`
+  - 파일 소유권은 각 태스크의 `<files>`로 선언하고, 그 합이 frontmatter `files_modified`와 같음
+  - 같은 wave에서 함께 실행될 태스크·플랜끼리 같은 파일을 소유하지 않음 — 겹치면 `depends_on`으로 뒤 wave로 미룸
+  - Lockfile·공용 config도 그 파일을 바꾸는 태스크의 `<files>`에 적음 (그래야 겹침 검사에 걸림)
 
 ---
 
@@ -56,7 +59,7 @@
   - STATE.md `## Active Dispatcher` master 필드 설정
 
 핸드오프 규칙 (토큰 최소화):
-  - 전달: PLAN.md 경로 + 파일 소유권 맵 + 하위 이슈 번호 목록
+  - 전달: PLAN.md 경로 + 파일 소유권 맵(태스크별 `<files>`) + 하위 이슈 번호 목록
   - 금지: 대화 내역, 이슈 내용 전문, SPEC 전문, 파일 내용
 
 ---
