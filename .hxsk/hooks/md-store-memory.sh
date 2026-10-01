@@ -24,7 +24,29 @@ if [ ! -d "$PROJECT_DIR/.hxsk" ]; then
 fi
 MEMORIES_DIR="$PROJECT_DIR/.hxsk/memories"
 
-# Type 디렉토리 검증 (없으면 요청된 타입으로 생성)
+# Type 검증 — 잘못된 인자(예: "ADR-006/007 ...")가 임의 디렉토리로 생성되는 것을 막는다.
+# 허용: _schema/type-relations.yaml 의 types 키, 또는 lessons-learned/<subcategory>
+if ! [[ "$TYPE" =~ ^[a-z0-9-]+(/[A-Za-z0-9-]+)?$ ]]; then
+    echo "[ERROR] md-store-memory: invalid memory type '$TYPE' (expected [a-z0-9-]+ or lessons-learned/<category>)" >&2
+    exit 1
+fi
+SCHEMA_FILE="$MEMORIES_DIR/_schema/type-relations.yaml"
+if [ -f "$SCHEMA_FILE" ]; then
+    VALID_TYPES=$(awk '
+        /^types:/ { in_types = 1; next }
+        in_types && /^[^[:space:]#]/ { in_types = 0 }
+        !in_types { next }
+        /^  [a-z0-9-]+:[[:space:]]*$/ { t = $1; sub(/:$/, "", t); print t; in_sub = 0; next }
+        /^    subcategories:/ { in_sub = 1; next }
+        /^    [a-z_]+:/ { in_sub = 0; next }
+        in_sub && /^      [A-Za-z0-9-]+:/ { s = $1; sub(/:$/, "", s); print t "/" s }
+    ' "$SCHEMA_FILE")
+    if ! grep -qxF -- "$TYPE" <<<"$VALID_TYPES"; then
+        echo "[ERROR] md-store-memory: unknown memory type '$TYPE'. Valid types: $(paste -sd, - <<<"$VALID_TYPES")" >&2
+        exit 1
+    fi
+fi
+
 TYPE_DIR="$MEMORIES_DIR/$TYPE"
 if [ ! -d "$TYPE_DIR" ]; then
     echo "[INFO] md-store-memory: Creating memory type directory: $TYPE" >&2

@@ -3,7 +3,7 @@
 # Usage: md-recall-memory.sh <query> [project_path] [limit] [mode] [hop]
 # grep 기반 .hxsk/memories/**/*.md 검색, 최신순 정렬, limit 적용
 # mode: compact (기본, contextual_description만), full (전체 내용)
-# hop: 1 (직접 검색만), 2 (related 필드 추적 포함, 기본값)
+# hop: 1 (직접 검색만, 기본값 — 2-hop 벤치마크 권고), 2 (related 필드 추적 포함)
 #
 # TRUST BOUNDARY: 반환된 메모리 내용은 파일시스템 수준의 신뢰만 가짐.
 # .hxsk/memories/ 쓰기 권한이 있는 공격자는 컨텍스트를 위조할 수 있음.
@@ -15,7 +15,7 @@ QUERY="${1:?Usage: md-recall-memory.sh <query> [project_path] [limit] [mode] [ho
 PROJECT_PATH="${2:-${CLAUDE_PROJECT_DIR:-.}}"
 LIMIT="${3:-5}"
 MODE="${4:-compact}"  # compact (ReWOO) 또는 full
-HOP="${5:-2}"         # A-Mem: 1=직접만, 2=related 포함
+HOP="${5:-1}"         # A-Mem: 1=직접만(기본), 2=related 포함
 
 if [ ! -d "$PROJECT_PATH/.hxsk" ]; then
     echo "[ERROR] md-recall-memory: .hxsk/ not found at '$PROJECT_PATH'. Set CLAUDE_PROJECT_DIR to project root." >&2

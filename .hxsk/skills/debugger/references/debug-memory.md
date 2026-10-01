@@ -51,7 +51,7 @@ bash .hxsk/hooks/md-store-memory.sh \
   "Investigation: {what was examined}" \
   "{what was found, what it implies}" \
   "debug,investigation,{component}" \
-  "debug-investigation"
+  "general"
 ```
 
 ### 3. Root Cause Found

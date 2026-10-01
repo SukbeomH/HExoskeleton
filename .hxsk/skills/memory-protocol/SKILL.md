@@ -61,21 +61,18 @@ Grep(pattern: "tags:.*{tag}", path: ".hxsk/memories/", output_mode: "files_with_
 훅에서 사용할 때:
 
 ```bash
-# 기본 검색 (compact 모드, 2-hop)
+# 기본 검색 (compact 모드, 1-hop: related 추적 안함)
 bash .hxsk/hooks/md-recall-memory.sh "{query}" "$PROJECT_DIR" 5
 
 # 상세 검색 (full 모드)
 bash .hxsk/hooks/md-recall-memory.sh "{query}" "$PROJECT_DIR" 5 full
-
-# 1-hop만 (related 추적 안함)
-bash .hxsk/hooks/md-recall-memory.sh "{query}" "$PROJECT_DIR" 5 compact 1
 ```
 
-### 4. 2-hop 이웃 검색 (A-Mem)
-검색된 메모리의 `related` 필드를 자동 추적하여 연결된 메모리도 함께 반환:
+### 4. 2-hop 이웃 검색 (A-Mem, opt-in)
+검색된 메모리의 `related` 필드를 추적하여 연결된 메모리도 함께 반환 (hop 인자 `2` 명시 필요):
 
 ```bash
-# hop=2 (기본값): related 필드의 메모리도 포함
+# hop=2: related 필드의 메모리도 포함
 bash .hxsk/hooks/md-recall-memory.sh "auth" "." 5 compact 2
 ```
 
@@ -188,9 +185,9 @@ related:
 
 ### 연관 조회 (2-hop)
 
-`md-recall-memory.sh`가 자동으로 `related` 필드를 추적:
+`md-recall-memory.sh`에 hop `2`를 넘기면 `related` 필드를 추적:
 ```bash
-# hop=2 (기본): 검색 결과 + related 메모리
+# hop=2 (opt-in): 검색 결과 + related 메모리
 bash .hxsk/hooks/md-recall-memory.sh "auth" "." 5 compact 2
 ```
 

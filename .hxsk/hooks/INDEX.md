@@ -14,7 +14,7 @@
 | stop-context-save.sh | Stop | Save session context + memory | `hooks/stop-context-save.sh` |
 | compact-context.sh | (utility) | Context rotation/pruning | `hooks/compact-context.sh` |
 | md-store-memory.sh | (utility) | Store memory (A-Mem) | `hooks/md-store-memory.sh` |
-| md-recall-memory.sh | (utility) | Recall memory (2-hop) | `hooks/md-recall-memory.sh` |
+| md-recall-memory.sh | (utility) | Recall memory (1-hop default, 2-hop opt-in) | `hooks/md-recall-memory.sh` |
 | check-consistency.sh | (utility) | Code/doc/skill/agent consistency check (14 points) | `hooks/check-consistency.sh` |
 | pre-pr-check.sh | (utility) | Pre-PR validation + version recommendation | `hooks/pre-pr-check.sh` |
 | _json_parse.sh | (library) | JSON parse abstraction | `hooks/_json_parse.sh` |
