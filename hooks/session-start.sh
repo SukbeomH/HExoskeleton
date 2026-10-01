@@ -24,7 +24,7 @@ main() {
     fi
 
     local SOURCE=""
-    SOURCE=$(echo "$INPUT" | json_get "source" 2>/dev/null || true)
+    SOURCE=$(json_get "$INPUT" '.source // empty' 2>/dev/null || true)
 
     # source가 없으면 .session-active 마커로 fallback
     if [ -z "$SOURCE" ]; then
@@ -180,6 +180,9 @@ main() {
         echo "{\"hookSpecificOutput\":{\"hookEventName\":\"SessionStart\",\"additionalContext\":${CTX_JSON}}}"
     fi
 }
+
+# opt-in: .hxsk/ 가 있는(초기화된) 프로젝트에서만 동작
+[ -d "${CLAUDE_PROJECT_DIR:-.}/.hxsk" ] || exit 0
 
 # 메인 실행 및 에러 캡처
 ERROR_OUTPUT=$(main 2>&1)

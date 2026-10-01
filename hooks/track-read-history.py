@@ -8,8 +8,12 @@ import json
 import os
 import sys
 
-HXSK_DIR = os.environ.get("HXSK_DIR", ".hxsk")
+HXSK_DIR = os.environ.get("HXSK_DIR") or os.path.join(os.environ.get("CLAUDE_PROJECT_DIR", "."), ".hxsk")
 READ_HISTORY = os.path.join(HXSK_DIR, ".read-history.log")
+
+# opt-in: .hxsk/ 가 있는(초기화된) 프로젝트에서만 기록
+if not os.path.isdir(HXSK_DIR):
+    sys.exit(0)
 
 try:
     data = json.load(sys.stdin)
@@ -25,8 +29,6 @@ if tool_name != "Read" or not file_path:
 
 # 절대 경로와 원본 경로 모두 기록
 abs_path = os.path.abspath(file_path)
-
-os.makedirs(os.path.dirname(READ_HISTORY), exist_ok=True)
 
 # 중복 방지: 이미 기록된 경로는 건너뜀
 existing = set()

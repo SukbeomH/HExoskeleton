@@ -12,8 +12,12 @@ import json
 import os
 import sys
 
-HXSK_DIR = os.environ.get("HXSK_DIR", ".hxsk")
+HXSK_DIR = os.environ.get("HXSK_DIR") or os.path.join(os.environ.get("CLAUDE_PROJECT_DIR", "."), ".hxsk")
 READ_HISTORY = os.path.join(HXSK_DIR, ".read-history.log")
+
+# HXSK 미초기화 프로젝트(.hxsk/ 없음): 추적 상태가 없으므로 허용 (Claude Code 자체 read-before-edit에 위임)
+if not os.path.isdir(HXSK_DIR):
+    sys.exit(0)
 
 try:
     data = json.load(sys.stdin)

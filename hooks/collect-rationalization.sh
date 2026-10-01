@@ -9,6 +9,9 @@ PROJECT_DIR="${CLAUDE_PROJECT_DIR:-.}"
 HXSK_DIR="$PROJECT_DIR/.hxsk"
 RATIONALIZATION_LOG="$HXSK_DIR/.rationalization-patterns.log"
 
+# opt-in: .hxsk/ 가 있는(초기화된) 프로젝트에서만 기록
+[ -d "$HXSK_DIR" ] || exit 0
+
 # stdin에서 에이전트 출력 읽기
 AGENT_OUTPUT=""
 if [ ! -t 0 ]; then

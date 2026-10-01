@@ -8,8 +8,8 @@ PROJECT_DIR="${CLAUDE_PROJECT_DIR:-.}"
 FLAG_FILE="$PROJECT_DIR/.hxsk/.modified-this-session"
 TRACK_LOG="$PROJECT_DIR/.hxsk/.track-modifications.log"
 
-# 디렉토리 확보
-mkdir -p "$PROJECT_DIR/.hxsk" 2>/dev/null || true
+# opt-in: .hxsk/ 가 있는(초기화된) 프로젝트에서만 기록
+[[ -d "$PROJECT_DIR/.hxsk" ]] || exit 0
 
 # 플래그 파일 생성 (수정 발생 표시)
 touch "$FLAG_FILE"

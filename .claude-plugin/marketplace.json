@@ -1,0 +1,15 @@
+{
+  "name": "hexoskeleton",
+  "description": "HExoskeleton (HXSK) plugin marketplace",
+  "owner": {
+    "name": "SukbeomH",
+    "url": "https://github.com/SukbeomH"
+  },
+  "plugins": [
+    {
+      "name": "hxsk",
+      "source": "./",
+      "description": "HExoskeleton workflow skills, agents, hooks and file-based memory"
+    }
+  ]
+}
