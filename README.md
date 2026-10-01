@@ -59,6 +59,13 @@ SPEC.md (무엇을) → PLAN (어떻게) → EXECUTE (atomic commit) → VERIFY 
 - Copilot CLI: `copilot plugin update hxsk`
 - 그 밖의 하네스: `git pull` 후 `scripts/init-project.sh --skills <project>` 재실행 (`.agents/skills` 복사본 갱신)
 
+### v5.x(복사 설치)에서 옮겨오기
+
+1. 프로젝트에서 복사본을 지운다: `.hxsk/{skills,agents,hooks,scripts,templates,adapters,githooks,prompts,docs,workflow}`, `.hxsk/memories/_schema`, `.hxsk/.bootstrap-version`, `.claude/skills`·`.claude/agents` 심볼릭 링크.
+2. `.claude/settings.json`에서 `.hxsk/hooks/…`를 가리키는 `hooks` 항목을 지운다(플러그인이 대신 등록한다). Codex/Copilot 훅 파일과 `.cursorrules`·`.windsurfrules` 링크도 지운다.
+3. `SPEC.md`, `STATE.md`, `VERIFICATION.md`, `memories/` 등 작업 상태는 그대로 둔다.
+4. 위 설치 절차로 플러그인을 설치하고 `/hxsk:hxsk-init`을 실행한다. 기존 파일은 덮어쓰지 않는다.
+
 ## 저장소 구조
 
 저장소 루트가 플러그인이다: `.claude-plugin/`(매니페스트), `skills/`, `agents/`, `hooks/`, `scripts/`, `templates/`(`.hxsk/` 스캐폴드), `docs/`, `tests/`. `.agents/skills`는 `skills/`를 가리키는 심볼릭 링크다.
