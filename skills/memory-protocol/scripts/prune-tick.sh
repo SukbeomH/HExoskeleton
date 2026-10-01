@@ -3,7 +3,7 @@
 #
 # 목적:
 #   Claude Code 외 하네스(Cursor/Gemini CLI/OpenCode/Aider/Continue 등)에서도
-#   HXSK 메모리 툴(md-store-memory.sh, md-recall-memory.sh, bootstrap.sh)이
+#   HXSK 메모리 툴(md-store-memory.sh, md-recall-memory.sh)이
 #   호출될 때마다 자연스럽게 prune이 발화하도록 하는 얇은 어댑터.
 #
 # 설계:

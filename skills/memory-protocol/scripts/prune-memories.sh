@@ -23,7 +23,7 @@
 #   - git log/PR이 실행 이력을 대체하므로 _retained 이동 불필요
 #
 # 하네스 독립성 (v5.5+):
-#   Claude Code 훅 외에도 md-store-memory.sh / md-recall-memory.sh / bootstrap.sh 말미에서
+#   Claude Code 훅 외에도 md-store-memory.sh / md-recall-memory.sh 말미에서
 #   prune-tick.sh를 통해 opportunistic하게 자동 호출됨. 즉, 어떤 에이전트 하네스에서도
 #   메모리 툴이 호출되면 자연스럽게 prune이 발화. Cursor/Gemini CLI/Copilot CLI는
 #   각자의 훅 시스템에서 hooks/stop-context-save.sh를 호출하면 된다.
