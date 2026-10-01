@@ -64,7 +64,7 @@ HExoskeleton은 세 가지 관찰에서 출발합니다.
 
 ```
 메인 세션 → debugger 스킬 로딩 → "1. 에러 수집 2. 가설 수립 3. 검증..."
-메인 세션 → verifier 에이전트(별도 컨텍스트, 읽기 전용 도구, verifier·empirical-validation preload)
+메인 세션 → verifier 에이전트(별도 컨텍스트, 쓰기 도구 없음, verifier·empirical-validation preload)
 ```
 
 에이전트 정의가 간결할수록 에이전트는 정확하게 동작합니다.

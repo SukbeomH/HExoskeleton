@@ -33,7 +33,7 @@ git clone https://github.com/SukbeomH/HExoskeleton
 HExoskeleton/scripts/init-project.sh --skills /path/to/your-project
 ```
 
-스킬을 `<project>/.agents/skills/`로 복사하고, `.hxsk/`를 만들고, `AGENTS.md`에 HXSK 블록을 추가한다. 기존 파일은 덮어쓰지 않는다.
+스킬을 `<project>/.agents/skills/`로 복사하고, `.hxsk/`를 만들고, `AGENTS.md`에 HXSK 블록을 추가한다. `.hxsk/`의 기존 파일과 `AGENTS.md`는 덮어쓰지 않지만, `--skills`는 실행할 때마다 `.agents/skills/`의 복사본을 덮어써 갱신한다(그 안에서 직접 고친 내용은 사라진다).
 
 > **훅은 Claude Code 플러그인에서만 검증되어 있다.** 다른 하네스에서는 스킬과 `AGENTS.md` 지침만 동작한다고 가정한다.
 
