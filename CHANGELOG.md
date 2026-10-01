@@ -1,5 +1,15 @@
 # Changelog
 
+## 6.0.3 (2026-10-02)
+
+### Features
+
+* **codex**: Codex CLI 플러그인 설치 경로 문서화(검증됨) — `codex plugin marketplace add SukbeomH/HExoskeleton` → `codex plugin add hxsk@hexoskeleton`. 훅은 Codex 훅 검토에서 신뢰한 뒤 실행되며, 가드는 Bash와 `apply_patch` 파일 보호를 맡는다. 업그레이드는 `codex plugin marketplace upgrade hexoskeleton`.
+
+### Bug Fixes
+
+* **hooks**: `file-protect`가 Codex `apply_patch` 패치 본문의 경로(`*** Add/Update/Delete File:`, `*** Move to:`)도 검사 — 이전에는 `file_path`가 없어 `.env` 수정이 통과했다.
+
 ## 6.0.2 (2026-10-02)
 
 ### Refactor
