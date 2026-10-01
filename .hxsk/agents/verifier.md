@@ -1,7 +1,9 @@
 ---
+name: verifier
 description: Validates implemented work against spec requirements with empirical evidence. Use after execution to confirm phase goals are met.
 model: sonnet
 tools: ["Read", "Bash", "Grep", "Glob"]
+skills: [verifier, empirical-validation]
 ---
 
 # Verifier Agent

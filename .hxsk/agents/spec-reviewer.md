@@ -1,7 +1,9 @@
 ---
+name: spec-reviewer
 description: Validates implementation against SPEC.md requirements — checks what was built matches what was requested.
 model: sonnet
 tools: ["Read", "Grep", "Glob"]
+skills: [verifier, empirical-validation]
 ---
 
 # Spec Reviewer Agent
