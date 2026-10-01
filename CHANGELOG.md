@@ -1,5 +1,15 @@
 # Changelog
 
+## 6.0.2 (2026-10-02)
+
+### Refactor
+
+* **templates**: 작업 문서 형식을 그 문서를 쓰는 스킬로 이동하고 `templates/`에는 `.hxsk/` 스캐폴드만 남김. DEBUG → `debugger`의 `references/debug-memory.md`, SUMMARY → `executor`의 `references/commit-protocol.md`, RESEARCH → `planner`의 `references/research-format.md`(신규), PLAN → `planner`의 `references/plan-structure.md`. `templates/{DEBUG,SUMMARY,RESEARCH,PLAN}.md` 삭제.
+
+### Documentation
+
+* **gates**: `GATES.md`의 GATE-P3·E0 조건을 실제 PLAN 형식(frontmatter 필수 필드, `<task>` 블록, `files_modified`, wave/`depends_on`) 기준으로 정정(`- [ ]` 체크리스트·`files:`·`parallel: false` 제거).
+
 ## 6.0.1 (2026-10-01)
 
 ### Bug Fixes

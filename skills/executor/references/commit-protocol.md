@@ -59,27 +59,29 @@ TEST_CMD=$(get_test_cmd "$RUNNER" "$PKG")
 
 ## SUMMARY.md Format
 
-After plan completion, create `.hxsk/phases/{N}/{plan}-SUMMARY.md`:
+After each plan ends, create `.hxsk/phases/{N}/{plan}-SUMMARY.md` — also when it failed or stopped partway (record what happened):
 
 ```markdown
 ---
 phase: {N}
 plan: {M}
-completed_at: {timestamp}
+completed_at: {ISO timestamp}
 duration_minutes: {N}
+status: complete | partial | failed
 ---
 
 # Summary: {Plan Name}
 
 ## Results
-- {N} tasks completed
-- All verifications passed
+- Tasks: {N}/{M} completed
+- Commits: {N}
+- Verification: passed | failed
 
 ## Tasks Completed
 | Task | Description | Commit | Status |
 |------|-------------|--------|--------|
 | 1 | {name} | {hash} | ✅ |
-| 2 | {name} | {hash} | ✅ |
+| 2 | {name} | — | ❌ Blocked |
 
 ## Deviations Applied
 {If none: "None — executed as planned."}
@@ -88,12 +90,15 @@ duration_minutes: {N}
 - [Rule 2 - Missing Critical] Added input validation
 
 ## Files Changed
-- {file1} - {what changed}
-- {file2} - {what changed}
+- {file1} (created | modified | deleted) - {what changed}
 
 ## Verification
-- {verification 1}: ✅ Passed
-- {verification 2}: ✅ Passed
+| Check | Status | Evidence |
+|-------|--------|----------|
+| {verification 1} | ✅ Pass | {command/output} |
+
+## Notes
+{Observations, concerns or recommendations for later plans — optional}
 ```
 
 ---

@@ -10,7 +10,7 @@
 - `agents/` — 서브에이전트 정의
 - `hooks/` — `hooks.json` + 훅 스크립트 ([docs/HOOKS.md](docs/HOOKS.md))
 - `scripts/` — `init-project.sh`(프로젝트 `.hxsk/` 생성), `verify.sh`(검증 단일 진입점) 등
-- `templates/` — `.hxsk/` 스캐폴드와 작업 문서 템플릿
+- `templates/` — `.hxsk/` 스캐폴드 (PLAN·SUMMARY·DEBUG·RESEARCH 같은 작업 문서 형식은 그 문서를 쓰는 스킬의 `references/`에 있다)
 - `tests/` — 회귀 테스트 (`verify.sh`가 전부 실행)
 - `docs/` — 설계 철학, 훅, 게이트 관례
 

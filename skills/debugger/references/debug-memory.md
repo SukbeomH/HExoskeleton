@@ -96,39 +96,53 @@ bash ../memory-protocol/scripts/md-store-memory.sh \
 
 ## DEBUG.md Structure
 
+One file per debug session: `.hxsk/debug/{slug}.md`. Create it when the session starts (`status: gathering`, `next_action: gather symptoms`); when resolved, set `status: resolved` and move it to `.hxsk/debug/resolved/`.
+
 ```markdown
 ---
-status: gathering | investigating | fixing | verifying | resolved
-trigger: "{verbatim user input}"
-created: [timestamp]
-updated: [timestamp]
+status: gathering | investigating | fixing | verifying | resolved   # OVERWRITE
+trigger: "{verbatim user input}"                                    # IMMUTABLE
+created: [ISO timestamp]                                            # IMMUTABLE
+updated: [ISO timestamp]                                            # OVERWRITE on every change
 ---
 
 ## Current Focus
+<!-- OVERWRITE on each update — always reflects NOW -->
 hypothesis: {current theory}
 test: {how testing it}
-expecting: {what result means}
+expecting: {what result means if true/false}
 next_action: {immediate next step}
 
 ## Symptoms
+<!-- Written during gathering, then immutable -->
 expected: {what should happen}
 actual: {what actually happens}
 errors: {error messages}
+reproduction: {how to trigger}
+started: {when it broke / always broken}
 
 ## Eliminated
+<!-- APPEND only — prevents re-investigating after context reset -->
 - hypothesis: {theory that was wrong}
   evidence: {what disproved it}
+  timestamp: {when eliminated}
 
 ## Evidence
-- checked: {what was examined}
+<!-- APPEND only -->
+- timestamp: {when found}
+  checked: {what was examined}
   found: {what was observed}
   implication: {what this means}
 
 ## Resolution
-root_cause: {when found}
-fix: {when applied}
-verification: {when verified}
+<!-- OVERWRITE as understanding evolves -->
+root_cause: {empty until found}
+fix: {empty until applied}
+verification: {empty until verified}
+files_changed: []
 ```
+
+**Resume after a session reset:** frontmatter (status) → Current Focus (what was happening) → Eliminated (what NOT to retry) → Evidence (what's known) → continue from `next_action`.
 
 ---
 
