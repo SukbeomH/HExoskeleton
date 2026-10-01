@@ -1,8 +1,7 @@
 # GATES.md — 작업 관리 게이트 조건
 
-> 단일 진실 원천. GATES→Dispatcher→Sub-agent 멀티홉 워크플로우의 진입/완료 조건 정의.
-> Claude Code: `gate-check.sh` 훅으로 자동 집행.
-> 기타 하네스(opencode/Copilot/Antigravity): `AGENTS.md ## Task Management Gates` 참조.
+> Git forge(이슈·PR) 기반 큰 작업의 진입/완료 조건 **관례**. 어떤 훅·스크립트도 집행하지 않으며, 에이전트와 사람이 수동으로 확인한다.
+> 진행 상태는 `.hxsk/STATE.md`의 `## Active Gate` / `## Active Dispatcher` 필드에 기록한다.
 
 ---
 
@@ -120,13 +119,8 @@
   - 부모 PR merged
 
 완료 조건:
-  - 결과 보고서 생성 (`.hxsk/docs/plans/{date}-{name}-result.md`)
-  - 이슈 코멘트에서 핵심 결정 추출 → `md-store-memory.sh`로 저장
-    ```bash
-    bash .hxsk/hooks/md-store-memory.sh \
-      "{플랜명} 결과" "{핵심 결정 요약}" \
-      "execution,gates" "execution-summary"
-    ```
+  - 결과 보고서 생성 (`write-report` 스킬)
+  - 이슈 코멘트에서 핵심 결정 추출 → `memory-protocol` 스킬로 `execution-summary` 타입 저장
   - 임시 워크트리 삭제 (`git worktree remove`)
   - `task/*` 브랜치 삭제
   - STATE.md `## Active Gate` 초기화
