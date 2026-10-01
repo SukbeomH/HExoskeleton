@@ -1,5 +1,20 @@
 # Changelog
 
+## 6.0.1 (2026-10-01)
+
+### Bug Fixes
+
+* **hooks**: Stop 훅은 자동 스냅샷 `CURRENT.md`만 다시 쓴다. `STATE.md`·`SESSION_HANDOFF.md`는 없을 때만 생성하고 이후에는 덮어쓰지 않는다(직접 작성한 내용이 매 턴 사라지던 문제).
+* **verification**: 검증 기록을 루트 `.hxsk/VERIFICATION.md` 한 형식으로 통일(실행마다 날짜 섹션 추가). `verifier` 에이전트는 섹션을 반환하고 호출자가 덧붙인다.
+* **dispatcher**: 작업 브랜치를 `work/{WORK_ID}`로 변경(`feat/master-{id}`와 git ref 충돌), 서브에이전트 프롬프트의 메모리 스크립트 경로를 절대경로로.
+* **skills**: 오동작하던 보조 스크립트 제거(`run_quality_checks.sh`, `check_complexity.sh`, `check_artifacts.sh`, `dump_state.sh`).
+
+### Documentation
+
+* 존재하지 않는 슬래시 커맨드, 아무도 만들지 않는 파일(ROADMAP·REQUIREMENTS·JOURNAL·DECISIONS), 삭제된 에이전트·PRD 프로토콜 참조를 스킬·문서에서 정리.
+* 참조되지 않는 템플릿 삭제, PLAN 형식을 `planner` 스킬 기준으로 단일화.
+* `DESIGN-PHILOSOPHY`, `GATES`, `HOOKS`를 v6 구조에 맞게 갱신.
+
 ## 6.0.0 (2026-10-01)
 
 ### ⚠ BREAKING CHANGES
