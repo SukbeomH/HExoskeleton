@@ -24,7 +24,7 @@ Discovery is MANDATORY unless you can prove current context exists.
 - Choosing between 2-3 options
 - New external integration (API, service)
 - Medium-risk decision
-- Action: Research the options before planning; record them in a RESEARCH.md next to the plan
+- Action: Research the options before planning; record them in a RESEARCH.md next to the plan (format: [research-format.md](research-format.md))
 
 ---
 
@@ -32,7 +32,7 @@ Discovery is MANDATORY unless you can prove current context exists.
 - Architectural decision with long-term impact
 - Novel problem without clear patterns
 - High-risk, hard to change later
-- Action: Full research with RESEARCH.md
+- Action: Full research with RESEARCH.md ([research-format.md](research-format.md))
 
 ---
 

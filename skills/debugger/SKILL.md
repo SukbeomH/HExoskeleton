@@ -75,7 +75,7 @@ When debugging code you wrote, you're fighting your own mental model.
 After 3 failed fix attempts:
 
 1. **STOP** the current approach
-2. **Document** what was tried in DEBUG.md
+2. **Document** what was tried in the session's DEBUG.md (`.hxsk/debug/{slug}.md`, format → `references/debug-memory.md`)
 3. **Summarize** to STATE.md
 4. **Recommend** fresh session with new context
 

@@ -37,7 +37,7 @@ description: "Turns SPEC.md phase goals into a PLAN.md of 2-3 goal-backward task
 | L2 | 새 모듈/외부 통합 | Standard research |
 | L3 | 아키텍처 결정 | Deep dive |
 
-**상세 기준 + depth indicators** → `references/discovery-protocol.md`
+**상세 기준 + depth indicators** → `references/discovery-protocol.md` · **RESEARCH.md 형식 (L2-L3)** → `references/research-format.md`
 
 ---
 

@@ -2,7 +2,7 @@
 
 ## PLAN.md Structure
 
-This is the single PLAN format. The plugin's `templates/PLAN.md` is a verbatim copy of the block below.
+This is the single PLAN format.
 
 ```markdown
 ---
