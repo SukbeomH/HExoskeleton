@@ -1,12 +1,6 @@
 ---
-description: Use when claiming work is complete, successful, or fixed, and empirical
-  evidence is required to validate the change before proceeding.
 name: empirical-validation
-trigger: 경험적 검증, 실행 결과 확인, 증거 기반 확인, prove it works, empirical proof, validate with
-  output, 실제 작동 확인, 증거 제시, 실행 로그 확인, 스크린샷으로 확인, curl 로 테스트, 빌드 결과 확인, 테스트 통과 증명, 완료
-  전 검증, 5 단계 검증 프로토콜, 게이트 통과 확인, "should work" 금지, 확신 대신 증거, UI 상태 캡처, API 응답 확인,
-  데이터 상태 쿼리, 파일 생성 확인, exit code 확인, verify before done, show me the output, capture
-  evidence, empirical validation required, run and verify
+description: "Requires executed evidence (command output, exit codes, test results, API responses, screenshots) before any claim that work is complete, fixed or passing. Use before declaring done or whenever tempted to say it should work (경험적 검증, 증거 기반 확인)."
 ---
 
 ## Quick Reference
@@ -129,6 +123,8 @@ npm run build
 | "이건 불가능하다" | 3가지 다른 접근을 시도했는가? |
 | "시간이 너무 오래 걸린다" | 사용자에게 보고하고 판단을 맡겨라 |
 | "다음 세션에서 하자" | 현재 컨텍스트가 가장 풍부하다. 지금 시도하라 |
+
+**안티패턴 사례집** → `references/anti-patterns.md` · **합리화 테이블 갱신 절차** → `references/rationalization-update-guide.md`
 
 ## Thinking Budget
 

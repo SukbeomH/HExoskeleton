@@ -1,6 +1,6 @@
 ---
-description: Use when registering, reviewing, merging, or rebuilding HXSK glossary term definitions after glossary-detect suggests a candidate or the user invokes /define.
 name: define-term
+description: "Registers, reviews, merges and re-indexes project glossary terms stored as term-definition memories, with human confirmation on conflicts. Use when a domain term needs a canonical definition or the user invokes /define (용어 정의, 용어 등록)."
 ---
 
 # define-term

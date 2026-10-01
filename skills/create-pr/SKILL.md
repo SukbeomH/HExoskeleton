@@ -1,13 +1,6 @@
 ---
-description: Use when local changes pass A-E quality checks, lessons-learned review,
-  and are under 500 lines of production code, ready for gh pr create.
 name: create-pr
-trigger: PR 생성, 풀 리퀘스트 만들기, push and create PR, gh pr create, 브랜치 만들고 PR, PR 올리기,
-  create pull request, make PR, ship code, PR 생성 및 푸시, 브랜치 분기 후 PR, PR quality check,
-  submit PR, raise PR, 브랜치부터 PR 까지, 코드 푸시 후 PR, open pull request, submit pull request,
-  ship to review, 이슈 연동 PR, 커밋 후 PR, PR 템플릿 생성, 자가 점검 후 PR, 품질 게이트 통과 PR, HXSK 컨텍스트
-  PR, PR 크기 분리 후 생성, 브랜치 생성 및 PR, git push and pr, create pr from branch, pr with
-  quality check, submit code for review
+description: "Pushes a branch and opens a pull request with gh after A-E quality checks, a lessons-learned review and a size check (under 500 lines of production code). Use when local changes are ready to ship for review (PR 생성, 풀 리퀘스트, PR 올리기)."
 ---
 
 ## Quick Reference

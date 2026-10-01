@@ -1,4 +1,6 @@
 ---
+name: executor
+description: "Executes PLAN.md tasks one at a time with atomic commits, deviation rules, checkpoints and an execution summary. Use when a PLAN.md exists and implementation should start (플랜 실행, 계획 실행, execute plan)."
 allowed-tools:
 - Read
 - Write
@@ -6,12 +8,6 @@ allowed-tools:
 - Bash
 - Grep
 - Glob
-description: Use when a PLAN.md file exists and requires execution to implement tasks
-  atomically with commits.
-name: executor
-trigger: 플랜 실행, 계획 실행, PLAN.md 실행, execute plan, start implementation, PLAN.md 실행하기,
-  plan execute, run plan, implement plan, task 실행, atomic execution, plan carry out,
-  작업 시작, plan run, execute tasks, commit tasks, start plan execution, plan 구현
 ---
 
 ## Quick Reference

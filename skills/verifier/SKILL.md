@@ -1,24 +1,6 @@
 ---
-description: Use when code exists but needs validation for stubs, wiring, and anti-patterns
-  to confirm phase completion.
 name: verifier
-trigger: 구현 검증, 완료 확인, 페이즈 검증, verify implementation, check phase completion, validate
-  against spec, stub 탐지, stub check, anti-pattern 스캔, verify wiring, 3-level 검증, 재검증,
-  re-verification, gap 식별, identify gaps, empirical validation, verify code substance,
-  check TODO/FIXME, verification report 생성, verify artifacts, verify key links, 재검증
-  모드, re-verification mode, 인간 검증 필요, human verification needed, human needed, 가짜
-  구현 탐지, fake implementation check, placeholder 탐지, placeholder check, 연결성 검증, connection
-  verification, wiring check, 증거 기반 검증, evidence based verification, 반패턴 스캔, anti-pattern
-  scan, blocker 확인, check blockers, 검증 상태 결정, determine verification status, gaps
-  식별, identify gaps, 검증 템플릿 생성, generate verification template, stub-free 확인, stub-free
-  check, TODO 스캔, TODO scan, FIXME 스캔, FIXME scan, 빈 파일 탐지, empty file check, 최소 구현
-  탐지, minimal implementation check, 외부 서비스 검증, external service verification, UI 검증,
-  UI verification, 실시간 검증, real-time verification, WebSocket 검증, WebSocket check,
-  SSE 검증, SSE check, 성능 검증, performance verification, 요구사항 커버리지, requirements coverage,
-  만족도 확인, satisfaction check, 검증 점수 계산, calculate verification score, VERIFICATION.md
-  생성, generate VERIFICATION.md, 검증 결과 저장, save verification result, 메모리 프로토콜, memory
-  protocol, 영향 분석, impact analysis, 게이트 함수 검증, gate function verification, 신뢰성 검증,
-  trust verification, 모든 것 검증, verify everything
+description: "Verifies implemented work against the spec at three levels (exists, substantive, wired), scans for stubs, placeholders and anti-patterns, and writes VERIFICATION.md. Use when code exists and phase completion must be confirmed (구현 검증, 완료 확인)."
 ---
 
 ## Quick Reference

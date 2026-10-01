@@ -1,15 +1,11 @@
 ---
+name: handoff
+description: "Wraps up a session: commits the work, runs the tests and stores a handoff memory so the next session or agent can resume. Use when a session ends, work pauses, or another agent will continue (세션 종료, 핸드오프, 인수인계)."
 allowed-tools:
 - Read
 - Bash
 - Grep
 - Glob
-description: Use when a session ends, work must pause, or another agent will continue
-  the task to commit changes, run tests, and store handoff memory.
-name: handoff
-trigger: 세션 종료, 핸드오프, session end, handoff, 인수인계, wrap up session, 작업 정리, 세션 정리, 중단,
-  일시정지, checkpoint, suspend, save state, 다음 세션, 이어받기, continue next, resume work,
-  상태 저장, 작업 넘기기, session checkpoint, wrap up, finish session
 ---
 
 ## Quick Reference

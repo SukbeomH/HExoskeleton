@@ -1,17 +1,12 @@
 ---
+name: context-health-monitor
+description: "Detects context rot (3 failed attempts, a repeating approach, context usage above 60%) and dumps session state to .hxsk/STATE.md for recovery or a fresh session. Use when debugging keeps failing, work goes in circles, or the context window is filling up (컨텍스트 상태, 세션 덤프, 3-strike)."
 allowed-tools:
 - Read
 - Write
 - Grep
 - Glob
 - Bash
-description: Use when debugging fails 3 times, same approach repeats, or context usage
-  exceeds 60% to trigger state dump and recovery.
-name: context-health-monitor
-trigger: 컨텍스트 상태 확인, 세션 덤프, 3-strike 발동, 세션 인수인계, context health, session handoff,
-  컨텍스트 압축, context compact, 세션 일시중지, session pause, 순환 감지, circular detection, 불확실성
-  로깅, uncertainty logging, 컨텍스트 회전, context rot, 패턴 추출, pattern extraction, 상태 저장,
-  state dump, 3 strike rule, circular detection, context window full, token limit
 ---
 
 ## Quick Reference

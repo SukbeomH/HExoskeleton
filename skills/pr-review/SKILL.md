@@ -1,15 +1,6 @@
 ---
-description: Use when a PR number or URL is provided to conduct a comprehensive code
-  review and issue a merge verdict based on blocker severity.
 name: pr-review
-trigger: 코드 리뷰, PR 리뷰, 풀 리퀘스트 검토, review PR, code review, security review, PR 검토,
-  코드 확인, 풀리퀘스트 리뷰, pr check, code audit, security audit, architecture review, devops
-  review, qa review, ux review, PR 승인, 머지 승인, PR 거절, request changes, approve PR,
-  blocker 확인, HXSK 리뷰, 스펙 준수 확인, 컨벤션 체크, 6 페르소나 리뷰, 코드 품질 평가, 테스트 커버리지 확인, 보안 취약점
-  분석, 성능 영향도 분석, /pr-review, gh pr review, 코드 점검, 풀 요청 리뷰, 개발자 리뷰, QA 리뷰, 아키텍처 리뷰,
-  데브옵스 리뷰, UX 리뷰, 보안 감사, 스펙 검증, ADR 검증, 컨벤션 검증, 레슨러너드 저장, blocker 식별, severity 분류,
-  코드 스캔, 코드 분석, PR 분석, 머지 가능 여부, 코드 smell, 오버플로우, 리팩토링 제안, 이슈 분리, SPEC.md, DECISIONS.md,
-  CONVENTIONS.md, HXSK 컨벤션, 6인 리뷰, 코드 리뷰 봇, 자동화 리뷰
+description: "Reviews a pull request through six personas (developer, QA, security, architecture, DevOps, UX), classifies blockers by severity and issues a merge verdict. Use when given a PR number or URL to review (코드 리뷰, PR 리뷰)."
 ---
 
 ## Quick Reference

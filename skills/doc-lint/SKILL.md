@@ -1,11 +1,6 @@
 ---
-description: Use when modifying markdown files, preparing PRs, or suspecting link/structure
-  inconsistencies in documentation.
 name: doc-lint
-trigger: 문서 정합성 검사, 깨진 링크, INDEX 동기화, 카운트 불일치, 고아 파일, pre-commit, 문서 구조 검사, 중복 파일,
-  경로 참조 검증, 내용 검증, 의미론적 검사, doc-lint, doc lint, markdown check, broken link, orphan
-  file, duplicate file, link check, index sync, count mismatch, ref check, structural
-  check, content validation, 문서 검사, markdown 정합성
+description: "Checks documentation consistency (broken links and anchors, stale counts, path references, orphan and duplicate files), then reviews content. Use after modifying markdown, before a PR, or when links or structure look inconsistent (문서 정합성, 깨진 링크)."
 ---
 
 ## Quick Reference

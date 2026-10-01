@@ -1,25 +1,12 @@
 ---
+name: memory-protocol
+description: "Stores and recalls project knowledge as typed markdown memories under .hxsk/memories/ (architecture decisions, root causes, patterns, deviations, session summaries) with the bundled md-store/md-recall scripts. Use at session start, after an architecture decision or root-cause finding, at session end, or when asked to store or search past decisions (메모리 저장, 과거 기록 검색)."
 allowed-tools:
 - Read
 - Write
 - Grep
 - Glob
 - Bash
-description: Use when starting sessions, making architecture decisions, finding root
-  causes, or ending sessions to store or recall project knowledge.
-name: memory-protocol
-trigger: 메모리 저장, 과거 기록 검색, 메모리 조회, store memory, recall memory, search past decisions,
-  저장 메모리, 기록 저장, 과거 결정 검색, 저장하기, 조회하기, bug root cause found, architecture decision,
-  pattern discovered, security finding, hypothesis eliminated, plan deviation, execution
-  summary, health event, session end, debug blocked, bootstrap record, root-cause,
-  architecture-decision, pattern-discovery, security-finding, debug-eliminated, deviation,
-  execution-summary, health-event, session-summary, session-snapshot, debug-blocked,
-  bootstrap, md-recall-memory, md-store-memory, 2-hop 검색, related 메모리 조회, A-Mem 저장,
-  세션 시작 검색, 디버그 시작 검색, 계획 생성 검색, 아키텍처 리뷰 검색, 중복 방지 저장, grep 검색, 태그 필터링, 메모리 타입 저장,
-  메모리 스키마 확인, type-relations, search chains, debugging_chain, architecture_chain,
-  session_chain, lessons-learned 저장, doc-drift, test-quality, state-sync, lifecycle,
-  compat, general 메모리
-version: 4.0.0
 ---
 
 ## Quick Reference

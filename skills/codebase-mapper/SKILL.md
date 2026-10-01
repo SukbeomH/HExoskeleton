@@ -1,13 +1,6 @@
 ---
-description: Use when analyzing an existing codebase to generate ARCHITECTURE.md and
-  STACK.md, or when mapping project structure, dependencies, patterns, integrations,
-  and technical debt before planning.
 name: codebase-mapper
-trigger: 코드베이스 분석, 프로젝트 구조 파악, 아키텍처 문서화, 기술 부채 조사, analyze codebase, map structure,
-  onboarding, 의존성 분석, 패턴 식별, 통합 매핑, 기술 스택 파악, 코드 구조 스캔, 레거시 이해, 리팩토링 준비, 아키텍처 도출,
-  기술 부채 감사, dependency map, tech stack analysis, code structure scan, legacy code
-  review, refactoring prep, architecture mapping, tech debt audit, generate architecture
-  doc, generate stack doc
+description: "Analyzes an existing codebase and writes ARCHITECTURE.md and STACK.md covering structure, dependencies, patterns, integrations and technical debt. Use when onboarding to a codebase, before planning or refactoring, or when asked to map the structure or tech stack (코드베이스 분석, 구조 파악, 기술 부채)."
 ---
 
 ## Quick Reference

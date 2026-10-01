@@ -1,6 +1,6 @@
 ---
-description: Use when Ground Truth alignment finds memory contamination and the user explicitly requests scoped cleanup with /cleanse.
 name: cleanse-memory
+description: "Finds and, after human confirmation, deletes .hxsk/memories entries that contradict a Ground Truth source, within an explicitly scoped cleanup. Use only when the user explicitly asks for it (/cleanse <gt-id>, /cleanse --all, /cleanse --dry-run)."
 ---
 
 # cleanse-memory Skill

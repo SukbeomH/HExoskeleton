@@ -1,13 +1,6 @@
 ---
-description: Use when staged changes exist requiring qlty checks, logical split detection,
-  or HXSK phase-scoped conventional commit creation.
 name: commit
-trigger: '커밋 생성, git commit, 커밋 메시지 작성, 변경사항 커밋, conventional commit, 커밋 분할, 커밋 나누기,
-  변경사항 분리, pre-commit check, 커밋 전 검사, git diff 분석, 변경사항 분석, conventional commit 작성,
-  emoji 커밋, HXSK 커밋, phase 커밋, commit message format, split commits, run pre-commit,
-  analyze diff, qlty check 실행, shellcheck 검사, feat 커밋, fix 커밋, docs 커밋, refactor 커밋,
-  test 커밋, chore 커밋, phase-1.2 커밋, phase scope 적용, git add all, staged changes 분석,
-  논리적 분할 제안, 커밋 메시지 보정, imperitive mood 적용, 이슈 링크 추가, resolved #N, commit types'
+description: "Creates conventional commits from staged changes: runs qlty/shellcheck pre-commit checks, proposes logical splits and writes phase-scoped messages. Use when committing changes or asked to write or split a commit (커밋 생성, 커밋 메시지, 커밋 분할)."
 ---
 
 ## Quick Reference

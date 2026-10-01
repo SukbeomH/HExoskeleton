@@ -1,19 +1,11 @@
 ---
+name: arch-review
+description: "Reviews architecture for circular imports, layer violations, boundary breaches and design-doc contradictions, recalling past architecture decisions from memory. Use before merging structural changes or when asked for an architecture or design review (아키텍처 검토, 레이어 위반, 순환 의존성, 설계 모순)."
 allowed-tools:
 - Read
 - Grep
 - Glob
 - Bash
-description: Use when validating code for circular imports, layer violations, or design
-  doc logic errors before merging architecture-level changes.
-name: arch-review
-trigger: 아키텍처 검토, 레이어 위반 확인, 순환 의존성, 설계 문서 검토, 설계 모순 검사, review architecture, check
-  layer violations, before merging structural changes, design review, design contradiction
-  check, 구조 검증, 코드 구조 점검, 아키텍처 일관성 확인, 과거 아키텍처 결정 검토, memory recall architecture,
-  boundary compliance check, 경계 준수 확인, 복잡도 검사, shellcheck 구조 분석, 설계 실현 가능성 검증, 엣지
-  케이스 아키텍처, severity 평가, arch review before merge, validate code structure, circular
-  import check, layer isolation check, design doc consistency
-version: 4.0.0
 ---
 
 ## Quick Reference

@@ -1,4 +1,6 @@
 ---
+name: dispatcher
+description: "Splits a PLAN.md or SPEC.md into a master issue and wave-ordered work issues under .hxsk/issues/, dispatches them to subagents in isolated git worktrees and merges the results. Use when planned tasks should run in parallel waves (병렬 실행, wave 실행, 이슈 분할)."
 allowed-tools:
 - Agent
 - Read
@@ -6,15 +8,6 @@ allowed-tools:
 - Bash
 - Glob
 - Grep
-description: Use when PLAN.md or SPEC.md exists and tasks require splitting into waves
-  for parallel execution in isolated worktrees.
-name: dispatcher
-trigger: dispatch, 병렬 실행, wave 실행, 이슈 배정, 이슈 분할, work split, parallel issue, 마스터플랜,
-  plan split, master work 분할, 6-phase 오케스트레이션, wave loop, subagent dispatch, 워크트리
-  병렬, git worktree 관리, issue orchestration, wave dispatch, work 병합, wave merge, 병렬
-  워크트리, 이슈 추적, track wave, crash recovery, 중단 복구, 오케스트레이터, dispatcher skill, plan
-  to work, master 생성, work 분할, wave 순차 처리, 병렬 배포, 이슈 분할 실행
-version: 2.0.0
 ---
 
 ## Quick Reference

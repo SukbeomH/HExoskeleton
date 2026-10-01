@@ -1,17 +1,12 @@
 ---
+name: debugger
+description: "Systematic root-cause debugging with hypothesis testing, one-variable experiments and debug-memory recall; stops and records state after 3 failed fix attempts. Use for bugs, errors or unexpected behavior (버그 디버깅, 오류 원인, 에러 추적)."
 allowed-tools:
 - Read
 - Write
 - Grep
 - Glob
 - Bash
-description: Use when debugging bugs to find root causes, or after 3 failed fix attempts
-  to stop and document state.
-name: debugger
-trigger: 버그 디버깅, 오류 원인 찾기, 에러 추적, root cause, unexpected behavior, bug investigation,
-  3 strike rule, 가설 검증, hypothesis testing, meta debugging, self code review, debug
-  memory search, 과거 디버그 기록, systematic investigation, 변수 변경 테스트, 편향 피하기, 3 회 실패 후
-  중단, fresh session, 상태 기록, root cause 분석, 증빙 기반 디버깅
 ---
 
 ## Quick Reference
@@ -70,6 +65,8 @@ When debugging code you wrote, you're fighting your own mental model.
 **Embrace not knowing:** "I don't know" = good (now you can investigate). "It must be X" = dangerous.
 
 **Debugging Techniques + Hypothesis Testing + When to Restart** → `references/debugging-techniques.md`
+
+**역추적(근본 원인 추적) 기법** → `references/root-cause-tracing.md`
 
 ---
 

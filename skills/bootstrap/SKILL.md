@@ -1,4 +1,6 @@
 ---
+name: bootstrap
+description: "Initializes HExoskeleton in a project: checks prerequisites and creates the .hxsk/ working structure. Use for first-time project setup or update (프로젝트 초기화, 셋업)."
 allowed-tools:
 - Read
 - Write
@@ -6,21 +8,6 @@ allowed-tools:
 - Bash
 - Grep
 - Glob
-description: Use when .hxsk/.bootstrap-version is missing (fresh install) or exists
-  (verify/update) to initialize HExoskeleton.
-name: bootstrap
-trigger: 프로젝트 초기화, 프로젝트 셋업, 처음 설정, 업데이트, 갱신, project setup, initialize project, after
-  cloning, update, refresh, bootstrap 실행, bootstrap.sh, 환경 설정, 시스템 요구사항 확인, prerequisite
-  check, fresh install, verify mode, update mode, 멱등성 실행, idempotent setup, .env 생성,
-  메모리 초기화, memory init, 프로젝트 준비, project ready, converge, 상태 감지, 상태 확인, 설치 모드 감지,
-  bootstrap 실패, bootstrap fail, exit code 1, system prerequisite missing, 필수 요구사항
-  누락, codebase mapper 실행, codebase analysis, .hxsk 구조 확인, .hxsk directory check, 메모리
-  디렉토리 생성, memory directory create, 상태 보고서 확인, status report, result passed, project
-  ready 확인, fresh mode 실행, verify mode 실행, update mode 실행, idempotent convergence,
-  수렴 엔진 실행, 환경 변수 복사, env example copy, 메모리 저장 실패, memory store fail, 경고 처리, warn
-  handling, 에러 보고, error reporting, 초기 설치 모드, 초기화 모드, 프로젝트 컨텍스트 초기화, project context
-  init, 스택 분석, stack analysis, 아키텍처 분석, architecture analysis
-version: 5.1.0
 ---
 
 ## Quick Reference

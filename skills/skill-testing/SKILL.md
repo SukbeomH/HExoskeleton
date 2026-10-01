@@ -1,16 +1,6 @@
 ---
-description: Use when proving a skill alters agent behavior under pressure by comparing
-  rule violations without the skill against compliance with it.
 name: skill-testing
-trigger: 스킬 테스트, 스킬 검증, 스킬 품질, skill TDD, test skill, verify skill works, 스킬 TDD,
-  RED GREEN REFACTOR, 압박 테스트, 압박 시나리오, 합리화 패턴, 합리화 차단, 스킬 우회 테스트, 메타 테스트, 스킬 허점 찾기,
-  스킬 강화, 스킬 재작성, 스킬 행동 검증, 스킬 위반 테스트, 스킬 규칙 준수 확인, stress test skill, skill bypass
-  test, skill refinement, skill behavior check, TDD for skills, skill failure test,
-  RED 단계, GREEN 단계, REFACTOR 단계, 기준선 수집, 스킬 적용 재검증, 허점 차단, 시간 압박 테스트, 매몰 비용 테스트, 모호한
-  완료 기준 테스트, 복합 압박 테스트, 스킬 우회 방법, 합리화 우회, 규칙 뚫기 테스트, 스킬 테스트 리포트, Skill Test Report,
-  실패 테스트 먼저, 스킬 유효성 증명, 스킬 로딩 전후 비교, 서브에이전트 테스트, 스킬 합리화 테이블, 스킬 Red Flags, 스킬 재작성
-  필요, 스킬 위반 시나리오, 스킬 준수 시나리오, skill validation, skill effectiveness check, agent behavior
-  change, rationalization blocking, meta-test skill, skill loophole detection
+description: "Tests a skill TDD-style (RED/GREEN/REFACTOR) by running pressure scenarios without and with it and comparing rule violations, to prove it changes agent behavior. Use when creating or hardening a skill (스킬 테스트, 스킬 검증)."
 ---
 
 ## Quick Reference

@@ -1,12 +1,6 @@
 ---
-description: 'Use when PLAN.md exists after /plan and before /execute to validate
-  6 dimensions: requirement coverage, task completeness, dependencies, key links,
-  scope sanity, and verification derivation.'
 name: plan-checker
-trigger: 플랜 검증, 계획 점검, PLAN.md 검사, validate plan, check plan before execution, plan
-  audit, pre-execution check, plan sanity check, check for blockers, dependency cycle
-  check, verify task completeness, plan quality gate, PLAN.md audit, check plan scope,
-  validate plan dependencies, find plan issues, plan validation, pre-flight plan check
+description: "Validates PLAN.md before execution across six dimensions: requirement coverage, task completeness, dependencies, key links, scope sanity and verification derivation. Use after planning and before execution (플랜 검증, 계획 점검)."
 ---
 
 ## Quick Reference

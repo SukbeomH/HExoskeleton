@@ -1,11 +1,6 @@
 ---
-description: Use when shell scripts need linting/formatting before execution or commit
-  to ensure code quality.
 name: clean
-trigger: 코드 품질 검사, 린트, 포맷팅 수정, shellcheck, shfmt, pre-commit quality gate, 코드 정리,
-  스크립트 정리, shell script clean, bash lint, bash format, 코드 정제, linting, formatting,
-  fix shell, clean up scripts, shell script check, 코드 개선, commit 전 검사, 배포 전 검사, shell
-  오류 수정, 포맷팅 자동화
+description: "Lints and formats shell scripts with shellcheck and shfmt and fixes the findings. Use before running or committing shell scripts, or when asked to lint, format or clean up scripts (린트, 포맷팅, 스크립트 정리)."
 ---
 
 ## Quick Reference

@@ -1,17 +1,11 @@
 ---
+name: impact-analysis
+description: "Traces the dependents of a file before it is modified and computes an impact score that decides whether approval is needed. Use before modifying any existing file, especially shared code (영향 분석, 의존성 분석)."
 allowed-tools:
 - Read
 - Grep
 - Glob
 - Bash
-description: Use when modifying any existing file (excluding new standalone files)
-  to analyze dependencies and calculate impact score.
-name: impact-analysis
-trigger: 영향 분석, 변경 영향 범위, 의존성 분석, impact analysis, check what this affects, before
-  modifying files, 수정 전 영향도 확인, 리그레이션 방지, 의존성 추적, 파급 효과 분석, 영향도 점수 계산, impact score,
-  변경 전 확인, 리팩토링 전 분석, code impact, dependency chain, affected files, 승인 필요 확인, high
-  impact check, before code change, dependency analysis
-version: 4.0.0
 ---
 
 ## Quick Reference
