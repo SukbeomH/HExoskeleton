@@ -24,7 +24,7 @@ Discovery is MANDATORY unless you can prove current context exists.
 - Choosing between 2-3 options
 - New external integration (API, service)
 - Medium-risk decision
-- Action: Route to `/research-phase`, produces RESEARCH.md
+- Action: Research the options before planning; record them in a RESEARCH.md next to the plan
 
 ---
 
@@ -41,7 +41,7 @@ Discovery is MANDATORY unless you can prove current context exists.
 - **Level 2+**: New library not in package.json, external API, "choose/select/evaluate" in description
 - **Level 3**: "architecture/design/system", multiple external services, data modeling, auth design
 
-For niche domains (3D, games, audio, shaders, ML), suggest `/research-phase` before `/plan`.
+For niche domains (3D, games, audio, shaders, ML), suggest a Level 2-3 research step before planning.
 
 ---
 

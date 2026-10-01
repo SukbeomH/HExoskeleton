@@ -1,12 +1,12 @@
 ---
 name: cleanse-memory
-description: "Finds and, after human confirmation, deletes .hxsk/memories entries that contradict a Ground Truth source, within an explicitly scoped cleanup. Use only when the user explicitly asks for it (/cleanse <ground-truth> <scope-tags>, /cleanse --dry-run)."
+description: "Finds and, after human confirmation, deletes .hxsk/memories entries that contradict a Ground Truth source, within an explicitly scoped cleanup. Use only when the user explicitly asks for it (/hxsk:cleanse-memory <ground-truth> <scope-tags>, optionally --dry-run)."
 ---
 
 # cleanse-memory Skill
 
 ## Quick Reference
-- **Use when**: GT(Ground Truth) 대비 메모리 오염 의심 시 — `/cleanse <gt> <scope-tag...>`
+- **Use when**: GT(Ground Truth) 대비 메모리 오염 의심 시 — `/hxsk:cleanse-memory <gt> <scope-tag...>`
 - **트리거**: 사용자 명시 호출만 (자동 sweep 없음)
 - **삭제 정책**: HITL 확정 후 영구 삭제 + `.hxsk/.purge-log.tsv` append
 - **우회**: `HXSK_CONTRADICTION_CHECK=0`으로 신규 저장 시 contradiction check 비활성화
@@ -17,13 +17,13 @@ description: "Finds and, after human confirmation, deletes .hxsk/memories entrie
 ## 명령 형식
 
 ```
-/cleanse <gt> <scope-tag...>            # GT 기준으로 scope 태그에 해당하는 메모리만 검사
-/cleanse --dry-run <gt> <scope-tag...>  # 삭제 없이 후보 목록만 출력
+/hxsk:cleanse-memory <gt> <scope-tag...>            # GT 기준으로 scope 태그에 해당하는 메모리만 검사
+/hxsk:cleanse-memory --dry-run <gt> <scope-tag...>  # 삭제 없이 후보 목록만 출력
 ```
 
 `<gt>`는 Ground Truth 문서의 프로젝트 내 경로 또는 사용자가 준 URL. `<scope-tag>`는 메모리 태그(예: `auth`, `api`).
 
-예시: `/cleanse .hxsk/SPEC.md auth session`, `/cleanse docs/api.md api`
+예시: `/hxsk:cleanse-memory .hxsk/SPEC.md auth session`, `/hxsk:cleanse-memory docs/api.md api`
 
 ---
 

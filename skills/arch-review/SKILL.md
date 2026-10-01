@@ -125,7 +125,7 @@ bash ../memory-protocol/scripts/md-store-memory.sh \
 | Severity | Action |
 |----------|--------|
 | LOW | Log warning, proceed |
-| MEDIUM | Require acknowledgment in DECISIONS.md |
+| MEDIUM | Require acknowledgment, stored as an `architecture-decision` memory (`../memory-protocol/scripts/md-store-memory.sh`) |
 | HIGH | Block and require human approval |
 | CRITICAL | Stop all work, escalate to tech lead |
 

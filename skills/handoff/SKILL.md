@@ -1,8 +1,9 @@
 ---
 name: handoff
-description: "Wraps up a session: commits the work, runs the tests and stores a handoff memory so the next session or agent can resume. Use when a session ends, work pauses, or another agent will continue (세션 종료, 핸드오프, 인수인계)."
+description: "Wraps up a session: commits the work, runs the tests and stores a handoff memory and updates .hxsk/SESSION_HANDOFF.md so the next session or agent can resume. Use when a session ends, work pauses, or another agent will continue (세션 종료, 핸드오프, 인수인계)."
 allowed-tools:
 - Read
+- Edit
 - Bash
 - Grep
 - Glob
@@ -97,7 +98,17 @@ bash ../memory-protocol/scripts/md-store-memory.sh \
 - <commit-hash>: <description>
 ```
 
-### Step 5: Handoff Summary Output
+### Step 5: Update `.hxsk/SESSION_HANDOFF.md`
+
+프로젝트에 `.hxsk/`가 있으면 `.hxsk/SESSION_HANDOFF.md`를 Edit으로 갱신한다. 이 파일은 사람·에이전트가 관리하는 이 클론 전용 재진입 메모이고 훅은 다시 쓰지 않는다 (~1KB 유지).
+
+- `## Last Stable Context` — 브랜치, 태스크, 마지막 커밋
+- `## Immediate Next Action` — 다음 세션이 바로 할 한 가지
+- `## Verification Pointer` — 재실행할 검증 명령 또는 `.hxsk/VERIFICATION.md`의 해당 섹션
+
+다음 세션은 이 파일과 `.hxsk/STATE.md`를 먼저 읽는다 (Claude Code에서는 session-start 훅이 주입).
+
+### Step 6: Handoff Summary Output
 
 아래 형식으로 요약을 출력합니다:
 
@@ -122,7 +133,7 @@ Next Steps: <bullet list>
 
 1. **현재 task까지만 완료** — 진행 중인 task를 마무리하거나 안전한 지점까지 진행
 2. **Phase checkpoint commit** — `executor`의 Phase Checkpoint Commit 절차 실행
-3. **Handoff workflow 실행** — 이 스킬의 Step 1~5 실행
+3. **Handoff workflow 실행** — 이 스킬의 Step 1~6 실행
 4. **In Progress 섹션에 executor 상태 포함**:
    - 현재 Phase/Plan/Task 위치
    - PLAN.md 경로
@@ -138,7 +149,7 @@ Next Steps: <bullet list>
 | 메모리 저장 없이 커밋만 | 반드시 `session-handoff` 메모리 저장 |
 | "다 끝났다"만 기록 | Completed/In Progress/Next Steps 구조 준수 |
 | push 없이 종료 | 반드시 remote에 push |
-| PLAN.md 상태 업데이트 누락 | executor 연동 시 PRD/PLAN 상태도 반영 |
+| PLAN 진행 위치 누락 | executor 연동 시 Phase/Plan/Task 위치를 SESSION_HANDOFF.md·STATE.md에 반영 |
 
 ## Iron Laws
 NO TEST FIX WITHOUT NEW SESSION START

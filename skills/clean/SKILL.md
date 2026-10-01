@@ -6,7 +6,7 @@ description: "Lints and formats shell scripts with shellcheck and shfmt and fixe
 ## Quick Reference
 - **Lint & Fix**: `shellcheck` 및 `shfmt`로 모든 shell 스크립트 오류 자동 수정
 - **Report Format**: `=== Clean Report ===` 헤더와 `Overall: CLEAN|ISSUES_REMAIN` 포함
-- **Execution Timing**: 커밋 전 또는 실행 전(`/execute`) 필수 품질 게이트 수행
+- **Execution Timing**: 커밋 전 또는 `executor` 스킬 실행 전 필수 품질 게이트 수행
 - **Error Handling**: 이슈 발생 시 파일:라인 참조와 함께 구체적인 수정 내용 보고
 - **Scope**: 코드베이스 내 모든 `*.sh` 파일 대상 전량 검사 및 수정
 
@@ -79,7 +79,7 @@ go install mvdan.cc/sh/v3/cmd/shfmt@latest
 
 ## HXSK Integration
 
-- **Pre-execute**: Run `/clean` before `/execute` to ensure clean baseline
+- **Pre-execute**: Run this skill (`/hxsk:clean`) before the `executor` skill to ensure a clean baseline
 - **Pre-commit**: Clean checks can be run before committing shell scripts
 
 ## Iron Laws

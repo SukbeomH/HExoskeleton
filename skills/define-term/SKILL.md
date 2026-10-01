@@ -1,11 +1,11 @@
 ---
 name: define-term
-description: "Registers and merges project glossary terms stored as term-definition memories under .hxsk/memories/term-definition/, with human confirmation on conflicts. Use when a domain term needs a canonical definition or the user invokes /define (용어 정의, 용어 등록)."
+description: "Registers and merges project glossary terms stored as term-definition memories under .hxsk/memories/term-definition/, with human confirmation on conflicts. Use when a domain term needs a canonical definition or the user invokes /hxsk:define-term (용어 정의, 용어 등록)."
 ---
 
 # define-term
 
-Use when: 새 용어 등록(/define <term>) 또는 두 정의 병합(/define merge a b).
+Use when: 새 용어 등록(`/hxsk:define-term <term>`) 또는 두 정의 병합(`/hxsk:define-term merge a b`).
 
 ## Quick Reference
 - **충돌 정책**: canonical+context 중복 시 HITL 차단 → alias 추가 또는 신규 context 지정
@@ -17,7 +17,7 @@ Use when: 새 용어 등록(/define <term>) 또는 두 정의 병합(/define mer
 
 ## Mode: register `<term>`
 
-**트리거**: 사용자가 `/define <term>` 호출, 또는 대화 중 정의가 필요한 용어가 반복될 때 등록을 제안.
+**트리거**: 사용자가 `/hxsk:define-term <term>` 호출, 또는 대화 중 정의가 필요한 용어가 반복될 때 등록을 제안.
 
 **절차**:
 1. `Grep(pattern: "<term>", path: ".hxsk/memories/term-definition/", -i: true)` → canonical/aliases 중복 검사
@@ -37,7 +37,7 @@ Use when: 새 용어 등록(/define <term>) 또는 두 정의 병합(/define mer
 
 ## Mode: merge `<term-a>` `<term-b>`
 
-**트리거**: `/define merge a b` — 두 term-definition 파일이 사실상 동일 의미로 판단될 때.
+**트리거**: `/hxsk:define-term merge a b` — 두 term-definition 파일이 사실상 동일 의미로 판단될 때.
 
 **절차**:
 1. 두 파일 내용 표시
