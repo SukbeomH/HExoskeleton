@@ -23,7 +23,9 @@ put hxsk.gitignore .gitignore
 for f in CURRENT STATE SESSION_HANDOFF VERIFICATION; do [ -e "$HX/$f.md" ] && echo "[OK]  .hxsk/$f.md" || echo "[NEW] .hxsk/$f.md"; done
 CLAUDE_PROJECT_DIR="$DIR" bash "$ROOT/scripts/active-state.sh" ensure # 없는 상태 파일만 생성
 
-if grep -qs '<!-- hxsk -->' "$DIR/AGENTS.md"; then
+if [ "$DIR" -ef "$ROOT" ]; then
+    echo "[OK]  AGENTS.md (HXSK repo itself — contributor guide, no block)"
+elif grep -qs '<!-- hxsk -->' "$DIR/AGENTS.md"; then
     echo "[OK]  AGENTS.md HXSK block"
 else
     [ -s "$DIR/AGENTS.md" ] && echo >>"$DIR/AGENTS.md"

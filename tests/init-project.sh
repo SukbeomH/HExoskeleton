@@ -38,4 +38,10 @@ for f in SPEC.md STATE.md VERIFICATION.md PATTERNS.md memories/general/x.md .git
     ! git -C "$TMP" check-ignore -q ".hxsk/$f" || fail ".hxsk/$f should be trackable"
 done
 
+# HXSK 저장소 자체에 init 해도 기여자 가이드 AGENTS.md 에 블록을 붙이지 않는다
+SELF="$TMP/self"
+mkdir -p "$SELF" && cp -R "$ROOT/scripts" "$ROOT/templates" "$SELF/" && echo "# guide" >"$SELF/AGENTS.md"
+bash "$SELF/scripts/init-project.sh" "$SELF" >/dev/null
+[ "$(cat "$SELF/AGENTS.md")" = "# guide" ] || fail "init on the HXSK repo itself modified AGENTS.md"
+
 echo "PASS: init-project idempotent"
