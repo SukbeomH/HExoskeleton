@@ -94,7 +94,7 @@ files_changed: []
 
 ## Lifecycle
 
-**Creation:** When /debug is called
+**Creation:** When the `debugger` skill starts a debug session
 - Create file with trigger from user input
 - Set status to "gathering"
 - next_action = "gather symptoms"

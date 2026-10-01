@@ -1,6 +1,7 @@
-# project-config.yaml — 프로젝트 환경 설정
-# 부트스트랩에서 Detect-Ask-Confirm 플로우로 자동 생성
-# 훅과 스킬에서 참조하여 언어에 무관한 동작 수행
+# project-config.yaml — 프로젝트 환경 설정 (선택)
+# 자동 생성되지 않는다. 필요하면 복사한 뒤 값을 채운다:
+#   cp <hxsk 플러그인 루트>/templates/project-config.yaml .hxsk/project-config.yaml
+# 읽는 곳: bash-guard 훅(package_manager.name — 다른 패키지 관리자 명령 차단), commit 스킬(tools.test_runner.command)
 
 project:
   name: ""                          # 프로젝트명
@@ -45,7 +46,7 @@ environment:
   file_extensions: []               # [".py"], [".ts", ".tsx", ".js", ".jsx"]
 
 _meta:
-  generated_by: "bootstrap"
+  generated_by: "manual"
   generated_at: ""
   user_confirmed: false
   qlty_version: ""

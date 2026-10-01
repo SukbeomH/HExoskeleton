@@ -24,6 +24,6 @@ PRUNE_CAP_bootstrap=1        # 최신 snapshot 1개만
 # PRUNE_CAP_deviation=5
 
 # ── opportunistic tick cooldown (초) ──
-# md-store/md-recall/bootstrap 호출 시 prune-tick.sh가 참조.
+# md-store/md-recall 호출 시 prune-tick.sh가 참조.
 # 너무 짧으면 연속 호출로 I/O 낭비, 너무 길면 누적.
 PRUNE_TICK_COOLDOWN=60
