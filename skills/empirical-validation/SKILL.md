@@ -171,7 +171,7 @@ This skill integrates with:
 - `verifier` 스킬 — 이 스킬로 검증 증거를 수집
 - `executor` 스킬 — 태스크 완료 표시 전 이 스킬로 검증
 - 위 Thinking Budget 섹션 — 깊은 추론이 필요한 작업의 예산
-- 프로젝트 `AGENTS.md`의 Iron Laws — 이 스킬의 상세 절차를 구현
+- 이 스킬의 `## Iron Laws`와 Gate Function — 규칙 원문 (프로젝트 `AGENTS.md`의 HXSK 블록에는 이 스킬을 가리키는 한 줄 요약만 있다)
 
 ## Failure Handling
 
