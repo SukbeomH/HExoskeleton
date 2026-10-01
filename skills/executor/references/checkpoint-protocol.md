@@ -98,7 +98,9 @@ When you hit a checkpoint or auth gate, return this EXACT structure:
 
 ## Continuation Handling
 
-If spawned as a continuation agent (prompt has completed tasks):
+After returning a checkpoint, stop and record the resume point in `.hxsk/SESSION_HANDOFF.md`; wait for the user to resume.
+
+When the user resumes (completed tasks listed in `.hxsk/SESSION_HANDOFF.md` or the prompt):
 
 1. **Verify previous commits exist:**
    ```bash
