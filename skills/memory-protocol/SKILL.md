@@ -195,7 +195,7 @@ tags:
 > **Note:** 아래 검색 체인은 설계 레퍼런스이며, 현재 자동 구현되지 않음.
 > `md-recall-memory.sh`의 2-hop 검색은 `related` 필드 기반이며, 체인 자동 순회는 미구현.
 
-`references/type-relations.yaml`에서 14개 타입 간 관계 정의:
+`references/type-relations.yaml`에서 타입 간 관계 정의:
 
 | Relation | 의미 | 예시 |
 |----------|-----|------|
@@ -221,6 +221,7 @@ session_chain: [session-snapshot, session-summary, session-handoff]
 - `root-cause.schema.json`: 근본 원인 전용 필드
 - `architecture-decision.schema.json`: ADR 스타일 필드
 - `session-summary.schema.json`: Nemori 서사 형태 필드
+- `term-definition.schema.json`: 용어 정의 필드 (canonical/context/aliases, `define-term` 스킬)
 
 ---
 
@@ -246,6 +247,7 @@ session_chain: [session-snapshot, session-summary, session-handoff]
 | `lessons-learned/C-state-sync` | 상태 동기화/의미론 패턴 | `lessons-learned,category-C` | `memories/lessons-learned/C-state-sync/` |
 | `lessons-learned/D-lifecycle` | Resource/Lifecycle 패턴 | `lessons-learned,category-D` | `memories/lessons-learned/D-lifecycle/` |
 | `lessons-learned/E-compat` | Forward-compat 패턴 | `lessons-learned,category-E` | `memories/lessons-learned/E-compat/` |
+| `term-definition` | 용어 정의 (canonical/context/aliases) | `glossary,term,definition` | `memories/term-definition/` |
 | `general` | 기타 | context-dependent | `memories/general/` |
 
 ---

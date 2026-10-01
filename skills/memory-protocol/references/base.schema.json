@@ -61,7 +61,7 @@
     },
     "provenance": {
       "type": "object",
-      "description": "ADR-007: GT 출처 메타데이터 (선택)",
+      "description": "Ground Truth 출처 메타데이터 (선택, cleanse-memory가 사용)",
       "properties": {
         "source":          { "type": "string" },
         "authority":       { "type": "string", "enum": ["high", "medium", "low"] },

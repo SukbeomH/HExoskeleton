@@ -116,4 +116,4 @@ purge-log 컬럼 형식:
 
 - `.hxsk/.purge-log.tsv` — 삭제 audit trail (git 추적)
 - `../memory-protocol/scripts/md-recall-memory.sh` — 메모리 검색 (provenance 우선순위 적용)
-- `../memory-protocol/scripts/md-store-memory.sh` — 저장 시 contradiction check (ADR-007)
+- `../memory-protocol/scripts/md-store-memory.sh` — 저장 시 contradiction check
