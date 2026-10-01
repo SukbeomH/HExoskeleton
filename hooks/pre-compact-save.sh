@@ -8,7 +8,6 @@ main() {
     PROJECT_DIR="${CLAUDE_PROJECT_DIR:-.}"
     HXSK_DIR="$PROJECT_DIR/.hxsk"
     STATE_FILE="$HXSK_DIR/STATE.md"
-    JOURNAL_FILE="$HXSK_DIR/JOURNAL.md"
     PATTERNS_FILE="$HXSK_DIR/PATTERNS.md"
     CURRENT_FILE="$HXSK_DIR/CURRENT.md"
     HANDOFF_FILE="$HXSK_DIR/SESSION_HANDOFF.md"
@@ -26,11 +25,6 @@ main() {
     # STATE.md 백업
     if [ -f "$STATE_FILE" ]; then
         cp "$STATE_FILE" "${STATE_FILE}.pre-compact.bak"
-    fi
-
-    # JOURNAL.md 백업
-    if [ -f "$JOURNAL_FILE" ]; then
-        cp "$JOURNAL_FILE" "${JOURNAL_FILE}.pre-compact.bak"
     fi
 
     # PATTERNS.md 백업 (핵심 패턴 보존)
@@ -53,7 +47,7 @@ main() {
         cp "$VERIFICATION_FILE" "${VERIFICATION_FILE}.pre-compact.bak"
     fi
 
-    # compact-context.sh 실행 (자동 아카이빙)
+    # compact-context.sh 실행 (PATTERNS.md 크기 경고 + 메모리 prune)
     COMPACT_SCRIPT="$(cd "$(dirname "$0")" && pwd)/compact-context.sh"
     if [ -f "$COMPACT_SCRIPT" ]; then
         bash "$COMPACT_SCRIPT" 2>/dev/null || true
