@@ -19,6 +19,7 @@ mkdir -p "$HX/memories"
 put spec.md SPEC.md
 put patterns.md PATTERNS.md
 put context-config.yaml context-config.yaml
+put hxsk.gitignore .gitignore
 for f in CURRENT STATE SESSION_HANDOFF VERIFICATION; do [ -e "$HX/$f.md" ] && echo "[OK]  .hxsk/$f.md" || echo "[NEW] .hxsk/$f.md"; done
 CLAUDE_PROJECT_DIR="$DIR" bash "$ROOT/scripts/active-state.sh" ensure # 없는 상태 파일만 생성
 

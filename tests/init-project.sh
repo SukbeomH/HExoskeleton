@@ -28,4 +28,14 @@ done
 [ -d "$TMP/.hxsk/memories" ] || fail ".hxsk/memories not created"
 [ -f "$TMP/.agents/skills/memory-protocol/scripts/md-store-memory.sh" ] || fail "--skills did not copy skills"
 
+# .hxsk/.gitignore: 훅 런타임 파일은 무시, 프로젝트 상태/메모리는 추적
+git -C "$TMP" init -q
+for f in .track-modifications.log .context-save-202601.log .modified-this-session.123 .session-active \
+    STATE.md.pre-compact.bak runtime/session-snapshots/x/CURRENT.md .prune-lock/x CURRENT.md; do
+    git -C "$TMP" check-ignore -q ".hxsk/$f" || fail ".hxsk/$f should be ignored"
+done
+for f in SPEC.md STATE.md VERIFICATION.md PATTERNS.md memories/general/x.md .gitignore; do
+    ! git -C "$TMP" check-ignore -q ".hxsk/$f" || fail ".hxsk/$f should be trackable"
+done
+
 echo "PASS: init-project idempotent"

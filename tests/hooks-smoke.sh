@@ -54,6 +54,24 @@ run "$HX" read-before-edit.py "$EDIT"; expect "hxsk read-before-edit blocks unre
 run "$HX" track-read-history.py '{"tool_name":"Read","tool_input":{"file_path":"'"$HX"'/existing.txt"}}'; expect "hxsk track-read-history" 0 $?
 run "$HX" read-before-edit.py "$EDIT"; expect "hxsk read-before-edit allows after read" 0 $?
 run "$HX" track-modifications.sh "$EDIT"; expect "hxsk track-modifications flag" yes "$([ -f "$HX/.hxsk/.modified-this-session" ] && echo yes || echo no)"
+LOG="$HX/.hxsk/.track-modifications.log"
+has() { grep -q "$1" "$2" 2>/dev/null && echo yes || echo no; }
+expect "hxsk track-modifications logs Edit path" yes "$(has $'\tEdit\t'"$HX/existing.txt"'$' "$LOG")"
+
+# post-turn-verify: 코드 변경 + 완료 선언 + 이번 턴 Bash 기록 없음 → 경고, Bash 기록 후 → 조용
+echo 'x' >"$HX/app.js"
+STOP='{"hook_event_name":"Stop","last_assistant_message":"모두 완료했습니다"}'
+warns() { (cd "$HX" && CLAUDE_PROJECT_DIR="$HX" "$ROOT/hooks/post-turn-verify.sh" <<<"$STOP" 2>&1 >/dev/null) | grep -c 'NO COMPLETION WITHOUT VERIFICATION'; }
+expect "hxsk post-turn-verify warns without Bash evidence" 1 "$(warns)"
+run "$HX" track-modifications.sh '{"tool_name":"Bash","tool_input":{"command":"npm test\n  --ci"}}'
+expect "hxsk track-modifications logs Bash command (one line)" yes "$(has $'\tBash\tnpm test   --ci$' "$LOG")"
+expect "hxsk post-turn-verify quiet with Bash evidence" 0 "$(warns)"
+
+# post-turn-verify: 변경된 CRLF 스크립트를 LF 로 (GNU/BSD sed 공통), 실행 비트 유지
+printf 'echo hi\r\n' >"$HX/crlf.sh" && chmod +x "$HX/crlf.sh"
+run "$HX" post-turn-verify.sh '{}'
+expect "post-turn-verify strips CRLF" no "$(has $'\r' "$HX/crlf.sh")"
+expect "post-turn-verify keeps exec bit" yes "$([ -x "$HX/crlf.sh" ] && echo yes || echo no)"
 run "$HX" collect-rationalization.sh 'this should work'; expect "hxsk collect-rationalization log" yes "$([ -s "$HX/.hxsk/.rationalization-patterns.log" ] && echo yes || echo no)"
 run "$HX" pre-compact-save.sh '{}'; expect "hxsk pre-compact-save backup" yes "$([ -f "$HX/.hxsk/STATE.md.pre-compact.bak" ] && echo yes || echo no)"
 run "$HX" stop-context-save.sh '{}'; expect "hxsk stop-context-save" 0 $?

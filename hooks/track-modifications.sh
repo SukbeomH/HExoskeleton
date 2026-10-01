@@ -14,20 +14,15 @@ TRACK_LOG="$PROJECT_DIR/.hxsk/.track-modifications.log"
 # 플래그 파일 생성 (수정 발생 표시)
 touch "$FLAG_FILE"
 
-# 변경 파일 경로를 로그에 누적 기록
-# stdin으로 전달되는 hook input에서 tool_input.file_path 추출
-TOOL_NAME="${CLAUDE_TOOL_NAME:-unknown}"
-if [[ -n "${CLAUDE_TOOL_INPUT_FILE_PATH:-}" ]]; then
-    FILE_PATH="$CLAUDE_TOOL_INPUT_FILE_PATH"
-elif [[ -n "${CLAUDE_TOOL_INPUT_FILENAME:-}" ]]; then
-    FILE_PATH="$CLAUDE_TOOL_INPUT_FILENAME"
-else
-    FILE_PATH=""
-fi
-
-if [[ -n "$FILE_PATH" ]]; then
-    TS=$(date '+%Y-%m-%dT%H:%M:%S')
-    printf '%s\t%s\t%s\n' "$TS" "$TOOL_NAME" "$FILE_PATH" >> "$TRACK_LOG"
-fi
+# stdin hook input JSON → "시각<TAB>도구<TAB>file_path 또는 command(한 줄, 200자)" 누적
+[[ -t 0 ]] && exit 0
+source "$(dirname "$0")/_json_parse.sh"
+INPUT=$(cat)
+TOOL_NAME=$(json_get "$INPUT" '.tool_name // empty')
+TARGET=$(json_get "$INPUT" '.tool_input.file_path // empty')
+[[ -n "$TARGET" ]] || TARGET=$(json_get "$INPUT" '.tool_input.command // empty')
+TARGET="${TARGET//$'\n'/ }"
+TARGET="${TARGET//$'\t'/ }"
+printf '%s\t%s\t%s\n' "$(date '+%Y-%m-%dT%H:%M:%S')" "${TOOL_NAME:-unknown}" "${TARGET:0:200}" >> "$TRACK_LOG"
 
 exit 0

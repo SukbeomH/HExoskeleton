@@ -1,0 +1,12 @@
+# HXSK 훅이 만드는 런타임 파일 — 추적하지 않음 (init-project.sh 가 .hxsk/.gitignore 로 설치)
+# SPEC/STATE/VERIFICATION/PATTERNS 와 memories/ 는 추적 대상
+*.log
+*.pre-compact.bak
+.modified-this-session*
+.session-active
+.last-prune-ts
+.prune-lock/
+runtime/
+# 매 턴 Stop 훅이 다시 쓰는 로컬 스냅샷 (호스트마다 달라 머지 충돌)
+CURRENT.md
+SESSION_HANDOFF.md
