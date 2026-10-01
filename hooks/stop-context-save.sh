@@ -2,7 +2,7 @@
 # Hook: Stop — 세션 컨텍스트 저장 (외부 종속성 없음)
 # strict-mode-exempt: background/cleanup-heavy hook; top-level errexit would break best-effort save/prune flow
 # .hxsk/.modified-this-session 플래그가 있을 때만 실행
-# 1) 순수 bash 템플릿으로 CURRENT.md 생성 (Nemori 서사 형태)
+# 1) 순수 bash 템플릿으로 CURRENT.md 생성 (Nemori 서사 형태) — STATE.md / SESSION_HANDOFF.md 는 건드리지 않음
 # 2) 파일 기반 메모리로 세션 메모리 저장 (A-Mem 확장)
 # 백그라운드 실행으로 hook timeout 회피
 
@@ -53,7 +53,7 @@ RECENT_COMMITS=$(git -C "$PROJECT_DIR" log --oneline -3 2>/dev/null)
     fi
 
     # ── Write-gating: 의미 있는 변경만 집계 ──
-    # 훅이 생성하는 파일(CURRENT.md, STATE.md, .hxsk 내부 로그)만 있는 세션은
+    # 상태 파일(CURRENT.md, STATE.md, SESSION_HANDOFF.md, .hxsk 내부 로그)만 바뀐 세션은
     # session-summary로 남길 가치가 없음 → 저장 생략
     MEANINGFUL=$(echo "$MODIFIED" | sed 's/^[[:space:]MADRC?]*//' \
         | grep -v -E '^(\.hxsk/CURRENT\.md|\.hxsk/STATE\.md|\.hxsk/SESSION_HANDOFF\.md|\.hxsk/runtime/.*|\.hxsk/\..*\.log|\.hxsk/\.modified-this-session)$' \
