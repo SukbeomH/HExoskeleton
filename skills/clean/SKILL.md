@@ -82,10 +82,6 @@ go install mvdan.cc/sh/v3/cmd/shfmt@latest
 - **Pre-execute**: Run `/clean` before `/execute` to ensure clean baseline
 - **Pre-commit**: Clean checks can be run before committing shell scripts
 
-## Scripts
-
-(없음 — shellcheck, shfmt 등 에이전트 네이티브 도구로 직접 수행)
-
 ## Iron Laws
 NO EXECUTE WITHOUT CLEAN FIRST
 NO COMMIT WITHOUT CLEAN CHECK FIRST

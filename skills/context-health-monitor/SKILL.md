@@ -242,7 +242,7 @@ This skill integrates with:
 
 ## Scripts
 
-- `compact-context.sh` (plugin PreCompact hook, runs automatically): Archive old entries, prune PATTERNS.md to 2KB limit
+None. On Claude Code, the plugin's PreCompact hook (`pre-compact-save.sh`) backs up the `.hxsk/` state files and runs its `compact-context.sh` helper, which warns when PATTERNS.md exceeds 2KB / 20 items and prunes local-tier memories.
 
 ## Iron Laws
 NO CONTINUE DEBUGGING WITHOUT STATE.md DUMP FIRST (After 3 failures)

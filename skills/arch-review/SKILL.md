@@ -129,10 +129,6 @@ bash ../memory-protocol/scripts/md-store-memory.sh \
 | HIGH | Block and require human approval |
 | CRITICAL | Stop all work, escalate to tech lead |
 
-## Scripts
-
-(없음 — shellcheck, Grep, Glob 등 에이전트 네이티브 도구로 직접 수행)
-
 ## Iron Laws
 NO ARCHITECTURE REVIEW WITHOUT MEMORY RECALL FIRST
 NO LAYER VIOLATION WITHOUT UNIDIRECTIONAL FLOW (UI -> SERVICE -> REPOSITORY)

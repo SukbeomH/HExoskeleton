@@ -65,10 +65,8 @@ echo ""
 echo "## Environment"
 printf "  PWD:      %s\n" "$(pwd)"
 printf "  Project:  %s\n" "$(cd "$PROJECT_ROOT" && pwd)"
-if [[ -f "$PROJECT_ROOT/.env" ]]; then
-    env_count=$(grep -c -v '^\s*#\|^\s*$' "$PROJECT_ROOT/.env" 2>/dev/null || echo "0")
-    printf "  .env:     %s variables defined\n" "$env_count"
-fi
+# .env 는 존재 여부만 — 내용은 읽지 않는다
+[[ -f "$PROJECT_ROOT/.env" ]] && printf "  .env:     present (not read)\n"
 echo ""
 
 # --- Docker ---

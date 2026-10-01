@@ -225,7 +225,7 @@ APPROVE인 경우에도 [High] 이상 발견이 있었다면 저장.
 
 ## Scripts
 
-(없음 — `gh pr diff`, `gh pr view` 등 에이전트 네이티브 도구로 직접 수행)
+- `scripts/extract_pr_diff.sh [pr_number | branch]` — PR 번호면 `gh`로 제목·변경 파일·diff를, 브랜치(기본: 현재 브랜치)면 기본 브랜치(main, 없으면 master) 대비 변경 파일·커밋·diff를 출력. 실행: `bash scripts/extract_pr_diff.sh 123`
 
 ## Iron Laws
 NO REVIEW WITHOUT CONTEXT LOADING FIRST
