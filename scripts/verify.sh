@@ -19,8 +19,8 @@ step() { # step <name> <cmd...> — 통과 시 한 줄, 실패 시 출력 전체
 }
 
 if command -v claude >/dev/null; then
-    step "plugin validate: marketplace" claude plugin validate .
-    step "plugin validate: plugin" claude plugin validate .claude-plugin/plugin.json
+    step "plugin validate: marketplace" claude plugin validate . --strict
+    step "plugin validate: plugin" claude plugin validate .claude-plugin/plugin.json --strict
 else
     echo "SKIP  plugin validate (claude CLI not on PATH)"
 fi
