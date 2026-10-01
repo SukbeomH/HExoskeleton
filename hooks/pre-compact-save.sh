@@ -1,0 +1,111 @@
+#!/usr/bin/env bash
+# Hook: PreCompact — STATE.md 자동 백업
+# 컨텍스트 압축 전 HXSK 상태 문서를 백업하여 컨텍스트 손실 방지
+
+main() {
+    set -euo pipefail
+
+    PROJECT_DIR="${CLAUDE_PROJECT_DIR:-.}"
+    HXSK_DIR="$PROJECT_DIR/.hxsk"
+    STATE_FILE="$HXSK_DIR/STATE.md"
+    JOURNAL_FILE="$HXSK_DIR/JOURNAL.md"
+    PATTERNS_FILE="$HXSK_DIR/PATTERNS.md"
+    CURRENT_FILE="$HXSK_DIR/CURRENT.md"
+    HANDOFF_FILE="$HXSK_DIR/SESSION_HANDOFF.md"
+    VERIFICATION_FILE="$HXSK_DIR/VERIFICATION.md"
+    TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+
+    # Skip if .hxsk/ doesn't exist
+    if [ ! -d "$HXSK_DIR" ]; then
+        exit 0
+    fi
+
+    # Clean old backup files (keep only latest)
+    rm -f "$HXSK_DIR"/*.pre-compact.bak 2>/dev/null || true
+
+    # STATE.md 백업
+    if [ -f "$STATE_FILE" ]; then
+        cp "$STATE_FILE" "${STATE_FILE}.pre-compact.bak"
+    fi
+
+    # JOURNAL.md 백업
+    if [ -f "$JOURNAL_FILE" ]; then
+        cp "$JOURNAL_FILE" "${JOURNAL_FILE}.pre-compact.bak"
+    fi
+
+    # PATTERNS.md 백업 (핵심 패턴 보존)
+    if [ -f "$PATTERNS_FILE" ]; then
+        cp "$PATTERNS_FILE" "${PATTERNS_FILE}.pre-compact.bak"
+    fi
+
+    # CURRENT.md 백업 (현재 세션 컨텍스트)
+    if [ -f "$CURRENT_FILE" ]; then
+        cp "$CURRENT_FILE" "${CURRENT_FILE}.pre-compact.bak"
+    fi
+
+    # SESSION_HANDOFF.md 백업
+    if [ -f "$HANDOFF_FILE" ]; then
+        cp "$HANDOFF_FILE" "${HANDOFF_FILE}.pre-compact.bak"
+    fi
+
+    # VERIFICATION.md 백업
+    if [ -f "$VERIFICATION_FILE" ]; then
+        cp "$VERIFICATION_FILE" "${VERIFICATION_FILE}.pre-compact.bak"
+    fi
+
+    # compact-context.sh 실행 (자동 아카이빙)
+    COMPACT_SCRIPT="$(cd "$(dirname "$0")" && pwd)/compact-context.sh"
+    if [ -f "$COMPACT_SCRIPT" ]; then
+        bash "$COMPACT_SCRIPT" 2>/dev/null || true
+    fi
+
+    # 파일 기반 메모리에 pre-compact 스냅샷 저장 (실패 무시)
+    BRANCH=$(git -C "$PROJECT_DIR" branch --show-current 2>/dev/null || echo "unknown")
+    if [ -f "$STATE_FILE" ]; then
+        STATE_SUMMARY=$(head -40 "$STATE_FILE" 2>/dev/null || true)
+        if [ -n "$STATE_SUMMARY" ]; then
+            HOOK_DIR="$(cd "$(dirname "$0")" && pwd)"
+            "$HOOK_DIR/../skills/memory-protocol/scripts/md-store-memory.sh" \
+                "Pre-compact: $BRANCH [$TIMESTAMP]" \
+                "$STATE_SUMMARY" \
+                "session-snapshot,pre-compact,auto,branch:$BRANCH" \
+                "session-snapshot" 2>/dev/null || true
+        fi
+    fi
+
+    # 백업이 하나라도 수행되었으면 additionalContext로 상태 요약 주입
+    if [ -f "${STATE_FILE}.pre-compact.bak" ]; then
+        # STATE.md 상위 내용을 컨텍스트에 보존
+        STATE_SUMMARY=$(head -40 "$STATE_FILE" 2>/dev/null || true)
+        if [ -n "$STATE_SUMMARY" ]; then
+            python3 -c "
+import json, sys
+ctx = sys.stdin.read().strip()
+if ctx:
+    print(json.dumps({
+        'hookSpecificOutput': {
+            'hookEventName': 'PreCompact',
+            'additionalContext': '## Pre-Compact State Snapshot\n' + ctx
+        }
+    }))
+" <<< "$STATE_SUMMARY"
+        fi
+    fi
+}
+
+# 메인 실행 및 에러 캡처
+ERROR_OUTPUT=$(main 2>&1)
+EXIT_CODE=$?
+
+if [ $EXIT_CODE -ne 0 ] || echo "$ERROR_OUTPUT" | grep -qiE '(error|permission denied|no such file)'; then
+    python3 -c "
+import json, sys
+msg = sys.stdin.read().strip()
+msg = ' '.join(msg[:200].split())
+print(json.dumps({'status': 'error', 'message': msg}))
+" <<< "$ERROR_OUTPUT"
+else
+    echo "$ERROR_OUTPUT"
+fi
+
+exit 0
