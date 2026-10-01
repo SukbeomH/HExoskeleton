@@ -63,45 +63,9 @@ yarn-error.log*
 *.key
 secrets/
 
-# ─── HXSK (런타임/임시 데이터만 무시) ────────────
-# memories: tier 분리 — local-only vs shared
-# Local-only (각 환경 독립, 재생성 가능)
-.hxsk/memories/session-summary/
-.hxsk/memories/session-snapshot/
-.hxsk/memories/session-handoff/
-.hxsk/memories/health-event/
-.hxsk/memories/debug-blocked/
-.hxsk/memories/debug-eliminated/
-.hxsk/memories/bootstrap/
-.hxsk/memories/general/
-.hxsk/memories/deviation/
-# Shared (git-tracked): architecture-decision, root-cause, pattern-discovery,
-# security-finding, execution-summary, lessons-learned, _schema
-# — 명시적으로 무시하지 않음 (가치 태그가 있는 local 파일은 자동 승격됨)
-
-# 상태 파일 (host별로 덮어쓰므로 공유 시 머지 충돌)
-.hxsk/CURRENT.md
-.hxsk/STATE.md
-.hxsk/JOURNAL.md
-.hxsk/SESSION_HANDOFF.md
-
-.hxsk/archive/
-.hxsk/reports/*
-!.hxsk/reports/
-!.hxsk/reports/iteration-log.tsv
-.hxsk/.modified-this-session
-.hxsk/.session-active
-.hxsk/.track-modifications.log
-.hxsk/.context-save.log
-.hxsk/runtime/
-.hxsk/.last-prune-ts
-.hxsk/.prune-lock/
-.hxsk/.prune-config
-.hxsk/context-config.yaml
-.hxsk/prd-*.json
-.hxsk/issues/MASTER-*.md
-.hxsk/issues/WORK-*.md
-.hxsk/issues/archive/
+# ─── HXSK ─────────────────────────────────────────
+# 이 저장소 자신의 per-project 런타임 상태 (dogfood) — 절대 추적하지 않음
+/.hxsk/
 
 # ─── Session & Logs ──────────────────────────────
 .sessions/*.jsonl
@@ -111,9 +75,7 @@ secrets/
 .agent/memory.jsonl
 **/memory.jsonl
 
-# ─── Claude Code Runtime (bootstrap.sh 자동 생성) ──
-.claude/skills/
-.claude/agents/
+# ─── Claude Code Runtime ─────────────────────────
 .claude/worktrees/
 .claude/scheduled_tasks.lock
 
@@ -141,10 +103,3 @@ temp/
 *.tmp
 *.bak
 settings.local.json
-
-# HXSK HITL 런타임 (세션 임시 파일)
-.hxsk/.hitl-pending.json
-
-# HXSK Glossary 런타임 (세션 임시 파일)
-.hxsk/.glossary-candidates.tsv
-.hxsk/.glossary-pending.tsv

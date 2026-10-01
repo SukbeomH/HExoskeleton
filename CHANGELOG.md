@@ -1,5 +1,34 @@
 # Changelog
 
+## 6.0.0 (2026-10-01)
+
+### ⚠ BREAKING CHANGES
+
+* **배포**: 복사 기반 설치(setup 프롬프트, install/bootstrap 스크립트)를 Claude Code 플러그인 마켓플레이스로 대체. 설치는 `/plugin marketplace add SukbeomH/HExoskeleton` → `/plugin install hxsk@hexoskeleton`, 프로젝트 초기화는 `hxsk-init` 스킬(`scripts/init-project.sh`).
+* **레이아웃**: 프레임워크 파일을 `.hxsk/` 아래에서 저장소 루트(`skills/`, `agents/`, `hooks/`, `scripts/`, `templates/`, `docs/`)로 이동. `.hxsk/`는 이제 프로젝트별 작업 상태 전용.
+* **하네스**: 하네스별 어댑터·심볼릭 링크(GEMINI/Cursor/Windsurf/Copilot 지침 파일, Codex/Copilot 훅, git 훅 폴백) 제거. 공통 표면은 Claude 플러그인 + `AGENTS.md` + `.agents/skills`(→ `skills/`).
+* **에이전트**: 스킬과 이름이 같은 래퍼 에이전트 제거. `spec-reviewer`, `verifier`만 유지.
+* **훅·스크립트**: 호출자 없는 훅과 스크립트, SessionEnd·SubagentStop 훅, forge-detect, Makefile 제거.
+* **상태 훅 opt-in**: 상태를 읽고 쓰는 훅은 프로젝트에 `.hxsk/`가 있을 때만 동작. 가드 훅은 항상 동작.
+* **저장소 자체 작업 상태 제거**: 이 저장소의 phases/research/plans/memories 등은 삭제(로컬 태그 `archive/v5.7.0`에 보존). 개발용 `.hxsk/`는 로컬 전용.
+* **CLAUDE.md**: 루트 `CLAUDE.md`를 `.claude/CLAUDE.md`(`@../AGENTS.md` import)로 이동.
+
+### Features
+
+* 스킬 frontmatter를 Agent Skills 스펙 키로 정리하고 `scripts/check-skills.py`로 검사.
+* 검증 스택을 `scripts/verify.sh` 단일 진입점으로 교체(플러그인 `--strict` 검증, JSON, `bash -n`, shellcheck, 테스트, 링크). CI도 같은 스크립트를 실행.
+* `init-project.sh`가 `.hxsk/.gitignore`를 설치해 런타임 파일과 로컬 스냅샷(CURRENT, SESSION_HANDOFF)을 제외.
+* MIT `LICENSE` 추가.
+
+### Bug Fixes
+
+* **memory**: `md-store-memory`가 메모리 타입을 검증(정의되지 않은 타입·경로 탈출 거부), `md-recall-memory` 기본 hop을 1로 변경.
+* **hooks**: `track-modifications`가 stdin 훅 입력을 읽도록 수정(존재하지 않는 환경 변수를 읽어 로그가 기록되지 않던 문제).
+* **hooks**: `session-start`의 `json_get` 인자 순서가 뒤바뀌어 모든 세션이 resume으로 처리되던 문제 수정.
+* **hooks**: `post-turn-verify`의 GNU/BSD `sed` 호환, `grep -c || echo 0` 경고 누락, 병렬 Stop 훅과의 로그 경합 수정.
+
+> 아래 6.0.0 이전 항목은 이전 릴리스 계보(`hxsk-plugin` 1.x)에서 온 것이다.
+
 ## [1.12.0](https://github.com/SukbeomH/HExoskeleton/compare/hxsk-plugin-v1.11.1...hxsk-plugin-v1.12.0) (2026-04-23)
 
 

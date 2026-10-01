@@ -1,67 +1,19 @@
 # HExoskeleton
 
-> AI 에이전트 기반 개발 방법론. 순수 bash + 마크다운 기반, 외부 종속성 없음.
-> 어떤 코딩 에이전트든 이 문서를 읽고 프로젝트에 HXSK를 구성할 수 있습니다.
-> Last Updated: 2026-05-04 · Format: llms.txt v1.0 · HXSK v5.7.0
+> HXSK: SPEC → PLAN → EXECUTE → VERIFY 개발 방법론. Agent Skills, 검증 서브에이전트, 가드·상태 훅, 프로젝트 `.hxsk/`의 파일 기반 작업 상태·메모리. 저장소 루트가 Claude Code 플러그인 `hxsk`이자 마켓플레이스 `hexoskeleton`이다.
 
-## Setup
-- [Setup Prompt](.hxsk/prompts/setup.md): 어떤 에이전트든 이 프롬프트를 실행하면 HXSK 구성 완료 (Claude Code 포함)
+## Start
+- [README.md](README.md): 하네스별 설치, 첫 실행(`hxsk-init`), 워크플로우, 업그레이드
+- [AGENTS.md](AGENTS.md): 이 저장소를 개발할 때의 지침 (구조, 검증, 스킬 편집 규칙)
 
-## Agent Instructions
-- [AGENTS.md](AGENTS.md): 범용 에이전트 지침 (Copilot, Cursor, Windsurf, Devin 등)
-- [CLAUDE.md](CLAUDE.md): Claude Code 지침
-- [GEMINI.md](GEMINI.md): Gemini CLI 지침
+## Components
+- [skills/](skills/): Agent Skills (`skills/<name>/SKILL.md`), `.agents/skills`로도 노출
+- [agents/](agents/): 서브에이전트 정의
+- [hooks/hooks.json](hooks/hooks.json): Claude Code 훅 등록
+- [templates/](templates/): 프로젝트 `.hxsk/` 스캐폴드
+- [scripts/init-project.sh](scripts/init-project.sh): 프로젝트에 `.hxsk/` 생성 (`--skills`로 `.agents/skills` 복사)
 
-## Skills
-- [Skills Index](.hxsk/skills/INDEX.md): 24개 스킬 목록 + 설명
-
-## Hooks
-- [Hooks Index](.hxsk/hooks/INDEX.md): 27개 훅 스크립트 목록
-
-## Agents
-- [Agents Index](.hxsk/agents/INDEX.md): 18개 에이전트 정의
-
-## Templates
-- [Templates](.hxsk/templates/): 33개 문서 템플릿
-
-## Architecture
-- [ARCHITECTURE.md](.hxsk/ARCHITECTURE.md): 시스템 아키텍처 + 기술 부채 현황
-- [Research Index](.hxsk/research/INDEX.md): 42개 리서치 문서 카탈로그 (13개 카테고리)
-
-## Optional
-- [Memory System](.hxsk/docs/MEMORY.md): 파일 기반 메모리 시스템 상세
-- [Workflow Guide](.hxsk/docs/WORKFLOWS.md): SPEC→PLAN→EXECUTE→VERIFY 워크플로우
-- [Skills Guide](.hxsk/docs/SKILLS.md): 스킬 상세 가이드
-- [Hooks Guide](.hxsk/docs/HOOKS.md): 훅 시스템 상세
-
-## 하네스별 빠른 시작
-
-어떤 AI 에이전트를 사용 중인가?
-
-### Claude Code
-1. 이 llms.txt를 읽은 후 `.hxsk/prompts/setup.md`를 실행하세요.
-2. 또는: `bash .hxsk/scripts/install.sh --harness claude-code`
-
-### Cursor 1.7+
-1. `.hxsk/prompts/setup.md` Step 1·4·6(필수) 실행
-2. `bash .hxsk/scripts/install.sh --harness cursor`
-
-### GitHub Copilot CLI
-1. `.hxsk/prompts/setup.md` Step 1·4·6(필수) 실행
-2. `bash .hxsk/scripts/install.sh --harness copilot`
-
-### Gemini CLI / Windsurf / OpenCode / Codex (Tier 2)
-1. `.hxsk/prompts/setup.md` Step 1·4·6(필수) 실행
-2. `.hxsk/adapters/README.md` 의 해당 하네스 섹션 참조
-
-### OpenAI Codex CLI
-1. `bash .hxsk/scripts/install.sh --harness codex`
-2. Codex 설정에서 `codex_hooks=true` 활성
-
-### Hermes Agent
-1. `llms.txt` → `AGENTS.md` → `.hxsk/CURRENT.md` → `.hxsk/STATE.md` → `.hxsk/VERIFICATION.md` 순서로 읽으세요.
-2. 상세 연결 규칙은 `.hxsk/adapters/hermes/README.md` 를 참조하세요.
-
-### Aider / Continue / Antigravity (Tier 3 — 커뮤니티 기여)
-1. `.hxsk/prompts/setup.md` Step 1·4(필수) 실행
-2. `bash .hxsk/scripts/install.sh --harness git-hook`
+## Docs
+- [docs/DESIGN-PHILOSOPHY.md](docs/DESIGN-PHILOSOPHY.md): 설계 원칙과 근거
+- [docs/HOOKS.md](docs/HOOKS.md): 훅 동작과 `.hxsk/` opt-in 규칙
+- [docs/GATES.md](docs/GATES.md): 이슈·PR 기반 큰 작업의 게이트 관례
