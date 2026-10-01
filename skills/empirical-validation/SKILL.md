@@ -168,10 +168,10 @@ Guard 실패 시 → Verify 성공이라도 BLOCK. Guard 명령은 이진 exit c
 ## Integration
 
 This skill integrates with:
-- `/verify` — Primary workflow using this skill
-- `/execute` — Must validate before marking tasks complete
-- `CLAUDE.md` Validation + Thinking Budget 섹션
-- `AGENTS.md` Iron Laws — 이 스킬의 상세 절차를 구현
+- `verifier` 스킬 — 이 스킬로 검증 증거를 수집
+- `executor` 스킬 — 태스크 완료 표시 전 이 스킬로 검증
+- 위 Thinking Budget 섹션 — 깊은 추론이 필요한 작업의 예산
+- 프로젝트 `AGENTS.md`의 Iron Laws — 이 스킬의 상세 절차를 구현
 
 ## Failure Handling
 
