@@ -1,6 +1,6 @@
 # Hooks
 
-훅은 Claude Code 플러그인 `hxsk`의 [`hooks/hooks.json`](../hooks/hooks.json)으로만 등록된다. 명령은 `"${CLAUDE_PLUGIN_ROOT}/hooks/<script>"` 형태라 설치 위치와 무관하게 동작하고, 대상 프로젝트는 `CLAUDE_PROJECT_DIR`로 찾는다. 다른 하네스에서는 훅이 동작한다고 가정하지 않는다.
+훅은 Claude Code 플러그인 `hxsk`의 [`hooks/hooks.json`](../hooks/hooks.json)으로만 등록된다. 명령은 `"${CLAUDE_PLUGIN_ROOT}/hooks/<script>"` 형태라 설치 위치와 무관하게 동작하고, 대상 프로젝트는 `CLAUDE_PROJECT_DIR`로 찾는다. Codex CLI 플러그인 설치에서는 사용자가 훅을 신뢰한 뒤 같은 `hooks.json`이 실행된다. Codex의 `apply_patch`는 `Edit|Write` matcher로 들어오며 `file_path` 없이 `tool_input.command`에 패치 본문을 담는다 — `file-protect.py`는 그 본문의 경로를 검사하고, `read-before-edit.py`(Codex에는 Read 도구가 없다)·`write-guard.py`는 `file_path`가 없으므로 통과시킨다. 그 밖의 하네스에서는 훅이 동작한다고 가정하지 않는다.
 
 ## 두 종류
 
@@ -9,7 +9,7 @@
 
 | 이벤트 (matcher) | 스크립트 | 종류 | 하는 일 |
 |---|---|---|---|
-| PreToolUse (Edit\|Write\|Read) | `file-protect.py` | 가드 | `.env`, 키·인증서 등 민감 파일 접근 차단 (exit 2) |
+| PreToolUse (Edit\|Write\|Read) | `file-protect.py` | 가드 | `.env`, 키·인증서 등 민감 파일 접근 차단 (exit 2). Codex `apply_patch`는 패치 본문의 Add/Update/Delete/Move 경로 |
 | PreToolUse (Write) | `write-guard.py` | 가드 | 기존 파일 덮어쓰기 차단 — 수정은 Edit |
 | PreToolUse (Bash) | `bash-guard.py` | 가드 | `rm -rf` 등 파괴적 명령 차단 |
 | PreToolUse (Edit) | `read-before-edit.py` | 상태 | 이번 세션에 Read 하지 않은 파일의 Edit 차단 (`.hxsk/` 없으면 허용) |
