@@ -13,9 +13,7 @@ body:
       label: Pre-submission Checklist
       description: Please verify these items before submitting
       options:
-        - label: I have searched [existing issues](https://github.com/SukbeomH/LLM_Bolierplate_Pack/issues) and this is not a duplicate
-          required: true
-        - label: I have read the [CONTRIBUTING.md](https://github.com/SukbeomH/LLM_Bolierplate_Pack/blob/main/CONTRIBUTING.md)
+        - label: I have searched [existing issues](https://github.com/SukbeomH/HExoskeleton/issues) and this is not a duplicate
           required: true
 
   - type: textarea
@@ -34,7 +32,7 @@ body:
       description: How can we reproduce this issue?
       placeholder: |
         1. Run the command '...'
-        2. Execute agent with '...'
+        2. Ask the agent to '...' / invoke skill '...'
         3. See error
     validations:
       required: true
@@ -63,11 +61,11 @@ body:
       label: Component
       description: Which component is affected?
       options:
-        - LangChain Agent (Supervisor/Architect/Artisan/etc.)
-        - MCP Integration
-        - Injection System
-        - CLI Tools
-        - Configuration
+        - Skills
+        - Subagents (agents/)
+        - Hooks (hooks/hooks.json)
+        - Memory (.hxsk/memories)
+        - Plugin install / hxsk-init
         - Other
     validations:
       required: true
@@ -78,10 +76,9 @@ body:
       label: Environment
       description: Please provide your environment details
       placeholder: |
-        - OS: macOS 14.0
-        - Python version: 3.11
-        - Project version/commit: abc123
-        - Relevant dependencies: langchain==0.x.x
+        - OS: macOS 15
+        - Agent harness + version: Claude Code 2.1.x / Codex / ...
+        - HXSK version (.claude-plugin/plugin.json) or commit: 6.0.0
     validations:
       required: true
 

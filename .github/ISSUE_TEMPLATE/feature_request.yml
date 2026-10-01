@@ -13,7 +13,7 @@ body:
       label: Pre-submission Checklist
       description: Please verify these items before submitting
       options:
-        - label: I have searched [existing issues](https://github.com/SukbeomH/LLM_Bolierplate_Pack/issues) and this is not a duplicate
+        - label: I have searched [existing issues](https://github.com/SukbeomH/HExoskeleton/issues) and this is not a duplicate
           required: true
         - label: This feature aligns with the project's AI-native development philosophy
           required: true
@@ -42,11 +42,11 @@ body:
       label: Component
       description: Which component should this feature be added to?
       options:
-        - LangChain Agent System
-        - New Agent/Skill
-        - MCP Integration
-        - Injection System
-        - CLI Tools
+        - Skills
+        - Subagents (agents/)
+        - Hooks (hooks/hooks.json)
+        - Memory (.hxsk/memories)
+        - Plugin install / hxsk-init
         - Documentation
         - Other
     validations:

@@ -1,16 +1,23 @@
-name: PR Consistency Check
+name: Verify
 
 on:
   pull_request:
+  push:
     branches: [master]
 
 jobs:
-  consistency:
+  verify:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
 
-      - name: Run local verification bundle
-        run: bash .hxsk/scripts/local-verify.sh
+      # claude CLI 는 `claude plugin validate` 용 (인증 불필요)
+      - name: Install shellcheck and claude CLI
+        run: |
+          command -v shellcheck || { sudo apt-get update -qq && sudo apt-get install -y -qq shellcheck; }
+          npm install -g @anthropic-ai/claude-code
+
+      - name: Run scripts/verify.sh
+        run: bash scripts/verify.sh
         env:
-          HXSK_SKIP_GITHUB: "1"
+          DISABLE_AUTOUPDATER: "1"
