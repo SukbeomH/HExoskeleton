@@ -251,6 +251,8 @@ def main(argv=None):
         request = a.request if a.request is not None else sys.stdin.read()
         if not request.strip():
             sys.exit("registry: empty request (pass --request TEXT or pipe it on stdin)")
+        if not (load(p).get("front") or {}).get("name"):  # the prompt must name where to report
+            sys.exit("registry: no front registered (run /router:front first)")
     if a.cmd == "spawn":
         a.cwd = os.path.abspath(os.path.expanduser(a.cwd))
         if not os.path.isdir(a.cwd):
@@ -282,11 +284,8 @@ def main(argv=None):
                 if old and (old.get("job_id") or old.get("session_id") or old.get("state") != "exited"):
                     sys.exit(f"registry: name '{a.name}' is taken")
                 reg["sessions"].pop(a.name, None)
-            if a.cmd == "spawn":
-                if not (reg.get("front") or {}).get("name"):
-                    sys.exit("registry: no front registered (run /router:front first)")
-                if [n for n in merged if n not in reg["sessions"]]:
-                    sys.exit(f"registry: unknown --merged-from source in '{a.merged_from}'")
+            if a.cmd == "spawn" and [n for n in merged if n not in reg["sessions"]]:
+                sys.exit(f"registry: unknown --merged-from source in '{a.merged_from}'")
             s = reg["sessions"].setdefault(a.name, {"state": "active"})
             for k in ("session_id", "job_id", "cwd", "topic", "model", "state"):
                 if getattr(a, k, None):  # "" never overwrites (e.g. an empty $JOB)

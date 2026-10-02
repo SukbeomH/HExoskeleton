@@ -149,9 +149,10 @@ r = cli("spawn", "w1", "--cwd", str(TMP / "nope"), "--request", "x")
 assert r.returncode == 1 and "w1" not in reg()["sessions"], r
 r = cli("spawn", "w1", "--cwd", str(TMP), stdin=" \n")
 assert r.returncode == 1 and "w1" not in reg()["sessions"], r
-r = subprocess.run([sys.executable, str(ROOT / "scripts/registry.py"), "spawn", "w1", "--request", "x"],
-                   env={**ENV, "ROUTER_REGISTRY": str(TMP / "frontless.json")}, capture_output=True, text=True)
-assert r.returncode == 1 and "front" in r.stderr, r
+for cmd in ("spawn", "resume"):  # no front → the prompt could not say where to report
+    r = subprocess.run([sys.executable, str(ROOT / "scripts/registry.py"), cmd, "w1", "--request", "x"],
+                       env={**ENV, "ROUTER_REGISTRY": str(TMP / "frontless.json")}, capture_output=True, text=True)
+    assert r.returncode == 1 and "front" in r.stderr and not (TMP / "frontless.json").exists(), r
 # reserve + compose + start + record the job id in one command
 r = cli("spawn", "w1", "--cwd", str(TMP), "--topic", "T", "--model", "haiku", "--mode", "default", "--request", "do X")
 assert r.returncode == 0 and r.stdout.strip() == "5eed0001", r
