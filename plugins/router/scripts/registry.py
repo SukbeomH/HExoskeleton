@@ -10,8 +10,10 @@ Writes take an exclusive flock and replace the file atomically. Empty option val
 Usage: registry.py [--data DIR] <command> ...
   init | set-front [SESSION_ID] [--name N] | get-front | list [--json]
   upsert NAME [--new] [--session-id S] [--job-id J] [--cwd C] [--topic T] [--state S]
-  spawn NAME PROMPT_FILE --cwd C [--topic T] [--model M] [--mode P]  → reserve NAME, backend.sh spawn, record job id
-  resume NAME PROMPT_FILE                                → backend.sh resume, record job id
+  spawn NAME --cwd C [--request R] [--topic T] [--model M] [--mode P] [--merged-from A,B]
+        → reserve NAME, compose the prompt, backend.sh spawn, record job id (sources marked merged)
+  resume NAME [--request R]  → compose the prompt, backend.sh resume, record job id
+  The request is --request or stdin; the prompt (front, topic, siblings, request) is composed here.
   mark NAME STATE [--into NAME] | refresh [FILE|-]  (FILE = `backend.sh list` output)
   record-result SESSION_ID TEXT
 """
@@ -143,15 +145,29 @@ def refresh(reg, agents):
         s["updated"] = now()
 
 
-def launch(p, name, args):
-    """Run `backend.sh ARGS`; its stdout is the job id. Record it on NAME (state active), or mark NAME exited."""
-    r = subprocess.run(["bash", str(BACKEND), *args], stdout=subprocess.PIPE, text=True)
+def launch(p, name, args, prompt):
+    """Run `backend.sh ARGS` with PROMPT on stdin; its stdout is the job id. Record it on NAME (state active),
+    or mark NAME exited."""
+    r = subprocess.run(["bash", str(BACKEND), *args], input=prompt, stdout=subprocess.PIPE, text=True)
     job = r.stdout.strip() if r.returncode == 0 else ""
     with locked(p) as reg:
         s = reg["sessions"][name]
         s.update({"job_id": job, "state": "active"} if job else {"state": "exited", "pid": None})
         s["updated"] = now()
     return job
+
+
+def compose(reg, name, request, merged_from=()):
+    """The worker's prompt: where to report (current front name), its topic, its siblings, then the request."""
+    sibs = [f"{n} — {s.get('topic') or '-'}" for n, s in sorted(reg["sessions"].items())
+            if n != name and n not in merged_from and s.get("state") != "merged"
+            and (s.get("job_id") or s.get("session_id"))]
+    head = [f"Router front: @{(reg.get('front') or {}).get('name')} — send results there with SendMessage.",
+            f"Topic: {reg['sessions'][name].get('topic') or '-'}",
+            f"Siblings: {'; '.join(sibs) or 'none'}"]
+    if merged_from:
+        head.append(f"Merged from: {', '.join(merged_from)}")
+    return "\n".join(head) + f"\n\nRequest from the user:\n{request}"
 
 
 def render(reg, width=200):
@@ -188,14 +204,15 @@ def main(argv=None):
     up.add_argument("--state", choices=STATES)
     sp = sub.add_parser("spawn")
     sp.add_argument("name")
-    sp.add_argument("prompt_file")
     sp.add_argument("--cwd", required=True)
     sp.add_argument("--topic")
     sp.add_argument("--model")
     sp.add_argument("--mode", "--permission-mode", dest="mode", help="permission mode for the worker")
+    sp.add_argument("--merged-from", default="", help="comma-separated sources, marked merged on success")
     rs = sub.add_parser("resume")
     rs.add_argument("name")
-    rs.add_argument("prompt_file")
+    for x in (sp, rs):
+        x.add_argument("--request", help="the user's request (default: stdin)")
     mk = sub.add_parser("mark")
     mk.add_argument("name")
     mk.add_argument("state", choices=STATES)
@@ -210,6 +227,12 @@ def main(argv=None):
     p = path(a.data)
     if p is None:
         sys.exit("registry: set ROUTER_REGISTRY, --data or CLAUDE_PLUGIN_DATA")
+    if a.cmd in ("spawn", "resume"):  # validate inputs before any name is reserved
+        request = a.request if a.request is not None else sys.stdin.read()
+        if not request.strip():
+            sys.exit("registry: empty request (pass --request TEXT or pipe it on stdin)")
+    if a.cmd == "spawn":
+        merged = [n for n in a.merged_from.split(",") if n]
     if a.cmd == "init":
         with locked(p):
             pass
@@ -232,23 +255,32 @@ def main(argv=None):
         with locked(p) as reg:
             if (a.cmd == "spawn" or a.new) and a.name in reg["sessions"]:
                 sys.exit(f"registry: name '{a.name}' is taken")
+            if a.cmd == "spawn":
+                if [n for n in merged if n not in reg["sessions"]]:
+                    sys.exit(f"registry: unknown --merged-from source in '{a.merged_from}'")
             s = reg["sessions"].setdefault(a.name, {"state": "active"})
             for k in ("session_id", "job_id", "cwd", "topic", "model", "state"):
                 if getattr(a, k, None):  # "" never overwrites (e.g. an empty $JOB)
                     s[k] = getattr(a, k)
             s["updated"] = now()
+            if a.cmd == "spawn":
+                prompt = compose(reg, a.name, request, merged)
         if a.cmd == "upsert":
             print(json.dumps({a.name: s}, ensure_ascii=False))
             return
-        job = launch(p, a.name, ["spawn", a.name, a.cwd, a.prompt_file, a.model or "", a.mode or ""])
+        job = launch(p, a.name, ["spawn", a.name, a.cwd, a.model or "", a.mode or ""], prompt)
         if not job:
             sys.exit(f"registry: spawn of '{a.name}' failed; marked exited")
+        with locked(p) as reg:
+            for n in merged:
+                reg["sessions"][n].update(state="merged", merged_into=a.name, updated=now())
         print(job)
     elif a.cmd == "resume":
-        s = load(p)["sessions"].get(a.name) or {}
+        reg = load(p)
+        s = reg["sessions"].get(a.name) or {}
         if not s.get("session_id"):
             sys.exit(f"registry: no session id for '{a.name}' (run refresh first)")
-        job = launch(p, a.name, ["resume", s["session_id"], a.name, s.get("cwd") or ".", a.prompt_file])
+        job = launch(p, a.name, ["resume", s["session_id"], a.name, s.get("cwd") or "."], compose(reg, a.name, request))
         if not job:
             sys.exit(f"registry: resume of '{a.name}' failed; marked exited")
         print(job)
