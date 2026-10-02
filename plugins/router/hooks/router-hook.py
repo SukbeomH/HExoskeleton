@@ -14,6 +14,8 @@ Stop: only in a worker (session_id, or $CLAUDE_JOB_DIR's job id, is in the regis
 PermissionRequest: only in a worker → approvals/pending/<nonce>.json (the exact tool_input), then wait for the decision
   a user-typed /router:approve writes in the front; answer allow/deny only. No decision in time → no output, so the
   normal prompt stays (claude attach).
+PreToolUse SendMessage: only in a worker → deny a recipient that is another live session (not the front, not a
+  sibling): a stale front name's "Did you mean" hint must not carry a report to an unrelated session.
 Anything else, including a missing registry: no output, no write.
 """
 
@@ -72,6 +74,28 @@ def main():
         registry.record_result(p, sid, job_id(), data.get("last_assistant_message") or "", data.get("agent_type"))
     elif event == "PermissionRequest":
         permission_request(p, sid, data)
+    elif event == "PreToolUse" and data.get("tool_name") == "SendMessage":
+        guard_send(p, sid, data)
+
+
+def guard_send(p, sid, data):
+    """A worker may message its front and its siblings, never another of the user's sessions. A report to a front
+    that is gone gets "Did you mean <some other session>?", and a worker that followed it leaked the report there.
+    Only live sessions (`claude agents`) are refused, so a worker's own subagent ids/names still pass."""
+    reg = registry.load(p)
+    if not registry.find_worker(reg, sid, job_id()):
+        return
+    front = reg.get("front") or {}
+    to = str((data.get("tool_input") or {}).get("to") or "").lstrip("@")
+    ours = {front.get("name"), front.get("session_id"), *reg["sessions"],
+            *(s.get(k) for s in reg["sessions"].values() for k in ("session_id", "job_id"))}
+    live = {a.get(k) for a in registry.backend_agents() or [] for k in ("name", "sessionId", "id")}
+    if to and to in live - ours:
+        why = (f"router: '{to}' is another session, not your front @{front.get('name')} or a sibling. Message no other "
+               "session, not even one SendMessage suggests; if the front is unreachable, end your turn with the summary "
+               "(the router records it).")
+        print(json.dumps({"hookSpecificOutput": {"hookEventName": "PreToolUse", "permissionDecision": "deny",
+                                                 "permissionDecisionReason": why}}))
 
 
 def approve(p, sid, args):

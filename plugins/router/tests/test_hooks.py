@@ -19,11 +19,12 @@ TMP = pathlib.Path(tempfile.mkdtemp())
 atexit.register(shutil.rmtree, TMP, True)
 DATA = TMP / "data"  # hooks get CLAUDE_PLUGIN_DATA from Claude Code
 REG = DATA / "registry.json"
-BIN = TMP / "bin"  # stub `claude`: `claude agents --json --all` names the sessions (front name lookup)
+BIN = TMP / "bin"  # stub `claude`: `claude agents --json --all` names the sessions (front name lookup, SendMessage guard)
 BIN.mkdir()
 (BIN / "claude").write_text("""#!/usr/bin/env bash
 [ "$1" = agents ] && echo '[{"kind": "interactive", "sessionId": "front-uuid", "name": "boss", "pid": 1},
-  {"kind": "background", "id": "aaaa1111", "sessionId": "w-uuid", "name": "api", "pid": 2}]'
+  {"kind": "background", "id": "aaaa1111", "sessionId": "w-uuid", "name": "api", "pid": 2},
+  {"kind": "interactive", "sessionId": "other-uuid", "name": "hexo-21", "pid": 3}]'
 """)
 (BIN / "claude").chmod(0o755)
 
@@ -221,6 +222,23 @@ assert json.loads(answer(proc))["hookSpecificOutput"]["decision"]["behavior"] ==
 # answered or expired → no longer open
 assert "not sent" in approve(args=rec["nonce"])["reason"]
 assert approve()["reason"].endswith("(none)")
+
+# PreToolUse SendMessage in a worker: another live session of the user's (e.g. a stale front name's "Did you mean"
+# suggestion) is refused; the front, siblings (by name or id), and names that are no session (its own subagents) pass
+
+
+def send(sid, to):
+    out = run({"session_id": sid, "hook_event_name": "PreToolUse", "tool_name": "SendMessage",
+               "tool_input": {"to": to, "message": "[api] done: x"}})
+    return json.loads(out)["hookSpecificOutput"] if out else None
+
+
+for to in ("hexo-21", "@hexo-21", "other-uuid"):
+    out = send("w-uuid", to)
+    assert out["permissionDecision"] == "deny" and "another session" in out["permissionDecisionReason"], (to, out)
+assert send("ui-unknown-sid", "hexo-21") is None  # not a worker (no job dir) → not ours to police
+for to in ("boss", "@boss", "front-uuid", "ui", "bbbb2222", "my-subagent"):
+    assert send("w-uuid", to) is None, to
 
 # garbage stdin → still exit 0
 r = subprocess.run([str(HOOK)], input="not json", capture_output=True, text=True)
