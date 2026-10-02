@@ -1,5 +1,22 @@
 # Changelog
 
+## router 0.1.2 (2026-10-02)
+
+대화형 재시험(Orca terminal, marketplace install)에서 나온 결함 수정.
+
+### Bug Fixes
+
+* **router**: 실패한 `spawn`이 이름을 태우지 않는다. `--cwd`는 front의 cwd가 기본이고, 디렉터리와 요청을 이름 예약 전에 확인한다. 실행에 실패해 id가 없는(`exited`) 이름은 다시 `spawn`할 수 있고, 시작됐거나 병합된 이름은 계속 거절한다.
+* **router**: 작업 세션 프롬프트를 `registry.py spawn`/`resume`이 조립한다(현재 front 이름·주제·형제 목록·요청). 요청은 `--request` 또는 표준 입력으로 받고, `backend.sh`는 프롬프트를 표준 입력으로 받는다. `~/.claude` 아래 프롬프트 파일 쓰기와 그때마다 뜨던 확인이 없어졌다. `merge`는 `--merged-from`으로 한 명령에 생성과 원본 표시를 끝낸다.
+* **router**: 재개 프롬프트에도 현재 front 이름이 들어가, 다시 띄운 front에 작업 세션이 옛 이름으로 보고하지 않는다.
+* **router**: 대장 목록은 `pid`를 그 프로세스가 있을 때만 보여 주고, 사라진 프로세스의 `active`/`idle` 항목은 `exited`로 보여 준다. `resume`은 먼저 목록을 갱신해 살아 있는 세션을 다시 띄우지 않고, 재개·생성 시 이전 프로세스의 `pid`/`agent_state`를 지운다.
+* **router**: 작업 세션이 지연 로드 도구인 `SendMessage`를 `ToolSearch`로 먼저 불러와 보고하고, 항상 마지막 `Router front:`로 보고한다.
+* **router**: `merge`의 기본 지시가 새 세션을 `blocked`로 끝내지 않는다(병합 상태 3줄 요약 → front 보고 → 지시 대기).
+
+### Documentation
+
+* **router**: allow 규칙을 무인 라우팅의 필수 설정으로 표시하고 `Skill(router:…)` 규칙과 남는 확인 종류를 적었다. front에 `/rename`을 권한다. 재시험에서 확인한 항목(캐시 경로와 맞는 allow 규칙, 약 1시간 유휴 종료, 멈춘 세션은 `SendMessage`로 깨지 않아 `resume`이 필요함, stop·rm 뒤 재개)을 실측으로 옮겼다.
+
 ## router 0.1.1 (2026-10-02)
 
 대화형 실측(Orca terminal, marketplace install)에서 나온 결함 수정.

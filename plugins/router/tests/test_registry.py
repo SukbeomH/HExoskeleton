@@ -127,7 +127,8 @@ BIN = TMP / "bin"
 BIN.mkdir()
 (BIN / "claude").write_text("""#!/usr/bin/env bash
 printf '%s\\n' "$*" >> "$(dirname "$0")/argv.log"
-[ "$1" = agents ] && { echo '[]'; exit 0; }
+[ "$1" = agents ] && { cat "$(dirname "$0")/agents.json" 2>/dev/null || echo '[]'; exit 0; }
+printf '%s' "${@: -1}" > "$(dirname "$0")/prompt.txt"
 [ -e "$(dirname "$0")/fail" ] && { echo 'Workspace not trusted' >&2; exit 1; }
 echo '(node) Warning: NODE_TLS_REJECT_UNAUTHORIZED' >&2
 echo 'backgrounded · 5eed0001 · stub'
@@ -135,40 +136,91 @@ echo '  claude stop 5eed0001      stop this session'
 """)
 (BIN / "claude").chmod(0o755)
 ENV["PATH"] = f"{BIN}{os.pathsep}{ENV['PATH']}"
-PF = TMP / "prompt.md"
-PF.write_text("Topic: t")
-r = subprocess.run(["bash", str(ROOT / "scripts/backend.sh"), "spawn", "w1", str(TMP), str(PF), "haiku", "default"],
-                   env=ENV, capture_output=True, text=True)
+PROMPT = BIN / "prompt.txt"  # the prompt the stub received (last argv)
+r = subprocess.run(["bash", str(ROOT / "scripts/backend.sh"), "spawn", "w1", str(TMP), "haiku", "default"],
+                   input="Topic: t", env=ENV, capture_output=True, text=True)
 assert r.returncode == 0 and r.stdout == "5eed0001\n" and "claude stop" in r.stderr and "Warning" in r.stderr, r
 argv = (BIN / "argv.log").read_text()
 assert "--agent router:topic-worker --model haiku --permission-mode default" in argv, argv
+assert PROMPT.read_text() == "Topic: t"  # prompt from stdin, no file
 
-# registry spawn: reserve + start + record the job id in one command; taken name refused
-r = cli("spawn", "w1", str(PF), "--cwd", str(TMP), "--topic", "T", "--model", "haiku", "--mode", "default")
+# registry spawn: inputs are checked before the name is reserved (bad cwd, empty request, no front)
+r = cli("spawn", "w1", "--cwd", str(TMP / "nope"), "--request", "x")
+assert r.returncode == 1 and "w1" not in reg()["sessions"], r
+r = cli("spawn", "w1", "--cwd", str(TMP), "--request", "-", stdin=" \n")
+assert r.returncode == 1 and "w1" not in reg()["sessions"], r
+# no --request: argparse error at once, never an implicit stdin read (an open, silent stdin must not hang)
+r = subprocess.run([sys.executable, str(ROOT / "scripts/registry.py"), "spawn", "w1"], env=ENV,
+                   stdin=subprocess.PIPE, capture_output=True, text=True, timeout=10)
+assert r.returncode == 2 and "--request" in r.stderr and "w1" not in reg()["sessions"], r
+for cmd in ("spawn", "resume"):  # no front → the prompt could not say where to report
+    r = subprocess.run([sys.executable, str(ROOT / "scripts/registry.py"), cmd, "w1", "--request", "x"],
+                       env={**ENV, "ROUTER_REGISTRY": str(TMP / "frontless.json")}, capture_output=True, text=True)
+    assert r.returncode == 1 and "front" in r.stderr and not (TMP / "frontless.json").exists(), r
+# reserve + compose + start + record the job id in one command
+r = cli("spawn", "w1", "--cwd", str(TMP), "--topic", "T", "--model", "haiku", "--mode", "default", "--request", "do X")
 assert r.returncode == 0 and r.stdout.strip() == "5eed0001", r
 w1 = reg()["sessions"]["w1"]
 assert w1["job_id"] == "5eed0001" and w1["state"] == "active" and w1["cwd"] == str(TMP), w1
+# composed prompt: current front, topic, started non-merged siblings (not twin: no ids; not old: merged), request
+p = PROMPT.read_text()
+assert p.startswith("Router front: @boss — send results there with SendMessage.\nTopic: T\nSiblings: api — API v2;"), p
+assert "old —" not in p and "twin —" not in p and p.endswith("\n\nRequest from the user:\ndo X"), p
 # the worker's model is kept for merge (only when given)
 assert w1["model"] == "haiku" and (BIN / "argv.log").read_text().count("--model haiku") == 2
-assert cli("spawn", "w1", str(PF), "--cwd", str(TMP)).returncode != 0
-# the hook hint says --permission-mode; spawn accepts it as --mode
-assert cli("spawn", "w3", str(PF), "--cwd", str(TMP), "--permission-mode", "acceptEdits").returncode == 0
-assert "--permission-mode acceptEdits" in (BIN / "argv.log").read_text()
-# backend failure → non-zero exit, entry exited, no (empty) job id stored
+# taken: live/started (w1, has a job id), merged (old), dead but resumable (api, has ids)
+for taken in ("w1", "old", "api"):
+    r = cli("spawn", taken, "--request", "x")
+    assert r.returncode != 0 and "taken" in r.stderr, (taken, r)
+# the hook hint says --permission-mode; spawn accepts it as --mode. Request on stdin, cwd defaults to here
+assert cli("spawn", "w3", "--permission-mode", "acceptEdits", "--request", "-", stdin="from stdin").returncode == 0
+assert "--permission-mode acceptEdits" in (BIN / "argv.log").read_text() and PROMPT.read_text().endswith("from stdin")
+assert reg()["sessions"]["w3"]["cwd"] == os.getcwd()
+# backend failure → non-zero exit, entry exited, no (empty) job id stored; a retry may reuse the name
 (BIN / "fail").touch()
-r = cli("spawn", "w2", str(PF), "--cwd", str(TMP))
+r = cli("spawn", "w2", "--request", "x")
 w2 = reg()["sessions"]["w2"]
 assert r.returncode != 0 and w2["state"] == "exited" and "job_id" not in w2 and "model" not in w2, (r, w2)
 (BIN / "fail").unlink()
-# resume: stored session id and cwd, job id recorded, state active
-assert cli("resume", "w2", str(PF)).returncode != 0  # no session id yet
-cli("upsert", "w2", "--session-id", "w2-uuid")
-r = cli("resume", "w2", str(PF))
+r = cli("spawn", "w2", "--topic", "T2", "--request", "retry")
 assert r.returncode == 0 and reg()["sessions"]["w2"]["job_id"] == "5eed0001", r
-assert reg()["sessions"]["w2"]["state"] == "active" and "--resume w2-uuid --bg" in (BIN / "argv.log").read_text()
+# merge: sources are not siblings, are named in the prompt, and are marked merged only on success
+r = cli("spawn", "w9", "--merged-from", "w3,ghost", "--request", "x")
+assert r.returncode != 0 and "w9" not in reg()["sessions"], r
+r = cli("spawn", "w13", "--topic", "W", "--merged-from", "w1,w3", "--request", "Merged brief: b")
+s = reg()["sessions"]
+assert r.returncode == 0 and s["w1"]["state"] == s["w3"]["state"] == "merged" and s["w3"]["merged_into"] == "w13", r
+p = PROMPT.read_text()
+assert "Merged from: w1, w3" in p and "w1 —" not in p and "w2 — T2" in p, p
+
+# resume: refreshes first; a running worker is refused (a stale context must not start a copy)
+assert cli("resume", "twin", "--request", "x").returncode != 0  # no session id
+cli("upsert", "w2", "--session-id", "w2-uuid")
+w2_agent = {"id": "5eed0001", "sessionId": "w2-uuid", "name": "w2", "state": "done", "pid": os.getpid(), "status": "idle"}
+(BIN / "agents.json").write_text(json.dumps([w2_agent]))
+n = len((BIN / "argv.log").read_text().splitlines())
+r = cli("resume", "w2", "--request", "again")
+assert r.returncode != 0 and "running" in r.stderr, r
+assert "--resume" not in "".join((BIN / "argv.log").read_text().splitlines()[n:])
+# stopped (listed, no pid): woken in place; prompt names the *current* front; stale pid/agent_state cleared
+w2_agent.update(state="stopped")
+w2_agent.pop("pid")
+(BIN / "agents.json").write_text(json.dumps([w2_agent]))
+cli("set-front", "front-uuid", "--name", "boss-2")
+r = cli("resume", "w2", "--request", "again")
+w2 = reg()["sessions"]["w2"]
+assert r.returncode == 0 and w2["job_id"] == "5eed0001" and w2["state"] == "active", (r, w2)
+assert "agent_state" not in w2 and w2["pid"] is None, w2
+assert "--resume w2-uuid --bg Router front: @boss-2" in (BIN / "argv.log").read_text()
+assert PROMPT.read_text().endswith("Request from the user:\nagain")
+# bare `refresh` runs `backend.sh list` itself (no pipe, no stdin read)
+(BIN / "agents.json").write_text(json.dumps([dict(w2_agent, pid=os.getpid(), status="busy")]))
+r = subprocess.run([sys.executable, str(ROOT / "scripts/registry.py"), "refresh"], env=ENV,
+                   stdin=subprocess.PIPE, capture_output=True, text=True, timeout=10)
+assert r.returncode == 0 and reg()["sessions"]["w2"]["pid"] == os.getpid(), r
 
 # render mentions every worker and the front name
 out = cli("list").stdout
-assert "@boss" in out and "- api [idle" in out and "→ api" in out, out
+assert "@boss-2" in out and "- api [exited" in out and "→ w13" in out, out
 
 print("PASS test_registry")

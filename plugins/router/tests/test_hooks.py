@@ -38,11 +38,14 @@ assert run(prompt("front-uuid")) == "" and run(stop("w-uuid")) == ""
 assert not DATA.exists()
 
 DATA.mkdir()
+gone = subprocess.Popen(["true"])
+gone.wait()  # reaped: its pid is a process that no longer exists (like a retired worker's)
 REG.write_text(json.dumps({
     "front": {"session_id": "front-uuid", "name": "boss"},
     "sessions": {
-        "api": {"session_id": "w-uuid", "job_id": "aaaa1111", "state": "active", "topic": "API"},
+        "api": {"session_id": "w-uuid", "job_id": "aaaa1111", "state": "active", "topic": "API", "pid": os.getpid()},
         "ui": {"job_id": "bbbb2222", "state": "active", "topic": "UI"},
+        "db": {"job_id": "cccc3333", "state": "idle", "topic": "DB", "pid": gone.pid},
     },
 }))
 before = REG.read_bytes()
@@ -54,7 +57,9 @@ assert run(prompt("w-uuid")) == ""
 out = json.loads(run(prompt("front-uuid")))["hookSpecificOutput"]
 assert out["hookEventName"] == "UserPromptSubmit"
 ctx = out["additionalContext"]
-assert "@boss" in ctx and "- api [active]" in ctx and "- ui [active]" in ctx and "acceptEdits" in ctx, ctx
+assert "@boss" in ctx and "- ui [active]" in ctx and "acceptEdits" in ctx, ctx
+# liveness: pid shown only while the process exists; a recorded pid that is gone reads as exited
+assert f"- api [active pid {os.getpid()}]" in ctx and "- db [exited]" in ctx, ctx
 assert REG.read_bytes() == before  # injection never writes
 
 # Stop: front and unknown sessions → no output, no write
