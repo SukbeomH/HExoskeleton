@@ -26,7 +26,7 @@ else
     echo "SKIP  plugin validate (claude CLI not on PATH)"
 fi
 step "skills frontmatter" python3 scripts/check-skills.py
-step "skills frontmatter: router" python3 scripts/check-skills.py plugins/router/skills
+step "skills frontmatter: router" python3 scripts/check-skills.py --claude-only plugins/router/skills
 step "json syntax" bash -c "git ls-files -z '*.json' | xargs -0 -n1 python3 -m json.tool >/dev/null"
 step "bash -n" bash -c "git ls-files -z '*.sh' | xargs -0 -n1 bash -n"
 if command -v shellcheck >/dev/null; then

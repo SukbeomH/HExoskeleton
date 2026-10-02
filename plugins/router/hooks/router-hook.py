@@ -1,8 +1,12 @@
 #!/usr/bin/env python3
 """router hooks — silent exit 0 unless this session has a router role.
 
-UserPromptSubmit: only in the front session (session_id == registry front) → additionalContext
-  with the compact registry and the front's permission mode.
+UserPromptExpansion of a user-typed /router:front (command_name router:front, command_source plugin) → this
+  session becomes the front: session_id, name (its `claude agents` entry) and permission_mode from the hook input.
+  Only a typed command expands (a model Skill call or a cross-session message does not), so the front is
+  human-registered; registry.py has no CLI for it.
+UserPromptSubmit: only in the front session (session_id == registry front) → record its permission_mode (the mode
+  every worker gets) and add additionalContext with the compact registry.
 Stop: only in a worker (session_id, or $CLAUDE_JOB_DIR's job id, is in the registry) → store
   last_assistant_message as last_result. Anything else, including a missing registry: no output, no write.
 """
@@ -18,7 +22,7 @@ import registry  # noqa: E402
 HINT = (
     "This is the router front session. Before answering, follow the router:route skill: classify the "
     "message against the workers above (forward / new / broadcast / status, or merge only on explicit "
-    "request) instead of doing topic work here. Spawn workers with --permission-mode {mode}."
+    "request) instead of doing topic work here."
 )
 
 
@@ -26,14 +30,21 @@ def main():
     data = json.load(sys.stdin)
     p = registry.path()
     sid = data.get("session_id")
-    if p is None or not sid or not p.exists():
-        return
     event = data.get("hook_event_name")
+    if p is None or not sid:
+        return
+    if event == "UserPromptExpansion":
+        if data.get("command_name") == "router:front" and data.get("command_source") == "plugin":
+            me = [a for a in registry.backend_agents() or [] if a.get("sessionId") == sid]
+            registry.set_front(p, sid, me[0].get("name") if me else None, data.get("permission_mode"))
+        return
+    if not p.exists():
+        return
     if event == "UserPromptSubmit":
-        reg = registry.load(p)
-        if (reg.get("front") or {}).get("session_id") != sid:
+        if (registry.load(p).get("front") or {}).get("session_id") != sid:
             return
-        ctx = registry.render(reg) + "\n" + HINT.format(mode=data.get("permission_mode") or "default")
+        reg = registry.record_mode(p, sid, data.get("permission_mode"))
+        ctx = registry.render(reg) + "\n" + HINT
         print(json.dumps({"hookSpecificOutput": {"hookEventName": "UserPromptSubmit", "additionalContext": ctx}}))
     elif event == "Stop":
         job = pathlib.Path(os.environ.get("CLAUDE_JOB_DIR", "")).name or None

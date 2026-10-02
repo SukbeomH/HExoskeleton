@@ -2,9 +2,9 @@
 """Check skills/*/SKILL.md frontmatter against the Agent Skills spec (stdlib only).
 
 Fails if: name != directory name or not kebab-case (<=64), description empty or
->1024 chars, or a top-level key outside ALLOWED. No Claude-specific keys are used,
-so ALLOWED is exactly the spec set.
-Usage: python3 scripts/check-skills.py [skills-dir]
+>1024 chars, or a top-level key outside ALLOWED (exactly the spec set).
+--claude-only also admits CLAUDE_ONLY, for skills that run only in Claude Code (plugins/router).
+Usage: python3 scripts/check-skills.py [--claude-only] [skills-dir]
 """
 
 import json
@@ -13,6 +13,9 @@ import re
 import sys
 
 ALLOWED = {"name", "description", "license", "compatibility", "metadata", "allowed-tools"}
+# The spec cannot keep the model from invoking a skill. router's `front` must be user-typed only (its hook
+# registers the front), so the Claude-only router plugin may use this one Claude Code key; nothing else is admitted.
+CLAUDE_ONLY = {"disable-model-invocation"}
 NAME_RE = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 
 
@@ -43,7 +46,10 @@ def scalar(raw):
 
 
 def main():
-    root = pathlib.Path(sys.argv[1] if len(sys.argv) > 1 else pathlib.Path(__file__).parent.parent / "skills")
+    args = sys.argv[1:]
+    allowed = ALLOWED | CLAUDE_ONLY if "--claude-only" in args else ALLOWED
+    args = [a for a in args if a != "--claude-only"]
+    root = pathlib.Path(args[0] if args else pathlib.Path(__file__).parent.parent / "skills")
     errors, count = [], 0
     for skill in sorted(p for p in root.iterdir() if p.is_dir()):
         count += 1
@@ -58,7 +64,7 @@ def main():
             errors.append(f"{f}: name '{name}' must equal directory '{skill.name}' (kebab-case, <=64)")
         if not 1 <= len(desc) <= 1024:
             errors.append(f"{f}: description length {len(desc)} not in 1..1024")
-        unknown = sorted(set(fm) - ALLOWED)
+        unknown = sorted(set(fm) - allowed)
         if unknown:
             errors.append(f"{f}: unknown keys {unknown}")
     for e in errors:

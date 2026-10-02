@@ -1,5 +1,21 @@
 # Changelog
 
+## router 0.1.4 (2026-10-02)
+
+README의 allow 규칙(`registry.py *`, `backend.sh *`)이 어떤 인자든 자동 승인하던 데서 나온 권한 상승 수정.
+
+### Security
+
+* **router**: front 모델이나 작업 세션(allow 규칙은 모든 세션에 적용)이 `registry.py spawn --mode bypassPermissions` 또는 `backend.sh spawn … <mode> <claude 인자…>`로 확인 없이 다른 권한 모드나 임의 claude 인자의 작업 세션을 띄울 수 있었다. 이제 작업 세션은 항상 front의 UserPromptSubmit 훅이 매 턴 기록한 모드(`front.permission_mode`, 없으면 `default`)로 뜬다. `--mode`/`--permission-mode` 옵션을 없앴고, `backend.sh`는 고정 인자 목록과 문서의 권한 모드 6개만 받는다.
+* **router**: 어느 세션이든 `registry.py set-front`로 자신을 front로 등록해 보고를 가로챌 수 있었다. `set-front`를 없앴고, 사용자가 입력한 `/router:front`의 UserPromptExpansion 훅만 front를 등록한다(session id·이름·권한 모드). `front` 스킬은 `disable-model-invocation: true`.
+* **router**: 재개(`resume`)가 모델이 지정한 세션을 그 세션의 저장된 모드로 제자리에서 깨울 수 있었다(`upsert --session-id/--job-id`, `refresh FILE|-`의 가짜 목록, 이름 폴백). 세 경로를 없애 id는 실행·`claude agents`·Stop 훅만 기록한다.
+* **router**: `--data`로 모델이 쓴 대장 파일을 가리켜 front 모드를 위조할 수 있었다. `--data`는 `~/.claude/plugins/data/` 아래 디렉터리만 받는다.
+* **router**: README의 버전 자리 `*` 규칙이 `..` 경로를 통해 임의 파이썬 파일 실행을 승인했다. 규칙의 버전을 고정하고, `backend.sh` 규칙을 없앴다(스킬은 `registry.py summarize`/`stop`을 쓴다).
+
+### BREAKING CHANGES
+
+* **router**: `registry.py`의 `set-front`, `spawn --mode/--permission-mode`, `upsert --session-id/--job-id`, `refresh FILE|-`를 제거했다. `summarize NAME`, `stop NAME`을 추가했다. `backend.sh spawn <name> <cwd> <model|""> <mode>`, `resume <sid> <name> <cwd> <mode>`는 정확히 그 인자만 받는다. allow 규칙을 README대로 바꾼다.
+
 ## router 0.1.3 (2026-10-02)
 
 대화형 3차 시험(Orca terminal, marketplace install)에서 나온 결함 수정.
