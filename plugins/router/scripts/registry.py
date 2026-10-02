@@ -12,7 +12,7 @@ Usage: registry.py [--data DIR] <command> ...
   upsert NAME [--new] [--session-id S] [--job-id J] [--cwd C] [--topic T] [--state S]
   spawn NAME [--request R] [--cwd C] [--topic T] [--model M] [--mode P] [--merged-from A,B]
         → reserve NAME, compose the prompt, backend.sh spawn, record job id (sources marked merged)
-  resume NAME [--request R]  → compose the prompt, backend.sh resume, record job id
+  resume NAME [--request R]  → refresh, then (if not running) compose the prompt, backend.sh resume, record job id
   The request is --request or stdin; the prompt (front, topic, siblings, request) is composed here.
   mark NAME STATE [--into NAME] | refresh [FILE|-]  (FILE = `backend.sh list` output)
   record-result SESSION_ID TEXT
@@ -147,12 +147,13 @@ def refresh(reg, agents):
 
 def launch(p, name, args, prompt):
     """Run `backend.sh ARGS` with PROMPT on stdin; its stdout is the job id. Record it on NAME (state active),
-    or mark NAME exited."""
+    or mark NAME exited. pid/agent_state are cleared either way: they describe the previous process."""
     r = subprocess.run(["bash", str(BACKEND), *args], input=prompt, stdout=subprocess.PIPE, text=True)
     job = r.stdout.strip() if r.returncode == 0 else ""
     with locked(p) as reg:
         s = reg["sessions"][name]
-        s.update({"job_id": job, "state": "active"} if job else {"state": "exited", "pid": None})
+        s.pop("agent_state", None)
+        s.update({"job_id": job, "state": "active", "pid": None} if job else {"state": "exited", "pid": None})
         s["updated"] = now()
     return job
 
@@ -170,14 +171,33 @@ def compose(reg, name, request, merged_from=()):
     return "\n".join(head) + f"\n\nRequest from the user:\n{request}"
 
 
+def alive(pid):
+    """Does a process with this pid exist? (signal 0 probes without signalling)"""
+    # ponytail: a reused pid reads as alive until the next refresh corrects it.
+    try:
+        if int(pid) <= 0:
+            return False
+        os.kill(int(pid), 0)
+    except PermissionError:
+        return True
+    except (ProcessLookupError, ValueError, TypeError, OverflowError):
+        return False
+    return True
+
+
 def render(reg, width=200):
     front = reg.get("front") or {}
     lines = [f"[router] front: @{front.get('name') or '?'} — workers:"]
     for name, s in sorted(reg["sessions"].items()):
         last = " ".join((s.get("last_result") or "").split())[:width]
         extra = f" → {s['merged_into']}" if s.get("merged_into") else ""
+        state, pid = s.get("state", "?"), s.get("pid")
+        if alive(pid):
+            extra += f" pid {pid}"
+        elif pid and state in ("active", "idle"):
+            state = "exited"  # recorded process is gone (e.g. idle retire); shown only, refresh records it
         lines.append(
-            f"- {name} [{s.get('state', '?')}{'/' + s['agent_state'] if s.get('agent_state') else ''}{extra}]"
+            f"- {name} [{state}{'/' + s['agent_state'] if s.get('agent_state') else ''}{extra}]"
             f" topic: {s.get('topic') or '-'} | cwd: {s.get('cwd') or '-'} | last: {last or '-'}"
         )
     if not reg["sessions"]:
@@ -285,10 +305,17 @@ def main(argv=None):
                 reg["sessions"][n].update(state="merged", merged_into=a.name, updated=now())
         print(job)
     elif a.cmd == "resume":
+        # refresh first: a forward from stale context must not start a second copy of a running worker
+        r = subprocess.run(["bash", str(BACKEND), "list"], stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, text=True)
+        if r.returncode == 0:
+            with locked(p) as reg:
+                refresh(reg, json.loads(r.stdout))
         reg = load(p)
         s = reg["sessions"].get(a.name) or {}
+        if s.get("pid"):
+            sys.exit(f"registry: '{a.name}' is running (pid {s['pid']}); forward with SendMessage instead")
         if not s.get("session_id"):
-            sys.exit(f"registry: no session id for '{a.name}' (run refresh first)")
+            sys.exit(f"registry: no session id for '{a.name}'")
         job = launch(p, a.name, ["resume", s["session_id"], a.name, s.get("cwd") or "."], compose(reg, a.name, request))
         if not job:
             sys.exit(f"registry: resume of '{a.name}' failed; marked exited")

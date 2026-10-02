@@ -188,18 +188,29 @@ assert r.returncode == 0 and s["w1"]["state"] == s["w3"]["state"] == "merged" an
 p = PROMPT.read_text()
 assert "Merged from: w1, w3" in p and "w1 —" not in p and "w2 — T2" in p, p
 
-# resume: stored session id and cwd, job id recorded, state active; the prompt names the *current* front
+# resume: refreshes first; a running worker is refused (a stale context must not start a copy)
 assert cli("resume", "twin", "--request", "x").returncode != 0  # no session id
 cli("upsert", "w2", "--session-id", "w2-uuid")
+w2_agent = {"id": "5eed0001", "sessionId": "w2-uuid", "name": "w2", "state": "done", "pid": os.getpid(), "status": "idle"}
+(BIN / "agents.json").write_text(json.dumps([w2_agent]))
+n = len((BIN / "argv.log").read_text().splitlines())
+r = cli("resume", "w2", "--request", "again")
+assert r.returncode != 0 and "running" in r.stderr, r
+assert "--resume" not in "".join((BIN / "argv.log").read_text().splitlines()[n:])
+# stopped (listed, no pid): woken in place; prompt names the *current* front; stale pid/agent_state cleared
+w2_agent.update(state="stopped")
+w2_agent.pop("pid")
+(BIN / "agents.json").write_text(json.dumps([w2_agent]))
 cli("set-front", "front-uuid", "--name", "boss-2")
 r = cli("resume", "w2", "--request", "again")
 w2 = reg()["sessions"]["w2"]
 assert r.returncode == 0 and w2["job_id"] == "5eed0001" and w2["state"] == "active", (r, w2)
-assert "--resume w2-uuid --bg" in (BIN / "argv.log").read_text()
-assert PROMPT.read_text().startswith("Router front: @boss-2") and PROMPT.read_text().endswith("user:\nagain")
+assert "agent_state" not in w2 and w2["pid"] is None, w2
+assert "--resume w2-uuid --bg Router front: @boss-2" in (BIN / "argv.log").read_text()
+assert PROMPT.read_text().endswith("Request from the user:\nagain")
 
 # render mentions every worker and the front name
 out = cli("list").stdout
-assert "@boss-2" in out and "- api [idle" in out and "→ w13" in out, out
+assert "@boss-2" in out and "- api [exited" in out and "→ w13" in out, out
 
 print("PASS test_registry")

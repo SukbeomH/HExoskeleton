@@ -12,7 +12,7 @@ allowed-tools:
 ## Quick Reference
 - front는 라우팅만 한다. 주제 작업은 작업 세션이 한다.
 - 판단: forward / new / broadcast / status (merge는 명시 요청 시 `router:merge`). 애매하면 후보를 들어 한 번 묻는다.
-- 살아 있음 = 대장 항목에 `pid`가 있음. 없으면 `registry.py resume`으로 session id 재개 (이름으로 재개하지 않는다).
+- 살아 있음 = 목록 항목에 `pid N`이 보임(프로세스가 있을 때만 표시). 없으면 `registry.py resume`으로 session id 재개 (이름으로 재개하지 않는다).
 - 대장 쓰기와 세션 생성·재개는 `registry.py`(안에서 `backend.sh` 호출), 목록은 `backend.sh`로만.
 
 아래 명령은 적힌 그대로 실행한다. 변수·배열로 줄이거나 출력을 grep/awk로 가공하지 않는다(권한 검사가 명령을 미리 확인하지 못해 매번 묻는다).
@@ -37,13 +37,13 @@ bash "${CLAUDE_PLUGIN_ROOT}/scripts/backend.sh" list | python3 "${CLAUDE_PLUGIN_
 
 ## 3. Act
 
-**forward** — 대상이 살아 있으면(`pid` 있음) 먼저 `active`로 표시하고(보내기 전에: 빨리 끝난 작업의 Stop 훅 `idle`을 덮지 않게), `SendMessage`로 대상 이름에 사용자 메시지를 그대로 보낸다. 앞에 `[router] 사용자 요청 전달:` 한 줄을 붙인다. 후속 요청으로 주제가 넓어졌으면 같은 명령에 `--topic "<넓어진 한 줄 주제>"`를 더한다.
+**forward** — 2의 refresh 출력에서 대상에 `pid N`이 있으면 먼저 `active`로 표시하고(보내기 전에: 빨리 끝난 작업의 Stop 훅 `idle`을 덮지 않게), `SendMessage`로 대상 이름에 사용자 메시지를 그대로 보낸다. 앞에 `[router] 사용자 요청 전달:` 한 줄을 붙인다. 후속 요청으로 주제가 넓어졌으면 같은 명령에 `--topic "<넓어진 한 줄 주제>"`를 더한다.
 
 ```bash
 python3 "${CLAUDE_PLUGIN_ROOT}/scripts/registry.py" --data "${CLAUDE_PLUGIN_DATA}" upsert <name> --state active
 ```
 
-죽어 있으면(`exited`) 재개한다. 메시지는 파일로 쓰지 않고 아래처럼 표준 입력으로 넘긴다(구분자 줄까지 그대로, 본문은 따옴표·`$`를 이스케이프하지 않는다). 현재 front 이름·주제·형제 목록을 붙인 프롬프트로 대장의 session id·cwd를 재개하고 새 job id와 `active`를 기록하는 일까지 이 명령이 한다.
+`pid`가 없거나 `SendMessage`가 `No agent named … is reachable`로 실패하면(약 1시간 유휴로 멈춘 세션은 메시지로 깨지 않는다) 재개한다. 메시지는 파일로 쓰지 않고 아래처럼 표준 입력으로 넘긴다(구분자 줄까지 그대로, 본문은 따옴표·`$`를 이스케이프하지 않는다). 이 명령이 먼저 목록을 갱신하고, 살아 있으면 재개하지 않고 `running`으로 끝난다(그때는 `SendMessage`로 보낸다). 아니면 현재 front 이름·주제·형제 목록을 붙인 프롬프트로 대장의 session id·cwd를 재개하고 새 job id와 `active`를 기록한다.
 
 ```bash
 python3 "${CLAUDE_PLUGIN_ROOT}/scripts/registry.py" --data "${CLAUDE_PLUGIN_DATA}" resume <name> <<'ROUTER_REQUEST'
