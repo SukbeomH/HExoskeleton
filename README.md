@@ -43,7 +43,9 @@ Claude Code 세션 하나(front)에만 말하면, 메시지는 주제를 맡은 
 - 유휴·미연결 작업 세션은 약 1시간 뒤 프로세스가 멈춘다. 다음 전달 때 다시 깨운다.
 - 작업 세션마다 독립 세션이라 비용이 세션 수에 비례한다.
 - 결과 보고는 작업 세션이 지시를 따르는 데 달려 있고, Stop 훅 기록이 백업이다.
-- 미검증(unverified): 대화형 front에서의 전체 라우팅 흐름과 병합, 작업 세션의 자발적 보고, `notify_when_idle` 알림. 실측한 것과 미검증 항목은 [router README](plugins/router/README.md)에 구분해 적었다.
+- 플러그인이나 마켓플레이스를 제거하면 대장(`registry.json`)이 든 플러그인 데이터 디렉터리도 지워진다.
+- front가 플러그인 스크립트를 부를 때마다 권한을 묻지 않게 하는 allow 규칙은 [router README](plugins/router/README.md#권한-프롬프트-줄이기)에 있다.
+- 실측(interactive test 2026-10-02, Orca terminal, marketplace install): 대화형 front의 전체 라우팅 흐름과 병합, 작업 세션의 자발적 보고, 메시지로 시작된 턴의 훅 주입을 확인했다. 미검증(unverified): 약 1시간 뒤 멈춘 작업 세션을 대화형 흐름에서 다시 깨우는 경로 등. 실측한 것과 미검증 항목은 [router README](plugins/router/README.md)에 구분해 적었다.
 
 ## hxsk — 함께 쓰는 개발 방법론
 

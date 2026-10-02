@@ -1,5 +1,23 @@
 # Changelog
 
+## router 0.1.1 (2026-10-02)
+
+대화형 실측(Orca terminal, marketplace install)에서 나온 결함 수정.
+
+### Bug Fixes
+
+* **router**: `registry.py upsert`가 빈 `--job-id`/`--session-id`를 무시한다. 빈 job id가 저장되어 작업 세션이 추적에서 빠지던 문제(병합 턴).
+* **router**: `refresh`가 id 없는 항목을 `claude agents`의 이름으로 찾는다. 같은 이름이 여럿이면 건드리지 않는다.
+* **router**: `registry.py spawn`/`resume`이 이름 예약·`backend.sh` 실행·job id 기록(실패 시 `exited`)을 한 명령으로 처리한다. `route`/`merge`가 더는 출력에서 job id를 뽑지 않는다.
+* **router**: 작업 세션 모델을 대장에 기록하고, `merge`는 원본 모델이 모두 같으면 새 세션에도 쓴다(이전에는 기본 모델로 떴다).
+* **router**: `route`/`merge`가 `notify_when_idle`을 걸지 않는다. 보고와 Stop 훅이 모든 턴을 덮었고, 걸면 같은 결과가 한 턴 더 왔다.
+* **router**: 스킬 명령에서 bash 배열(`REG=(…)`)을 없앴다. 배열은 권한 검사가 미리 확인하지 못해 "다시 묻지 않음" 선택지 없는 프롬프트를 띄웠다. 이제 명령은 단일 형태이고, `front`/`route`/`merge`에 두 스크립트용 `allowed-tools`를 추가했다(프롬프트가 실제로 사라지는지는 미검증). `spawn`은 훅 힌트의 `--permission-mode` 철자도 받는다.
+* **router**: Stop 훅 기록 시 상태를 `idle`로, 전달·전파 시 `active`로 바꾼다. 전달로 주제가 넓어지면 `upsert --topic`으로 주제를 갱신한다.
+
+### Documentation
+
+* **router**: README에서 대화형으로 확인한 항목(전체 흐름, merge, 자발적 보고, 메시지 턴의 UserPromptSubmit, dispatch 경고 없음)을 실측으로 옮겼다. 권한 allow 규칙 예시를 추가했고, 플러그인·마켓플레이스를 제거하면 `registry.json`이 든 데이터 디렉터리도 지워진다는 안내를 넣었다.
+
 ## router 0.1.0 (2026-10-02)
 
 ### Features

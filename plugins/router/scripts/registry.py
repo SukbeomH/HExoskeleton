@@ -3,13 +3,15 @@
 
 File: $ROUTER_REGISTRY, else <--data dir>/registry.json, else $CLAUDE_PLUGIN_DATA/registry.json.
 Shape: {"front": {"session_id", "name", "updated"} | null,
-        "sessions": {<name>: {session_id, job_id, cwd, topic, state, pid, agent_state,
+        "sessions": {<name>: {session_id, job_id, cwd, topic, model, state, pid, agent_state,
                               agent_type, last_result, merged_into, updated}}}
-Writes take an exclusive flock and replace the file atomically.
+Writes take an exclusive flock and replace the file atomically. Empty option values are ignored.
 
 Usage: registry.py [--data DIR] <command> ...
   init | set-front [SESSION_ID] [--name N] | get-front | list [--json]
   upsert NAME [--new] [--session-id S] [--job-id J] [--cwd C] [--topic T] [--state S]
+  spawn NAME PROMPT_FILE --cwd C [--topic T] [--model M] [--mode P]  → reserve NAME, backend.sh spawn, record job id
+  resume NAME PROMPT_FILE                                → backend.sh resume, record job id
   mark NAME STATE [--into NAME] | refresh [FILE|-]  (FILE = `backend.sh list` output)
   record-result SESSION_ID TEXT
 """
@@ -20,6 +22,7 @@ import json
 import os
 import pathlib
 import re
+import subprocess
 import sys
 import tempfile
 import time
@@ -27,6 +30,7 @@ import time
 STATES = ("active", "idle", "exited", "merged")
 NAME_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$")  # SendMessage-safe without quoting
 RESULT_MAX = 2000
+BACKEND = pathlib.Path(__file__).with_name("backend.sh")
 
 
 def path(data_dir=None):
@@ -94,7 +98,8 @@ def find_worker(reg, session_id=None, job_id=None):
 
 
 def record_result(p, session_id, job_id, text, agent_type=None):
-    """Stop hook: store the worker's last reply. Unknown session → no write at all."""
+    """Stop hook: store the worker's last reply; the turn ended, so active → idle (merged stays merged).
+    Unknown session → no write at all."""
     if not p.exists() or not find_worker(load(p), session_id, job_id):
         return None
     with locked(p) as reg:
@@ -106,6 +111,8 @@ def record_result(p, session_id, job_id, text, agent_type=None):
             if agent_type:
                 s["agent_type"] = agent_type
             s["last_result"] = text[:RESULT_MAX]
+            if s.get("state") != "merged":
+                s["state"] = "idle"
             s["updated"] = now()
     return name
 
@@ -114,11 +121,17 @@ def refresh(reg, agents):
     """Update worker entries from `claude agents --json --all`; alive = the entry has a pid."""
     by_sid = {a["sessionId"]: a for a in agents if a.get("sessionId")}
     by_job = {a["id"]: a for a in agents if a.get("id")}
-    for s in reg["sessions"].values():
+    for name, s in reg["sessions"].items():
         if s.get("state") == "merged":
             continue
         # job id first: a resume that starts a copy gets a new job/session while session_id is stale
         a = by_job.get(s.get("job_id")) or by_sid.get(s.get("session_id"))
+        if a is None and not s.get("job_id") and not s.get("session_id"):
+            # no ids recorded: fall back to the name, but only if exactly one agent carries it
+            hits = [x for x in agents if x.get("name") == name]
+            if len(hits) > 1:
+                continue
+            a = hits[0] if hits else None
         if a is None:
             s.update(state="exited", pid=None)
             continue
@@ -128,6 +141,17 @@ def refresh(reg, agents):
         s["agent_state"] = a.get("state")
         s["state"] = "exited" if not a.get("pid") else ("active" if a.get("status") == "busy" else "idle")
         s["updated"] = now()
+
+
+def launch(p, name, args):
+    """Run `backend.sh ARGS`; its stdout is the job id. Record it on NAME (state active), or mark NAME exited."""
+    r = subprocess.run(["bash", str(BACKEND), *args], stdout=subprocess.PIPE, text=True)
+    job = r.stdout.strip() if r.returncode == 0 else ""
+    with locked(p) as reg:
+        s = reg["sessions"][name]
+        s.update({"job_id": job, "state": "active"} if job else {"state": "exited", "pid": None})
+        s["updated"] = now()
+    return job
 
 
 def render(reg, width=200):
@@ -162,6 +186,16 @@ def main(argv=None):
     for f in ("session-id", "job-id", "cwd", "topic"):
         up.add_argument("--" + f)
     up.add_argument("--state", choices=STATES)
+    sp = sub.add_parser("spawn")
+    sp.add_argument("name")
+    sp.add_argument("prompt_file")
+    sp.add_argument("--cwd", required=True)
+    sp.add_argument("--topic")
+    sp.add_argument("--model")
+    sp.add_argument("--mode", "--permission-mode", dest="mode", help="permission mode for the worker")
+    rs = sub.add_parser("resume")
+    rs.add_argument("name")
+    rs.add_argument("prompt_file")
     mk = sub.add_parser("mark")
     mk.add_argument("name")
     mk.add_argument("state", choices=STATES)
@@ -192,18 +226,32 @@ def main(argv=None):
     elif a.cmd == "list":
         reg = load(p)
         print(json.dumps(reg, ensure_ascii=False, indent=1) if a.json else render(reg))
-    elif a.cmd == "upsert":
+    elif a.cmd in ("upsert", "spawn"):
         if not NAME_RE.match(a.name):
             sys.exit(f"registry: bad name '{a.name}' (letters, digits, - and _ only, <=64)")
         with locked(p) as reg:
-            if a.new and a.name in reg["sessions"]:
+            if (a.cmd == "spawn" or a.new) and a.name in reg["sessions"]:
                 sys.exit(f"registry: name '{a.name}' is taken")
             s = reg["sessions"].setdefault(a.name, {"state": "active"})
-            for k in ("session_id", "job_id", "cwd", "topic", "state"):
-                if getattr(a, k) is not None:
+            for k in ("session_id", "job_id", "cwd", "topic", "model", "state"):
+                if getattr(a, k, None):  # "" never overwrites (e.g. an empty $JOB)
                     s[k] = getattr(a, k)
             s["updated"] = now()
-        print(json.dumps({a.name: s}, ensure_ascii=False))
+        if a.cmd == "upsert":
+            print(json.dumps({a.name: s}, ensure_ascii=False))
+            return
+        job = launch(p, a.name, ["spawn", a.name, a.cwd, a.prompt_file, a.model or "", a.mode or ""])
+        if not job:
+            sys.exit(f"registry: spawn of '{a.name}' failed; marked exited")
+        print(job)
+    elif a.cmd == "resume":
+        s = load(p)["sessions"].get(a.name) or {}
+        if not s.get("session_id"):
+            sys.exit(f"registry: no session id for '{a.name}' (run refresh first)")
+        job = launch(p, a.name, ["resume", s["session_id"], a.name, s.get("cwd") or ".", a.prompt_file])
+        if not job:
+            sys.exit(f"registry: resume of '{a.name}' failed; marked exited")
+        print(job)
     elif a.cmd == "mark":
         with locked(p) as reg:
             if a.name not in reg["sessions"]:
