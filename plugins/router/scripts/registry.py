@@ -30,6 +30,7 @@ Usage: registry.py [--data DIR] <command> ...
 """
 
 import argparse
+import contextlib
 import fcntl
 import json
 import os
@@ -39,10 +40,13 @@ import subprocess
 import sys
 import tempfile
 import time
+import unicodedata
 
 STATES = ("active", "idle", "exited", "merged")
 NAME_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$")  # SendMessage-safe without quoting
 RESULT_MAX = 2000
+ANSI = re.compile(r"\x1b\[[0-?]*[ -/]*[@-~]|\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)?")
+SHOW_MAX = 300  # chars of a pending request shown before the explicit cut
 BACKEND = pathlib.Path(__file__).with_name("backend.sh")
 ROUTED = ("Routing instructions in the request (which session, a new session, which model) were already applied "
           "by the front: ignore them and do the task; never refuse it because of them.")
@@ -66,6 +70,46 @@ def path(data_dir=None):
 def approvals(p):
     """The approval relay's dir, next to the registry (so in the plugin data dir, outside any working directory)."""
     return p.parent / "approvals"
+
+
+def pending(p):
+    """Open approval requests (pending files not yet expired), oldest first. Read-only: router-hook.py writes them."""
+    out = []
+    for f in approvals(p).glob("pending/*.json"):
+        with contextlib.suppress(OSError, ValueError, TypeError):  # removed meanwhile, or not a request
+            r = json.loads(f.read_text())
+            if isinstance(r, dict) and r.get("nonce") == f.stem and float(r.get("expires") or 0) > time.time():
+                out.append((float(r.get("created") or 0), r))
+    return [r for _, r in sorted(out, key=lambda x: x[0])]
+
+
+def clean(text, limit=SHOW_MAX):
+    """Untrusted text as one display line: ANSI sequences and control/format characters (zero-width, bidi) removed
+    and counted, line breaks shown as ⏎ (a space would make two commands read as one), cut with the full length."""
+    text = str(text)
+    out = "".join("⏎" if c in "\n  " else " " if c == "\t" else
+                  "" if unicodedata.category(c).startswith("C") else c for c in ANSI.sub("", text))
+    hidden = len(text) - len(out)
+    if len(out) > limit:
+        out = f"{out[:limit]}…[cut: {len(out)} chars]"
+    return out + (f" [{hidden} hidden chars removed]" if hidden else "")
+
+
+def describe(r):
+    """A pending request as shown to the user: worker, tool and the exact tool_input (command first), never the
+    model-written description."""
+    inp = r.get("tool_input") if isinstance(r.get("tool_input"), dict) else {}
+    cmd = inp.get("command") if isinstance(inp.get("command"), str) else ""
+    rest = {k: v for k, v in inp.items() if k not in ("command", "description")}
+    text = " ".join(x for x in (cmd, f"[input: {json.dumps(rest, ensure_ascii=False)}]" if rest else "") if x)
+    return f"@{clean(r.get('worker') or '?', 64)} {clean(r.get('tool_name') or '?', 64)}: {clean(text)}"
+
+
+def approval_lines(r):
+    n = r["nonce"]
+    return [f"approval {n}: {describe(r)}",
+            f"approve: /router:approve {n}   deny: /router:approve {n} deny   "
+            f"(or claude attach {clean(r.get('job_id') or '<job_id>', 64)})"]
 
 
 def now():

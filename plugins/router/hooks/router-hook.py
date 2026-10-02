@@ -5,6 +5,8 @@ UserPromptExpansion of a user-typed /router:front (command_name router:front, co
   session becomes the front: session_id, name (its `claude agents` entry) and permission_mode from the hook input.
   Only a typed command expands (a model Skill call or a cross-session message does not), so the front is
   human-registered; registry.py has no CLI for it.
+UserPromptExpansion of a user-typed /router:approve [<id> [deny]] (same rule) → only in the front: write the decision
+  for that open request, then block the prompt with what was approved (no model turn). Bare → list open requests.
 UserPromptSubmit: only in the front session (session_id == registry front) → record its permission_mode (the mode
   every worker gets) and add additionalContext with the compact registry.
 Stop: only in a worker (session_id, or $CLAUDE_JOB_DIR's job id, is in the registry) → store
@@ -19,6 +21,7 @@ import contextlib
 import json
 import os
 import pathlib
+import re
 import secrets
 import signal
 import sys
@@ -45,9 +48,17 @@ def main():
     if p is None or not sid:
         return
     if event == "UserPromptExpansion":
-        if data.get("command_name") == "router:front" and data.get("command_source") == "plugin":
+        if data.get("command_source") != "plugin":
+            return
+        if data.get("command_name") == "router:front":
             me = [a for a in registry.backend_agents() or [] if a.get("sessionId") == sid]
             registry.set_front(p, sid, me[0].get("name") if me else None, data.get("permission_mode"))
+        elif data.get("command_name") == "router:approve":
+            try:
+                msg = approve(p, sid, data.get("command_args") or "")
+            except Exception as e:  # still block: the prompt must never reach the model
+                msg = f"router: not sent ({e})"
+            print(json.dumps({"decision": "block", "reason": msg}))
         return
     if not p.exists():
         return
@@ -61,6 +72,27 @@ def main():
         registry.record_result(p, sid, job_id(), data.get("last_assistant_message") or "", data.get("agent_type"))
     elif event == "PermissionRequest":
         permission_request(p, sid, data)
+
+
+def approve(p, sid, args):
+    """User-typed /router:approve [<id> [deny]] → the decision file the worker's hook waits for. Returns the block
+    reason, shown to the user only. The decision is written here and nowhere else (no registry.py command)."""
+    if (registry.load(p).get("front") or {}).get("session_id") != sid:
+        return "router: not sent. /router:approve works only in the router front session (type /router:front there)."
+    open_ = registry.pending(p)
+    listing = "\n".join(line for r in open_ for line in registry.approval_lines(r)) or "(none)"
+    a = args.split()
+    if not a:
+        return "router: open approval requests:\n" + listing
+    if len(a) > 2 or a[1:] not in ([], ["deny"]) or not re.fullmatch(r"[0-9a-f]{8}", a[0]):
+        return "router: not sent. Usage: /router:approve <id> [deny]. Open requests:\n" + listing
+    r = next((r for r in open_ if r["nonce"] == a[0]), None)
+    if not r:
+        return f"router: not sent. No open request {a[0]} (answered, expired or unknown). Open requests:\n" + listing
+    behavior = "deny" if a[1:] else "allow"
+    registry.save(registry.approvals(p) / "decisions" / f"{a[0]}.json",
+                  {"nonce": a[0], "behavior": behavior, "created": time.time(), "by": sid})
+    return f"router: {'approved' if behavior == 'allow' else 'denied'} {a[0]}: {registry.describe(r)}"
 
 
 def job_id():

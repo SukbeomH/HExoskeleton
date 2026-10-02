@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """router-hook.py checks: front registered only by a user-typed /router:front (UserPromptExpansion), front-only
-mode recording and injection, worker-only Stop recording, the worker-side approval relay (PermissionRequest),
-silent exit 0 otherwise.
+mode recording and injection, worker-only Stop recording, the approval relay (a worker's PermissionRequest waits for
+the decision only a user-typed /router:approve in the front writes), silent exit 0 otherwise.
 Usage: python3 plugins/router/tests/test_hooks.py"""
 
 import atexit
@@ -44,9 +44,9 @@ def prompt(sid):
     return {"session_id": sid, "hook_event_name": "UserPromptSubmit", "prompt": "hi", "permission_mode": "acceptEdits"}
 
 
-def expand(sid, name="router:front", source="plugin"):
+def expand(sid, name="router:front", source="plugin", args=""):
     return {"session_id": sid, "hook_event_name": "UserPromptExpansion", "expansion_type": "slash_command",
-            "command_name": name, "command_args": "", "command_source": source, "prompt": "/" + name,
+            "command_name": name, "command_args": args, "command_source": source, "prompt": f"/{name} {args}",
             "permission_mode": "plan"}
 
 
@@ -182,6 +182,42 @@ for bad in ({"created": 0}, {"nonce": "deadbeef"}, {"behavior": "yes"}):
 # timeout, nothing decided → no output, pending removed
 proc, rec = ask(wait="1")
 assert answer(proc) == ""
+
+
+# /router:approve (front side): the typed command's UserPromptExpansion hook writes the decision and blocks the prompt
+def approve(sid="front-uuid", args="", source="plugin"):
+    out = run(expand(sid, "router:approve", source, args))
+    return json.loads(out) if out else None
+
+
+proc, rec = ask()
+n = rec["nonce"]
+# not the front (a worker, a stranger) → refused, blocked (no model turn), no decision
+for sid in ("w-uuid", "stranger"):
+    out = approve(sid, n)
+    assert out["decision"] == "block" and "not sent" in out["reason"] and "front" in out["reason"], out
+# a same-named command from another source (user/project skill) → ignored entirely
+assert approve(args=n, source="projectSettings") is None
+# bare → lists the open request: id, worker, tool, exact command (newline visible), approve/deny line
+out = approve()
+assert out["decision"] == "block" and f"approval {n}: @api Bash: echo relay-ok > /tmp/x⏎rm -rf ~" in out["reason"], out
+assert f"approve: /router:approve {n}   deny: /router:approve {n} deny" in out["reason"], out
+# unknown id, bad syntax, path tricks → not sent
+for bad in ("ffffffff", f"{n} yes", f"{n} deny x", "../../x", n.upper()):
+    out = approve(args=bad)
+    assert out["decision"] == "block" and "not sent" in out["reason"], (bad, out)
+assert not list(APPR.glob("decisions/*.json")) and proc.poll() is None
+# none of the above reached the worker; the front's typed approve does: the block says exactly what was approved
+out = approve(args=n)
+assert out["decision"] == "block" and out["reason"].startswith(f"router: approved {n}: @api Bash: echo relay-ok"), out
+assert json.loads(answer(proc))["hookSpecificOutput"]["decision"] == {"behavior": "allow"}
+# deny, end to end
+proc, rec = ask()
+assert approve(args=f"{rec['nonce']} deny")["reason"].startswith(f"router: denied {rec['nonce']}")
+assert json.loads(answer(proc))["hookSpecificOutput"]["decision"]["behavior"] == "deny"
+# answered or expired → no longer open
+assert "not sent" in approve(args=rec["nonce"])["reason"]
+assert approve()["reason"].endswith("(none)")
 
 # garbage stdin → still exit 0
 r = subprocess.run([str(HOOK)], input="not json", capture_output=True, text=True)

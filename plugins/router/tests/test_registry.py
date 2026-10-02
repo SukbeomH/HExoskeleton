@@ -300,6 +300,18 @@ assert pow2["state"] == "waiting" and pow2["waiting_for"] == "permission prompt"
 assert "- pow2 [WAITING: permission prompt — user must run: claude attach 7895904c;" in out, out
 assert f"- hk [idle pid {os.getpid()}]" in out and f"- ask [idle/blocked pid {os.getpid()}]" in out, out
 
+# approval display of untrusted text: ANSI/OSC sequences, control, zero-width and bidi characters removed and counted,
+# line breaks visible (two commands must not read as one), long text cut with its full length stated
+s = registry.clean("echo \x1b[31mred\x1b[0m​ ‮exe.txt\r\nrm\x07 -rf\tx\x1b]0;title\x07")
+assert s == "echo red exe.txt⏎rm -rf x [23 hidden chars removed]", s
+assert registry.clean("a" * 500) == "a" * 300 + "…[cut: 500 chars]"
+# the request as shown: exact tool_input (extra fields too), never the model-written description
+d = registry.describe({"worker": "api", "tool_name": "Bash",
+                       "tool_input": {"command": "ls", "description": "SAFE", "dangerouslyDisableSandbox": True}})
+assert d == '@api Bash: ls [input: {"dangerouslyDisableSandbox": true}]', d
+d = registry.describe({"worker": "api", "tool_name": "Write", "tool_input": {"file_path": "/x", "content": "y"}})
+assert d == '@api Write: [input: {"file_path": "/x", "content": "y"}]', d
+
 # summarize/stop take a registered name; the session/job id comes from the registry, never the command line
 assert cli("summarize", "w2").returncode == 0 and argv_lines()[-1].startswith("-p --resume w2-uuid --fork-session ")
 assert cli("stop", "w2").returncode == 0 and argv_lines()[-1] == "stop 5eed0001"
