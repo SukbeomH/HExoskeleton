@@ -1,22 +1,29 @@
 #!/usr/bin/env python3
 """router registry: the front session's map of topic → worker session (stdlib only).
 
-File: $ROUTER_REGISTRY, else <--data dir>/registry.json, else $CLAUDE_PLUGIN_DATA/registry.json.
-Shape: {"front": {"session_id", "name", "updated"} | null,
+File: $ROUTER_REGISTRY, else <--data dir>/registry.json (a dir under ~/.claude/plugins/data only),
+else $CLAUDE_PLUGIN_DATA/registry.json.
+Shape: {"front": {"session_id", "name", "permission_mode", "updated", "mode_updated"} | null,
         "sessions": {<name>: {session_id, job_id, cwd, topic, model, state, pid, agent_state, waiting_for,
                               agent_type, last_result, merged_into, updated}}}
 state: active | idle | waiting (refresh only: an open prompt holds a live worker's turn) | exited | merged.
 Writes take an exclusive flock and replace the file atomically. Empty option values are ignored.
 
+Trust: the front entry is written only by the plugin's hooks (router-hook.py: a user-typed /router:front registers
+it, each front turn records its permission mode). Worker ids are written only by launch, refresh (from the real
+`backend.sh list`) and the Stop hook. Nothing here takes a front, an id or a permission mode from the command line:
+the allow rule for this script approves any arguments, so arguments must not be able to pick a worker's mode.
+
 Usage: registry.py [--data DIR] <command> ...
-  init | set-front [SESSION_ID] [--name N] | get-front | list [--json]
-  upsert NAME [--new] [--session-id S] [--job-id J] [--cwd C] [--topic T] [--state S]
-  spawn NAME --request R [--cwd C] [--topic T] [--model M] [--mode P] [--merged-from A,B]
-        → reserve NAME, compose the prompt, backend.sh spawn, record job id (sources marked merged)
+  init | get-front | list [--json]
+  upsert NAME [--new] [--cwd C] [--topic T] [--state S]
+  spawn NAME --request R [--cwd C] [--topic T] [--model M] [--merged-from A,B]
+        → reserve NAME, compose the prompt, backend.sh spawn in the front's mode, record job id (sources merged)
   resume NAME --request R  → refresh, then (if not running) compose the prompt, backend.sh resume, record job id
   --request - reads the request from stdin (only then; never an implicit stdin read that could hang).
   The prompt (front, topic, siblings, request) is composed here.
-  mark NAME STATE [--into NAME] | refresh [FILE|-] [--json]  (no FILE: runs `backend.sh list` itself)
+  mark NAME STATE [--into NAME] | refresh [--json]  (runs `backend.sh list`)
+  summarize NAME | stop NAME  → backend.sh summarize/stop with the worker's recorded session/job id
   record-result SESSION_ID TEXT
 """
 
@@ -42,7 +49,15 @@ ROUTED = ("Routing instructions in the request (which session, a new session, wh
 def path(data_dir=None):
     if os.environ.get("ROUTER_REGISTRY"):
         return pathlib.Path(os.environ["ROUTER_REGISTRY"])
-    d = data_dir or os.environ.get("CLAUDE_PLUGIN_DATA")
+    if data_dir:
+        # --data is model-written: a registry.json the model wrote itself (e.g. in its cwd) would forge the front
+        # mode. Claude Code's plugin data dirs (~/.claude/plugins/data/<id>/) are outside any working directory.
+        base = pathlib.Path(os.environ.get("CLAUDE_CONFIG_DIR") or pathlib.Path.home() / ".claude") / "plugins/data"
+        d = pathlib.Path(data_dir).expanduser().resolve()
+        if d.parent != base.resolve():
+            sys.exit(f"registry: --data must be a plugin data dir under {base}")
+        return d / "registry.json"
+    d = os.environ.get("CLAUDE_PLUGIN_DATA")
     return pathlib.Path(d) / "registry.json" if d else None
 
 
@@ -123,21 +138,38 @@ def record_result(p, session_id, job_id, text, agent_type=None):
     return name
 
 
+def set_front(p, session_id, name, mode):
+    """UserPromptExpansion of a user-typed /router:front (router-hook.py): this session becomes the front."""
+    with locked(p) as reg:
+        reg["front"] = {"session_id": session_id, "name": name, "permission_mode": mode, "updated": now(),
+                        "mode_updated": now()}
+    return reg["front"]
+
+
+def record_mode(p, session_id, mode):
+    """UserPromptSubmit in the front (router-hook.py): store its current permission mode, the workers' mode."""
+    with locked(p) as reg:
+        f = reg.get("front") or {}
+        if mode and f.get("session_id") == session_id:
+            f.update(permission_mode=mode, mode_updated=now())
+    return reg
+
+
+def front_mode(reg):
+    """Every worker runs in the front's permission mode as its hooks last recorded it; default if none."""
+    return (reg.get("front") or {}).get("permission_mode") or "default"
+
+
 def refresh(reg, agents):
-    """Update worker entries from `claude agents --json --all`; alive = the entry has a pid."""
+    """Update worker entries from `claude agents --json --all`; alive = the entry has a pid. Matched by recorded
+    ids only (never by name: a name could adopt a session router did not start, then resume wakes it in place)."""
     by_sid = {a["sessionId"]: a for a in agents if a.get("sessionId")}
     by_job = {a["id"]: a for a in agents if a.get("id")}
-    for name, s in reg["sessions"].items():
+    for s in reg["sessions"].values():
         if s.get("state") == "merged":
             continue
         # job id first: a resume that starts a copy gets a new job/session while session_id is stale
         a = by_job.get(s.get("job_id")) or by_sid.get(s.get("session_id"))
-        if a is None and not s.get("job_id") and not s.get("session_id"):
-            # no ids recorded: fall back to the name, but only if exactly one agent carries it
-            hits = [x for x in agents if x.get("name") == name]
-            if len(hits) > 1:
-                continue
-            a = hits[0] if hits else None
         if a is None:
             s.update(state="exited", pid=None)
             continue
@@ -204,7 +236,7 @@ def alive(pid):
 
 def render(reg, width=200):
     front = reg.get("front") or {}
-    lines = [f"[router] front: @{front.get('name') or '?'} — workers:"]
+    lines = [f"[router] front: @{front.get('name') or '?'} (mode {front_mode(reg)}) — workers:"]
     for name, s in sorted(reg["sessions"].items()):
         last = " ".join((s.get("last_result") or "").split())[:width]
         extra = f" → {s['merged_into']}" if s.get("merged_into") else ""
@@ -231,23 +263,19 @@ def main(argv=None):
     ap.add_argument("--data", help="plugin data dir (skills pass ${CLAUDE_PLUGIN_DATA})")
     sub = ap.add_subparsers(dest="cmd", required=True)
     sub.add_parser("init")
-    sf = sub.add_parser("set-front")
-    sf.add_argument("session_id", nargs="?")
-    sf.add_argument("--name")
     sub.add_parser("get-front")
     ls = sub.add_parser("list")
     up = sub.add_parser("upsert")
     up.add_argument("name")
     up.add_argument("--new", action="store_true", help="fail if NAME is already taken")
-    for f in ("session-id", "job-id", "cwd", "topic"):
+    for f in ("cwd", "topic"):
         up.add_argument("--" + f)
     up.add_argument("--state", choices=STATES)
-    sp = sub.add_parser("spawn")
+    sp = sub.add_parser("spawn", allow_abbrev=False)  # no --mode → --model abbreviation
     sp.add_argument("name")
     sp.add_argument("--cwd", default=os.getcwd(), help="worker directory (default: here, i.e. the front's)")
     sp.add_argument("--topic")
     sp.add_argument("--model")
-    sp.add_argument("--mode", "--permission-mode", dest="mode", help="permission mode for the worker")
     sp.add_argument("--merged-from", default="", help="comma-separated sources, marked merged on success")
     rs = sub.add_parser("resume")
     rs.add_argument("name")
@@ -258,9 +286,10 @@ def main(argv=None):
     mk.add_argument("state", choices=STATES)
     mk.add_argument("--into")
     rf = sub.add_parser("refresh")
-    rf.add_argument("file", nargs="?")
     for x in (ls, rf):
         x.add_argument("--json", action="store_true", help="print the whole registry as JSON")
+    for c in ("summarize", "stop"):
+        sub.add_parser(c).add_argument("name")
     rr = sub.add_parser("record-result")
     rr.add_argument("session_id")
     rr.add_argument("text")
@@ -284,13 +313,6 @@ def main(argv=None):
         with locked(p):
             pass
         print(p)
-    elif a.cmd == "set-front":
-        sid = a.session_id or os.environ.get("CLAUDE_CODE_SESSION_ID", "")
-        if not sid or "${" in sid:
-            sys.exit("registry: no session id (pass one or run inside Claude Code)")
-        with locked(p) as reg:
-            reg["front"] = {"session_id": sid, "name": a.name, "updated": now()}
-        print(json.dumps(reg["front"]))
     elif a.cmd == "get-front":
         print(json.dumps(load(p).get("front")))
     elif a.cmd == "list":
@@ -309,16 +331,16 @@ def main(argv=None):
             if a.cmd == "spawn" and [n for n in merged if n not in reg["sessions"]]:
                 sys.exit(f"registry: unknown --merged-from source in '{a.merged_from}'")
             s = reg["sessions"].setdefault(a.name, {"state": "active"})
-            for k in ("session_id", "job_id", "cwd", "topic", "model", "state"):
+            for k in ("cwd", "topic", "model", "state"):
                 if getattr(a, k, None):  # "" never overwrites (e.g. an empty $JOB)
                     s[k] = getattr(a, k)
             s["updated"] = now()
             if a.cmd == "spawn":
-                prompt = compose(reg, a.name, request, merged)
+                prompt, mode = compose(reg, a.name, request, merged), front_mode(reg)
         if a.cmd == "upsert":
             print(json.dumps({a.name: s}, ensure_ascii=False))
             return
-        job = launch(p, a.name, ["spawn", a.name, a.cwd, a.model or "", a.mode or ""], prompt)
+        job = launch(p, a.name, ["spawn", a.name, a.cwd, a.model or "", mode], prompt)
         if not job:
             sys.exit(f"registry: spawn of '{a.name}' failed; marked exited")
         with locked(p) as reg:
@@ -337,7 +359,8 @@ def main(argv=None):
             sys.exit(f"registry: '{a.name}' is running (pid {s['pid']}); forward with SendMessage instead")
         if not s.get("session_id"):
             sys.exit(f"registry: no session id for '{a.name}'")
-        job = launch(p, a.name, ["resume", s["session_id"], a.name, s.get("cwd") or "."], compose(reg, a.name, request))
+        job = launch(p, a.name, ["resume", s["session_id"], a.name, s.get("cwd") or ".", front_mode(reg)],
+                     compose(reg, a.name, request))
         if not job:
             sys.exit(f"registry: resume of '{a.name}' failed; marked exited")
         print(job)
@@ -351,15 +374,19 @@ def main(argv=None):
                 s["merged_into"] = a.into
             s["updated"] = now()
     elif a.cmd == "refresh":
-        if a.file is None:
-            agents = backend_agents()
-            if agents is None:
-                sys.exit("registry: `backend.sh list` failed")
-        else:
-            agents = json.load(sys.stdin if a.file == "-" else open(a.file))
+        agents = backend_agents()
+        if agents is None:
+            sys.exit("registry: `backend.sh list` failed")
         with locked(p) as reg:
             refresh(reg, agents)
         print(json.dumps(reg, ensure_ascii=False, indent=1) if a.json else render(reg))
+    elif a.cmd in ("summarize", "stop"):  # ids come from the registry, never from the command line
+        s = load(p)["sessions"].get(a.name) or {}
+        key = "session_id" if a.cmd == "summarize" else "job_id"
+        if not s.get(key):
+            sys.exit(f"registry: no {key} for '{a.name}'")
+        extra = [s.get("model") or ""] if a.cmd == "summarize" else []
+        sys.exit(subprocess.run(["bash", str(BACKEND), a.cmd, s[key], *extra], stdin=subprocess.DEVNULL).returncode)
     elif a.cmd == "record-result":
         if not record_result(p, a.session_id, None, a.text):
             sys.exit(f"registry: no worker with session id '{a.session_id}'")

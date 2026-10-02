@@ -1,5 +1,17 @@
 {
   "hooks": {
+    "UserPromptExpansion": [
+      {
+        "matcher": "^router:front$",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/router-hook.py\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
     "UserPromptSubmit": [
       {
         "hooks": [
