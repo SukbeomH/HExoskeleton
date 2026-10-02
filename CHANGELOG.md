@@ -1,5 +1,25 @@
 # Changelog
 
+## router 0.2.0 (2026-10-02)
+
+작업 세션의 권한 확인을 front에서 사용자가 직접 입력한 명령으로 허용·거부하는 승인 전달.
+
+### Features
+
+* **router**: 작업 세션의 PermissionRequest 훅이 확인할 호출(`tool_input` 원문)을 `approvals/pending/<id>.json`에 쓰고 최대 300초 결정을 기다린다. 결정이 없으면 일반 확인 창이 그대로 남는다(`claude attach`). allow/deny만 돌려주고 입력 변경·규칙 추가는 하지 않는다.
+* **router**: 새 `approve` 스킬(`disable-model-invocation: true`)과 UserPromptExpansion 훅. front에 직접 입력한 `/router:approve <id> [deny]`만 결정을 쓰고 프롬프트를 막아(모델 턴 없음) 무엇을 허용·거부했는지 보여 준다. 인자 없이 입력하면 열린 요청 목록.
+* **router**: 대장 목록과 front 주입 문맥이 열린 요청을 작업 세션 아래에 id·도구·정리된 명령·approve/deny 줄로 보여 주고, 그 세션을 refresh 없이 `WAITING`으로 표시한다. `route`는 그 명령을 사용자에게 안내하고 대신 승인하지 않는다.
+* **router**: `ROUTER_APPROVAL_WAIT=0`(사용자 설정 `env`)으로 승인 전달을 끈다.
+
+### Bug Fixes
+
+* **router**: front가 종료되거나 이름이 바뀐 뒤 작업 세션이 보고하면 `SendMessage`의 "Did you mean <다른 세션>?" 제안을 따라 무관한 세션에 보고를 보냈다(실측). 작업 세션의 PreToolUse(`SendMessage`) 훅이 front·형제가 아닌 살아 있는 세션으로의 전송을 거부하고, 작업 세션 지침도 제안을 따르지 말라고 적었다. 대장의 front 이름은 원래부터 front 자신의 session id로 찾은 값이었다.
+
+### Security
+
+* **router**: 승인 결정은 front 세션에서 직접 입력한 `/router:approve`의 훅만 쓴다. 모델의 Skill 호출, 세션 간 메시지, front가 아닌 세션의 입력은 결정을 쓰지 못한다(실측). `registry.py`에는 결정을 쓰는 명령이 없다(allow 규칙이 모든 인자를 승인하므로). 결정은 요청마다 새 id, 만료, 한 번 사용이고, 표시는 `description` 대신 `tool_input`을 ANSI·제어·zero-width·bidi 문자를 지워 보여 준다.
+* **router**: 남는 위험: 같은 OS 사용자로 셸을 제한 없이 쓰는 프로세스(`bypassPermissions`·`auto` front, `Bash(python3 -c *)`·`Bash(claude --plugin-dir:*)` 같은 넓은 규칙)는 결정 파일을 쓰거나 `claude -p --resume <front> "/router:approve <id>"`를 실행할 수 있다. README의 `Edit(~/.claude/plugins/data/router-hexoskeleton/approvals/**)` deny 규칙과 sandbox `denyWrite`를 권한다.
+
 ## router 0.1.4 (2026-10-02)
 
 README의 allow 규칙(`registry.py *`, `backend.sh *`)이 어떤 인자든 자동 승인하던 데서 나온 권한 상승 수정.
