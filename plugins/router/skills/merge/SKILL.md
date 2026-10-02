@@ -47,7 +47,7 @@ BACKEND="${CLAUDE_PLUGIN_ROOT}/scripts/backend.sh"
    <병합 명령과 함께 준 지시, 없으면 "Continue the merged topic.">
    ```
 
-5. **새 작업 세션 생성과 원본 표시.** cwd는 원본의 cwd(서로 다르면 사용자에게 묻는다), 권한 모드는 front의 모드. 이름 예약 → 실행 → job id 기록을 한 명령으로 한다. job id를 출력에서 직접 뽑아 기록하지 않는다.
+5. **새 작업 세션 생성과 원본 표시.** cwd는 원본의 cwd(서로 다르면 사용자에게 묻는다), 권한 모드는 front의 모드. 모델: 원본들의 `model`(대장 `list --json`)이 모두 같은 값이면 `--model <그 값>`을 더한다. 서로 다르거나 일부만 있으면 넘기지 않고(기본 모델) 6의 보고에서 그렇게 알린다. 이름 예약 → 실행 → job id 기록을 한 명령으로 한다. job id를 출력에서 직접 뽑아 기록하지 않는다.
 
    ```bash
    python3 "${CLAUDE_PLUGIN_ROOT}/scripts/registry.py" --data "${CLAUDE_PLUGIN_DATA}" spawn <new> "<brief-file>" --cwd "<cwd>" --topic "<merged topic>" --mode <front permission mode>
@@ -59,4 +59,4 @@ BACKEND="${CLAUDE_PLUGIN_ROOT}/scripts/backend.sh"
    python3 "${CLAUDE_PLUGIN_ROOT}/scripts/registry.py" --data "${CLAUDE_PLUGIN_DATA}" mark <source> merged --into <new>
    ```
 
-6. **보고.** 새 세션 이름, 합친 원본, brief의 핵심 3줄을 알린다. 원본 세션을 멈출지(`bash "$BACKEND" stop <job_id>`) 물어본다.
+6. **보고.** 새 세션 이름, 합친 원본, 쓴 모델(또는 기본 모델인 이유), brief의 핵심 3줄을 알린다. 원본 세션을 멈출지(`bash "$BACKEND" stop <job_id>`) 물어본다.

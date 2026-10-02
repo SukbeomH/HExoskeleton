@@ -3,7 +3,7 @@
 
 File: $ROUTER_REGISTRY, else <--data dir>/registry.json, else $CLAUDE_PLUGIN_DATA/registry.json.
 Shape: {"front": {"session_id", "name", "updated"} | null,
-        "sessions": {<name>: {session_id, job_id, cwd, topic, state, pid, agent_state,
+        "sessions": {<name>: {session_id, job_id, cwd, topic, model, state, pid, agent_state,
                               agent_type, last_result, merged_into, updated}}}
 Writes take an exclusive flock and replace the file atomically. Empty option values are ignored.
 
@@ -230,7 +230,7 @@ def main(argv=None):
             if (a.cmd == "spawn" or a.new) and a.name in reg["sessions"]:
                 sys.exit(f"registry: name '{a.name}' is taken")
             s = reg["sessions"].setdefault(a.name, {"state": "active"})
-            for k in ("session_id", "job_id", "cwd", "topic", "state"):
+            for k in ("session_id", "job_id", "cwd", "topic", "model", "state"):
                 if getattr(a, k, None):  # "" never overwrites (e.g. an empty $JOB)
                     s[k] = getattr(a, k)
             s["updated"] = now()

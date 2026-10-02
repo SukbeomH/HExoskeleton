@@ -140,16 +140,18 @@ argv = (BIN / "argv.log").read_text()
 assert "--agent router:topic-worker --model haiku --permission-mode default" in argv, argv
 
 # registry spawn: reserve + start + record the job id in one command; taken name refused
-r = cli("spawn", "w1", str(PF), "--cwd", str(TMP), "--topic", "T", "--mode", "default")
+r = cli("spawn", "w1", str(PF), "--cwd", str(TMP), "--topic", "T", "--model", "haiku", "--mode", "default")
 assert r.returncode == 0 and r.stdout.strip() == "5eed0001", r
 w1 = reg()["sessions"]["w1"]
 assert w1["job_id"] == "5eed0001" and w1["state"] == "active" and w1["cwd"] == str(TMP), w1
+# the worker's model is kept for merge (only when given)
+assert w1["model"] == "haiku" and (BIN / "argv.log").read_text().count("--model haiku") == 2
 assert cli("spawn", "w1", str(PF), "--cwd", str(TMP)).returncode != 0
 # backend failure → non-zero exit, entry exited, no (empty) job id stored
 (BIN / "fail").touch()
 r = cli("spawn", "w2", str(PF), "--cwd", str(TMP))
 w2 = reg()["sessions"]["w2"]
-assert r.returncode != 0 and w2["state"] == "exited" and "job_id" not in w2, (r, w2)
+assert r.returncode != 0 and w2["state"] == "exited" and "job_id" not in w2 and "model" not in w2, (r, w2)
 (BIN / "fail").unlink()
 # resume: stored session id and cwd, job id recorded, state active
 assert cli("resume", "w2", str(PF)).returncode != 0  # no session id yet

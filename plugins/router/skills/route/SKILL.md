@@ -65,7 +65,7 @@ Request from the user:
 <user message, verbatim>
 ```
 
-권한 모드는 훅이 알려 준 front의 모드를 그대로 쓴다. `bypassPermissions`는 쓰지 않는다(일회 동의가 필요하고, 다른 class의 메시지를 보류한다). 모델은 사용자가 지정할 때만 `--model <model>`로 넘긴다. 띄운 뒤 `notify_when_idle`을 걸어 둔다.
+권한 모드는 훅이 알려 준 front의 모드를 그대로 쓴다. `bypassPermissions`는 쓰지 않는다(일회 동의가 필요하고, 다른 class의 메시지를 보류한다). 모델은 사용자가 지정할 때만 `--model <model>`로 넘긴다(대장에 남아 병합 때 재사용된다). 띄운 뒤 `notify_when_idle`을 걸어 둔다.
 
 **broadcast** — 대상마다 `SendMessage` 한 번. 본문 첫 줄: `[router] broadcast to: <a>, <b>, <c> — 서로 존재를 알고, 필요하면 직접 조율하세요.` 그 아래 사용자 메시지. 죽은 대상은 forward와 같이 재개한다.
 
