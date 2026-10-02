@@ -1,5 +1,19 @@
 # Changelog
 
+## router 0.1.3 (2026-10-02)
+
+대화형 3차 시험(Orca terminal, marketplace install)에서 나온 결함 수정.
+
+### Bug Fixes
+
+* **router**: 자기 권한 프롬프트에 멈춘 작업 세션이 `idle`로 보이던 문제. `refresh`가 `claude agents`의 `status: waiting`/`waitingFor`(열린 확인 프롬프트)를 `waiting`으로 기록하고, 목록은 `[WAITING: <이유> — user must run: claude attach <job_id>; …]`로 보여 준다. 프롬프트 없이 `state: blocked`인 세션(질문하고 턴을 끝냄)은 `idle/blocked`로 두어 답을 forward한다. `route`는 그런 세션에 전달하지 않고 사용자에게 `claude attach`를 안내하며 즉흥 명령을 쓰지 않는다. CC state `working`/`done`은 목록에 덧붙이지 않는다(유휴 세션의 `idle/working` 제거).
+* **router**: front의 라우팅 지시(세션 지목·새 세션·모델)가 작업 세션 요청에 그대로 들어가 작업 세션이 그 부분을 거절하던 문제. `route`는 지시를 뺀 요청 본문만 넘기고, 작업 세션 프롬프트에 "라우팅 지시는 이미 적용됐으니 무시하라"는 줄이 들어간다.
+* **router**: `merge`가 살아 있는 원본에 요약을 요청하지 않고 `last_result`로 brief를 쓰던 문제. 요청 → 턴을 끝내고 답장 턴에서 이어가기 → 답 없는 원본만 대체 순서로 고정했다. `refresh --json`으로 갱신과 대장 조회를 한 명령에 한다.
+
+### Documentation
+
+* **router**: 승인 대기 세션은 보고할 수 없다는 점과 `claude attach` 경로, 무인 작업용 권한 모드(`auto`/`acceptEdits` + allow 규칙, `default`는 첫 미승인 도구에서 멈춤)를 적었다. 쓰이지 않는 `Skill(router:front)` 규칙을 뺐다. 3차 시험 실측(heredoc 명령과 Bash 규칙, Skill 규칙, 첫 턴 `ToolSearch`→`SendMessage` 보고)을 미검증에서 실측으로 옮겼다.
+
 ## router 0.1.2 (2026-10-02)
 
 대화형 재시험(Orca terminal, marketplace install)에서 나온 결함 수정.
