@@ -1,7 +1,7 @@
 ---
 name: merge
 description: "Merges converged router topic sessions into one: collects a summary from each source, writes a merged brief, starts a new topic session seeded with it and marks the sources merged in the registry. Use only when the user explicitly asks to merge sessions (/router:merge <source...> [into <name>])."
-compatibility: "Claude Code only, v2.1.236+ (cross-session SendMessage/ListAgents, notify_when_idle, claude --bg with --agent); python3."
+compatibility: "Claude Code only, v2.1.236+ (cross-session SendMessage/ListAgents, claude --bg with --agent); python3."
 ---
 
 # router: merge
@@ -29,7 +29,7 @@ BACKEND="${CLAUDE_PLUGIN_ROOT}/scripts/backend.sh"
    ```
 
 3. **요약 수집.** 원본마다:
-   - 살아 있음(`pid` 있음): `SendMessage`로 `[router] merge 준비: 이 주제의 목표·결정·현재 상태·남은 문제·건드린 파일을 300단어 이내로 front에 답장해 주세요.`를 보내고 `notify_when_idle`을 함께 건다. 답장을 기다린다.
+   - 살아 있음(`pid` 있음): `SendMessage`로 `[router] merge 준비: 이 주제의 목표·결정·현재 상태·남은 문제·건드린 파일을 300단어 이내로 front에 답장해 주세요.`를 보낸다. 답장을 기다린다(오지 않으면 refresh 후 `last_result`).
    - 종료됨: `"${REG[@]}" list --json`의 `last_result`를 쓴다. 비었거나 부족하면 `bash "$BACKEND" summarize <session_id>` (원본을 건드리지 않도록 fork해서 요약한다).
 
 4. **병합 brief 작성.** `${CLAUDE_PLUGIN_DATA}/prompts/<new>.md`에 쓴다 (대시로 시작하지 않게).

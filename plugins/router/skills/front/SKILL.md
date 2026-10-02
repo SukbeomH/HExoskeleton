@@ -1,7 +1,7 @@
 ---
 name: front
 description: "Makes the current Claude Code session the router front: records its session id and name in the router registry and shows the registered topic sessions. Use only when the user explicitly asks (/router:front), or again after /clear, which changes the session id."
-compatibility: "Claude Code only, v2.1.236+ (cross-session SendMessage/ListAgents, notify_when_idle, claude --bg with --agent); python3."
+compatibility: "Claude Code only, v2.1.236+ (cross-session SendMessage/ListAgents, claude --bg with --agent); python3."
 ---
 
 # router: front
