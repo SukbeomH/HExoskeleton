@@ -2,6 +2,9 @@
 name: route
 description: "Per-message procedure for the router front session: classify the user's message against the registered topic sessions, then forward it with SendMessage, start a new background topic session, broadcast to several, or report status, reviving exited sessions safely. Use in the front session whenever the [router] registry context is present, and when a worker's report arrives."
 compatibility: "Claude Code only, v2.1.236+ (cross-session SendMessage/ListAgents, claude --bg with --agent); in-place --resume --bg needs v2.1.257+; python3."
+allowed-tools:
+- Bash(python3 "${CLAUDE_PLUGIN_ROOT}/scripts/registry.py" *)
+- Bash(bash "${CLAUDE_PLUGIN_ROOT}/scripts/backend.sh" *)
 ---
 
 # router: route
@@ -12,12 +15,7 @@ compatibility: "Claude Code only, v2.1.236+ (cross-session SendMessage/ListAgent
 - 살아 있음 = 대장 항목에 `pid`가 있음. 없으면 `registry.py resume`으로 session id 재개 (이름으로 재개하지 않는다).
 - 대장 쓰기와 세션 생성·재개는 `registry.py`(안에서 `backend.sh` 호출), 목록은 `backend.sh`로만.
 
-아래 명령에서 `REG`와 `BACKEND`는 다음을 뜻한다. 한 Bash 호출 안에서 정의해 쓴다.
-
-```bash
-REG=(python3 "${CLAUDE_PLUGIN_ROOT}/scripts/registry.py" --data "${CLAUDE_PLUGIN_DATA}")
-BACKEND="${CLAUDE_PLUGIN_ROOT}/scripts/backend.sh"
-```
+아래 명령은 적힌 그대로 실행한다. 변수·배열로 줄이거나 출력을 grep/awk로 가공하지 않는다(권한 검사가 명령을 미리 확인하지 못해 매번 묻는다).
 
 ## 1. Classify
 
@@ -34,7 +32,7 @@ BACKEND="${CLAUDE_PLUGIN_ROOT}/scripts/backend.sh"
 ## 2. Refresh before acting (forward / broadcast / status)
 
 ```bash
-bash "$BACKEND" list | "${REG[@]}" refresh -
+bash "${CLAUDE_PLUGIN_ROOT}/scripts/backend.sh" list | python3 "${CLAUDE_PLUGIN_ROOT}/scripts/registry.py" --data "${CLAUDE_PLUGIN_DATA}" refresh -
 ```
 
 ## 3. Act
@@ -69,7 +67,7 @@ Request from the user:
 
 **broadcast** — 대상마다 `SendMessage` 한 번. 본문 첫 줄: `[router] broadcast to: <a>, <b>, <c> — 서로 존재를 알고, 필요하면 직접 조율하세요.` 그 아래 사용자 메시지. 죽은 대상은 forward와 같이 재개한다.
 
-**status** — refresh 출력을 표로 줄여 보여 준다. 더 필요하면 `"${REG[@]}" list --json`의 `last_result`를 인용한다.
+**status** — refresh 출력을 표로 줄여 보여 준다. 더 필요하면 `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/registry.py" --data "${CLAUDE_PLUGIN_DATA}" list --json`의 `last_result`를 인용한다.
 
 ## 4. Reply to the user
 

@@ -2,6 +2,9 @@
 name: merge
 description: "Merges converged router topic sessions into one: collects a summary from each source, writes a merged brief, starts a new topic session seeded with it and marks the sources merged in the registry. Use only when the user explicitly asks to merge sessions (/router:merge <source...> [into <name>])."
 compatibility: "Claude Code only, v2.1.236+ (cross-session SendMessage/ListAgents, claude --bg with --agent); python3."
+allowed-tools:
+- Bash(python3 "${CLAUDE_PLUGIN_ROOT}/scripts/registry.py" *)
+- Bash(bash "${CLAUDE_PLUGIN_ROOT}/scripts/backend.sh" *)
 ---
 
 # router: merge
@@ -11,12 +14,7 @@ compatibility: "Claude Code only, v2.1.236+ (cross-session SendMessage/ListAgent
 - 요약 수집: 살아 있으면 메시지로 요청, 종료됐으면 대장의 `last_result`, 부족하면 `backend.sh summarize`.
 - 원본 세션은 대장에서 `merged`로 표시만 한다. 멈추기는 사용자가 원할 때만.
 
-`REG`/`BACKEND`는 `router:route`와 같다.
-
-```bash
-REG=(python3 "${CLAUDE_PLUGIN_ROOT}/scripts/registry.py" --data "${CLAUDE_PLUGIN_DATA}")
-BACKEND="${CLAUDE_PLUGIN_ROOT}/scripts/backend.sh"
-```
+아래 명령은 적힌 그대로 실행한다. 변수·배열·반복문으로 줄이거나 출력을 grep/awk로 가공하지 않는다(권한 검사가 명령을 미리 확인하지 못해 매번 묻는다).
 
 ## Steps
 
@@ -25,12 +23,12 @@ BACKEND="${CLAUDE_PLUGIN_ROOT}/scripts/backend.sh"
 2. **상태 갱신.**
 
    ```bash
-   bash "$BACKEND" list | "${REG[@]}" refresh -
+   bash "${CLAUDE_PLUGIN_ROOT}/scripts/backend.sh" list | python3 "${CLAUDE_PLUGIN_ROOT}/scripts/registry.py" --data "${CLAUDE_PLUGIN_DATA}" refresh -
    ```
 
 3. **요약 수집.** 원본마다:
    - 살아 있음(`pid` 있음): `SendMessage`로 `[router] merge 준비: 이 주제의 목표·결정·현재 상태·남은 문제·건드린 파일을 300단어 이내로 front에 답장해 주세요.`를 보낸다. 답장을 기다린다(오지 않으면 refresh 후 `last_result`).
-   - 종료됨: `"${REG[@]}" list --json`의 `last_result`를 쓴다. 비었거나 부족하면 `bash "$BACKEND" summarize <session_id>` (원본을 건드리지 않도록 fork해서 요약한다).
+   - 종료됨: `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/registry.py" --data "${CLAUDE_PLUGIN_DATA}" list --json`의 `last_result`를 쓴다. 비었거나 부족하면 `bash "${CLAUDE_PLUGIN_ROOT}/scripts/backend.sh" summarize <session_id>` (원본을 건드리지 않도록 fork해서 요약한다).
 
 4. **병합 brief 작성.** `${CLAUDE_PLUGIN_DATA}/prompts/<new>.md`에 쓴다 (대시로 시작하지 않게).
 
@@ -59,4 +57,4 @@ BACKEND="${CLAUDE_PLUGIN_ROOT}/scripts/backend.sh"
    python3 "${CLAUDE_PLUGIN_ROOT}/scripts/registry.py" --data "${CLAUDE_PLUGIN_DATA}" mark <source> merged --into <new>
    ```
 
-6. **보고.** 새 세션 이름, 합친 원본, 쓴 모델(또는 기본 모델인 이유), brief의 핵심 3줄을 알린다. 원본 세션을 멈출지(`bash "$BACKEND" stop <job_id>`) 물어본다.
+6. **보고.** 새 세션 이름, 합친 원본, 쓴 모델(또는 기본 모델인 이유), brief의 핵심 3줄을 알린다. 원본 세션을 멈출지(`bash "${CLAUDE_PLUGIN_ROOT}/scripts/backend.sh" stop <job_id>`) 물어본다.

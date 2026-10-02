@@ -2,6 +2,9 @@
 name: front
 description: "Makes the current Claude Code session the router front: records its session id and name in the router registry and shows the registered topic sessions. Use only when the user explicitly asks (/router:front), or again after /clear, which changes the session id."
 compatibility: "Claude Code only, v2.1.236+ (cross-session SendMessage/ListAgents, claude --bg with --agent); python3."
+allowed-tools:
+- Bash(python3 "${CLAUDE_PLUGIN_ROOT}/scripts/registry.py" *)
+- Bash(bash "${CLAUDE_PLUGIN_ROOT}/scripts/backend.sh" *)
 ---
 
 # router: front
