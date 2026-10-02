@@ -1,12 +1,18 @@
 # HExoskeleton
 
-> HXSK: SPEC → PLAN → EXECUTE → VERIFY 개발 방법론. Agent Skills, 검증 서브에이전트, 가드·상태 훅, 프로젝트 `.hxsk/`의 파일 기반 작업 상태·메모리. 저장소 루트가 Claude Code 플러그인 `hxsk`이자 마켓플레이스 `hexoskeleton`이다.
+> One session to rule them all. 마켓플레이스 `hexoskeleton`은 두 Claude Code 플러그인을 싣는다. `router`(`plugins/router/`): front 세션 하나가 메시지를 주제별 백그라운드 작업 세션으로 전달·생성·전파하고 결과를 모은다(Claude Code 전용). `hxsk`(저장소 루트): SPEC → PLAN → EXECUTE → VERIFY 개발 방법론 — Agent Skills, 검증 서브에이전트, 가드·상태 훅, 프로젝트 `.hxsk/`의 파일 기반 작업 상태·메모리.
 
 ## Start
-- [README.md](README.md): 하네스별 설치, 첫 실행(`hxsk-init`), 워크플로우, 업그레이드
+- [README.md](README.md): router 소개·설치·첫 사용(`/router:front`), hxsk 하네스별 설치·첫 실행(`hxsk-init`)·업그레이드
 - [AGENTS.md](AGENTS.md): 이 저장소를 개발할 때의 지침 (구조, 검증, 스킬 편집 규칙)
 
-## Components
+## router
+- [plugins/router/README.md](plugins/router/README.md): 동작 방식, 한계, 실측·미검증 항목
+- [plugins/router/skills/](plugins/router/skills/): `front`·`route`·`merge` 스킬
+- [plugins/router/agents/topic-worker.md](plugins/router/agents/topic-worker.md): 작업 세션 에이전트
+- [plugins/router/scripts/](plugins/router/scripts/): `registry.py`(대장), `backend.sh`(세션 백엔드 교체 지점)
+
+## hxsk components
 - [skills/](skills/): Agent Skills (`skills/<name>/SKILL.md`), `.agents/skills`로도 노출
 - [agents/](agents/): 서브에이전트 정의
 - [hooks/hooks.json](hooks/hooks.json): Claude Code 훅 등록
