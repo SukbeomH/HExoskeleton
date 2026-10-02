@@ -3,8 +3,9 @@
 
 File: $ROUTER_REGISTRY, else <--data dir>/registry.json, else $CLAUDE_PLUGIN_DATA/registry.json.
 Shape: {"front": {"session_id", "name", "updated"} | null,
-        "sessions": {<name>: {session_id, job_id, cwd, topic, model, state, pid, agent_state,
+        "sessions": {<name>: {session_id, job_id, cwd, topic, model, state, pid, agent_state, waiting_for,
                               agent_type, last_result, merged_into, updated}}}
+state: active | idle | waiting (refresh only: live but needs the user) | exited | merged.
 Writes take an exclusive flock and replace the file atomically. Empty option values are ignored.
 
 Usage: registry.py [--data DIR] <command> ...
@@ -142,7 +143,11 @@ def refresh(reg, agents):
         s["job_id"] = a.get("id") or s.get("job_id")
         s["pid"] = a.get("pid")
         s["agent_state"] = a.get("state")
-        s["state"] = "exited" if not a.get("pid") else ("active" if a.get("status") == "busy" else "idle")
+        s["waiting_for"] = a.get("waitingFor")
+        # waiting: a live worker needs the user (e.g. its own permission prompt holds its turn: no report, no Stop)
+        waiting = a.get("status") == "waiting" or a.get("waitingFor") or a.get("state") == "blocked"
+        s["state"] = ("exited" if not a.get("pid") else "waiting" if waiting
+                      else "active" if a.get("status") == "busy" else "idle")
         s["updated"] = now()
 
 
@@ -198,13 +203,17 @@ def render(reg, width=200):
     for name, s in sorted(reg["sessions"].items()):
         last = " ".join((s.get("last_result") or "").split())[:width]
         extra = f" → {s['merged_into']}" if s.get("merged_into") else ""
-        state, pid = s.get("state", "?"), s.get("pid")
+        state, pid, cc = s.get("state", "?"), s.get("pid"), s.get("agent_state")
         if alive(pid):
             extra += f" pid {pid}"
-        elif pid and state in ("active", "idle"):
+        elif pid and state in ("active", "idle", "waiting"):
             state = "exited"  # recorded process is gone (e.g. idle retire); shown only, refresh records it
+        if state == "waiting":
+            state = f"WAITING: {s.get('waiting_for') or 'blocked'} — user must run: claude attach {s.get('job_id')};"
+        elif cc and cc not in ("working", "done"):  # those only restate (or, after the turn, contradict) the state
+            state += "/" + cc
         lines.append(
-            f"- {name} [{state}{'/' + s['agent_state'] if s.get('agent_state') else ''}{extra}]"
+            f"- {name} [{state}{extra}]"
             f" topic: {s.get('topic') or '-'} | cwd: {s.get('cwd') or '-'} | last: {last or '-'}"
         )
     if not reg["sessions"]:
