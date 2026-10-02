@@ -28,6 +28,7 @@ tool_name = data.get("tool_name", "")
 tool_input = data.get("tool_input", {})
 file_path = tool_input.get("file_path", "")
 
+# Codex apply_patch 는 file_path 가 없고 Codex 에는 Read 도구도 없으므로 추적 불가 → 허용
 if not file_path:
     sys.exit(0)
 

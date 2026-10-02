@@ -22,11 +22,16 @@ run() { OUT=$(cd "$1" && CLAUDE_PLUGIN_ROOT="$ROOT" CLAUDE_PROJECT_DIR="$1" "$RO
 expect() { # expect <label> <want> <got>
     if [ "$2" = "$3" ]; then echo "ok   $1"; else echo "FAIL $1 (want $2, got $3)"; FAILS=$((FAILS + 1)); fi
 }
+# codex_patch <tool_name> <본문 (\n 구분)> → Codex apply_patch 페이로드 (file_path 없음, tool_input.command = 패치)
+codex_patch() { echo '{"tool_name":"'"$1"'","tool_input":{"command":"*** Begin Patch\n'"$2"'\n*** End Patch\n"}}'; }
 
 for P in "$NO" "$HX"; do
     tag=$([ "$P" = "$NO" ] && echo no-hxsk || echo hxsk)
     run "$P" file-protect.py '{"tool_name":"Edit","tool_input":{"file_path":"'"$P"'/.env"}}'; expect "$tag file-protect .env" 2 $?
     run "$P" file-protect.py '{"tool_name":"Read","tool_input":{"file_path":"'"$P"'/.env.example"}}'; expect "$tag file-protect .env.example" 0 $?
+    run "$P" file-protect.py "$(codex_patch apply_patch '*** Update File: .env\n@@\n-A=1\n+A=2')"; expect "$tag file-protect apply_patch .env" 2 $?
+    run "$P" file-protect.py "$(codex_patch apply_patch '*** Add File: a.txt\n+hi\n*** Update File: existing.txt\n@@\n-existing\n+changed')"; expect "$tag file-protect apply_patch a.txt" 0 $?
+    run "$P" file-protect.py "$(codex_patch apply_patch '*** Update File: a.txt\n*** Move to: .env\n@@\n-hi\n+A=1')"; expect "$tag file-protect apply_patch move to .env" 2 $?
     run "$P" write-guard.py '{"tool_name":"Write","tool_input":{"file_path":"'"$P"'/existing.txt"}}'; expect "$tag write-guard existing" 2 $?
     run "$P" write-guard.py '{"tool_name":"Write","tool_input":{"file_path":"'"$P"'/new.txt"}}'; expect "$tag write-guard new" 0 $?
     run "$P" bash-guard.py '{"tool_name":"Bash","tool_input":{"command":"rm -rf build"}}'; expect "$tag bash-guard rm -rf" 2 $?
@@ -51,6 +56,9 @@ EDIT='{"tool_name":"Edit","tool_input":{"file_path":"'"$HX"'/existing.txt"}}'
 run "$HX" session-start.sh '{"source":"startup"}'; expect "hxsk session-start" 0 $?
 expect "hxsk session-start context" yes "$(python3 -c 'import json,sys; d=json.loads(sys.argv[1]); print("yes" if "smoke" in d["hookSpecificOutput"]["additionalContext"] else "no")' "$OUT" 2>/dev/null)"
 run "$HX" read-before-edit.py "$EDIT"; expect "hxsk read-before-edit blocks unread" 2 $?
+# Codex 에는 Read 도구가 없다 — apply_patch(file_path 없음)는 읽기 이력이 비어 있어도 허용
+run "$HX" read-before-edit.py "$(codex_patch Edit '*** Update File: existing.txt\n@@\n-existing\n+changed')"; expect "hxsk read-before-edit allows apply_patch" 0 $?
+run "$HX" write-guard.py "$(codex_patch Write '*** Add File: existing.txt\n+x')"; expect "hxsk write-guard allows apply_patch" 0 $?
 run "$HX" track-read-history.py '{"tool_name":"Read","tool_input":{"file_path":"'"$HX"'/existing.txt"}}'; expect "hxsk track-read-history" 0 $?
 run "$HX" read-before-edit.py "$EDIT"; expect "hxsk read-before-edit allows after read" 0 $?
 run "$HX" track-modifications.sh "$EDIT"; expect "hxsk track-modifications flag" yes "$([ -f "$HX/.hxsk/.modified-this-session" ] && echo yes || echo no)"
