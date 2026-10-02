@@ -215,11 +215,12 @@ assert r.returncode == 0 and w2["job_id"] == "5eed0001" and w2["state"] == "acti
 assert "agent_state" not in w2 and w2["pid"] is None, w2
 assert "--resume w2-uuid --bg Router front: @boss-2" in (BIN / "argv.log").read_text()
 assert PROMPT.read_text().endswith("Request from the user:\nagain")
-# bare `refresh` runs `backend.sh list` itself (no pipe, no stdin read)
+# bare `refresh` runs `backend.sh list` itself (no pipe, no stdin read); --json prints the registry (merge: one command)
 (BIN / "agents.json").write_text(json.dumps([dict(w2_agent, pid=os.getpid(), status="busy")]))
-r = subprocess.run([sys.executable, str(ROOT / "scripts/registry.py"), "refresh"], env=ENV,
+r = subprocess.run([sys.executable, str(ROOT / "scripts/registry.py"), "refresh", "--json"], env=ENV,
                    stdin=subprocess.PIPE, capture_output=True, text=True, timeout=10)
 assert r.returncode == 0 and reg()["sessions"]["w2"]["pid"] == os.getpid(), r
+assert json.loads(r.stdout) == reg(), r.stdout
 
 # render mentions every worker and the front name
 out = cli("list").stdout

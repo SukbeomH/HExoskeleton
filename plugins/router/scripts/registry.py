@@ -16,7 +16,7 @@ Usage: registry.py [--data DIR] <command> ...
   resume NAME --request R  → refresh, then (if not running) compose the prompt, backend.sh resume, record job id
   --request - reads the request from stdin (only then; never an implicit stdin read that could hang).
   The prompt (front, topic, siblings, request) is composed here.
-  mark NAME STATE [--into NAME] | refresh [FILE|-]  (no FILE: runs `backend.sh list` itself)
+  mark NAME STATE [--into NAME] | refresh [FILE|-] [--json]  (no FILE: runs `backend.sh list` itself)
   record-result SESSION_ID TEXT
 """
 
@@ -235,7 +235,6 @@ def main(argv=None):
     sf.add_argument("--name")
     sub.add_parser("get-front")
     ls = sub.add_parser("list")
-    ls.add_argument("--json", action="store_true")
     up = sub.add_parser("upsert")
     up.add_argument("name")
     up.add_argument("--new", action="store_true", help="fail if NAME is already taken")
@@ -259,6 +258,8 @@ def main(argv=None):
     mk.add_argument("--into")
     rf = sub.add_parser("refresh")
     rf.add_argument("file", nargs="?")
+    for x in (ls, rf):
+        x.add_argument("--json", action="store_true", help="print the whole registry as JSON")
     rr = sub.add_parser("record-result")
     rr.add_argument("session_id")
     rr.add_argument("text")
@@ -357,7 +358,7 @@ def main(argv=None):
             agents = json.load(sys.stdin if a.file == "-" else open(a.file))
         with locked(p) as reg:
             refresh(reg, agents)
-        print(render(reg))
+        print(json.dumps(reg, ensure_ascii=False, indent=1) if a.json else render(reg))
     elif a.cmd == "record-result":
         if not record_result(p, a.session_id, None, a.text):
             sys.exit(f"registry: no worker with session id '{a.session_id}'")
