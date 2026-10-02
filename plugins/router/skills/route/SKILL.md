@@ -37,7 +37,12 @@ bash "${CLAUDE_PLUGIN_ROOT}/scripts/backend.sh" list | python3 "${CLAUDE_PLUGIN_
 
 ## 3. Act
 
-**forward** — 대상이 살아 있으면(`pid` 있음) `SendMessage`로 대상 이름에 사용자 메시지를 그대로 보낸다. 앞에 `[router] 사용자 요청 전달:` 한 줄을 붙인다.
+**forward** — 대상이 살아 있으면(`pid` 있음) 먼저 `active`로 표시하고(보내기 전에: 빨리 끝난 작업의 Stop 훅 `idle`을 덮지 않게), `SendMessage`로 대상 이름에 사용자 메시지를 그대로 보낸다. 앞에 `[router] 사용자 요청 전달:` 한 줄을 붙인다. 후속 요청으로 주제가 넓어졌으면 같은 명령에 `--topic "<넓어진 한 줄 주제>"`를 더한다.
+
+```bash
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/registry.py" --data "${CLAUDE_PLUGIN_DATA}" upsert <name> --state active
+```
+
 죽어 있으면(`exited`) 메시지를 `${CLAUDE_PLUGIN_DATA}/prompts/<name>-<n>.md`에 쓰고 재개한다. 대장의 session id·cwd로 `backend.sh resume`을 부르고 새 job id와 `active`를 기록하는 일까지 이 명령이 한다.
 
 ```bash
@@ -65,7 +70,7 @@ Request from the user:
 
 권한 모드는 훅이 알려 준 front의 모드를 그대로 쓴다. `bypassPermissions`는 쓰지 않는다(일회 동의가 필요하고, 다른 class의 메시지를 보류한다). 모델은 사용자가 지정할 때만 `--model <model>`로 넘긴다(대장에 남아 병합 때 재사용된다).
 
-**broadcast** — 대상마다 `SendMessage` 한 번. 본문 첫 줄: `[router] broadcast to: <a>, <b>, <c> — 서로 존재를 알고, 필요하면 직접 조율하세요.` 그 아래 사용자 메시지. 죽은 대상은 forward와 같이 재개한다.
+**broadcast** — 대상마다 forward와 같이 `active`로 표시한 뒤 `SendMessage` 한 번. 본문 첫 줄: `[router] broadcast to: <a>, <b>, <c> — 서로 존재를 알고, 필요하면 직접 조율하세요.` 그 아래 사용자 메시지. 죽은 대상은 forward와 같이 재개한다.
 
 **status** — refresh 출력을 표로 줄여 보여 준다. 더 필요하면 `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/registry.py" --data "${CLAUDE_PLUGIN_DATA}" list --json`의 `last_result`를 인용한다.
 

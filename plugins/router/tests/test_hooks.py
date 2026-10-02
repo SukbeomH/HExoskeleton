@@ -61,9 +61,10 @@ assert REG.read_bytes() == before  # injection never writes
 assert run(stop("front-uuid")) == "" and run(stop("stranger")) == ""
 assert run(stop("stranger"), CLAUDE_JOB_DIR="/tmp/jobs/ffff9999") == ""
 assert REG.read_bytes() == before
-# worker by session id → last_result recorded, no output
+# worker by session id → last_result recorded and state idle (turn finished), no output
 assert run(stop("w-uuid", "API done: 3 endpoints")) == ""
-assert json.loads(REG.read_text())["sessions"]["api"]["last_result"] == "API done: 3 endpoints"
+api = json.loads(REG.read_text())["sessions"]["api"]
+assert api["last_result"] == "API done: 3 endpoints" and api["state"] == "idle", api
 # worker not yet mapped → found via $CLAUDE_JOB_DIR job id, session id backfilled
 assert run({**stop("ui-uuid", "UI blocked: need token"), "agent_type": "router:topic-worker"},
            CLAUDE_JOB_DIR="/Users/x/.claude/jobs/bbbb2222") == ""

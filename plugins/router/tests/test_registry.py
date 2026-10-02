@@ -105,6 +105,10 @@ cli("upsert", "new", "--new", "--job-id", "dddd4444")
 assert registry.record_result(REG, "new-uuid", "dddd4444", "x" * 5000, "router:topic-worker") == "new"
 n = reg()["sessions"]["new"]
 assert n["session_id"] == "new-uuid" and len(n["last_result"]) == registry.RESULT_MAX and n["agent_type"]
+# a finished turn means the worker is idle now (was active); a merged source stays merged
+assert n["state"] == "idle" and reg()["sessions"]["api"]["state"] == "idle", n
+assert registry.record_result(REG, None, "cccc3333", "summary for merge") == "old"
+assert reg()["sessions"]["old"]["state"] == "merged"
 before = REG.read_bytes()
 assert registry.record_result(REG, "stranger", "eeee5555", "nope") is None
 assert REG.read_bytes() == before
@@ -162,6 +166,6 @@ assert reg()["sessions"]["w2"]["state"] == "active" and "--resume w2-uuid --bg" 
 
 # render mentions every worker and the front name
 out = cli("list").stdout
-assert "@boss" in out and "- api [exited" in out and "→ api" in out, out
+assert "@boss" in out and "- api [idle" in out and "→ api" in out, out
 
 print("PASS test_registry")
