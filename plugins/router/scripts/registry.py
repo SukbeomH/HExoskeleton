@@ -192,7 +192,7 @@ def main(argv=None):
     sp.add_argument("--cwd", required=True)
     sp.add_argument("--topic")
     sp.add_argument("--model")
-    sp.add_argument("--mode", help="permission mode for the worker")
+    sp.add_argument("--mode", "--permission-mode", dest="mode", help="permission mode for the worker")
     rs = sub.add_parser("resume")
     rs.add_argument("name")
     rs.add_argument("prompt_file")

@@ -151,6 +151,9 @@ assert w1["job_id"] == "5eed0001" and w1["state"] == "active" and w1["cwd"] == s
 # the worker's model is kept for merge (only when given)
 assert w1["model"] == "haiku" and (BIN / "argv.log").read_text().count("--model haiku") == 2
 assert cli("spawn", "w1", str(PF), "--cwd", str(TMP)).returncode != 0
+# the hook hint says --permission-mode; spawn accepts it as --mode
+assert cli("spawn", "w3", str(PF), "--cwd", str(TMP), "--permission-mode", "acceptEdits").returncode == 0
+assert "--permission-mode acceptEdits" in (BIN / "argv.log").read_text()
 # backend failure → non-zero exit, entry exited, no (empty) job id stored
 (BIN / "fail").touch()
 r = cli("spawn", "w2", str(PF), "--cwd", str(TMP))
