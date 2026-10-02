@@ -23,38 +23,49 @@ Claude Code 전용 플러그인. 사용자는 **front 세션 하나**에서만 �
 
 `/clear` 후에는 세션 id가 바뀌므로 `/router:front`를 다시 실행한다.
 
+front에는 `/rename <고정 이름>`(또는 `claude -n <고정 이름>`으로 시작)으로 이름을 붙여 둔다. 이름 없는 대화형 세션의 기본 표시 이름(`<디렉터리>-<두 글자>`)은 다시 띄울 때마다 바뀌어, 작업 세션의 보고가 옛 이름으로 간다. front를 다시 띄웠으면 `/router:front`를 다시 실행한다. 대장에 새 session id와 이름이 기록되고, 이후 생성·재개되는 작업 세션은 프롬프트 첫 줄로 현재 front 이름을 받는다.
+
 ## 동작 방식
 
-- **대장**: `${CLAUDE_PLUGIN_DATA}/registry.json` (사용자 단위). 이름(유일)·session_id·job id·cwd·주제·모델(지정한 경우)·상태(active/idle/exited/merged)·마지막 결과. `scripts/registry.py`만 읽고 쓴다(flock + 원자적 교체). 빈 id는 기록하지 않는다. 전달할 때 `active`, 작업 세션의 턴이 끝나면(Stop 훅) `idle`.
+- **대장**: `${CLAUDE_PLUGIN_DATA}/registry.json` (사용자 단위). 이름(유일, 실행에 실패해 id가 없는 이름만 다시 쓸 수 있음)·session_id·job id·cwd·주제·모델(지정한 경우)·상태(active/idle/exited/merged)·마지막 결과. `scripts/registry.py`만 읽고 쓴다(flock + 원자적 교체). 빈 id는 기록하지 않는다. 전달할 때 `active`, 작업 세션의 턴이 끝나면(Stop 훅) `idle`.
 - **front 식별**: `front` 스킬이 Bash의 `CLAUDE_CODE_SESSION_ID`(훅의 `session_id`와 같은 값)와 `ListAgents` 첫 줄의 자기 이름을 대장에 기록한다.
 - **UserPromptSubmit 훅**: `session_id`가 front일 때만 대장 요약과 front의 권한 모드를 `additionalContext`로 주입한다. 다른 세션에서는 아무것도 하지 않는다.
 - **작업 세션**: `agents/topic-worker.md`. 한 주제만 맡고, 완료·막힘 시 front에 `SendMessage`로 짧게 보고하고, 라우팅하지 않는다. front와 같은 권한 모드로 뜬다.
 - **Stop 훅**: 작업 세션(`session_id`, 아직 모르면 `$CLAUDE_JOB_DIR`의 job id가 대장에 있음)에서만 `last_assistant_message`를 `last_result`로 기록한다. 보고가 빠져도 front가 결과를 읽을 수 있다.
-- **백엔드**: 세션 생성·재개·목록·정지·요약은 `scripts/backend.sh` 한 파일만 Claude Code CLI를 부른다. 다른 백엔드(Orca 등)로 바꿀 때 이 파일만 교체한다. `spawn`/`resume`의 stdout은 job id 한 줄뿐이고(안내 문구는 stderr), `registry.py spawn`/`resume`이 이름 예약·실행·job id 기록을 한 명령으로 묶는다. id를 모델이 옮겨 적지 않는다.
-- **재개**: 프로세스가 없는(`pid` 없음) 세션만 `claude --resume <session_id> --bg`로 깨운다. 목록에 남은 세션은 플래그 없이 깨워야 저장된 옵션(이름·에이전트·권한 모드)으로 제자리에서 이어진다. 플래그를 주면 사본이 생긴다.
+- **백엔드**: 세션 생성·재개·목록·정지·요약은 `scripts/backend.sh` 한 파일만 Claude Code CLI를 부른다. 다른 백엔드(Orca 등)로 바꿀 때 이 파일만 교체한다. `spawn`/`resume`은 프롬프트를 표준 입력으로 받고, stdout은 job id 한 줄뿐이다(안내 문구는 stderr).
+- **프롬프트 조립**: `registry.py spawn`/`resume`이 front의 요청 본문(`--request` 또는 표준 입력)에 대장의 현재 front 이름·주제·형제 목록을 붙여 작업 세션 프롬프트를 만들고, 이름 예약·실행·job id 기록까지 한 명령으로 묶는다. 프롬프트 파일을 쓰지 않고, id를 모델이 옮겨 적지 않는다. `spawn`은 디렉터리(기본: front의 cwd)와 요청을 이름 예약 전에 확인한다.
+- **재개**: 프로세스가 없는(`pid` 없음) 세션만 `claude --resume <session_id> --bg`로 깨운다. `registry.py resume`은 먼저 목록을 갱신하고, 살아 있는 세션이면 재개하지 않는다(오래된 문맥에서 사본을 띄우지 않게). 훅이 주입하는 목록은 `pid`를 그 프로세스가 있을 때만 보여 준다. 목록에 남은 세션은 플래그 없이 깨워야 저장된 옵션(이름·에이전트·권한 모드)으로 제자리에서 이어진다. 플래그를 주면 사본이 생긴다.
 
 ## 권한 프롬프트 줄이기
 
-front는 `registry.py`와 `backend.sh`를 플러그인 경로째 부르는 단일 명령만 쓴다. `front`/`route`/`merge` 스킬의 `allowed-tools`가 스킬을 호출한 턴에는 두 스크립트를 사전 승인한다. 그 밖의 턴에서도 묻지 않게 하려면 사용자 설정(`~/.claude/settings.json`)에 allow 규칙을 둔다. `<HOME>`은 홈 디렉터리의 절대 경로(`echo $HOME`)로 바꾼다. 마켓플레이스 설치본의 `${CLAUDE_PLUGIN_ROOT}`는 `~/.claude/plugins/cache/hexoskeleton/router/<version>/`이고, 버전 자리의 `*`가 업데이트 뒤에도 규칙을 유지한다.
+front는 `registry.py`와 `backend.sh`를 플러그인 경로째 부르는 단일 명령만 쓴다. `front`/`route`/`merge` 스킬의 `allowed-tools`는 스킬을 불러온 그 턴에만 두 스크립트를 사전 승인한다. front는 `route`를 세션에 한 번만 불러오고, 작업 세션 보고처럼 메시지로 시작된 턴에는 스킬이 없다. 그래서 **사람이 지켜보지 않는 라우팅에는 아래 allow 규칙이 필수다.** 사용자 설정(`~/.claude/settings.json`)에 넣고, `<HOME>`은 홈 디렉터리의 절대 경로(`echo $HOME`)로 바꾼다. 마켓플레이스 설치본의 `${CLAUDE_PLUGIN_ROOT}`는 `~/.claude/plugins/cache/hexoskeleton/router/<version>/`이고, 버전 자리의 `*`가 업데이트 뒤에도 규칙을 유지한다. `Skill(...)` 규칙은 front가 스킬을 불러올 때의 `Use skill "router:route"?` 확인을 없앤다(`Skill(name)`은 정확히 그 이름, `Skill(name *)`은 인자가 붙은 호출까지).
 
 ```json
 {
   "permissions": {
     "allow": [
       "Bash(python3 \"<HOME>/.claude/plugins/cache/hexoskeleton/router/*/scripts/registry.py\" *)",
-      "Bash(bash \"<HOME>/.claude/plugins/cache/hexoskeleton/router/*/scripts/backend.sh\" *)"
+      "Bash(bash \"<HOME>/.claude/plugins/cache/hexoskeleton/router/*/scripts/backend.sh\" *)",
+      "Skill(router:front)",
+      "Skill(router:route)",
+      "Skill(router:merge *)"
     ]
   }
 }
 ```
 
-`*`는 공백을 포함한 어떤 글자와도 맞으므로 이 규칙은 편의 장치이지 보안 경계가 아니다. 앞부분을 홈 경로로 고정해 다른 `python3`/`bash` 명령은 승인하지 않게 했다. 규칙 문법(경로 중간의 `*`)은 문서 기준이고, 따옴표가 든 명령과의 실제 매칭은 확인하지 않았다(unverified).
+`*`는 공백을 포함한 어떤 글자와도 맞으므로 이 규칙은 편의 장치이지 보안 경계가 아니다. 앞부분을 홈 경로로 고정해 다른 `python3`/`bash` 명령은 승인하지 않게 했다.
+
+규칙을 두어도 남는 확인:
+- 스크립트 밖의 즉흥 명령(예: `cd … &&`가 붙은 복합 명령, `cp`). 스킬은 이런 명령을 쓰지 않으며, 거절해도 흐름이 이어진다.
+- 작업 세션 쪽에서 그 세션의 권한 모드가 허용하지 않는 도구 사용. 작업 세션은 이를 `blocked`로 보고하고, front가 사용자에게 묻는다.
+- `bypassPermissions`의 일회 동의(그래서 `route`가 쓰지 않는다).
 
 ## 한계
 
 - **Claude Code 전용**: cross-session `SendMessage`/`ListAgents`와 `claude --bg`가 필요하다. 최소 버전은 각 `SKILL.md`의 `compatibility`를 본다.
 - 신뢰하지 않은 디렉터리에서는 작업 세션을 띄울 수 없다(`Workspace not trusted`).
-- 유휴·미연결 작업 세션은 약 1시간 뒤 프로세스가 멈춘다. 다음 전달 때 `route`가 다시 깨운다.
+- 유휴·미연결 작업 세션은 약 1시간 뒤 프로세스가 멈춘다. 멈춘 세션은 `SendMessage`로 깨어나지 않으므로 다음 전달 때 `route`가 `resume`으로 다시 깨운다.
 - 작업 세션마다 독립 세션이라 비용이 세션 수에 비례한다. 전달된 메시지도 프롬프트처럼 사용량에 잡힌다.
 - 결과 보고는 작업 세션이 지시를 따르는 데 달려 있다. 백업은 Stop 훅의 `last_result`다. `notify_when_idle`은 선택 사항으로, 오래 걸리는 작업에만 건다(평소에는 보고와 겹쳐 같은 결과가 한 턴 더 온다).
 - 플러그인을 제거하거나(`/plugin`, `claude plugin uninstall`) 마켓플레이스를 제거하면 플러그인 데이터 디렉터리(`~/.claude/plugins/data/router-hexoskeleton/`)가 대장 `registry.json`째 지워진다. 남기려면 `claude plugin uninstall --keep-data`(문서 기준).
@@ -79,17 +90,28 @@ front는 `registry.py`와 `backend.sh`를 플러그인 경로째 부르는 단�
 - 대화형에서 스킬 본문의 `${CLAUDE_SESSION_ID}`가 치환되어 실제 세션 id가 기록됐다(`-p`에서는 빈 값이라 `CLAUDE_CODE_SESSION_ID` 폴백).
 - `notify_when_idle`은 요청 시 동작하지만 보고 뒤에 같은 결과를 한 턴 더 보낸다. 그래서 `route`가 더는 걸지 않는다.
 
+### 실측 확인 (대화형 재시험, Orca terminal, marketplace install)
+
+- `registry.py spawn`/`resume` 경유 생성·재개와 단일 명령 템플릿, 대장 상태 갱신(전달 시 `active`, 턴 종료 시 `idle`)이 대화형 흐름에서 동작했다.
+- 위 Bash allow 규칙이 마켓플레이스 캐시 경로(버전 디렉터리)와 맞아, 스킬을 불러오지 않은 턴에서도 router 스크립트 확인이 사라졌다. 규칙이 없으면 그런 턴마다 물었다(`allowed-tools`는 스킬을 불러온 턴에만 적용된다).
+- `SendMessage`와 `ListAgents`는 확인을 묻지 않았다.
+- 유휴 작업 세션의 프로세스는 약 1시간 뒤 멈췄다(supervisor 로그의 `bg retire … idle`).
+- 그렇게 멈춘 세션은 `claude agents`에서 `pid`·`status`가 빠지고 `state`는 그대로 남는다(직접 `claude stop`한 세션은 `stopped`). front의 `ListAgents`에 보이지 않고, `SendMessage`는 `No agent named … is reachable`을 돌려줄 뿐 깨우지 않는다. 다시 쓰려면 `resume`이 필요하다.
+- `claude stop` 뒤, `claude rm` 뒤, 1시간 유휴로 멈춘 뒤 모두 refresh → `resume`으로 같은 session id·새 pid·같은 이름·에이전트·모델로 깨어났고, 중복 항목은 없었다.
+- front를 다시 띄우자 기본 표시 이름이 바뀌었고, 재개된 작업 세션이 옛 이름으로 보고하다 오류 힌트로만 새 이름을 찾았다. 그래서 재개 프롬프트에도 현재 front 이름을 넣고, front에 `/rename`을 권한다.
+
 ### 미검증 (unverified)
 
-- 약 1시간 유휴로 멈춘 작업 세션을 대화형 흐름에서 `resume`으로 다시 깨우는 경로(재개 자체는 `-p` 스모크에서만 확인).
-- 대화형 실측 이후 바뀐 부분: `registry.py spawn`/`resume` 경유 생성·재개, 단일 명령 템플릿, 스킬 `allowed-tools`, 대장 상태 갱신(active/idle)은 stub `claude`를 쓴 단위 테스트로만 확인했다.
-- 위 allow 규칙과 `allowed-tools` 규칙이 실제로 프롬프트를 없애는지.
+- 재시험 이후 바뀐 부분은 stub `claude`를 쓴 단위 테스트로만 확인했다: `registry.py`의 프롬프트 조립과 표준 입력 전달(프롬프트 파일 없음), 실패한 이름 재사용, `resume`의 선 갱신과 살아 있는 세션 거절, 목록의 `pid` 표시.
+- 표준 입력용 heredoc이 든 명령이 위 Bash allow 규칙과 맞는지(문서의 변경 기록 기준).
+- `Skill(router:…)` allow 규칙이 스킬 확인을 실제로 없애는지(문서 기준).
+- 작업 세션이 첫 턴에 `ToolSearch`로 `SendMessage`를 불러와 보고하는지.
 
 ## 개발
 
 ```bash
-python3 plugins/router/tests/test_registry.py   # 대장: 유일 이름, 빈 id, 갱신·이름 폴백, merged, 원자적 쓰기, stub claude로 spawn/resume
-python3 plugins/router/tests/test_hooks.py      # 훅: front만 주입, 작업 세션만 기록
+python3 plugins/router/tests/test_registry.py   # 대장: 유일 이름·실패 이름 재사용, 빈 id, 갱신·이름 폴백, merged, 원자적 쓰기, stub claude로 spawn/resume·프롬프트 조립
+python3 plugins/router/tests/test_hooks.py      # 훅: front만 주입(살아 있는 pid만 표시), 작업 세션만 기록
 claude --plugin-dir plugins/router              # 작업 트리를 플러그인으로 로드
 ```
 
