@@ -144,9 +144,14 @@ argv = (BIN / "argv.log").read_text()
 assert "--agent router:topic-worker --model haiku --permission-mode default" in argv, argv
 assert PROMPT.read_text() == "Topic: t"  # prompt from stdin, no file
 
-# registry spawn: an empty request is refused before the name is reserved
+# registry spawn: inputs are checked before the name is reserved (bad cwd, empty request, no front)
+r = cli("spawn", "w1", "--cwd", str(TMP / "nope"), "--request", "x")
+assert r.returncode == 1 and "w1" not in reg()["sessions"], r
 r = cli("spawn", "w1", "--cwd", str(TMP), stdin=" \n")
 assert r.returncode == 1 and "w1" not in reg()["sessions"], r
+r = subprocess.run([sys.executable, str(ROOT / "scripts/registry.py"), "spawn", "w1", "--request", "x"],
+                   env={**ENV, "ROUTER_REGISTRY": str(TMP / "frontless.json")}, capture_output=True, text=True)
+assert r.returncode == 1 and "front" in r.stderr, r
 # reserve + compose + start + record the job id in one command
 r = cli("spawn", "w1", "--cwd", str(TMP), "--topic", "T", "--model", "haiku", "--mode", "default", "--request", "do X")
 assert r.returncode == 0 and r.stdout.strip() == "5eed0001", r
@@ -158,27 +163,30 @@ assert p.startswith("Router front: @boss — send results there with SendMessage
 assert "old —" not in p and "twin —" not in p and p.endswith("\n\nRequest from the user:\ndo X"), p
 # the worker's model is kept for merge (only when given)
 assert w1["model"] == "haiku" and (BIN / "argv.log").read_text().count("--model haiku") == 2
-# taken name refused
+# taken: live/started (w1, has a job id), merged (old), dead but resumable (api, has ids)
 for taken in ("w1", "old", "api"):
-    r = cli("spawn", taken, "--cwd", str(TMP), "--request", "x")
+    r = cli("spawn", taken, "--request", "x")
     assert r.returncode != 0 and "taken" in r.stderr, (taken, r)
-# the hook hint says --permission-mode; spawn accepts it as --mode. Request on stdin
-assert cli("spawn", "w3", "--cwd", str(TMP), "--permission-mode", "acceptEdits", stdin="from stdin").returncode == 0
+# the hook hint says --permission-mode; spawn accepts it as --mode. Request on stdin, cwd defaults to here
+assert cli("spawn", "w3", "--permission-mode", "acceptEdits", stdin="from stdin").returncode == 0
 assert "--permission-mode acceptEdits" in (BIN / "argv.log").read_text() and PROMPT.read_text().endswith("from stdin")
-# backend failure → non-zero exit, entry exited, no (empty) job id stored
+assert reg()["sessions"]["w3"]["cwd"] == os.getcwd()
+# backend failure → non-zero exit, entry exited, no (empty) job id stored; a retry may reuse the name
 (BIN / "fail").touch()
-r = cli("spawn", "w2", "--cwd", str(TMP), "--request", "x")
+r = cli("spawn", "w2", "--request", "x")
 w2 = reg()["sessions"]["w2"]
 assert r.returncode != 0 and w2["state"] == "exited" and "job_id" not in w2 and "model" not in w2, (r, w2)
 (BIN / "fail").unlink()
+r = cli("spawn", "w2", "--topic", "T2", "--request", "retry")
+assert r.returncode == 0 and reg()["sessions"]["w2"]["job_id"] == "5eed0001", r
 # merge: sources are not siblings, are named in the prompt, and are marked merged only on success
-r = cli("spawn", "w9", "--cwd", str(TMP), "--merged-from", "w3,ghost", "--request", "x")
+r = cli("spawn", "w9", "--merged-from", "w3,ghost", "--request", "x")
 assert r.returncode != 0 and "w9" not in reg()["sessions"], r
-r = cli("spawn", "w13", "--cwd", str(TMP), "--topic", "W", "--merged-from", "w1,w3", "--request", "Merged brief: b")
+r = cli("spawn", "w13", "--topic", "W", "--merged-from", "w1,w3", "--request", "Merged brief: b")
 s = reg()["sessions"]
 assert r.returncode == 0 and s["w1"]["state"] == s["w3"]["state"] == "merged" and s["w3"]["merged_into"] == "w13", r
 p = PROMPT.read_text()
-assert "Merged from: w1, w3" in p and "w1 —" not in p and "api — API v2" in p, p
+assert "Merged from: w1, w3" in p and "w1 —" not in p and "w2 — T2" in p, p
 
 # resume: stored session id and cwd, job id recorded, state active; the prompt names the *current* front
 assert cli("resume", "twin", "--request", "x").returncode != 0  # no session id

@@ -10,7 +10,7 @@ Writes take an exclusive flock and replace the file atomically. Empty option val
 Usage: registry.py [--data DIR] <command> ...
   init | set-front [SESSION_ID] [--name N] | get-front | list [--json]
   upsert NAME [--new] [--session-id S] [--job-id J] [--cwd C] [--topic T] [--state S]
-  spawn NAME --cwd C [--request R] [--topic T] [--model M] [--mode P] [--merged-from A,B]
+  spawn NAME [--request R] [--cwd C] [--topic T] [--model M] [--mode P] [--merged-from A,B]
         → reserve NAME, compose the prompt, backend.sh spawn, record job id (sources marked merged)
   resume NAME [--request R]  → compose the prompt, backend.sh resume, record job id
   The request is --request or stdin; the prompt (front, topic, siblings, request) is composed here.
@@ -204,7 +204,7 @@ def main(argv=None):
     up.add_argument("--state", choices=STATES)
     sp = sub.add_parser("spawn")
     sp.add_argument("name")
-    sp.add_argument("--cwd", required=True)
+    sp.add_argument("--cwd", default=os.getcwd(), help="worker directory (default: here, i.e. the front's)")
     sp.add_argument("--topic")
     sp.add_argument("--model")
     sp.add_argument("--mode", "--permission-mode", dest="mode", help="permission mode for the worker")
@@ -232,6 +232,9 @@ def main(argv=None):
         if not request.strip():
             sys.exit("registry: empty request (pass --request TEXT or pipe it on stdin)")
     if a.cmd == "spawn":
+        a.cwd = os.path.abspath(os.path.expanduser(a.cwd))
+        if not os.path.isdir(a.cwd):
+            sys.exit(f"registry: no directory '{a.cwd}' (name not reserved)")
         merged = [n for n in a.merged_from.split(",") if n]
     if a.cmd == "init":
         with locked(p):
@@ -253,9 +256,15 @@ def main(argv=None):
         if not NAME_RE.match(a.name):
             sys.exit(f"registry: bad name '{a.name}' (letters, digits, - and _ only, <=64)")
         with locked(p) as reg:
-            if (a.cmd == "spawn" or a.new) and a.name in reg["sessions"]:
-                sys.exit(f"registry: name '{a.name}' is taken")
+            if a.cmd == "spawn" or a.new:
+                old = reg["sessions"].get(a.name)
+                # free = absent, or left by a spawn that never started (exited, no ids)
+                if old and (old.get("job_id") or old.get("session_id") or old.get("state") != "exited"):
+                    sys.exit(f"registry: name '{a.name}' is taken")
+                reg["sessions"].pop(a.name, None)
             if a.cmd == "spawn":
+                if not (reg.get("front") or {}).get("name"):
+                    sys.exit("registry: no front registered (run /router:front first)")
                 if [n for n in merged if n not in reg["sessions"]]:
                     sys.exit(f"registry: unknown --merged-from source in '{a.merged_from}'")
             s = reg["sessions"].setdefault(a.name, {"state": "active"})

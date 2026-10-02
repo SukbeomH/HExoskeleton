@@ -53,15 +53,15 @@ ROUTER_REQUEST
 
 목록에 남아 있는 세션은 저장된 옵션(이름·에이전트·권한 모드)으로 제자리에서 깨어난다. 출력의 `note:`가 사본(새 id)을 알리면 다음 refresh가 job id로 새 session id를 채운다.
 
-**new** — 이름: 주제를 나타내는 짧은 kebab-case(영문·숫자·`-`). 대장과 `backend.sh list`의 `name`에 없는 것. 한 명령으로 이름 예약 → 프롬프트 조립(front 이름·주제·형제 목록·요청) → 실행 → job id 기록을 한다. 이름이 이미 있거나 실행이 실패하면 0이 아닌 코드로 끝난다(실패한 항목은 `exited`). job id를 출력에서 직접 뽑아 기록하지 않는다.
+**new** — 이름: 주제를 나타내는 짧은 kebab-case(영문·숫자·`-`). 대장과 `backend.sh list`의 `name`에 없는 것. 한 명령으로 이름 예약 → 프롬프트 조립(front 이름·주제·형제 목록·요청) → 실행 → job id 기록을 한다. 이름이 이미 쓰였거나 실행이 실패하면 0이 아닌 코드로 끝난다. 디렉터리가 없거나 요청이 비면 이름을 잡지 않고 끝나며, 실행에 실패한 이름(`exited`, id 없음)은 같은 명령으로 다시 시도할 수 있다. job id를 출력에서 직접 뽑아 기록하지 않는다.
 
 ```bash
-python3 "${CLAUDE_PLUGIN_ROOT}/scripts/registry.py" --data "${CLAUDE_PLUGIN_DATA}" spawn <name> --cwd "<cwd>" --topic "<one-line topic>" --mode <front permission mode> <<'ROUTER_REQUEST'
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/registry.py" --data "${CLAUDE_PLUGIN_DATA}" spawn <name> --topic "<one-line topic>" --mode <front permission mode> <<'ROUTER_REQUEST'
 <user message, verbatim>
 ROUTER_REQUEST
 ```
 
-cwd: 사용자가 말한 저장소, 없으면 front의 cwd(신뢰된 디렉터리여야 한다). 권한 모드는 훅이 알려 준 front의 모드를 그대로 쓴다. `bypassPermissions`는 쓰지 않는다(일회 동의가 필요하고, 다른 class의 메시지를 보류한다). 모델은 사용자가 지정할 때만 `--model <model>`로 넘긴다(대장에 남아 병합 때 재사용된다).
+cwd는 front의 cwd가 기본이다. 사용자가 다른 저장소를 말했을 때만 `--cwd "<dir>"`를 더한다(신뢰된 디렉터리여야 한다). 권한 모드는 훅이 알려 준 front의 모드를 그대로 쓴다. `bypassPermissions`는 쓰지 않는다(일회 동의가 필요하고, 다른 class의 메시지를 보류한다). 모델은 사용자가 지정할 때만 `--model <model>`로 넘긴다(대장에 남아 병합 때 재사용된다).
 
 **broadcast** — 대상마다 forward와 같이 `active`로 표시한 뒤 `SendMessage` 한 번. 본문 첫 줄: `[router] broadcast to: <a>, <b>, <c> — 서로 존재를 알고, 필요하면 직접 조율하세요.` 그 아래 사용자 메시지. 죽은 대상은 forward와 같이 재개한다(표준 입력에 같은 본문).
 
