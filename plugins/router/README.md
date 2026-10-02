@@ -18,8 +18,9 @@ Claude Code 전용 플러그인. 사용자는 **front 세션 하나**에서만 �
    - **forward**: 기존 주제면 그 세션에 `SendMessage`로 전달. 종료된 세션은 다시 깨운다.
    - **new**: 새 주제면 `claude --bg --agent router:topic-worker`로 작업 세션을 띄운다. 형제 세션 목록을 함께 준다.
    - **broadcast**: 여러 주제에 걸치면 대상마다 한 번씩 보내고, 본문에 참여 세션 목록을 넣어 서로를 알린다.
-   - **status**: 진행 상황을 물으면 대장을 갱신해 보여 준다. 사용자 응답을 기다리는 작업 세션은 `WAITING`으로 보이고, front가 `claude attach <job_id>`를 안내한다.
-3. 수렴한 세션 병합: `/router:merge <세션...> into <새 이름>` — 요약을 모아 병합 brief를 만들고, 그것으로 새 작업 세션을 띄우고, 원본은 `merged`로 표시한다.
+   - **status**: 진행 상황을 물으면 대장을 갱신해 보여 준다. 사용자 응답을 기다리는 작업 세션은 `WAITING`으로 보이고, front가 승인 명령이나 `claude attach <job_id>`를 안내한다.
+3. 작업 세션이 권한 확인에서 멈추면 front에 직접 `/router:approve <id>`(허용) 또는 `/router:approve <id> deny`(거부)를 입력한다. 인자 없이 입력하면 열린 요청을 보여 준다(아래 "승인 전달").
+4. 수렴한 세션 병합: `/router:merge <세션...> into <새 이름>` — 요약을 모아 병합 brief를 만들고, 그것으로 새 작업 세션을 띄우고, 원본은 `merged`로 표시한다.
 
 `/clear` 후에는 세션 id가 바뀌므로 `/router:front`를 다시 입력한다.
 
@@ -32,13 +33,15 @@ front에는 `/rename <고정 이름>`(또는 `claude -n <고정 이름>`으로 �
 - **UserPromptSubmit 훅**: `session_id`가 front일 때만 그 턴의 `permission_mode`를 대장에 기록하고(`front.permission_mode`·`mode_updated`), 대장 요약을 `additionalContext`로 주입한다. 다른 세션에서는 아무것도 하지 않는다.
 - **작업 세션**: `agents/topic-worker.md`. 한 주제만 맡고, 완료·막힘 시 front에 `SendMessage`로 짧게 보고하고, 라우팅하지 않는다. 대장에 기록된 front의 권한 모드로 뜬다(아래 보안 모델).
 - **Stop 훅**: 작업 세션(`session_id`, 아직 모르면 `$CLAUDE_JOB_DIR`의 job id가 대장에 있음)에서만 `last_assistant_message`를 `last_result`로 기록한다. 보고가 빠져도 front가 결과를 읽을 수 있다.
+- **승인 전달**: 작업 세션의 PermissionRequest 훅과 front의 `/router:approve` 훅(아래 "승인 전달").
+- **보고 대상 고정**: 작업 세션의 PreToolUse(`SendMessage`) 훅이 front·형제가 아닌 살아 있는 세션(`claude agents`)으로의 전송을 거부한다. front가 사라진 뒤 보고하면 `SendMessage`가 "Did you mean <다른 세션>?"을 제안하고, 작업 세션이 그 제안을 따라 무관한 세션에 보고를 보낸 일이 있었다. 작업 세션 자신의 subagent 이름·id는 막지 않는다.
 - **백엔드**: 세션 생성·재개·목록·정지·요약은 `scripts/backend.sh` 한 파일만 Claude Code CLI를 부른다. 다른 백엔드(Orca 등)로 바꿀 때 이 파일만 교체한다. `registry.py`만 부르고, 인자 목록이 고정되어 있다(추가 claude 인자 없음, 권한 모드는 문서의 6개 값만). `spawn`/`resume`은 프롬프트를 표준 입력으로 받고, stdout은 job id 한 줄뿐이다(안내 문구는 stderr).
 - **프롬프트 조립**: `registry.py spawn`/`resume`이 front의 요청 본문(`--request TEXT`, 또는 `--request -`와 heredoc 표준 입력)에 대장의 현재 front 이름·주제·형제 목록을 붙여 작업 세션 프롬프트를 만들고, 이름 예약·실행·job id 기록까지 한 명령으로 묶는다. 프롬프트 파일을 쓰지 않고, id를 모델이 옮겨 적지 않는다. `spawn`은 디렉터리(기본: front의 cwd)와 요청을 이름 예약 전에 확인한다.
 - **재개**: 프로세스가 없는(`pid` 없음) 세션만 `claude --resume <session_id> --bg`로 깨운다. `registry.py resume`은 먼저 목록을 갱신하고, 살아 있는 세션이면 재개하지 않는다(오래된 문맥에서 사본을 띄우지 않게). 훅이 주입하는 목록은 `pid`를 그 프로세스가 있을 때만 보여 준다. 목록에 남은 세션은 플래그 없이 깨워야 저장된 옵션(이름·에이전트·권한 모드)으로 제자리에서 이어진다. 플래그를 주면 사본이 생긴다. 목록에서 지워진 세션은 이름과 현재 front 모드를 다시 준다.
 
 ## 권한 프롬프트 줄이기
 
-front는 `registry.py`를 플러그인 경로째 부르는 단일 명령만 쓴다. `front`/`route`/`merge` 스킬의 `allowed-tools`는 스킬을 불러온 그 턴에만 이 스크립트를 사전 승인한다. front는 `route`를 세션에 한 번만 불러오고, 작업 세션 보고처럼 메시지로 시작된 턴에는 스킬이 없다. 그래서 **사람이 지켜보지 않는 라우팅에는 아래 allow 규칙이 필수다.** 사용자 설정(`~/.claude/settings.json`)에 넣고, `<HOME>`은 홈 디렉터리의 절대 경로(`echo $HOME`)로, `<VERSION>`은 설치된 버전(예: `0.1.4`)으로 바꾼다. 마켓플레이스 설치본의 `${CLAUDE_PLUGIN_ROOT}`는 `~/.claude/plugins/cache/hexoskeleton/router/<version>/`이다. 버전 자리에 `*`를 쓰지 않는다(아래 보안 모델). 플러그인을 업데이트하면 규칙의 버전도 바꾼다. 바꾸지 않으면 확인이 다시 뜰 뿐이다. `Skill(...)` 규칙은 front가 스킬을 불러올 때의 `Use skill "router:route"?` 확인을 없앤다(`Skill(name)`은 정확히 그 이름, `Skill(name *)`은 인자가 붙은 호출까지). 사용자가 직접 입력한 `/router:front`는 Skill 도구 호출이 아니라서 확인이 없으므로 `front` 규칙은 두지 않는다.
+front는 `registry.py`를 플러그인 경로째 부르는 단일 명령만 쓴다. `front`/`route`/`merge` 스킬의 `allowed-tools`는 스킬을 불러온 그 턴에만 이 스크립트를 사전 승인한다. front는 `route`를 세션에 한 번만 불러오고, 작업 세션 보고처럼 메시지로 시작된 턴에는 스킬이 없다. 그래서 **사람이 지켜보지 않는 라우팅에는 아래 allow 규칙이 필수다.** 사용자 설정(`~/.claude/settings.json`)에 넣고, `<HOME>`은 홈 디렉터리의 절대 경로(`echo $HOME`)로, `<VERSION>`은 설치된 버전(예: `0.1.4`)으로 바꾼다. 마켓플레이스 설치본의 `${CLAUDE_PLUGIN_ROOT}`는 `~/.claude/plugins/cache/hexoskeleton/router/<version>/`이다. 버전 자리에 `*`를 쓰지 않는다(아래 보안 모델). 플러그인을 업데이트하면 규칙의 버전도 바꾼다. 바꾸지 않으면 확인이 다시 뜰 뿐이다. `Skill(...)` 규칙은 front가 스킬을 불러올 때의 `Use skill "router:route"?` 확인을 없앤다(`Skill(name)`은 정확히 그 이름, `Skill(name *)`은 인자가 붙은 호출까지). 사용자가 직접 입력한 `/router:front`·`/router:approve`는 Skill 도구 호출이 아니라서 확인이 없으므로 `front`·`approve` 규칙은 두지 않는다.
 
 ```json
 {
@@ -56,7 +59,7 @@ front는 `registry.py`를 플러그인 경로째 부르는 단일 명령만 쓴�
 
 규칙을 두어도 남는 확인:
 - 스크립트 밖의 즉흥 명령(예: `cd … &&`가 붙은 복합 명령, `cp`). 스킬은 이런 명령을 쓰지 않으며, 거절해도 흐름이 이어진다.
-- 작업 세션 쪽에서 그 세션의 권한 모드가 허용하지 않는 도구 사용. 그 확인 프롬프트가 작업 세션의 턴을 붙잡아, 작업 세션은 보고할 수 없고 Stop 훅도 오지 않는다. front의 다음 refresh가 그 세션을 `[WAITING: permission prompt — user must run: claude attach <job_id>; …]`로 표시하고, front는 사용자에게 그 명령을 안내한다. 사용자가 터미널에서 `claude attach <job_id>`로 열어 응답해야 이어진다(다른 세션의 메시지는 승인이 되지 못한다).
+- 작업 세션 쪽에서 그 세션의 권한 모드가 허용하지 않는 도구 사용. 그 확인 프롬프트가 작업 세션의 턴을 붙잡아, 작업 세션은 보고할 수 없고 Stop 훅도 오지 않는다. 대장은 그 세션을 `WAITING`으로 표시하고, 사용자는 front에 `/router:approve <id> [deny]`를 입력하거나(아래 "승인 전달") 터미널에서 `claude attach <job_id>`로 열어 응답한다. 다른 세션의 메시지는 승인이 되지 못한다.
 
 작업 세션은 front의 권한 모드로 뜬다. 지켜보지 않고 맡기려면 front를 `auto`(쓸 수 있는 계정에서)나 `acceptEdits`로 띄우고, 작업에 필요한 명령은 allow 규칙에 더한다.
 - `default`(Manual): 작업 세션은 승인이 필요한 첫 도구에서 멈춘다.
@@ -64,10 +67,60 @@ front는 `registry.py`를 플러그인 경로째 부르는 단일 명령만 쓴�
 - `auto`: 분류기가 대부분의 동작을 사람 대신 검토한다.
 - `dontAsk`: 물을 동작을 묻지 않고 거부한다(문서 기준). 작업 세션은 멈추지 않고 거부된 일을 `blocked`로 보고한다.
 
+## 승인 전달
+
+작업 세션이 권한 확인에서 멈추면, 그 확인을 front에서 사용자가 직접 입력한 명령으로 허용하거나 거부한다. 결정 경로에 모델이 없다.
+
+1. **작업 세션**: PermissionRequest 훅(모든 도구, 시간 제한 600초)이 대장에 있는 작업 세션에서만 동작한다. 확인할 호출을 `approvals/pending/<id>.json`에 쓴다. 이 파일에는 8자리 임의 id, 작업 세션 이름, 도구, `tool_input` 원문, 만료 시각이 들어간다. 그다음 `approvals/decisions/<id>.json`을 최대 300초 기다린다. 결정은 같은 id를 담고 요청보다 나중에 쓰였을 때만 받으며, 읽는 즉시 지운다(한 번만 쓰임). 응답은 allow 또는 deny뿐이다. 입력 변경(`updatedInput`)이나 규칙 추가(`updatedPermissions`)는 하지 않는다. 결정이 없으면 출력 없이 끝나 일반 확인 창이 그대로 남으므로 `claude attach`로 계속 응답할 수 있다. 다른 세션, `dontAsk` 모드(묻지 않는다는 약속), front에서는 아무것도 하지 않는다.
+2. **표시**: 열린 요청이 있는 작업 세션은 refresh 없이도 `WAITING`으로 보인다. 그 아래에 다음 두 줄이 붙는다.
+
+   ```text
+   approval 2a53cf92: @relay1 Bash: echo relay-ok > /tmp/router-relay-test.txt
+   approve: /router:approve 2a53cf92   deny: /router:approve 2a53cf92 deny   (or claude attach fd6f02cb)
+   ```
+
+   모델이 쓴 `description`은 보이지 않고 `tool_input`만 보인다(Bash는 `command`, 그 밖의 필드는 `[input: {…}]`). 표시용으로 ANSI 시퀀스와 제어·zero-width·bidi 문자를 지우고, 지운 개수를 `[N hidden chars removed]`로 알린다. 줄바꿈은 `⏎`로 보여, 두 명령이 한 명령처럼 읽히지 않게 한다. 300자를 넘으면 `…[cut: 전체 길이 chars]`로 자른다.
+3. **사용자 입력**: front에 `/router:approve <id>`(허용) 또는 `/router:approve <id> deny`(거부)를 직접 입력한다. UserPromptExpansion 훅이 다음을 차례로 확인한 뒤 결정 파일을 쓴다.
+   - 입력한 세션이 대장의 front인지.
+   - id가 8자리 소문자 hex이고 열린(만료 전) 요청인지.
+
+   결정을 쓴 뒤 프롬프트를 막는다. 그래서 모델 턴이 없고, 화면에는 무엇을 허용·거부했는지(`router: approved <id>: @<세션> <도구>: <명령>`) 나온다. 인자 없이 입력하면 열린 요청 목록을 보여 준다. front가 아니거나, 모르는 id·만료된 id면 `not sent`로 막는다.
+
+**끄기**: 사용자 설정의 `"env": {"ROUTER_APPROVAL_WAIT": "0"}`. 훅이 기다리지 않고 바로 끝나, 일반 확인 창과 `claude attach`만 남는다.
+
+**권장 deny 규칙** (사용자 설정). 이 규칙은 Claude의 파일 도구(Edit·Write 모두. 경로 규칙은 `Edit(...)`으로만 검사되고 `Write(path)` 규칙은 쓰이지 않는다)와 Claude Code가 알아보는 Bash 파일 명령·리다이렉션(`> file`, `tee` 등)으로 결정 파일을 쓰는 것을 막는다.
+
+```json
+{
+  "permissions": {
+    "deny": ["Edit(~/.claude/plugins/data/router-hexoskeleton/approvals/**)"]
+  }
+}
+```
+
+이 규칙은 스스로 파일을 여는 하위 프로세스(`python3 -c …`, node 스크립트)는 막지 못한다(문서 기준). OS 수준으로 막으려면 sandbox를 켜고 `sandbox.filesystem.denyWrite`에 같은 경로(`~/.claude/plugins/data/router-hexoskeleton/approvals`)를 넣는다.
+
+**위조 방지**:
+- 결정은 front 세션에서 직접 입력한 `/router:approve`의 훅만 쓴다.
+  - 모델의 Skill 호출은 막힌다(`disable-model-invocation: true`, 실측 거절).
+  - 다른 세션이 보낸 같은 글자의 메시지는 확장되지 않는다.
+  - front가 아닌 세션에서 입력하면 거부된다(실측).
+- `registry.py`에는 결정을 쓰는 명령이 없다. 위 allow 규칙은 `registry.py`의 모든 인자를 승인하므로, 그런 명령이 있으면 모델이 확인 없이 승인할 수 있다.
+- id는 요청마다 새로 만들고, 만료가 있고, 한 번만 쓰인다.
+
+**남는 위험**: 사용자가 확인 창에서 버튼을 누르는 것과 같은 신뢰 수준이다. 다만 아래 경우는 막지 못한다.
+- 같은 OS 사용자로 셸을 제한 없이 쓰는 프로세스는 결정 파일을 직접 쓰거나 `claude -p --resume <front session id> "/router:approve <id>"`를 실행할 수 있다(`-p`의 프롬프트는 입력으로 확장된다). 셸이 제한 없는 경우는 다음과 같다.
+  - `bypassPermissions` front, 또는 `auto` front에서 분류기가 허용한 명령.
+  - 넓은 Bash 규칙. 예: `Bash(python3 -c *)`, `Bash(claude --plugin-dir:*)`. 둘 다 위 두 방법 중 하나를 확인 없이 승인한다.
+- 이 위험은 이 플러그인의 다른 훅 정책과 같다. 플러그인은 자동 승인되는 경로(allow 규칙이 승인하는 `registry.py`, Skill 호출, 세션 간 메시지)를 막고, OS 수준 경계는 sandbox에 맡긴다.
+- 표시는 정리하고 잘라서 보이므로, 300자를 넘는 입력은 끝까지 보이지 않는다. 긴 명령은 `claude attach`로 원문을 보고 응답한다.
+- front는 다음 턴에야 새 요청을 안다. 인자 없는 `/router:approve`는 즉시 최신 목록을 보여 준다.
+
 ## 보안 모델
 
 - **allow 규칙이 허용하는 것**: 버전을 고정한 경로의 `registry.py`를 어떤 인자로든. 그래서 `registry.py`는 인자로 다음을 받지 않는다: 작업 세션의 권한 모드, front, 세션 id·job id, 다른 대장 파일(`--data`는 `~/.claude/plugins/data/` 아래만), claude 인자. allow 규칙은 작업 세션에도 적용되므로 작업 세션이 이 스크립트를 불러도 같다.
 - **작업 세션 모드는 front 모드로 고정**: front의 UserPromptSubmit 훅이 매 턴 기록한 `permission_mode`(기록이 없으면 `default`). `backend.sh`는 그 값만, 고정된 인자 목록으로 받는다. 재개는 router가 띄운 세션만 깨운다(id는 실행·`claude agents`·Stop 훅만 기록한다).
+- **승인은 사람만**: 작업 세션의 권한 확인은 사용자가 front에 직접 입력한 `/router:approve`의 훅만 결정한다(위 "승인 전달").
 - **front 등록은 사람만**: 사용자가 `/router:front`를 입력할 때의 UserPromptExpansion 훅만 front를 쓴다. 모델의 Skill 호출(`disable-model-invocation: true`)과 다른 세션이 보낸 같은 글자의 메시지는 확장되지 않아 등록하지 못한다. 이 경로는 Claude Code 2.1.287에서 확인했다. 이 훅이 없는 버전에서는 등록되지 않고, front 스킬이 그 사실을 알린다.
 - **버전 `*` 금지**: Bash 규칙의 `*`는 `/`와 `..`까지 맞는다. 버전 자리에 `*`를 두면 `…/router/../../<임의 경로>.py` 같은 명령이 승인되어 모델이 쓴 아무 파이썬 파일이나 확인 없이 실행된다(2026-10-02 `-p` 실측: 규칙이 있으면 실행, 없으면 확인).
 - **남는 위험**:
@@ -127,18 +180,32 @@ front는 `registry.py`를 플러그인 경로째 부르는 단일 명령만 쓴�
 - 모델에게 Skill 도구로 `router:front`를 부르게 하자 거절됐고(`disable-model-invocation`), 대장은 바뀌지 않았다.
 - 그 front 모드로 `registry.py spawn`한 haiku 작업 세션: `claude --bg … --permission-mode dontAsk --model haiku`만 받았고, 작업 세션 자신의 훅 입력도 `permission_mode: dontAsk`였다. Stop 훅이 `last_result`를 기록했다.
 
+### 실측 확인 (0.2.0 승인 전달, `--plugin-dir`, 임시 대장, Claude Code 2.1.287)
+
+- `claude -p --session-id <uuid> --permission-mode default "/router:front"`로 front를 등록했다. `-p --resume <uuid>`로 이어 입력한 `/router:approve`도 같은 session id로 훅에 들어와 front로 인정됐고, 프롬프트는 막혀 모델 턴이 없었다(약 4초).
+- `registry.py spawn`으로 띄운 haiku 작업 세션(`default`)이 `echo relay-ok > /tmp/…`에서 멈췄다. `claude agents` 상태는 `waiting / permission prompt`였다. PermissionRequest 훅이 6초 안에 pending 파일을 썼고, refresh 없는 `registry.py list`가 `WAITING`, 요청 id, 명령, approve/deny 줄을 보였다.
+- front의 `/router:approve <id>`: 화면에 `router: approved <id>: @relay1 Bash: echo relay-ok > …`가 나왔다. 약 4초 뒤 파일이 생겼고, 결정 파일은 소비됐으며 pending도 지워졌다. 작업 세션 transcript에는 `Allowed by PermissionRequest hook`이 남았다.
+- `/router:approve <id> deny`: 파일은 생기지 않았다. 작업 세션의 도구 결과는 `The user denied this in the router front (…)`였고, 작업 세션은 재시도하지 않고 턴을 끝냈다.
+- 위조 시도: front가 아닌 `-p` 세션에서 같은 id로 입력하자 `not sent … only in the router front session`으로 막혔고 결정 파일이 없었다. front 모델에게 보통 턴으로 "대신 승인해 달라"고 하자 Skill 도구로 `router:approve`를 불렀다. 그 호출은 `disable-model-invocation`으로 거절됐고, 모델은 사용자에게 직접 입력하라고 답했다. 결정 파일은 없었고 요청은 열린 채였다.
+- 보고 대상: front(`-p`)가 종료된 뒤 작업 세션이 보고하자 `SendMessage`가 `no agent named '<front>' is reachable. Did you mean: <무관한 대화형 세션>?`을 돌려줬다. 작업 세션은 그 제안대로 그 세션에 보고를 보냈다(수정 전, 받는 쪽 세션의 승인 대기로 보류됨). 수정 후에는 대장에 없는 살아 있는 세션(시험용 decoy)으로 보낸 `SendMessage`가 PreToolUse 훅에서 거부됐고, decoy는 아무것도 받지 않았다.
+
 ### 미검증 (unverified)
 
 - 3차 시험 이후 바뀐 부분은 stub `claude`를 쓴 단위 테스트로만 확인했다: 승인 대기 세션의 `WAITING` 표시와 `claude attach` 안내, 작업 세션 프롬프트의 라우팅 지시 안내 줄, `refresh --json`. 라우팅 지시를 뺀 요청 본문과 `merge`의 요약 요청 → 답장 대기 순서는 스킬 지시일 뿐 실측하지 않았다.
 - `claude attach <job_id>`로 연 작업 세션에서 승인하면 턴이 이어져 보고가 오는지(문서 기준).
 - `dontAsk` 작업 세션이 거부된 일을 `blocked`로 보고하는지(문서 기준).
 - 실패한 이름 재사용과 `resume`의 살아 있는 세션 거절(단위 테스트만).
+- 승인 전달 (0.2.0): 다음은 확인하지 않았다.
+  - 대화형 front에서 입력한 `/router:approve`(실측은 `-p` front만).
+  - 사용자가 `claude attach`로 먼저 응답했을 때 기다리던 훅이 취소되는지.
+  - `dontAsk` 모드에서 PermissionRequest가 실행되는지. 실행되더라도 훅은 기다리지 않는다.
+  - 300초 대기 시간이 실제 세션에서 끝난 뒤 확인 창이 남는지. 단위 테스트와 연구 시험(hook timeout)만 확인했다.
 
 ## 개발
 
 ```bash
-python3 plugins/router/tests/test_registry.py   # 대장: 유일 이름·실패 이름 재사용, 갱신(id로만), merged, 원자적 쓰기, stub claude로 spawn/resume·프롬프트 조립, front 모드 고정, CLI로 front·id·모드·대장 파일 지정 불가, backend.sh 고정 인자, 승인 대기(WAITING) 표시
-python3 plugins/router/tests/test_hooks.py      # 훅: 입력한 /router:front만 front 등록, front만 모드 기록·주입(살아 있는 pid만 표시), 작업 세션만 기록
+python3 plugins/router/tests/test_registry.py   # 대장: 유일 이름·실패 이름 재사용, 갱신(id로만), merged, 원자적 쓰기, stub claude로 spawn/resume·프롬프트 조립, front 모드 고정, CLI로 front·id·모드·대장 파일 지정 불가, backend.sh 고정 인자, 승인 대기(WAITING) 표시, 승인 요청 표시 정리(ANSI·bidi·줄바꿈·절단)
+python3 plugins/router/tests/test_hooks.py      # 훅: 입력한 /router:front만 front 등록, front만 모드 기록·주입(살아 있는 pid만 표시), 작업 세션만 기록, 승인 전달(PermissionRequest 대기·allow/deny·오래된/다른 id/잘못된 결정 무시·시간 초과, front에서 입력한 /router:approve만 결정), SendMessage 보고 대상 가드
 claude --plugin-dir plugins/router              # 작업 트리를 플러그인으로 로드
 ```
 
