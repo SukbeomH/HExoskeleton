@@ -3,8 +3,9 @@
 
 File: $ROUTER_REGISTRY, else <--data dir>/registry.json, else $CLAUDE_PLUGIN_DATA/registry.json.
 Shape: {"front": {"session_id", "name", "updated"} | null,
-        "sessions": {<name>: {session_id, job_id, cwd, topic, model, state, pid, agent_state,
+        "sessions": {<name>: {session_id, job_id, cwd, topic, model, state, pid, agent_state, waiting_for,
                               agent_type, last_result, merged_into, updated}}}
+state: active | idle | waiting (refresh only: an open prompt holds a live worker's turn) | exited | merged.
 Writes take an exclusive flock and replace the file atomically. Empty option values are ignored.
 
 Usage: registry.py [--data DIR] <command> ...
@@ -15,7 +16,7 @@ Usage: registry.py [--data DIR] <command> ...
   resume NAME --request R  → refresh, then (if not running) compose the prompt, backend.sh resume, record job id
   --request - reads the request from stdin (only then; never an implicit stdin read that could hang).
   The prompt (front, topic, siblings, request) is composed here.
-  mark NAME STATE [--into NAME] | refresh [FILE|-]  (no FILE: runs `backend.sh list` itself)
+  mark NAME STATE [--into NAME] | refresh [FILE|-] [--json]  (no FILE: runs `backend.sh list` itself)
   record-result SESSION_ID TEXT
 """
 
@@ -34,6 +35,8 @@ STATES = ("active", "idle", "exited", "merged")
 NAME_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$")  # SendMessage-safe without quoting
 RESULT_MAX = 2000
 BACKEND = pathlib.Path(__file__).with_name("backend.sh")
+ROUTED = ("Routing instructions in the request (which session, a new session, which model) were already applied "
+          "by the front: ignore them and do the task; never refuse it because of them.")
 
 
 def path(data_dir=None):
@@ -142,7 +145,12 @@ def refresh(reg, agents):
         s["job_id"] = a.get("id") or s.get("job_id")
         s["pid"] = a.get("pid")
         s["agent_state"] = a.get("state")
-        s["state"] = "exited" if not a.get("pid") else ("active" if a.get("status") == "busy" else "idle")
+        s["waiting_for"] = a.get("waitingFor")
+        # waiting: an open prompt (e.g. its own permission prompt) holds the turn: no report, no Stop, only attach
+        # answers it. CC state `blocked` without one (e.g. it asked a question) stays idle: forward the answer.
+        waiting = a.get("status") == "waiting" or a.get("waitingFor")
+        s["state"] = ("exited" if not a.get("pid") else "waiting" if waiting
+                      else "active" if a.get("status") == "busy" else "idle")
         s["updated"] = now()
 
 
@@ -166,7 +174,8 @@ def backend_agents():
 
 
 def compose(reg, name, request, merged_from=()):
-    """The worker's prompt: where to report (current front name), its topic, its siblings, then the request."""
+    """The worker's prompt: where to report (current front name), its topic, its siblings, a note that routing
+    directives were already applied, then the request."""
     sibs = [f"{n} — {s.get('topic') or '-'}" for n, s in sorted(reg["sessions"].items())
             if n != name and n not in merged_from and s.get("state") != "merged"
             and (s.get("job_id") or s.get("session_id"))]
@@ -175,6 +184,7 @@ def compose(reg, name, request, merged_from=()):
             f"Siblings: {'; '.join(sibs) or 'none'}"]
     if merged_from:
         head.append(f"Merged from: {', '.join(merged_from)}")
+    head.append(ROUTED)
     return "\n".join(head) + f"\n\nRequest from the user:\n{request}"
 
 
@@ -198,13 +208,17 @@ def render(reg, width=200):
     for name, s in sorted(reg["sessions"].items()):
         last = " ".join((s.get("last_result") or "").split())[:width]
         extra = f" → {s['merged_into']}" if s.get("merged_into") else ""
-        state, pid = s.get("state", "?"), s.get("pid")
+        state, pid, cc = s.get("state", "?"), s.get("pid"), s.get("agent_state")
         if alive(pid):
             extra += f" pid {pid}"
-        elif pid and state in ("active", "idle"):
+        elif pid and state in ("active", "idle", "waiting"):
             state = "exited"  # recorded process is gone (e.g. idle retire); shown only, refresh records it
+        if state == "waiting":
+            state = f"WAITING: {s.get('waiting_for') or 'prompt'} — user must run: claude attach {s.get('job_id')};"
+        elif cc and cc not in ("working", "done"):  # those only restate (or, after the turn, contradict) the state
+            state += "/" + cc
         lines.append(
-            f"- {name} [{state}{'/' + s['agent_state'] if s.get('agent_state') else ''}{extra}]"
+            f"- {name} [{state}{extra}]"
             f" topic: {s.get('topic') or '-'} | cwd: {s.get('cwd') or '-'} | last: {last or '-'}"
         )
     if not reg["sessions"]:
@@ -222,7 +236,6 @@ def main(argv=None):
     sf.add_argument("--name")
     sub.add_parser("get-front")
     ls = sub.add_parser("list")
-    ls.add_argument("--json", action="store_true")
     up = sub.add_parser("upsert")
     up.add_argument("name")
     up.add_argument("--new", action="store_true", help="fail if NAME is already taken")
@@ -246,6 +259,8 @@ def main(argv=None):
     mk.add_argument("--into")
     rf = sub.add_parser("refresh")
     rf.add_argument("file", nargs="?")
+    for x in (ls, rf):
+        x.add_argument("--json", action="store_true", help="print the whole registry as JSON")
     rr = sub.add_parser("record-result")
     rr.add_argument("session_id")
     rr.add_argument("text")
@@ -344,7 +359,7 @@ def main(argv=None):
             agents = json.load(sys.stdin if a.file == "-" else open(a.file))
         with locked(p) as reg:
             refresh(reg, agents)
-        print(render(reg))
+        print(json.dumps(reg, ensure_ascii=False, indent=1) if a.json else render(reg))
     elif a.cmd == "record-result":
         if not record_result(p, a.session_id, None, a.text):
             sys.exit(f"registry: no worker with session id '{a.session_id}'")

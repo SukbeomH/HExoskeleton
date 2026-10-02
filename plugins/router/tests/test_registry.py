@@ -166,6 +166,8 @@ assert w1["job_id"] == "5eed0001" and w1["state"] == "active" and w1["cwd"] == s
 p = PROMPT.read_text()
 assert p.startswith("Router front: @boss — send results there with SendMessage.\nTopic: T\nSiblings: api — API v2;"), p
 assert "old —" not in p and "twin —" not in p and p.endswith("\n\nRequest from the user:\ndo X"), p
+# routing directives the front applied ("haiku로 새 세션에서…") must not make the worker refuse
+assert "\nRouting instructions in the request (which session, a new session, which model) were already applied" in p, p
 # the worker's model is kept for merge (only when given)
 assert w1["model"] == "haiku" and (BIN / "argv.log").read_text().count("--model haiku") == 2
 # taken: live/started (w1, has a job id), merged (old), dead but resumable (api, has ids)
@@ -213,14 +215,33 @@ assert r.returncode == 0 and w2["job_id"] == "5eed0001" and w2["state"] == "acti
 assert "agent_state" not in w2 and w2["pid"] is None, w2
 assert "--resume w2-uuid --bg Router front: @boss-2" in (BIN / "argv.log").read_text()
 assert PROMPT.read_text().endswith("Request from the user:\nagain")
-# bare `refresh` runs `backend.sh list` itself (no pipe, no stdin read)
+# bare `refresh` runs `backend.sh list` itself (no pipe, no stdin read); --json prints the registry (merge: one command)
 (BIN / "agents.json").write_text(json.dumps([dict(w2_agent, pid=os.getpid(), status="busy")]))
-r = subprocess.run([sys.executable, str(ROOT / "scripts/registry.py"), "refresh"], env=ENV,
+r = subprocess.run([sys.executable, str(ROOT / "scripts/registry.py"), "refresh", "--json"], env=ENV,
                    stdin=subprocess.PIPE, capture_output=True, text=True, timeout=10)
 assert r.returncode == 0 and reg()["sessions"]["w2"]["pid"] == os.getpid(), r
+assert json.loads(r.stdout) == reg(), r.stdout
 
 # render mentions every worker and the front name
 out = cli("list").stdout
 assert "@boss-2" in out and "- api [exited" in out and "→ w13" in out, out
+
+# a worker stuck on its own permission prompt (round-3 itest fixture) → waiting + waitingFor, attach hint;
+# an idle worker whose CC state stays `working` renders plain idle (no contradictory `idle/working`);
+# CC `blocked` with no open prompt (it asked a question) stays idle/blocked: reachable, forward the answer
+cli("upsert", "pow2", "--new", "--job-id", "7895904c")
+cli("upsert", "hk", "--new", "--job-id", "fc6d12ed")
+cli("upsert", "ask", "--new", "--job-id", "a5c00001")
+r = cli("refresh", "-", stdin=json.dumps([
+    {"pid": os.getpid(), "id": "7895904c", "kind": "background", "sessionId": "7895904c-uuid", "name": "pow2",
+     "status": "waiting", "waitingFor": "permission prompt", "state": "blocked"},
+    {"pid": os.getpid(), "id": "fc6d12ed", "kind": "background", "sessionId": "fc6d12ed-uuid", "name": "hk",
+     "status": "idle", "state": "working"},
+    {"pid": os.getpid(), "id": "a5c00001", "kind": "background", "sessionId": "ask-uuid", "name": "ask",
+     "status": "idle", "state": "blocked"}]))
+pow2 = reg()["sessions"]["pow2"]
+assert pow2["state"] == "waiting" and pow2["waiting_for"] == "permission prompt", pow2
+assert "- pow2 [WAITING: permission prompt — user must run: claude attach 7895904c;" in r.stdout, r.stdout
+assert f"- hk [idle pid {os.getpid()}]" in r.stdout and f"- ask [idle/blocked pid {os.getpid()}]" in r.stdout, r.stdout
 
 print("PASS test_registry")
