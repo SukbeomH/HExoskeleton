@@ -1,10 +1,18 @@
 # Changelog
 
+## router 0.1.0 (2026-10-02)
+
+### Features
+
+* **router**: 새 플러그인 `router@hexoskeleton` (Claude Code 전용, `plugins/router/`). front 세션 하나에서 말하면 주제별 백그라운드 작업 세션으로 전달(forward)·생성(new)·전파(broadcast)하고 결과를 front로 모은다. 병합은 `/router:merge` 명시 명령으로만. 구성: `front`/`route`/`merge` 스킬, `topic-worker` 에이전트, front 전용 UserPromptSubmit 주입과 작업 세션 전용 Stop 결과 기록 훅, `registry.py`(대장), `backend.sh`(세션 백엔드 교체 지점).
+* **marketplace**: `router` 항목 추가와 설명 갱신. hxsk 플러그인 버전은 그대로다(hxsk 구성 요소 변경 없음).
+* **verify**: `scripts/verify.sh`가 router의 `plugin validate --strict`, 스킬 frontmatter, `plugins/router/tests/*.py`를 함께 검사.
+
 ## 6.0.3 (2026-10-02)
 
 ### Features
 
-* **codex**: Codex CLI 플러그인 설치 경로 문서화(검증됨) — `codex plugin marketplace add SukbeomH/HExoskeleton` → `codex plugin add hxsk@hexoskeleton`. 훅은 Codex 훅 검토에서 신뢰한 뒤 실행되며, 가드는 Bash와 `apply_patch` 파일 보호를 맡는다. 업그레이드는 `codex plugin marketplace upgrade hexoskeleton`.
+* **codex**: Codex CLI 플러그인 설치 경로 문서화(검증됨) — `codex plugin marketplace add SukbeomH/HExoskeleton` → `codex plugin add hxsk@hexoskeleton`. 훅은 Codex 훅 검토에서 신뢰한 뒤 실행되며, 가드는 Bash와 `apply_patch` 파일 보호를 맡는다. 업그레이드는 `codex plugin marketplace upgrade hexoskeleton` 후 `codex plugin add hxsk@hexoskeleton` 재실행.
 
 ### Bug Fixes
 
