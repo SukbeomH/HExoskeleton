@@ -47,16 +47,16 @@ BACKEND="${CLAUDE_PLUGIN_ROOT}/scripts/backend.sh"
    <병합 명령과 함께 준 지시, 없으면 "Continue the merged topic.">
    ```
 
-5. **새 작업 세션 생성과 원본 표시.** cwd는 원본의 cwd(서로 다르면 사용자에게 묻는다), 권한 모드는 front의 모드.
+5. **새 작업 세션 생성과 원본 표시.** cwd는 원본의 cwd(서로 다르면 사용자에게 묻는다), 권한 모드는 front의 모드. 이름 예약 → 실행 → job id 기록을 한 명령으로 한다. job id를 출력에서 직접 뽑아 기록하지 않는다.
 
    ```bash
-   "${REG[@]}" upsert <new> --new --cwd "<cwd>" --topic "<merged topic>" --state active || exit 1
-   if JOB=$(bash "$BACKEND" spawn <new> "<cwd>" "<brief-file>" "" <front permission mode>); then
-     "${REG[@]}" upsert <new> --job-id "$JOB"
-     for s in <source...>; do "${REG[@]}" mark "$s" merged --into <new>; done
-   else
-     "${REG[@]}" mark <new> exited
-   fi
+   python3 "${CLAUDE_PLUGIN_ROOT}/scripts/registry.py" --data "${CLAUDE_PLUGIN_DATA}" spawn <new> "<brief-file>" --cwd "<cwd>" --topic "<merged topic>" --mode <front permission mode>
+   ```
+
+   성공(종료 코드 0)했을 때만 원본마다 한 번씩 표시한다. 실패하면 새 항목은 `exited`로 남고 원본은 그대로 둔 채 사용자에게 알린다.
+
+   ```bash
+   python3 "${CLAUDE_PLUGIN_ROOT}/scripts/registry.py" --data "${CLAUDE_PLUGIN_DATA}" mark <source> merged --into <new>
    ```
 
 6. **보고.** 새 세션 이름, 합친 원본, brief의 핵심 3줄을 알린다. 원본 세션을 멈출지(`bash "$BACKEND" stop <job_id>`) 물어본다.

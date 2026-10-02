@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""registry.py checks: unique names, upsert/mark/merged, refresh from an agents --json sample, atomic write.
+"""registry.py checks: unique names, upsert/mark/merged, refresh from an agents --json sample, atomic write,
+spawn/resume through backend.sh with a stub `claude` on PATH (no real sessions).
 Usage: python3 plugins/router/tests/test_registry.py"""
 
 import atexit
@@ -38,6 +39,9 @@ assert r.returncode != 0 and "taken" in r.stderr, r
 assert cli("upsert", "bad name", "--new").returncode != 0
 assert cli("upsert", "api", "--topic", "API v2").returncode == 0
 assert reg()["sessions"]["api"]["topic"] == "API v2" and reg()["sessions"]["api"]["job_id"] == "aaaa1111"
+# empty ids (e.g. a failed $JOB capture) never overwrite a stored id
+assert cli("upsert", "api", "--job-id", "", "--session-id", "").returncode == 0
+assert reg()["sessions"]["api"]["job_id"] == "aaaa1111" and "session_id" not in reg()["sessions"]["api"]
 assert cli("upsert", "ui", "--new", "--session-id", "ui-uuid", "--job-id", "bbbb2222").returncode == 0
 assert cli("upsert", "old", "--new", "--job-id", "cccc3333").returncode == 0
 
@@ -80,6 +84,20 @@ agents.append({"id": "cafe0001", "kind": "background", "cwd": "/r", "startedAt":
 cli("refresh", "-", stdin=json.dumps(agents))
 assert reg()["sessions"]["ui"]["session_id"] == "ui-copy" and reg()["sessions"]["ui"]["state"] == "active"
 
+# no ids recorded: matched by its unique name (ids backfilled); a name two agents share → left unchanged
+cli("upsert", "noid", "--new", "--job-id", "")
+cli("upsert", "twin", "--new")
+agents += [
+    {"id": "beef0001", "sessionId": "noid-uuid", "name": "noid", "pid": 4545, "status": "idle"},
+    {"id": "beef0002", "sessionId": "twin-a", "name": "twin", "pid": 4646, "status": "busy"},
+    {"id": "beef0003", "sessionId": "twin-b", "name": "twin", "state": "done"},
+]
+twin = reg()["sessions"]["twin"]
+cli("refresh", "-", stdin=json.dumps(agents))
+noid = reg()["sessions"]["noid"]
+assert noid["job_id"] == "beef0001" and noid["session_id"] == "noid-uuid" and noid["state"] == "idle", noid
+assert reg()["sessions"]["twin"] == twin, reg()["sessions"]["twin"]
+
 # record_result: by session id, by job id (backfills session id), unknown → no write
 assert registry.record_result(REG, "api-uuid", None, "pong") == "api"
 assert reg()["sessions"]["api"]["last_result"] == "pong"
@@ -99,6 +117,46 @@ except TypeError:
     pass
 assert REG.read_bytes() == before
 assert [f.name for f in TMP.iterdir() if f.name.startswith(".registry.")] == []
+
+# backend.sh spawn with a stub `claude`: stdout is only the job id, hints and warnings go to stderr
+BIN = TMP / "bin"
+BIN.mkdir()
+(BIN / "claude").write_text("""#!/usr/bin/env bash
+printf '%s\\n' "$*" >> "$(dirname "$0")/argv.log"
+[ "$1" = agents ] && { echo '[]'; exit 0; }
+[ -e "$(dirname "$0")/fail" ] && { echo 'Workspace not trusted' >&2; exit 1; }
+echo '(node) Warning: NODE_TLS_REJECT_UNAUTHORIZED' >&2
+echo 'backgrounded · 5eed0001 · stub'
+echo '  claude stop 5eed0001      stop this session'
+""")
+(BIN / "claude").chmod(0o755)
+ENV["PATH"] = f"{BIN}{os.pathsep}{ENV['PATH']}"
+PF = TMP / "prompt.md"
+PF.write_text("Topic: t")
+r = subprocess.run(["bash", str(ROOT / "scripts/backend.sh"), "spawn", "w1", str(TMP), str(PF), "haiku", "default"],
+                   env=ENV, capture_output=True, text=True)
+assert r.returncode == 0 and r.stdout == "5eed0001\n" and "claude stop" in r.stderr and "Warning" in r.stderr, r
+argv = (BIN / "argv.log").read_text()
+assert "--agent router:topic-worker --model haiku --permission-mode default" in argv, argv
+
+# registry spawn: reserve + start + record the job id in one command; taken name refused
+r = cli("spawn", "w1", str(PF), "--cwd", str(TMP), "--topic", "T", "--mode", "default")
+assert r.returncode == 0 and r.stdout.strip() == "5eed0001", r
+w1 = reg()["sessions"]["w1"]
+assert w1["job_id"] == "5eed0001" and w1["state"] == "active" and w1["cwd"] == str(TMP), w1
+assert cli("spawn", "w1", str(PF), "--cwd", str(TMP)).returncode != 0
+# backend failure → non-zero exit, entry exited, no (empty) job id stored
+(BIN / "fail").touch()
+r = cli("spawn", "w2", str(PF), "--cwd", str(TMP))
+w2 = reg()["sessions"]["w2"]
+assert r.returncode != 0 and w2["state"] == "exited" and "job_id" not in w2, (r, w2)
+(BIN / "fail").unlink()
+# resume: stored session id and cwd, job id recorded, state active
+assert cli("resume", "w2", str(PF)).returncode != 0  # no session id yet
+cli("upsert", "w2", "--session-id", "w2-uuid")
+r = cli("resume", "w2", str(PF))
+assert r.returncode == 0 and reg()["sessions"]["w2"]["job_id"] == "5eed0001", r
+assert reg()["sessions"]["w2"]["state"] == "active" and "--resume w2-uuid --bg" in (BIN / "argv.log").read_text()
 
 # render mentions every worker and the front name
 out = cli("list").stdout

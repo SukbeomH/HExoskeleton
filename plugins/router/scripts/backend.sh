@@ -7,6 +7,7 @@
 #   stop <job-id>                          → stop a background session
 #   summarize <session-uuid> [model]       → summary text from a forked headless resume
 # Pass "" to skip an optional positional (e.g. model) and still give later ones.
+# spawn/resume: stdout is only the job id (registry.py spawn/resume records it); hints go to stderr.
 set -euo pipefail
 
 # job_id <claude output> — "backgrounded · <id> · <name>" (other lines go to stderr)
@@ -50,7 +51,7 @@ summarize)
         "Summarize this session for a hand-off in at most 300 words: goal, decisions, current state, open issues, files touched." </dev/null
     ;;
 *)
-    sed -n '2,9p' "$0" >&2
+    sed -n '2,10p' "$0" >&2
     exit 2
     ;;
 esac
