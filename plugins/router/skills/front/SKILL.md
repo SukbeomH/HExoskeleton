@@ -21,7 +21,7 @@ compatibility: "Claude Code only, v2.1.236+ (cross-session SendMessage/ListAgent
    python3 "${CLAUDE_PLUGIN_ROOT}/scripts/registry.py" --data "${CLAUDE_PLUGIN_DATA}" set-front "${CLAUDE_SESSION_ID}" --name "<name>"
    ```
 
-   세션 id가 비었다는 오류가 나면 인자 없이 다시 실행한다 (Bash 환경의 `CLAUDE_CODE_SESSION_ID`를 쓴다).
+   세션 id 인자가 비어 있어도 그대로 실행한다. `registry.py`가 Bash 환경의 `CLAUDE_CODE_SESSION_ID`(훅의 `session_id`와 같은 값)를 쓴다.
 
 3. **대장 갱신과 표시.**
 

@@ -38,7 +38,8 @@ resume)
     # Still listed → wake it in place with its saved options (any flag would start a copy instead).
     # Removed from the list → nothing is saved, so restate the name (SendMessage addresses by name).
     flags=()
-    claude agents --json --all 2>/dev/null | grep -q "$sid" || flags=(--name "$name" "$@")
+    listed=$(claude agents --json --all 2>/dev/null) # capture first: grep -q in a pipe can SIGPIPE claude
+    grep -q "$sid" <<<"$listed" || flags=(--name "$name" "$@")
     out=$(cd "$cwd" && claude --resume "$sid" --bg ${flags[@]+"${flags[@]}"} "$(cat "$pf")" 2>&1) || { echo "$out" >&2; exit 1; }
     job_id "$out"
     ;;
