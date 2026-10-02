@@ -21,10 +21,12 @@ step() { # step <name> <cmd...> — 통과 시 한 줄, 실패 시 출력 전체
 if command -v claude >/dev/null; then
     step "plugin validate: marketplace" claude plugin validate . --strict
     step "plugin validate: plugin" claude plugin validate .claude-plugin/plugin.json --strict
+    step "plugin validate: router" claude plugin validate plugins/router/.claude-plugin/plugin.json --strict
 else
     echo "SKIP  plugin validate (claude CLI not on PATH)"
 fi
 step "skills frontmatter" python3 scripts/check-skills.py
+step "skills frontmatter: router" python3 scripts/check-skills.py plugins/router/skills
 step "json syntax" bash -c "git ls-files -z '*.json' | xargs -0 -n1 python3 -m json.tool >/dev/null"
 step "bash -n" bash -c "git ls-files -z '*.sh' | xargs -0 -n1 bash -n"
 if command -v shellcheck >/dev/null; then
@@ -33,6 +35,7 @@ else
     echo "SKIP  shellcheck (not installed)"
 fi
 for t in tests/*.sh; do step "test: $t" bash "$t"; done
+for t in plugins/router/tests/*.py; do step "test: $t" python3 "$t"; done
 step "skill scenarios (dry-run)" bash scripts/run-skill-test.sh --all
 step "markdown links" python3 skills/doc-lint/scripts/check-links.py
 

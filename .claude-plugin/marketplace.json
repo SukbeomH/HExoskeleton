@@ -1,11 +1,16 @@
 {
   "name": "hexoskeleton",
-  "description": "HExoskeleton (HXSK) plugin marketplace",
+  "description": "One session to rule them all: router (one front session for many topic sessions) and hxsk (SPEC → PLAN → EXECUTE → VERIFY workflow) for Claude Code",
   "owner": {
     "name": "SukbeomH",
     "url": "https://github.com/SukbeomH"
   },
   "plugins": [
+    {
+      "name": "router",
+      "source": "./plugins/router",
+      "description": "Claude Code only: one front session forwards each message to the background session owning its topic, starts new ones, broadcasts, collects results and merges on request"
+    },
     {
       "name": "hxsk",
       "source": "./",
