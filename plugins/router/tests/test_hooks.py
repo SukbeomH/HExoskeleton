@@ -192,6 +192,9 @@ def approve(sid="front-uuid", args="", source="plugin"):
 
 proc, rec = ask()
 n = rec["nonce"]
+# the front's injected context shows the open request under its worker
+ctx = json.loads(run(prompt("front-uuid")))["hookSpecificOutput"]["additionalContext"]
+assert "- api [WAITING: permission prompt" in ctx and f"  approve: /router:approve {n}   deny:" in ctx, ctx
 # not the front (a worker, a stranger) → refused, blocked (no model turn), no decision
 for sid in ("w-uuid", "stranger"):
     out = approve(sid, n)

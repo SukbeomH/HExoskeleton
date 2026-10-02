@@ -285,25 +285,34 @@ def alive(pid):
     return True
 
 
-def render(reg, width=200):
+def render(reg, width=200, p=None):
+    """The compact registry. With P, a worker's open approval requests are listed under it (and make it WAITING
+    without a refresh: its PermissionRequest hook is waiting for the user's answer right now)."""
     front = reg.get("front") or {}
+    asks = pending(p) if p else []
     lines = [f"[router] front: @{front.get('name') or '?'} (mode {front_mode(reg)}) — workers:"]
     for name, s in sorted(reg["sessions"].items()):
         last = " ".join((s.get("last_result") or "").split())[:width]
         extra = f" → {s['merged_into']}" if s.get("merged_into") else ""
         state, pid, cc = s.get("state", "?"), s.get("pid"), s.get("agent_state")
+        mine = [r for r in asks if r.get("worker") == name]
         if alive(pid):
             extra += f" pid {pid}"
         elif pid and state in ("active", "idle", "waiting"):
             state = "exited"  # recorded process is gone (e.g. idle retire); shown only, refresh records it
+        if mine:
+            state = "waiting"
         if state == "waiting":
-            state = f"WAITING: {s.get('waiting_for') or 'prompt'} — user must run: claude attach {s.get('job_id')};"
+            how = "user types /router:approve below, or runs:" if mine else "user must run:"
+            what = s.get("waiting_for") or ("permission prompt" if mine else "prompt")
+            state = f"WAITING: {what} — {how} claude attach {s.get('job_id')};"
         elif cc and cc not in ("working", "done"):  # those only restate (or, after the turn, contradict) the state
             state += "/" + cc
         lines.append(
             f"- {name} [{state}{extra}]"
             f" topic: {s.get('topic') or '-'} | cwd: {s.get('cwd') or '-'} | last: {last or '-'}"
         )
+        lines += ["  " + line for r in mine for line in approval_lines(r)]
     if not reg["sessions"]:
         lines.append("- (none)")
     return "\n".join(lines)
@@ -368,7 +377,7 @@ def main(argv=None):
         print(json.dumps(load(p).get("front")))
     elif a.cmd == "list":
         reg = load(p)
-        print(json.dumps(reg, ensure_ascii=False, indent=1) if a.json else render(reg))
+        print(json.dumps(reg, ensure_ascii=False, indent=1) if a.json else render(reg, p=p))
     elif a.cmd in ("upsert", "spawn"):
         if not NAME_RE.match(a.name):
             sys.exit(f"registry: bad name '{a.name}' (letters, digits, - and _ only, <=64)")
@@ -430,7 +439,7 @@ def main(argv=None):
             sys.exit("registry: `backend.sh list` failed")
         with locked(p) as reg:
             refresh(reg, agents)
-        print(json.dumps(reg, ensure_ascii=False, indent=1) if a.json else render(reg))
+        print(json.dumps(reg, ensure_ascii=False, indent=1) if a.json else render(reg, p=p))
     elif a.cmd in ("summarize", "stop"):  # ids come from the registry, never from the command line
         s = load(p)["sessions"].get(a.name) or {}
         key = "session_id" if a.cmd == "summarize" else "job_id"

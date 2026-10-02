@@ -12,6 +12,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import time
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "scripts"))
@@ -299,6 +300,29 @@ pow2 = reg()["sessions"]["pow2"]
 assert pow2["state"] == "waiting" and pow2["waiting_for"] == "permission prompt", pow2
 assert "- pow2 [WAITING: permission prompt — user must run: claude attach 7895904c;" in out, out
 assert f"- hk [idle pid {os.getpid()}]" in out and f"- ask [idle/blocked pid {os.getpid()}]" in out, out
+
+# an open approval request (the worker's PermissionRequest hook wrote it) shows under its worker on plain `list`, no
+# refresh needed: WAITING, id, the exact command sanitized, the approve/deny line. Expired or misfiled ones do not.
+PEND = registry.approvals(REG) / "pending"
+PEND.mkdir(parents=True)
+t = time.time()
+
+
+def ask(name, **kw):
+    (PEND / f"{name}.json").write_text(json.dumps({
+        "nonce": name, "worker": "hk", "job_id": "fc6d12ed", "tool_name": "Bash", "created": t, "expires": t + 60,
+        "tool_input": {"command": "echo hi\n\x1b[2Jrm x", "description": "SAFE"}, **kw}))
+
+
+ask("0a0a0a0a")
+ask("0b0b0b0b", expires=t - 1)
+ask("0c0c0c0c", nonce="0d0d0d0d")
+out = cli("list").stdout
+assert "- hk [WAITING: permission prompt — user types /router:approve below, or runs: claude attach fc6d12ed;" in out
+assert ("\n  approval 0a0a0a0a: @hk Bash: echo hi⏎rm x [4 hidden chars removed]\n  approve: /router:approve 0a0a0a0a"
+        "   deny: /router:approve 0a0a0a0a deny   (or claude attach fc6d12ed)\n") in out, out
+assert not any(x in out for x in ("0b0b0b0b", "0c0c0c0c", "0d0d0d0d", "SAFE")), out
+assert "- pow2 [WAITING: permission prompt — user must run: claude attach 7895904c;" in out  # no request: attach only
 
 # approval display of untrusted text: ANSI/OSC sequences, control, zero-width and bidi characters removed and counted,
 # line breaks visible (two commands must not read as one), long text cut with its full length stated

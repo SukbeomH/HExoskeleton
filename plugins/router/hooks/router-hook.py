@@ -66,7 +66,7 @@ def main():
         if (registry.load(p).get("front") or {}).get("session_id") != sid:
             return
         reg = registry.record_mode(p, sid, data.get("permission_mode"))
-        ctx = registry.render(reg) + "\n" + HINT
+        ctx = registry.render(reg, p=p) + "\n" + HINT
         print(json.dumps({"hookSpecificOutput": {"hookEventName": "UserPromptSubmit", "additionalContext": ctx}}))
     elif event == "Stop":
         registry.record_result(p, sid, job_id(), data.get("last_assistant_message") or "", data.get("agent_type"))
