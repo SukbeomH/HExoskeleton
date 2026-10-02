@@ -8,6 +8,16 @@
 * **marketplace**: `router` 항목 추가와 설명 갱신. hxsk 플러그인 버전은 그대로다(hxsk 구성 요소 변경 없음).
 * **verify**: `scripts/verify.sh`가 router의 `plugin validate --strict`, 스킬 frontmatter, `plugins/router/tests/*.py`를 함께 검사.
 
+## 6.0.3 (2026-10-02)
+
+### Features
+
+* **codex**: Codex CLI 플러그인 설치 경로 문서화(검증됨) — `codex plugin marketplace add SukbeomH/HExoskeleton` → `codex plugin add hxsk@hexoskeleton`. 훅은 Codex 훅 검토에서 신뢰한 뒤 실행되며, 가드는 Bash와 `apply_patch` 파일 보호를 맡는다. 업그레이드는 `codex plugin marketplace upgrade hexoskeleton` 후 `codex plugin add hxsk@hexoskeleton` 재실행.
+
+### Bug Fixes
+
+* **hooks**: `file-protect`가 Codex `apply_patch` 패치 본문의 경로(`*** Add/Update/Delete File:`, `*** Move to:`)도 검사 — 이전에는 `file_path`가 없어 `.env` 수정이 통과했다.
+
 ## 6.0.2 (2026-10-02)
 
 ### Refactor

@@ -65,7 +65,16 @@ copilot plugin marketplace add SukbeomH/HExoskeleton
 copilot plugin install hxsk@hexoskeleton
 ```
 
-그 밖의 Agent Skills 호환 하네스 (Codex, Cursor 등):
+Codex CLI — 플러그인. Codex는 `.claude-plugin/` 마켓플레이스를 그대로 읽는다(이 저장소에서 시험함). 스킬은 `hxsk:<name>`으로 노출된다.
+
+```bash
+codex plugin marketplace add SukbeomH/HExoskeleton
+codex plugin add hxsk@hexoskeleton
+```
+
+플러그인 훅은 사용자가 Codex의 훅 검토에서 신뢰(trust)하기 전까지 실행되지 않는다. 신뢰 후 가드는 Bash 명령(`bash-guard`)과 `apply_patch`의 민감 파일 보호(`file-protect`)를 맡는다. Codex에는 Read 도구가 없어 read-before-edit 추적은 적용되지 않는다.
+
+그 밖의 Agent Skills 호환 하네스 (Cursor, Antigravity, Devin, OpenCode 등):
 
 ```bash
 git clone https://github.com/SukbeomH/HExoskeleton
@@ -74,7 +83,7 @@ HExoskeleton/scripts/init-project.sh --skills /path/to/your-project
 
 스킬을 `<project>/.agents/skills/`로 복사하고, `.hxsk/`를 만들고, `AGENTS.md`에 HXSK 블록을 추가한다. `.hxsk/`의 기존 파일과 `AGENTS.md`는 덮어쓰지 않지만, `--skills`는 실행할 때마다 `.agents/skills/`의 복사본을 덮어써 갱신한다(그 안에서 직접 고친 내용은 사라진다).
 
-> **훅은 Claude Code 플러그인에서만 검증되어 있다.** 다른 하네스에서는 스킬과 `AGENTS.md` 지침만 동작한다고 가정한다.
+> **훅은 Claude Code와 Codex 플러그인 설치에서만 지원한다.** Claude Code는 실제 세션으로, Codex는 공식 훅 문서와 Codex 입력 형식 테스트(`tests/hooks-smoke.sh`)로 확인했다. 이 경로로 설치한 하네스에서는 스킬과 `AGENTS.md` 지침만 동작한다고 가정한다.
 
 ### 첫 실행
 
@@ -96,6 +105,7 @@ SPEC.md (무엇을) → PLAN (어떻게) → EXECUTE (atomic commit) → VERIFY 
 
 - Claude Code: `claude plugin update hxsk@hexoskeleton`(router는 `router@hexoskeleton`) 후 새 세션 시작(또는 `/reload-plugins`)
 - Copilot CLI: `copilot plugin update hxsk`
+- Codex CLI: `codex plugin marketplace upgrade hexoskeleton`(마켓플레이스 스냅샷 갱신) 후 `codex plugin add hxsk@hexoskeleton`으로 다시 설치. 설치된 플러그인은 스냅샷 갱신만으로 바뀌지 않는다.
 - 그 밖의 하네스: `git pull` 후 `scripts/init-project.sh --skills <project>` 재실행 (`.agents/skills` 복사본 갱신)
 
 #### v5.x(복사 설치)에서 옮겨오기
