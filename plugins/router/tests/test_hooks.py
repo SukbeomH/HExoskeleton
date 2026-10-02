@@ -1,34 +1,42 @@
 #!/usr/bin/env python3
 """router-hook.py checks: front registered only by a user-typed /router:front (UserPromptExpansion), front-only
-mode recording and injection, worker-only Stop recording, silent exit 0 otherwise.
+mode recording and injection, worker-only Stop recording, the approval relay (a worker's PermissionRequest waits for
+the decision only a user-typed /router:approve in the front writes), silent exit 0 otherwise.
 Usage: python3 plugins/router/tests/test_hooks.py"""
 
 import atexit
+import contextlib
 import json
 import os
 import pathlib
 import shutil
 import subprocess
 import tempfile
+import time
 
 HOOK = pathlib.Path(__file__).resolve().parent.parent / "hooks/router-hook.py"
 TMP = pathlib.Path(tempfile.mkdtemp())
 atexit.register(shutil.rmtree, TMP, True)
 DATA = TMP / "data"  # hooks get CLAUDE_PLUGIN_DATA from Claude Code
 REG = DATA / "registry.json"
-BIN = TMP / "bin"  # stub `claude`: `claude agents --json --all` names the sessions (front name lookup)
+BIN = TMP / "bin"  # stub `claude`: `claude agents --json --all` names the sessions (front name lookup, SendMessage guard)
 BIN.mkdir()
 (BIN / "claude").write_text("""#!/usr/bin/env bash
 [ "$1" = agents ] && echo '[{"kind": "interactive", "sessionId": "front-uuid", "name": "boss", "pid": 1},
-  {"kind": "background", "id": "aaaa1111", "sessionId": "w-uuid", "name": "api", "pid": 2}]'
+  {"kind": "background", "id": "aaaa1111", "sessionId": "w-uuid", "name": "api", "pid": 2},
+  {"kind": "interactive", "sessionId": "other-uuid", "name": "hexo-21", "pid": 3}]'
 """)
 (BIN / "claude").chmod(0o755)
 
 
-def run(payload, **env):
+def hook_env(**env):
     e = {k: v for k, v in os.environ.items() if k not in ("ROUTER_REGISTRY", "CLAUDE_JOB_DIR")}
     e.update(CLAUDE_PLUGIN_DATA=str(DATA), PATH=f"{BIN}{os.pathsep}{os.environ['PATH']}", **env)
-    r = subprocess.run([str(HOOK)], input=json.dumps(payload), env=e, capture_output=True, text=True)
+    return e
+
+
+def run(payload, **env):
+    r = subprocess.run([str(HOOK)], input=json.dumps(payload), env=hook_env(**env), capture_output=True, text=True)
     assert r.returncode == 0, r
     return r.stdout
 
@@ -37,9 +45,9 @@ def prompt(sid):
     return {"session_id": sid, "hook_event_name": "UserPromptSubmit", "prompt": "hi", "permission_mode": "acceptEdits"}
 
 
-def expand(sid, name="router:front", source="plugin"):
+def expand(sid, name="router:front", source="plugin", args=""):
     return {"session_id": sid, "hook_event_name": "UserPromptExpansion", "expansion_type": "slash_command",
-            "command_name": name, "command_args": "", "command_source": source, "prompt": "/" + name,
+            "command_name": name, "command_args": args, "command_source": source, "prompt": f"/{name} {args}",
             "permission_mode": "plan"}
 
 
@@ -101,6 +109,136 @@ assert run({**stop("ui-uuid", "UI blocked: need token"), "agent_type": "router:t
            CLAUDE_JOB_DIR="/Users/x/.claude/jobs/bbbb2222") == ""
 ui = json.loads(REG.read_text())["sessions"]["ui"]
 assert ui["session_id"] == "ui-uuid" and ui["last_result"].startswith("UI blocked") and ui["agent_type"], ui
+
+# PermissionRequest (approval relay, worker side)
+APPR = DATA / "approvals"
+CMD = "echo relay-ok > /tmp/x\nrm -rf ~"
+
+
+def perm(sid, mode="default"):
+    return {"session_id": sid, "hook_event_name": "PermissionRequest", "permission_mode": mode, "tool_name": "Bash",
+            "tool_input": {"command": CMD, "description": "harmless echo"}, "permission_suggestions": []}
+
+
+def ask(sid="w-uuid", wait="10", **env):
+    """Start the hook; return (process, its pending record) once the pending file appears."""
+    proc = subprocess.Popen([str(HOOK)], stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True,
+                            env=hook_env(ROUTER_APPROVAL_WAIT=wait, **env))
+    proc.stdin.write(json.dumps(perm(sid)))
+    proc.stdin.close()
+    for _ in range(200):
+        for f in APPR.glob("pending/*.json"):
+            with contextlib.suppress(FileNotFoundError):  # the hook may sweep the planted leftover meanwhile
+                rec = json.loads(f.read_text())
+                if rec.get("nonce"):  # not the planted leftover below
+                    return proc, rec
+        time.sleep(0.05)
+    raise AssertionError("no pending file")
+
+
+def decide(rec, behavior="allow", **kw):
+    """What the front's /router:approve writes: decisions/<nonce>.json naming the nonce, newer than the request."""
+    d = {"nonce": rec["nonce"], "behavior": behavior, "created": time.time(), **kw}
+    (APPR / "decisions").mkdir(parents=True, exist_ok=True)
+    (APPR / "decisions" / f"{rec['nonce']}.json").write_text(json.dumps(d))
+
+
+def answer(proc):
+    out = proc.stdout.read()
+    assert proc.wait(timeout=30) == 0
+    assert not list(APPR.glob("pending/*.json")), "pending file left behind"
+    return out
+
+
+# not a worker (front, stranger) or a dontAsk worker (never waits) → no output, nothing written, at once
+assert run(perm("front-uuid")) == "" and run(perm("stranger")) == ""
+assert run(perm("w-uuid", "dontAsk")) == ""
+assert not APPR.exists()
+# worker: pending holds the exact tool_input and the worker name; allow → allow only (no updatedInput/Permissions),
+# the decision is consumed (one use)
+proc, rec = ask()
+assert rec["worker"] == "api" and rec["tool_name"] == "Bash" and rec["tool_input"]["command"] == CMD, rec
+assert len(rec["nonce"]) == 8 and rec["expires"] > rec["created"], rec
+decide(rec)
+out = json.loads(answer(proc))["hookSpecificOutput"]
+assert out == {"hookEventName": "PermissionRequest", "decision": {"behavior": "allow"}}, out
+assert not list(APPR.glob("decisions/*.json"))
+# worker found by $CLAUDE_JOB_DIR job id; deny → deny with a message
+proc, rec = ask("ui-unknown-sid", CLAUDE_JOB_DIR="/x/jobs/bbbb2222")
+assert rec["worker"] == "ui", rec
+decide(rec, "deny")
+out = json.loads(answer(proc))["hookSpecificOutput"]["decision"]
+assert out["behavior"] == "deny" and rec["nonce"] in out["message"], out
+# ignored: older than the request (planted before it), another request's nonce (replay), unknown behavior.
+# Each is read once and deleted; no valid decision → no output, the normal prompt stays; pending removed.
+old = APPR / "pending/0ld0ld00.json"  # a killed hook's leftover → swept (older than the hook timeout)
+old.write_text("{}")
+os.utime(old, (time.time() - 700,) * 2)
+for bad in ({"created": 0}, {"nonce": "deadbeef"}, {"behavior": "yes"}):
+    proc, rec = ask(wait="2")
+    assert not old.exists()
+    decide(rec, **bad)
+    assert answer(proc) == "", bad
+    assert not list(APPR.glob("decisions/*.json")), bad
+# timeout, nothing decided → no output, pending removed
+proc, rec = ask(wait="1")
+assert answer(proc) == ""
+
+
+# /router:approve (front side): the typed command's UserPromptExpansion hook writes the decision and blocks the prompt
+def approve(sid="front-uuid", args="", source="plugin"):
+    out = run(expand(sid, "router:approve", source, args))
+    return json.loads(out) if out else None
+
+
+proc, rec = ask()
+n = rec["nonce"]
+# the front's injected context shows the open request under its worker
+ctx = json.loads(run(prompt("front-uuid")))["hookSpecificOutput"]["additionalContext"]
+assert "- api [WAITING: permission prompt" in ctx and f"  approve: /router:approve {n}   deny:" in ctx, ctx
+# not the front (a worker, a stranger) → refused, blocked (no model turn), no decision
+for sid in ("w-uuid", "stranger"):
+    out = approve(sid, n)
+    assert out["decision"] == "block" and "not sent" in out["reason"] and "front" in out["reason"], out
+# a same-named command from another source (user/project skill) → ignored entirely
+assert approve(args=n, source="projectSettings") is None
+# bare → lists the open request: id, worker, tool, exact command (newline visible), approve/deny line
+out = approve()
+assert out["decision"] == "block" and f"approval {n}: @api Bash: echo relay-ok > /tmp/x⏎rm -rf ~" in out["reason"], out
+assert f"approve: /router:approve {n}   deny: /router:approve {n} deny" in out["reason"], out
+# unknown id, bad syntax, path tricks → not sent
+for bad in ("ffffffff", f"{n} yes", f"{n} deny x", "../../x", n.upper()):
+    out = approve(args=bad)
+    assert out["decision"] == "block" and "not sent" in out["reason"], (bad, out)
+assert not list(APPR.glob("decisions/*.json")) and proc.poll() is None
+# none of the above reached the worker; the front's typed approve does: the block says exactly what was approved
+out = approve(args=n)
+assert out["decision"] == "block" and out["reason"].startswith(f"router: approved {n}: @api Bash: echo relay-ok"), out
+assert json.loads(answer(proc))["hookSpecificOutput"]["decision"] == {"behavior": "allow"}
+# deny, end to end
+proc, rec = ask()
+assert approve(args=f"{rec['nonce']} deny")["reason"].startswith(f"router: denied {rec['nonce']}")
+assert json.loads(answer(proc))["hookSpecificOutput"]["decision"]["behavior"] == "deny"
+# answered or expired → no longer open
+assert "not sent" in approve(args=rec["nonce"])["reason"]
+assert approve()["reason"].endswith("(none)")
+
+# PreToolUse SendMessage in a worker: another live session of the user's (e.g. a stale front name's "Did you mean"
+# suggestion) is refused; the front, siblings (by name or id), and names that are no session (its own subagents) pass
+
+
+def send(sid, to):
+    out = run({"session_id": sid, "hook_event_name": "PreToolUse", "tool_name": "SendMessage",
+               "tool_input": {"to": to, "message": "[api] done: x"}})
+    return json.loads(out)["hookSpecificOutput"] if out else None
+
+
+for to in ("hexo-21", "@hexo-21", "other-uuid"):
+    out = send("w-uuid", to)
+    assert out["permissionDecision"] == "deny" and "another session" in out["permissionDecisionReason"], (to, out)
+assert send("ui-unknown-sid", "hexo-21") is None  # not a worker (no job dir) → not ours to police
+for to in ("boss", "@boss", "front-uuid", "ui", "bbbb2222", "my-subagent"):
+    assert send("w-uuid", to) is None, to
 
 # garbage stdin → still exit 0
 r = subprocess.run([str(HOOK)], input="not json", capture_output=True, text=True)
