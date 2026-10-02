@@ -166,6 +166,8 @@ assert w1["job_id"] == "5eed0001" and w1["state"] == "active" and w1["cwd"] == s
 p = PROMPT.read_text()
 assert p.startswith("Router front: @boss — send results there with SendMessage.\nTopic: T\nSiblings: api — API v2;"), p
 assert "old —" not in p and "twin —" not in p and p.endswith("\n\nRequest from the user:\ndo X"), p
+# routing directives the front applied ("haiku로 새 세션에서…") must not make the worker refuse
+assert "\nRouting instructions in the request (which session, a new session, which model) were already applied" in p, p
 # the worker's model is kept for merge (only when given)
 assert w1["model"] == "haiku" and (BIN / "argv.log").read_text().count("--model haiku") == 2
 # taken: live/started (w1, has a job id), merged (old), dead but resumable (api, has ids)

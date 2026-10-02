@@ -35,6 +35,8 @@ STATES = ("active", "idle", "exited", "merged")
 NAME_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$")  # SendMessage-safe without quoting
 RESULT_MAX = 2000
 BACKEND = pathlib.Path(__file__).with_name("backend.sh")
+ROUTED = ("Routing instructions in the request (which session, a new session, which model) were already applied "
+          "by the front: ignore them and do the task; never refuse it because of them.")
 
 
 def path(data_dir=None):
@@ -171,7 +173,8 @@ def backend_agents():
 
 
 def compose(reg, name, request, merged_from=()):
-    """The worker's prompt: where to report (current front name), its topic, its siblings, then the request."""
+    """The worker's prompt: where to report (current front name), its topic, its siblings, a note that routing
+    directives were already applied, then the request."""
     sibs = [f"{n} — {s.get('topic') or '-'}" for n, s in sorted(reg["sessions"].items())
             if n != name and n not in merged_from and s.get("state") != "merged"
             and (s.get("job_id") or s.get("session_id"))]
@@ -180,6 +183,7 @@ def compose(reg, name, request, merged_from=()):
             f"Siblings: {'; '.join(sibs) or 'none'}"]
     if merged_from:
         head.append(f"Merged from: {', '.join(merged_from)}")
+    head.append(ROUTED)
     return "\n".join(head) + f"\n\nRequest from the user:\n{request}"
 
 
