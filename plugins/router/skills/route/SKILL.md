@@ -32,7 +32,7 @@ allowed-tools:
 ## 2. Refresh before acting (forward / broadcast / status)
 
 ```bash
-bash "${CLAUDE_PLUGIN_ROOT}/scripts/backend.sh" list | python3 "${CLAUDE_PLUGIN_ROOT}/scripts/registry.py" --data "${CLAUDE_PLUGIN_DATA}" refresh -
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/registry.py" --data "${CLAUDE_PLUGIN_DATA}" refresh
 ```
 
 ## 3. Act
@@ -46,7 +46,7 @@ python3 "${CLAUDE_PLUGIN_ROOT}/scripts/registry.py" --data "${CLAUDE_PLUGIN_DATA
 `pid`가 없거나 `SendMessage`가 `No agent named … is reachable`로 실패하면(약 1시간 유휴로 멈춘 세션은 메시지로 깨지 않는다) 재개한다. 메시지는 파일로 쓰지 않고 아래처럼 표준 입력으로 넘긴다(구분자 줄까지 그대로, 본문은 따옴표·`$`를 이스케이프하지 않는다). 이 명령이 먼저 목록을 갱신하고, 살아 있으면 재개하지 않고 `running`으로 끝난다(그때는 `SendMessage`로 보낸다). 아니면 현재 front 이름·주제·형제 목록을 붙인 프롬프트로 대장의 session id·cwd를 재개하고 새 job id와 `active`를 기록한다.
 
 ```bash
-python3 "${CLAUDE_PLUGIN_ROOT}/scripts/registry.py" --data "${CLAUDE_PLUGIN_DATA}" resume <name> <<'ROUTER_REQUEST'
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/registry.py" --data "${CLAUDE_PLUGIN_DATA}" resume <name> --request - <<'ROUTER_REQUEST'
 <user message, verbatim>
 ROUTER_REQUEST
 ```
@@ -56,7 +56,7 @@ ROUTER_REQUEST
 **new** — 이름: 주제를 나타내는 짧은 kebab-case(영문·숫자·`-`). 대장과 `backend.sh list`의 `name`에 없는 것. 한 명령으로 이름 예약 → 프롬프트 조립(front 이름·주제·형제 목록·요청) → 실행 → job id 기록을 한다. 이름이 이미 쓰였거나 실행이 실패하면 0이 아닌 코드로 끝난다. 디렉터리가 없거나 요청이 비면 이름을 잡지 않고 끝나며, 실행에 실패한 이름(`exited`, id 없음)은 같은 명령으로 다시 시도할 수 있다. job id를 출력에서 직접 뽑아 기록하지 않는다.
 
 ```bash
-python3 "${CLAUDE_PLUGIN_ROOT}/scripts/registry.py" --data "${CLAUDE_PLUGIN_DATA}" spawn <name> --topic "<one-line topic>" --mode <front permission mode> <<'ROUTER_REQUEST'
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/registry.py" --data "${CLAUDE_PLUGIN_DATA}" spawn <name> --topic "<one-line topic>" --mode <front permission mode> --request - <<'ROUTER_REQUEST'
 <user message, verbatim>
 ROUTER_REQUEST
 ```

@@ -10,11 +10,12 @@ Writes take an exclusive flock and replace the file atomically. Empty option val
 Usage: registry.py [--data DIR] <command> ...
   init | set-front [SESSION_ID] [--name N] | get-front | list [--json]
   upsert NAME [--new] [--session-id S] [--job-id J] [--cwd C] [--topic T] [--state S]
-  spawn NAME [--request R] [--cwd C] [--topic T] [--model M] [--mode P] [--merged-from A,B]
+  spawn NAME --request R [--cwd C] [--topic T] [--model M] [--mode P] [--merged-from A,B]
         → reserve NAME, compose the prompt, backend.sh spawn, record job id (sources marked merged)
-  resume NAME [--request R]  → refresh, then (if not running) compose the prompt, backend.sh resume, record job id
-  The request is --request or stdin; the prompt (front, topic, siblings, request) is composed here.
-  mark NAME STATE [--into NAME] | refresh [FILE|-]  (FILE = `backend.sh list` output)
+  resume NAME --request R  → refresh, then (if not running) compose the prompt, backend.sh resume, record job id
+  --request - reads the request from stdin (only then; never an implicit stdin read that could hang).
+  The prompt (front, topic, siblings, request) is composed here.
+  mark NAME STATE [--into NAME] | refresh [FILE|-]  (no FILE: runs `backend.sh list` itself)
   record-result SESSION_ID TEXT
 """
 
@@ -158,6 +159,12 @@ def launch(p, name, args, prompt):
     return job
 
 
+def backend_agents():
+    """`backend.sh list` parsed, or None if it failed."""
+    r = subprocess.run(["bash", str(BACKEND), "list"], stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, text=True)
+    return json.loads(r.stdout) if r.returncode == 0 else None
+
+
 def compose(reg, name, request, merged_from=()):
     """The worker's prompt: where to report (current front name), its topic, its siblings, then the request."""
     sibs = [f"{n} — {s.get('topic') or '-'}" for n, s in sorted(reg["sessions"].items())
@@ -232,13 +239,13 @@ def main(argv=None):
     rs = sub.add_parser("resume")
     rs.add_argument("name")
     for x in (sp, rs):
-        x.add_argument("--request", help="the user's request (default: stdin)")
+        x.add_argument("--request", required=True, help="the user's request; '-' reads it from stdin")
     mk = sub.add_parser("mark")
     mk.add_argument("name")
     mk.add_argument("state", choices=STATES)
     mk.add_argument("--into")
     rf = sub.add_parser("refresh")
-    rf.add_argument("file", nargs="?", default="-")
+    rf.add_argument("file", nargs="?")
     rr = sub.add_parser("record-result")
     rr.add_argument("session_id")
     rr.add_argument("text")
@@ -248,9 +255,9 @@ def main(argv=None):
     if p is None:
         sys.exit("registry: set ROUTER_REGISTRY, --data or CLAUDE_PLUGIN_DATA")
     if a.cmd in ("spawn", "resume"):  # validate inputs before any name is reserved
-        request = a.request if a.request is not None else sys.stdin.read()
+        request = sys.stdin.read() if a.request == "-" else a.request
         if not request.strip():
-            sys.exit("registry: empty request (pass --request TEXT or pipe it on stdin)")
+            sys.exit("registry: empty request (pass --request TEXT, or --request - with the text on stdin)")
         if not (load(p).get("front") or {}).get("name"):  # the prompt must name where to report
             sys.exit("registry: no front registered (run /router:front first)")
     if a.cmd == "spawn":
@@ -305,10 +312,10 @@ def main(argv=None):
         print(job)
     elif a.cmd == "resume":
         # refresh first: a forward from stale context must not start a second copy of a running worker
-        r = subprocess.run(["bash", str(BACKEND), "list"], stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, text=True)
-        if r.returncode == 0:
+        agents = backend_agents()
+        if agents is not None:
             with locked(p) as reg:
-                refresh(reg, json.loads(r.stdout))
+                refresh(reg, agents)
         reg = load(p)
         s = reg["sessions"].get(a.name) or {}
         if s.get("pid"):
@@ -329,7 +336,12 @@ def main(argv=None):
                 s["merged_into"] = a.into
             s["updated"] = now()
     elif a.cmd == "refresh":
-        agents = json.load(sys.stdin if a.file == "-" else open(a.file))
+        if a.file is None:
+            agents = backend_agents()
+            if agents is None:
+                sys.exit("registry: `backend.sh list` failed")
+        else:
+            agents = json.load(sys.stdin if a.file == "-" else open(a.file))
         with locked(p) as reg:
             refresh(reg, agents)
         print(render(reg))

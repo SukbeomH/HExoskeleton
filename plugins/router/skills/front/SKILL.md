@@ -29,7 +29,7 @@ allowed-tools:
 3. **대장 갱신과 표시.**
 
    ```bash
-   bash "${CLAUDE_PLUGIN_ROOT}/scripts/backend.sh" list | python3 "${CLAUDE_PLUGIN_ROOT}/scripts/registry.py" --data "${CLAUDE_PLUGIN_DATA}" refresh -
+   python3 "${CLAUDE_PLUGIN_ROOT}/scripts/registry.py" --data "${CLAUDE_PLUGIN_DATA}" refresh
    ```
 
 4. **사용자에게 보고.** front 이름, 등록된 작업 세션(이름·상태·주제·마지막 결과 한 줄)을 짧게 보여 주고, 이제 평소처럼 말하면 주제별 세션으로 전달된다고 알린다.

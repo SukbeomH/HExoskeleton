@@ -23,7 +23,7 @@ allowed-tools:
 2. **상태 갱신.**
 
    ```bash
-   bash "${CLAUDE_PLUGIN_ROOT}/scripts/backend.sh" list | python3 "${CLAUDE_PLUGIN_ROOT}/scripts/registry.py" --data "${CLAUDE_PLUGIN_DATA}" refresh -
+   python3 "${CLAUDE_PLUGIN_ROOT}/scripts/registry.py" --data "${CLAUDE_PLUGIN_DATA}" refresh
    ```
 
 3. **요약 수집.** 원본마다:
@@ -35,7 +35,7 @@ allowed-tools:
 5. **새 작업 세션 생성과 원본 표시.** cwd는 front의 cwd가 기본이다. 원본의 cwd가 다르면 `--cwd "<원본 cwd>"`를 더한다(원본끼리 다르면 사용자에게 묻는다). 권한 모드는 front의 모드. 모델: 원본들의 `model`(대장 `list --json`)이 모두 같은 값이면 `--model <그 값>`을 더한다. 서로 다르거나 일부만 있으면 넘기지 않고(기본 모델) 6의 보고에서 그렇게 알린다. 한 명령이 이름 예약 → 프롬프트 조립 → 실행 → job id 기록을 하고, 성공(종료 코드 0)했을 때만 `--merged-from`의 원본을 `merged`(→ 새 이름)로 표시한다. 실패하면 원본은 그대로 두고 사용자에게 알린다(실행에 실패한 새 이름은 같은 명령으로 다시 시도할 수 있다). job id를 출력에서 직접 뽑아 기록하지 않는다.
 
    ```bash
-   python3 "${CLAUDE_PLUGIN_ROOT}/scripts/registry.py" --data "${CLAUDE_PLUGIN_DATA}" spawn <new> --topic "<merged topic>" --mode <front permission mode> --merged-from <source>,<source> <<'ROUTER_REQUEST'
+   python3 "${CLAUDE_PLUGIN_ROOT}/scripts/registry.py" --data "${CLAUDE_PLUGIN_DATA}" spawn <new> --topic "<merged topic>" --mode <front permission mode> --merged-from <source>,<source> --request - <<'ROUTER_REQUEST'
    Merged brief:
    <원본별 요약을 합친 것: 공통 목표, 결정, 충돌과 해소안, 남은 일, 관련 cwd/브랜치/파일>
 

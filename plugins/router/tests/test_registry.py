@@ -147,8 +147,12 @@ assert PROMPT.read_text() == "Topic: t"  # prompt from stdin, no file
 # registry spawn: inputs are checked before the name is reserved (bad cwd, empty request, no front)
 r = cli("spawn", "w1", "--cwd", str(TMP / "nope"), "--request", "x")
 assert r.returncode == 1 and "w1" not in reg()["sessions"], r
-r = cli("spawn", "w1", "--cwd", str(TMP), stdin=" \n")
+r = cli("spawn", "w1", "--cwd", str(TMP), "--request", "-", stdin=" \n")
 assert r.returncode == 1 and "w1" not in reg()["sessions"], r
+# no --request: argparse error at once, never an implicit stdin read (an open, silent stdin must not hang)
+r = subprocess.run([sys.executable, str(ROOT / "scripts/registry.py"), "spawn", "w1"], env=ENV,
+                   stdin=subprocess.PIPE, capture_output=True, text=True, timeout=10)
+assert r.returncode == 2 and "--request" in r.stderr and "w1" not in reg()["sessions"], r
 for cmd in ("spawn", "resume"):  # no front → the prompt could not say where to report
     r = subprocess.run([sys.executable, str(ROOT / "scripts/registry.py"), cmd, "w1", "--request", "x"],
                        env={**ENV, "ROUTER_REGISTRY": str(TMP / "frontless.json")}, capture_output=True, text=True)
@@ -169,7 +173,7 @@ for taken in ("w1", "old", "api"):
     r = cli("spawn", taken, "--request", "x")
     assert r.returncode != 0 and "taken" in r.stderr, (taken, r)
 # the hook hint says --permission-mode; spawn accepts it as --mode. Request on stdin, cwd defaults to here
-assert cli("spawn", "w3", "--permission-mode", "acceptEdits", stdin="from stdin").returncode == 0
+assert cli("spawn", "w3", "--permission-mode", "acceptEdits", "--request", "-", stdin="from stdin").returncode == 0
 assert "--permission-mode acceptEdits" in (BIN / "argv.log").read_text() and PROMPT.read_text().endswith("from stdin")
 assert reg()["sessions"]["w3"]["cwd"] == os.getcwd()
 # backend failure → non-zero exit, entry exited, no (empty) job id stored; a retry may reuse the name
@@ -209,6 +213,11 @@ assert r.returncode == 0 and w2["job_id"] == "5eed0001" and w2["state"] == "acti
 assert "agent_state" not in w2 and w2["pid"] is None, w2
 assert "--resume w2-uuid --bg Router front: @boss-2" in (BIN / "argv.log").read_text()
 assert PROMPT.read_text().endswith("Request from the user:\nagain")
+# bare `refresh` runs `backend.sh list` itself (no pipe, no stdin read)
+(BIN / "agents.json").write_text(json.dumps([dict(w2_agent, pid=os.getpid(), status="busy")]))
+r = subprocess.run([sys.executable, str(ROOT / "scripts/registry.py"), "refresh"], env=ENV,
+                   stdin=subprocess.PIPE, capture_output=True, text=True, timeout=10)
+assert r.returncode == 0 and reg()["sessions"]["w2"]["pid"] == os.getpid(), r
 
 # render mentions every worker and the front name
 out = cli("list").stdout
