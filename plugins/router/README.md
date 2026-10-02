@@ -27,7 +27,7 @@ front에는 `/rename <고정 이름>`(또는 `claude -n <고정 이름>`으로 �
 
 ## 동작 방식
 
-- **대장**: `${CLAUDE_PLUGIN_DATA}/registry.json` (사용자 단위). 이름(유일, 실행에 실패해 id가 없는 이름만 다시 쓸 수 있음)·session_id·job id·cwd·주제·모델(지정한 경우)·상태(active/idle/waiting/exited/merged)·마지막 결과. `scripts/registry.py`만 읽고 쓴다(flock + 원자적 교체). 빈 id는 기록하지 않는다. 전달할 때 `active`, 작업 세션의 턴이 끝나면(Stop 훅) `idle`. 목록을 갱신할 때 살아 있는 세션이 사용자 응답을 기다리면(`claude agents`의 `status: waiting`·`waitingFor`, 또는 `state: blocked`) `waiting`과 그 이유를 기록한다.
+- **대장**: `${CLAUDE_PLUGIN_DATA}/registry.json` (사용자 단위). 이름(유일, 실행에 실패해 id가 없는 이름만 다시 쓸 수 있음)·session_id·job id·cwd·주제·모델(지정한 경우)·상태(active/idle/waiting/exited/merged)·마지막 결과. `scripts/registry.py`만 읽고 쓴다(flock + 원자적 교체). 빈 id는 기록하지 않는다. 전달할 때 `active`, 작업 세션의 턴이 끝나면(Stop 훅) `idle`. 목록을 갱신할 때 살아 있는 세션의 턴을 확인 프롬프트가 붙잡고 있으면(`claude agents`의 `status: waiting`·`waitingFor`) `waiting`과 그 이유를 기록한다. 프롬프트 없이 `state: blocked`인 세션(질문하고 턴을 끝냄)은 `idle/blocked`로 두고, 답은 평소처럼 전달한다.
 - **front 식별**: `front` 스킬이 Bash의 `CLAUDE_CODE_SESSION_ID`(훅의 `session_id`와 같은 값)와 `ListAgents` 첫 줄의 자기 이름을 대장에 기록한다.
 - **UserPromptSubmit 훅**: `session_id`가 front일 때만 대장 요약과 front의 권한 모드를 `additionalContext`로 주입한다. 다른 세션에서는 아무것도 하지 않는다.
 - **작업 세션**: `agents/topic-worker.md`. 한 주제만 맡고, 완료·막힘 시 front에 `SendMessage`로 짧게 보고하고, 라우팅하지 않는다. front와 같은 권한 모드로 뜬다.

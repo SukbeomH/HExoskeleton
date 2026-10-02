@@ -5,7 +5,7 @@ File: $ROUTER_REGISTRY, else <--data dir>/registry.json, else $CLAUDE_PLUGIN_DAT
 Shape: {"front": {"session_id", "name", "updated"} | null,
         "sessions": {<name>: {session_id, job_id, cwd, topic, model, state, pid, agent_state, waiting_for,
                               agent_type, last_result, merged_into, updated}}}
-state: active | idle | waiting (refresh only: live but needs the user) | exited | merged.
+state: active | idle | waiting (refresh only: an open prompt holds a live worker's turn) | exited | merged.
 Writes take an exclusive flock and replace the file atomically. Empty option values are ignored.
 
 Usage: registry.py [--data DIR] <command> ...
@@ -146,8 +146,9 @@ def refresh(reg, agents):
         s["pid"] = a.get("pid")
         s["agent_state"] = a.get("state")
         s["waiting_for"] = a.get("waitingFor")
-        # waiting: a live worker needs the user (e.g. its own permission prompt holds its turn: no report, no Stop)
-        waiting = a.get("status") == "waiting" or a.get("waitingFor") or a.get("state") == "blocked"
+        # waiting: an open prompt (e.g. its own permission prompt) holds the turn: no report, no Stop, only attach
+        # answers it. CC state `blocked` without one (e.g. it asked a question) stays idle: forward the answer.
+        waiting = a.get("status") == "waiting" or a.get("waitingFor")
         s["state"] = ("exited" if not a.get("pid") else "waiting" if waiting
                       else "active" if a.get("status") == "busy" else "idle")
         s["updated"] = now()
@@ -213,7 +214,7 @@ def render(reg, width=200):
         elif pid and state in ("active", "idle", "waiting"):
             state = "exited"  # recorded process is gone (e.g. idle retire); shown only, refresh records it
         if state == "waiting":
-            state = f"WAITING: {s.get('waiting_for') or 'blocked'} — user must run: claude attach {s.get('job_id')};"
+            state = f"WAITING: {s.get('waiting_for') or 'prompt'} — user must run: claude attach {s.get('job_id')};"
         elif cc and cc not in ("working", "done"):  # those only restate (or, after the turn, contradict) the state
             state += "/" + cc
         lines.append(

@@ -227,17 +227,21 @@ out = cli("list").stdout
 assert "@boss-2" in out and "- api [exited" in out and "→ w13" in out, out
 
 # a worker stuck on its own permission prompt (round-3 itest fixture) → waiting + waitingFor, attach hint;
-# an idle worker whose CC state stays `working` renders plain idle (no contradictory `idle/working`)
+# an idle worker whose CC state stays `working` renders plain idle (no contradictory `idle/working`);
+# CC `blocked` with no open prompt (it asked a question) stays idle/blocked: reachable, forward the answer
 cli("upsert", "pow2", "--new", "--job-id", "7895904c")
 cli("upsert", "hk", "--new", "--job-id", "fc6d12ed")
+cli("upsert", "ask", "--new", "--job-id", "a5c00001")
 r = cli("refresh", "-", stdin=json.dumps([
     {"pid": os.getpid(), "id": "7895904c", "kind": "background", "sessionId": "7895904c-uuid", "name": "pow2",
      "status": "waiting", "waitingFor": "permission prompt", "state": "blocked"},
     {"pid": os.getpid(), "id": "fc6d12ed", "kind": "background", "sessionId": "fc6d12ed-uuid", "name": "hk",
-     "status": "idle", "state": "working"}]))
+     "status": "idle", "state": "working"},
+    {"pid": os.getpid(), "id": "a5c00001", "kind": "background", "sessionId": "ask-uuid", "name": "ask",
+     "status": "idle", "state": "blocked"}]))
 pow2 = reg()["sessions"]["pow2"]
 assert pow2["state"] == "waiting" and pow2["waiting_for"] == "permission prompt", pow2
 assert "- pow2 [WAITING: permission prompt — user must run: claude attach 7895904c;" in r.stdout, r.stdout
-assert f"- hk [idle pid {os.getpid()}]" in r.stdout, r.stdout
+assert f"- hk [idle pid {os.getpid()}]" in r.stdout and f"- ask [idle/blocked pid {os.getpid()}]" in r.stdout, r.stdout
 
 print("PASS test_registry")

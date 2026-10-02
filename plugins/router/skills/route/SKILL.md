@@ -76,7 +76,7 @@ cwd는 front의 cwd가 기본이다. 사용자가 다른 저장소를 말했을 
 
 ## When a worker reports
 
-작업 세션의 `SendMessage` 보고가 도착하면 핵심만 사용자에게 전한다. 보고가 오지 않았으면 refresh 후 그 세션의 `last_result`(Stop 훅 기록)를 인용한다. `notify_when_idle`은 걸지 않는다(보고와 Stop 훅으로 충분하고, 걸면 같은 결과가 한 턴 더 온다). 사용자가 요청해 걸었던 idle 알림은 보고가 이미 왔으면 다시 전하지 않는다. 보고를 다른 세션으로 되돌려 보내지 않는다. 막힘(blocked) 보고는 사용자 결정이 필요한 질문으로 바꿔 묻는다.
+작업 세션의 `SendMessage` 보고가 도착하면 핵심만 사용자에게 전한다. 보고가 오지 않았으면 refresh 후 그 세션의 `last_result`(Stop 훅 기록)를 인용한다. `notify_when_idle`은 걸지 않는다(보고와 Stop 훅으로 충분하고, 걸면 같은 결과가 한 턴 더 온다). 사용자가 요청해 걸었던 idle 알림은 보고가 이미 왔으면 다시 전하지 않는다. 보고를 다른 세션으로 되돌려 보내지 않는다. 막힘(blocked) 보고는 사용자 결정이 필요한 질문으로 바꿔 묻는다. 목록의 `idle/blocked`(질문하고 턴을 끝낸 세션)도 같고, 답은 forward로 보낸다.
 
 ## Waiting workers
 
