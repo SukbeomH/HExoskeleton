@@ -30,7 +30,7 @@ allowed-tools:
    - 살아 있음(`pid` 있음): `SendMessage`로 `[router] merge 준비: 이 주제의 목표·결정·현재 상태·남은 문제·건드린 파일을 300단어 이내로 front에 답장해 주세요.`를 보낸다. 답장을 기다린다(오지 않으면 refresh 후 `last_result`).
    - 종료됨: `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/registry.py" --data "${CLAUDE_PLUGIN_DATA}" list --json`의 `last_result`를 쓴다. 비었거나 부족하면 `bash "${CLAUDE_PLUGIN_ROOT}/scripts/backend.sh" summarize <session_id>` (원본을 건드리지 않도록 fork해서 요약한다).
 
-4. **병합 brief 작성.** 파일로 쓰지 않는다. 5의 명령 표준 입력에 넣는다. front 이름·주제·형제 목록·`Merged from:` 줄은 `registry.py`가 붙인다.
+4. **병합 brief 작성.** 파일로 쓰지 않는다. 5의 명령 표준 입력에 넣는다. front 이름·주제·형제 목록·`Merged from:` 줄은 `registry.py`가 붙인다. 명령은 아래 목록 들여쓰기 없이 실행하고, 끝 구분자 `ROUTER_REQUEST`는 줄 맨 앞에 둔다(들여쓰면 bash가 구분자로 보지 않는다).
 
 5. **새 작업 세션 생성과 원본 표시.** cwd는 front의 cwd가 기본이다. 원본의 cwd가 다르면 `--cwd "<원본 cwd>"`를 더한다(원본끼리 다르면 사용자에게 묻는다). 권한 모드는 front의 모드. 모델: 원본들의 `model`(대장 `list --json`)이 모두 같은 값이면 `--model <그 값>`을 더한다. 서로 다르거나 일부만 있으면 넘기지 않고(기본 모델) 6의 보고에서 그렇게 알린다. 한 명령이 이름 예약 → 프롬프트 조립 → 실행 → job id 기록을 하고, 성공(종료 코드 0)했을 때만 `--merged-from`의 원본을 `merged`(→ 새 이름)로 표시한다. 실패하면 원본은 그대로 두고 사용자에게 알린다(실행에 실패한 새 이름은 같은 명령으로 다시 시도할 수 있다). job id를 출력에서 직접 뽑아 기록하지 않는다.
 
