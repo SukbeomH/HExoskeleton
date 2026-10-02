@@ -13,6 +13,8 @@ Trust: the front entry is written only by the plugin's hooks (router-hook.py: a 
 it, each front turn records its permission mode). Worker ids are written only by launch, refresh (from the real
 `backend.sh list`) and the Stop hook. Nothing here takes a front, an id or a permission mode from the command line:
 the allow rule for this script approves any arguments, so arguments must not be able to pick a worker's mode.
+Approvals (<registry dir>/approvals/{pending,decisions}/<nonce>.json) are written only by router-hook.py: a worker's
+PermissionRequest hook writes pending, a user-typed /router:approve writes the decision. No command here writes them.
 
 Usage: registry.py [--data DIR] <command> ...
   init | get-front | list [--json]
@@ -59,6 +61,11 @@ def path(data_dir=None):
         return d / "registry.json"
     d = os.environ.get("CLAUDE_PLUGIN_DATA")
     return pathlib.Path(d) / "registry.json" if d else None
+
+
+def approvals(p):
+    """The approval relay's dir, next to the registry (so in the plugin data dir, outside any working directory)."""
+    return p.parent / "approvals"
 
 
 def now():
