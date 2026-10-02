@@ -39,7 +39,7 @@ allowed-tools:
    Merged brief:
    <원본별 요약을 합친 것: 공통 목표, 결정, 충돌과 해소안, 남은 일, 관련 cwd/브랜치/파일>
 
-   <병합 명령과 함께 준 지시, 없으면 "Continue the merged topic.">
+   <병합 명령과 함께 준 지시, 없으면 "Summarize the merged state in 3 lines, report to the front, then wait for instructions.">
    ROUTER_REQUEST
    ```
 
