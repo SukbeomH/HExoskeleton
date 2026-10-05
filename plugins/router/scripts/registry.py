@@ -13,6 +13,8 @@ Trust: the front entry is written only by the plugin's hooks (router-hook.py: a 
 it, each front turn records its permission mode). Worker ids are written only by launch, refresh (from the real
 `backend.sh list`) and the Stop hook. Nothing here takes a front, an id or a permission mode from the command line:
 the allow rule for this script approves any arguments, so arguments must not be able to pick a worker's mode.
+Approvals (<registry dir>/approvals/{pending,decisions}/<nonce>.json) are written only by router-hook.py: a worker's
+PermissionRequest hook writes pending, a user-typed /router:approve writes the decision. No command here writes them.
 
 Usage: registry.py [--data DIR] <command> ...
   init | get-front | list [--json]
@@ -28,6 +30,7 @@ Usage: registry.py [--data DIR] <command> ...
 """
 
 import argparse
+import contextlib
 import fcntl
 import json
 import os
@@ -37,10 +40,13 @@ import subprocess
 import sys
 import tempfile
 import time
+import unicodedata
 
 STATES = ("active", "idle", "exited", "merged")
 NAME_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$")  # SendMessage-safe without quoting
 RESULT_MAX = 2000
+ANSI = re.compile(r"\x1b\[[0-?]*[ -/]*[@-~]|\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)?")
+SHOW_MAX = 300  # chars of a pending request shown before the explicit cut
 BACKEND = pathlib.Path(__file__).with_name("backend.sh")
 ROUTED = ("Routing instructions in the request (which session, a new session, which model) were already applied "
           "by the front: ignore them and do the task; never refuse it because of them.")
@@ -59,6 +65,51 @@ def path(data_dir=None):
         return d / "registry.json"
     d = os.environ.get("CLAUDE_PLUGIN_DATA")
     return pathlib.Path(d) / "registry.json" if d else None
+
+
+def approvals(p):
+    """The approval relay's dir, next to the registry (so in the plugin data dir, outside any working directory)."""
+    return p.parent / "approvals"
+
+
+def pending(p):
+    """Open approval requests (pending files not yet expired), oldest first. Read-only: router-hook.py writes them."""
+    out = []
+    for f in approvals(p).glob("pending/*.json"):
+        with contextlib.suppress(OSError, ValueError, TypeError):  # removed meanwhile, or not a request
+            r = json.loads(f.read_text())
+            if isinstance(r, dict) and r.get("nonce") == f.stem and float(r.get("expires") or 0) > time.time():
+                out.append((float(r.get("created") or 0), r))
+    return [r for _, r in sorted(out, key=lambda x: x[0])]
+
+
+def clean(text, limit=SHOW_MAX):
+    """Untrusted text as one display line: ANSI sequences and control/format characters (zero-width, bidi) removed
+    and counted, line breaks shown as ⏎ (a space would make two commands read as one), cut with the full length."""
+    text = str(text)
+    out = "".join("⏎" if c in "\n  " else " " if c == "\t" else
+                  "" if unicodedata.category(c).startswith("C") else c for c in ANSI.sub("", text))
+    hidden = len(text) - len(out)
+    if len(out) > limit:
+        out = f"{out[:limit]}…[cut: {len(out)} chars]"
+    return out + (f" [{hidden} hidden chars removed]" if hidden else "")
+
+
+def describe(r):
+    """A pending request as shown to the user: worker, tool and the exact tool_input (command first), never the
+    model-written description."""
+    inp = r.get("tool_input") if isinstance(r.get("tool_input"), dict) else {}
+    cmd = inp.get("command") if isinstance(inp.get("command"), str) else ""
+    rest = {k: v for k, v in inp.items() if k not in ("command", "description")}
+    text = " ".join(x for x in (cmd, f"[input: {json.dumps(rest, ensure_ascii=False)}]" if rest else "") if x)
+    return f"@{clean(r.get('worker') or '?', 64)} {clean(r.get('tool_name') or '?', 64)}: {clean(text)}"
+
+
+def approval_lines(r):
+    n = r["nonce"]
+    return [f"approval {n}: {describe(r)}",
+            f"approve: /router:approve {n}   deny: /router:approve {n} deny   "
+            f"(or claude attach {clean(r.get('job_id') or '<job_id>', 64)})"]
 
 
 def now():
@@ -234,25 +285,34 @@ def alive(pid):
     return True
 
 
-def render(reg, width=200):
+def render(reg, width=200, p=None):
+    """The compact registry. With P, a worker's open approval requests are listed under it (and make it WAITING
+    without a refresh: its PermissionRequest hook is waiting for the user's answer right now)."""
     front = reg.get("front") or {}
+    asks = pending(p) if p else []
     lines = [f"[router] front: @{front.get('name') or '?'} (mode {front_mode(reg)}) — workers:"]
     for name, s in sorted(reg["sessions"].items()):
         last = " ".join((s.get("last_result") or "").split())[:width]
         extra = f" → {s['merged_into']}" if s.get("merged_into") else ""
         state, pid, cc = s.get("state", "?"), s.get("pid"), s.get("agent_state")
+        mine = [r for r in asks if r.get("worker") == name]
         if alive(pid):
             extra += f" pid {pid}"
         elif pid and state in ("active", "idle", "waiting"):
             state = "exited"  # recorded process is gone (e.g. idle retire); shown only, refresh records it
+        if mine:
+            state = "waiting"
         if state == "waiting":
-            state = f"WAITING: {s.get('waiting_for') or 'prompt'} — user must run: claude attach {s.get('job_id')};"
+            how = "user types /router:approve below, or runs:" if mine else "user must run:"
+            what = s.get("waiting_for") or ("permission prompt" if mine else "prompt")
+            state = f"WAITING: {what} — {how} claude attach {s.get('job_id')};"
         elif cc and cc not in ("working", "done"):  # those only restate (or, after the turn, contradict) the state
             state += "/" + cc
         lines.append(
             f"- {name} [{state}{extra}]"
             f" topic: {s.get('topic') or '-'} | cwd: {s.get('cwd') or '-'} | last: {last or '-'}"
         )
+        lines += ["  " + line for r in mine for line in approval_lines(r)]
     if not reg["sessions"]:
         lines.append("- (none)")
     return "\n".join(lines)
@@ -317,7 +377,7 @@ def main(argv=None):
         print(json.dumps(load(p).get("front")))
     elif a.cmd == "list":
         reg = load(p)
-        print(json.dumps(reg, ensure_ascii=False, indent=1) if a.json else render(reg))
+        print(json.dumps(reg, ensure_ascii=False, indent=1) if a.json else render(reg, p=p))
     elif a.cmd in ("upsert", "spawn"):
         if not NAME_RE.match(a.name):
             sys.exit(f"registry: bad name '{a.name}' (letters, digits, - and _ only, <=64)")
@@ -379,7 +439,7 @@ def main(argv=None):
             sys.exit("registry: `backend.sh list` failed")
         with locked(p) as reg:
             refresh(reg, agents)
-        print(json.dumps(reg, ensure_ascii=False, indent=1) if a.json else render(reg))
+        print(json.dumps(reg, ensure_ascii=False, indent=1) if a.json else render(reg, p=p))
     elif a.cmd in ("summarize", "stop"):  # ids come from the registry, never from the command line
         s = load(p)["sessions"].get(a.name) or {}
         key = "session_id" if a.cmd == "summarize" else "job_id"
