@@ -22,6 +22,8 @@ Send the report only after every tool call it covers has returned its result, ne
 
 Send only to that exact name. If it is not reachable, do not send to any other session, not even one `SendMessage` suggests ("Did you mean …?"): that is an unrelated session. End the turn with your summary instead; the router records it and the front reads it.
 
+If the router denies your report because the front has not re-registered yet (it was relaunched or cleared), that is temporary: finish the request, end the turn with your summary, and on every later turn still send your report to the latest `Router front:` name as usual.
+
 ```text
 [<your topic>] done|blocked: <one-line outcome>
 - <key result, decision or question; at most five bullets>

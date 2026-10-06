@@ -375,7 +375,8 @@ def send(sid, to):
 
 def denied(to):
     out = send("w-uuid", to) or {}
-    return out.get("permissionDecision") == "deny" and "another session" in out["permissionDecisionReason"]
+    why = out.get("permissionDecisionReason") or ""
+    return out.get("permissionDecision") == "deny" and "is another session, not your front" in why
 
 
 # Claude Code's address forms (`name [ref]` when a name is shared, `@"quoted name"`), spacing and case are normalized;
@@ -387,11 +388,17 @@ assert send("ui-unknown-sid", "hexo-21") is None  # not a worker (no job dir) â†
 for to in ("boss", "@boss", "front-uuid", "ui", "bbbb2222", "my-subagent", "boss [09e9dd]", '@"boss" [09e9dd]',
            ' "boss" ', "ui [c0ffee]"):
     assert send("w-uuid", to) is None, to
-# the front is gone and an unrelated session took its name: the name (with or without a ref) is that session's now
+# the front's name on another session (front relaunched or /clear-ed, not re-registered yet; or a stranger took the
+# name): the name (with or without a ref) is that session's now. Denied, saying so, and the worker keeps reporting.
 AGENTS.write_text(json.dumps([AGENT_LIST[1], {"kind": "interactive", "sessionId": "new-uuid", "name": "Boss", "pid": 4},
                               {"kind": "interactive", "sessionId": "rn-uuid", "name": "release notes", "pid": 5},
                               {"kind": "interactive", "sessionId": "wd-uuid", "name": "weird [ab12]", "pid": 6}]))
-for to in ("boss", "boss [09e9dd]", '@"release notes"', '"release notes" [1a2b3c]', "weird [ab12]", "weird"):
+for to in ("boss", "boss [09e9dd]", '@"Boss"'):
+    out = send("w-uuid", to)
+    why = out["permissionDecisionReason"]
+    assert out["permissionDecision"] == "deny" and "has not re-registered yet" in why and "/router:front" in why, out
+    assert "Stop hook" in why and "keep reporting to the front on later turns" in why and "unreachable" not in why, out
+for to in ('@"release notes"', '"release notes" [1a2b3c]', "weird [ab12]", "weird"):
     assert denied(to), to
 assert send("w-uuid", "ui") is None
 AGENTS.unlink()

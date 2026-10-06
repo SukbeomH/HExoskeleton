@@ -122,12 +122,21 @@ def guard_send(p, sid, data):
     others = {x for a in registry.backend_agents() or [] if not {a.get("sessionId"), a.get("id")} & ours
               for k in ("name", "sessionId", "id") if a.get(k) for x in (str(a[k]).casefold(), address(a[k]))}
     to = address(raw)
-    if not to or to in others:
+    if to and to in others and to == address(front.get("name") or ""):
+        # the front's name, but not on the registered front's session: it was relaunched or /clear-ed and not yet
+        # re-registered (a stranger taking the name looks the same). Denied either way; the worker must not give up.
+        why = (f"router: not sent. '{raw}' is your front's name, but that session is not registered as the front: the "
+               "front has not re-registered yet (the user must type /router:front there), or another session took its "
+               "name. Your result is saved via the Stop hook: end this turn with your summary, and keep reporting to "
+               "the front on later turns. Message no other session.")
+    elif not to or to in others:
         why = (f"router: '{raw}' is another session, not your front @{front.get('name')} or a sibling. Message no other "
                "session, not even one SendMessage suggests; if the front is unreachable, end your turn with the summary "
                "(the router records it).")
-        print(json.dumps({"hookSpecificOutput": {"hookEventName": "PreToolUse", "permissionDecision": "deny",
-                                                 "permissionDecisionReason": why}}))
+    else:
+        return
+    print(json.dumps({"hookSpecificOutput": {"hookEventName": "PreToolUse", "permissionDecision": "deny",
+                                             "permissionDecisionReason": why}}))
 
 
 def approve(p, sid, args):
