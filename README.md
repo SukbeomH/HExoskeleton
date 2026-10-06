@@ -60,13 +60,6 @@ Claude Code — 플러그인 (스킬 + 에이전트 + 훅):
 /plugin install hxsk@hexoskeleton
 ```
 
-GitHub Copilot CLI — 플러그인. Copilot CLI는 `.claude-plugin/` 매니페스트를 읽는다고 문서화되어 있다. 아래 명령은 문서 기준이며 이 저장소에서 직접 시험하지는 않았다.
-
-```bash
-copilot plugin marketplace add SukbeomH/HExoskeleton
-copilot plugin install hxsk@hexoskeleton
-```
-
 Codex CLI — 플러그인. Codex는 `.claude-plugin/` 마켓플레이스를 그대로 읽는다(이 저장소에서 시험함). 스킬은 `hxsk:<name>`으로 노출된다.
 
 ```bash
@@ -106,7 +99,6 @@ SPEC.md (무엇을) → PLAN (어떻게) → EXECUTE (atomic commit) → VERIFY 
 ### 업그레이드
 
 - Claude Code: `claude plugin update hxsk@hexoskeleton`(router는 `router@hexoskeleton`) 후 새 세션 시작(또는 `/reload-plugins`)
-- Copilot CLI: `copilot plugin update hxsk`
 - Codex CLI: `codex plugin marketplace upgrade hexoskeleton`(마켓플레이스 스냅샷 갱신) 후 `codex plugin add hxsk@hexoskeleton`으로 다시 설치. 설치된 플러그인은 스냅샷 갱신만으로 바뀌지 않는다.
 - 그 밖의 하네스: `git pull` 후 `scripts/init-project.sh --skills <project>` 재실행 (`.agents/skills` 복사본 갱신)
 
