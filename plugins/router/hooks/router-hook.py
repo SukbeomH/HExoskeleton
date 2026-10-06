@@ -11,11 +11,13 @@ UserPromptExpansion of a user-typed /router:approve [<id> [deny]] (same rule) �
 UserPromptSubmit: only in the front session (session_id == registry front) → record its permission_mode (the mode
   every worker gets) and add additionalContext with the compact registry.
 Stop: only in a worker (session_id, or $CLAUDE_JOB_DIR's job id, is in the registry) → store
-  last_assistant_message as last_result.
+  last_assistant_message as last_result; idle, or active while a background subagent of it still runs.
 PermissionRequest: only in a worker → approvals/pending/<nonce>.json (the exact tool_input), then wait for the decision
   a user-typed /router:approve writes in the front; answer allow/deny only. No decision in time → no output, so the
-  normal prompt stays (claude attach). Prompt answered in claude attach first (`claude agents`, the same thread's
-  next request, or for a subagent the tool's result in its own transcript) → end, no output.
+  normal prompt stays (claude attach); a subagent's request is kept as approvals/expired/<nonce>.json, which the front
+  lists as waiting in claude attach (Claude Code shows a background subagent's prompt there only after the hook).
+  Prompt answered in claude attach first (`claude agents`, the same thread's next request, or for a subagent the
+  tool's result in its own transcript) → end, no output.
 PreToolUse SendMessage: only in a worker → deny a recipient that is another live session (not the front, not a
   sibling; `name [ref]`, quotes and case normalized): a stale front name's "Did you mean" hint must not carry a
   report to an unrelated session.
@@ -79,7 +81,10 @@ def main():
         ctx = registry.render(reg, p=p) + "\n" + HINT
         print(json.dumps({"hookSpecificOutput": {"hookEventName": "UserPromptSubmit", "additionalContext": ctx}}))
     elif event == "Stop":
-        registry.record_result(p, sid, job_id(), data.get("last_assistant_message") or "", data.get("agent_type"))
+        # a background subagent still running (Stop input background_tasks, Claude Code 2.1.145+) will wake the worker
+        # again: its turn is over, but it is not idle (7th live test: `idle` while `claude agents` said busy)
+        bg = any(isinstance(t, dict) and t.get("type") == "subagent" for t in data.get("background_tasks") or [])
+        registry.record_result(p, sid, job_id(), data.get("last_assistant_message") or "", data.get("agent_type"), bg)
     elif event == "PermissionRequest":
         permission_request(p, sid, data)
     elif event == "PreToolUse" and data.get("tool_name") == "SendMessage":
@@ -144,6 +149,11 @@ def approve(p, sid, args):
     if len(a) > 2 or a[1:] not in ([], ["deny"]) or not re.fullmatch(r"[0-9a-f]{8}", a[0]):
         return "router: not sent. Usage: /router:approve <id> [deny]. Open requests:\n" + listing
     r = next((r for r in open_ if r["nonce"] == a[0]), None)
+    late = next((r for r in registry.expired(p) if r["nonce"] == a[0]), None)
+    if not r and late:
+        job = (registry.load(p)["sessions"].get(late.get("worker")) or {}).get("job_id") or "<job_id>"
+        return (f"router: not sent. {a[0]} expired: the router no longer relays it and its prompt now waits in "
+                f"claude attach {registry.clean(job, 64)} (answer it there). Open requests:\n" + listing)
     if not r and (registry.approvals(p) / "pending" / f"{a[0]}.json").exists():  # its hook waits, its prompt doesn't
         return (f"router: not sent. {a[0]} was already answered (e.g. via claude attach) or superseded by the same "
                 "worker's next request; nothing approved. Open requests:\n" + listing)
@@ -171,9 +181,9 @@ def permission_request(p, sid, data):
     if not name:
         return
     a = registry.approvals(p)
-    for f in [*a.glob("pending/*.json"), *a.glob("decisions/*.json"), *a.glob("decided/*.json")]:
+    for f in [f for d in ("pending", "decisions", "decided", "expired") for f in a.glob(f"{d}/*.json")]:
         with contextlib.suppress(FileNotFoundError):
-            if time.time() - f.stat().st_mtime > TTL:
+            if time.time() - f.stat().st_mtime > (registry.EXPIRED_TTL if f.parent.name == "expired" else TTL):
                 f.unlink()
     nonce, t0 = secrets.token_hex(4), time.time()
     pend = a / "pending" / f"{nonce}.json"
@@ -194,7 +204,8 @@ def permission_request(p, sid, data):
             if b:
                 out = {"behavior": b}  # never updatedInput/updatedPermissions: this call, as shown
                 if b == "deny":
-                    out["message"] = f"The user denied this in the router front (/router:approve {nonce} deny)."
+                    out["message"] = (f"The user denied this in the router front (/router:approve {nonce} deny). "
+                                      "Report this as blocked to the front (not done).")  # 7th live test: "완료"
                 print(json.dumps({"hookSpecificOutput": {"hookEventName": "PermissionRequest", "decision": out}}))
                 registry.unblock(p, name)
                 return
@@ -220,6 +231,10 @@ def permission_request(p, sid, data):
                     registry.unblock(p, name)
                     return  # no output: the prompt is already answered
             time.sleep(POLL)
+        if aid and not registry.superseded(rec, registry.requests(p)):
+            # no decision in time: only now does claude attach show a background subagent's prompt (7th live test),
+            # so the front lists it as waiting there (registry.expired) until the subagent's transcript has the result
+            registry.save(a / "expired" / f"{nonce}.json", rec)
     finally:
         pend.unlink(missing_ok=True)
 

@@ -117,6 +117,13 @@ assert REG.read_bytes() == before
 assert run(stop("w-uuid", "API done: 3 endpoints")) == ""
 api = json.loads(REG.read_text())["sessions"]["api"]
 assert api["last_result"] == "API done: 3 endpoints" and api["state"] == "idle", api
+# its background subagent still running (Stop input background_tasks) will wake it again: result recorded, not idle.
+# A background shell task alone (e.g. a dev server) does not keep it busy.
+for tasks, state in (([{"id": "t1", "type": "subagent", "status": "running"}], "active"),
+                     ([{"id": "t2", "type": "shell", "status": "running"}, "junk"], "idle")):
+    assert run({**stop("w-uuid", f"API: {state}"), "background_tasks": tasks}) == ""
+    api = json.loads(REG.read_text())["sessions"]["api"]
+    assert api["state"] == state and api["last_result"] == f"API: {state}", api
 # worker not yet mapped → found via $CLAUDE_JOB_DIR job id, session id backfilled
 assert run({**stop("ui-uuid", "UI blocked: need token"), "agent_type": "router:topic-worker"},
            CLAUDE_JOB_DIR="/Users/x/.claude/jobs/bbbb2222") == ""
@@ -197,12 +204,17 @@ assert rec["worker"] == "ui", rec
 decide(rec, "deny")
 out = json.loads(answer(proc))["hookSpecificOutput"]["decision"]
 assert out["behavior"] == "deny" and rec["nonce"] in out["message"], out
+assert out["message"].endswith(" Report this as blocked to the front (not done)."), out  # not "done"/"완료" (7th test)
 # ignored: older than the request (planted before it), another request's nonce (replay), unknown behavior; or nothing
 # decided (timeout). Each is read once and deleted; no valid decision → no output, the normal prompt stays; pending
 # removed. The four hooks wait side by side: each needs its whole wait, long enough to read the decision under load.
 old = APPR / "pending/0ld0ld00.json"  # a killed hook's leftover → swept (older than the hook timeout)
 old.write_text("{}")
 os.utime(old, (time.time() - 700,) * 2)
+(APPR / "expired").mkdir()  # an expired subagent request is kept an hour
+for f, age in (("0ld0ld01", 700), ("0ld0ld02", 3700)):
+    (APPR / f"expired/{f}.json").write_text("{}")
+    os.utime(APPR / f"expired/{f}.json", (time.time() - age,) * 2)
 waiting = []
 for bad in ({"created": 0}, {"nonce": "deadbeef"}, {"behavior": "yes"}, None):
     proc, rec = ask(wait="2")
@@ -213,6 +225,8 @@ for bad in ({"created": 0}, {"nonce": "deadbeef"}, {"behavior": "yes"}, None):
 for proc, bad in waiting:
     assert proc.stdout.read() == "" and proc.wait(timeout=30) == 0, bad
 assert not list(APPR.glob("pending/*.json")) and not list(APPR.glob("decisions/*.json"))
+assert [f.name for f in APPR.glob("expired/*")] == ["0ld0ld01.json"]  # and a main-thread request leaves no record
+(APPR / "expired/0ld0ld01.json").unlink()
 
 
 # /router:approve (front side): the typed command's UserPromptExpansion hook writes the decision and blocks the prompt
@@ -371,6 +385,41 @@ assert "already answered" in out["reason"] and "approval 0b1c2d3e" not in out["r
 assert "approval 0c1d2e3f" in out["reason"] and not list(APPR.glob("decisions/*.json")), out
 for f in APPR.glob("pending/*.json"):
     f.unlink()
+# no decision before the router's wait is over: only then does claude attach show a background subagent's prompt (7th
+# live test). It stays listed as WAITING on claude attach (no approve line; a typed approve refuses it) until its
+# transcript has the result, the same subagent asks again, or an hour passed.
+with SUB.open("a") as f:
+    f.write(use(time.time(), "toolu_late"))
+proc, rec = ask(wait="0.3", extra={"agent_id": "a1b2c3d4e5f6a7b8c", "transcript_path": str(TMP / "main-uuid.jsonl")})
+assert answer(proc) == "" and json.loads((APPR / f"expired/{rec['nonce']}.json").read_text())["agent_id"], rec
+
+
+def late():
+    return json.loads(run(prompt("front-uuid")))["hookSpecificOutput"]["additionalContext"]
+
+
+ctx = late()
+assert "- api [WAITING: subagent prompt — claude attach aaaa1111 to answer;" in ctx, ctx
+assert ("\n  subagent prompt (router wait over, /router:approve no longer answers it): @api Bash: echo relay-ok > "
+        "/tmp/x⏎rm -rf ~") in ctx and f"approval {rec['nonce']}" not in ctx, ctx
+out = approve(args=rec["nonce"])["reason"]
+assert out.startswith(f"router: not sent. {rec['nonce']} expired: the router no longer relays it and its prompt now "
+                      "waits in claude attach aaaa1111") and not list(APPR.glob("decisions/*.json")), out
+(APPR / "expired/0e1f2a3b.json").write_text(json.dumps(rec | {"nonce": "0e1f2a3b", "created": rec["created"] + 0.001}))
+(APPR / "expired/0f2a3b4c.json").write_text(json.dumps(rec | {  # another subagent's, an hour old
+    "nonce": "0f2a3b4c", "created": rec["created"] - 3700, "agent_id": "a0", "transcript": str(TMP / "none")}))
+ctx = late()  # the same subagent asked again: only the newer one is listed
+assert ctx.count("subagent prompt (router wait over") == 1 and "WAITING: subagent prompt" in ctx, ctx
+assert "approval 0e1f2a3b" not in ctx and "0e1f2a3b" in approve(args="0e1f2a3b")["reason"]
+r = json.loads(REG.read_text())
+r["sessions"]["api"]["pid"] = r["sessions"]["db"]["pid"]  # gone: the worker's process is gone: so is its subagent's prompt
+REG.write_text(json.dumps(r))
+assert "- api [exited]" in late() and "subagent prompt" not in late()
+r["sessions"]["api"]["pid"] = os.getpid()
+REG.write_text(json.dumps(r))
+with SUB.open("a") as f:  # answered in claude attach → no longer listed
+    f.write(result(time.time(), "toolu_late"))
+assert "subagent prompt" not in late()
 AGENTS.unlink()
 
 # PreToolUse SendMessage in a worker: another live session of the user's (e.g. a stale front name's "Did you mean"

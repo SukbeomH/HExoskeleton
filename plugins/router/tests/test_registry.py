@@ -5,6 +5,8 @@ the front's recorded mode only, no front/ids/mode/registry file from the command
 Usage: python3 plugins/router/tests/test_registry.py"""
 
 import atexit
+import contextlib
+import io
 import json
 import os
 import pathlib
@@ -26,8 +28,8 @@ ENV = {**os.environ, "ROUTER_REGISTRY": str(REG)}
 
 def cli(*args, stdin=None):
     return subprocess.run(
-        [sys.executable, str(ROOT / "scripts/registry.py"), *args], env=ENV, input=stdin, capture_output=True, text=True
-    )
+        [sys.executable, str(ROOT / "scripts/registry.py"), *args], env=ENV, input=stdin, capture_output=True, text=True,
+        timeout=30)
 
 
 def reg():
@@ -351,6 +353,63 @@ d = registry.describe({"worker": "api", "tool_name": "Bash",
 assert d == '@api Bash: ls [input: {"dangerouslyDisableSandbox": true}]', d
 d = registry.describe({"worker": "api", "tool_name": "Write", "tool_input": {"file_path": "/x", "content": "y"}})
 assert d == '@api Write: [input: {"file_path": "/x", "content": "y"}]', d
+
+# wait (the front's background push for Codex workers): one line once the worker records a result, opens an approval
+# request newer than the wait, or stops running; "still running" at the timeout; read-only (the allow rule approves any
+# registry.py arguments). In-process, the change happens at the wait's first poll, after it read the worker: no race.
+os.environ["ROUTER_POLL_INTERVAL"] = "0.02"
+
+
+def files():
+    return sorted((str(f), f.stat().st_mtime_ns) for f in TMP.rglob("*") if f.is_file())
+
+
+def wait_for(change):
+    real, fired, buf = time.sleep, [], io.StringIO()
+
+    def sleep(s):
+        if not fired:
+            fired.append(change() or 1)
+        real(s)
+
+    time.sleep = sleep  # the module registry.py polls with
+    try:
+        with contextlib.redirect_stdout(buf):
+            registry.wait(REG, "wt", 10)
+    finally:
+        time.sleep = real
+    return buf.getvalue()
+
+
+def finish(job, text, held=()):
+    def run_ended():
+        with registry.locked(REG) as r:
+            r["sessions"]["wt"].update(job_id=job, held=list(held))
+            registry.finish_run(r, job, "th-1", text)
+    return run_ended
+
+
+put("wt", job_id="77770001", session_id="th-1", backend="codex", last_result="old", cwd="/r")
+before = files()
+r = cli("wait", "wt", "--timeout", "0.2")
+assert r.returncode == 0 and r.stdout == ("[router] wait wt (codex): still running after 0.2 s — its result shows in the "
+                                          "[router] list later\n"), r
+assert files() == before  # nothing written, not even a lock file
+assert cli("wait", "wt", "--timeout", "nan").stdout.startswith("[router] wait wt (codex): still running after 0 s")
+assert cli("wait", "ghost").returncode == 1
+out = wait_for(lambda: (PEND / "2a2a2a2a.json").write_text(json.dumps({
+    "nonce": "2a2a2a2a", "worker": "wt", "backend": "codex", "tool_name": "Bash", "tool_input": {"command": "touch /x"},
+    "created": time.time(), "expires": time.time() + 60})))
+assert out == "[router] wait wt (codex): WAITING: approval @wt Bash: touch /x — the user types /router:approve (bare " \
+              "lists it)\n", out
+# waited again: that request is still open but was told, so the next result ends it; a chained run says wait again
+out = wait_for(finish("77770001", "first\nline\x1b[2J", ["follow-up"]))
+assert out == ("[router] wait wt (codex): active (held follow-ups are running now: wait again) — last: first⏎line "
+               "[4 hidden chars removed]\n"), out
+assert wait_for(finish("77770002", "second")) == "[router] wait wt (codex): idle — last: second\n"
+r = cli("wait", "wt", "--timeout", "5")  # not running → at once
+assert r.returncode == 0 and r.stdout == "[router] wait wt (codex): idle — last: second\n", r
+(PEND / "2a2a2a2a.json").unlink()
 
 # summarize/stop take a registered name; the session/job id comes from the registry, never the command line
 assert cli("summarize", "w2").returncode == 0 and argv_lines()[-1].startswith("-p --resume w2-uuid --fork-session ")

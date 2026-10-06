@@ -228,6 +228,7 @@ assert re.fullmatch(r"[0-9a-f-]{36}", thread), cx
 p = prompts()[-1]
 assert p.startswith("Router front: @boss — you cannot message it: your last message is your report"), p
 assert registry.CODEX_WORKER in p and registry.ROUTED in p and "SendMessage" not in p, p
+assert "report it as blocked (the run is then blocked, not done, even if the rest finished)." in p, p  # no deny text
 assert p.endswith("\n\nRequest from the user:\nreply pong"), p
 # list: one claude-agents-shaped entry per run; a finished run has no pid and leaves the worker idle on refresh
 e = json.loads(backend("list").stdout)
@@ -259,15 +260,16 @@ assert not any("permission_mode" in s for s in reg()["sessions"].values())
 # model kept
 registry.record_mode(REG, "front-uuid", "plan")
 n = len(calls())
-r = cli("resume", "cx", "--request", "again")
+r = cli("resume", "cx", "--topic", "T wide", "--request", "again")  # a widened topic goes with the forward (route)
 assert r.returncode == 0 and re.fullmatch(r"[0-9a-f]{8}\n", r.stdout) and r.stdout.strip() != job, r
+assert worker("cx")["topic"] == "T wide", worker("cx")
 job = r.stdout.strip()
 c = call_after(n)
 assert c["call"] == "thread/resume" and c["params"] == {
     "threadId": thread, "excludeTurns": True, "cwd": str(CWD), "sandbox": "read-only", "approvalPolicy": "never",
     "model": "gpt-mini"}, c
 cx = idle("cx")
-assert prompts()[-1].endswith("Request from the user:\nagain")
+assert "\nTopic: T wide\n" in prompts()[-1] and prompts()[-1].endswith("Request from the user:\nagain")
 assert cx["session_id"] == thread and cx["last_result"] == f"pong {len(calls())}", cx
 registry.record_mode(REG, "front-uuid", "default")
 
@@ -291,6 +293,11 @@ cx = idle("cx", busy)
 assert len(calls()) == n + 1 and calls()[-1]["call"] == "thread/resume" and "held" not in cx, (calls(), cx)
 assert prompts()[-1].endswith("Request from the user:\nfollow-up 1\n\nfollow-up 2"), prompts()[-1]
 assert cx["last_result"] == f"pong {n + 1}" and cx["job_id"] != busy, cx
+# both chained runs stay visible to the front: the held run's result does not hide the one before it (7th live test)
+assert [(r["job"], r["text"], r.get("chained")) for r in cx["results"][-2:]] == [
+    (busy, f"pong {n}", True), (cx["job_id"], f"pong {n + 1}", None)], cx["results"]
+out = cli("list").stdout
+assert f"last: pong {n + 1}\n  earlier result (its held follow-ups ran right after): pong {n}\n" in out, out
 
 # stop: SIGTERM to the run's process group (supervisor, codex-turn.py, app-server); refresh then shows it exited;
 # resumable
@@ -316,6 +323,7 @@ until(gone, "process group gone")
 assert "- cx [exited/stopped codex]" in cli("refresh").stdout
 r = cli("resume", "cx", "--request", "back")
 assert r.returncode == 0 and idle("cx")["last_result"] == f"pong {len(calls())}", r
+assert "earlier result" not in cli("list").stdout  # a run the front sent itself ends the chain's listing
 
 # a failed run: its error becomes last_result (not a stale result), the worker stays resumable (idle/failed)
 (BIN / "fail").touch()

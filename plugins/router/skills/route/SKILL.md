@@ -37,7 +37,7 @@ python3 "${CLAUDE_PLUGIN_ROOT}/scripts/registry.py" --data "${CLAUDE_PLUGIN_DATA
 
 ## 3. Act
 
-**forward** — 대상이 `codex` 세션이면 아래 "Codex workers"대로 `resume`으로만 보낸다. 대상이 `WAITING`이면 보내지 않고 아래 "Waiting workers"대로 사용자에게 알린다(프롬프트가 그 세션의 턴을 잡고 있다). 2의 refresh 출력에서 대상에 `pid N`이 있으면 먼저 `active`로 표시하고(보내기 전에: 빨리 끝난 작업의 Stop 훅 `idle`을 덮지 않게), `SendMessage`로 대상 이름에 요청 본문(아래 "Request body")을 보낸다. 앞에 `[router] 사용자 요청 전달:` 한 줄을 붙인다. 후속 요청으로 주제가 넓어졌으면 같은 명령에 `--topic "<넓어진 한 줄 주제>"`를 더한다.
+**forward** — 대상이 `codex` 세션이면 아래 "Codex workers"대로 `resume`으로만 보낸다. 대상이 `WAITING`이면 보내지 않고 아래 "Waiting workers"대로 사용자에게 알린다(프롬프트가 그 세션의 턴을 잡고 있다). 2의 refresh 출력에서 대상에 `pid N`이 있으면 먼저 `active`로 표시하고(보내기 전에: 빨리 끝난 작업의 Stop 훅 `idle`을 덮지 않게), `SendMessage`로 대상 이름에 요청 본문(아래 "Request body")을 보낸다. 앞에 `[router] 사용자 요청 전달:` 한 줄을 붙인다. 후속 요청으로 주제가 넓어졌으면 아래 `upsert` 명령(아래 `resume`으로 보낼 때는 그 명령)에 `--topic "<넓어진 한 줄 주제>"`를 더한다.
 
 ```bash
 python3 "${CLAUDE_PLUGIN_ROOT}/scripts/registry.py" --data "${CLAUDE_PLUGIN_DATA}" upsert <name> --state active
@@ -82,7 +82,13 @@ cwd는 front의 cwd가 기본이다. 사용자가 다른 저장소를 말했을 
 목록에서 상태 뒤에 `codex`가 붙은 세션(예: `[idle codex]`, `[active codex pid N held 1]`)은 Codex CLI로 도는 작업 세션이다.
 
 - **전달**: `SendMessage`하지 않는다(받지 못한다). forward·broadcast 모두 위 `resume` 명령(표준 입력 heredoc)으로 보낸다. `upsert … --state active`도 하지 않는다. 출력이 job id면 새 실행이 시작된 것이고, `held: …`면 지금 실행이 끝난 뒤 이어서 보내진다(같은 세션에 실행이 겹치지 않는다).
-- **결과**: 보고 메시지가 오지 않는다. 실행이 끝나면 마지막 메시지가 그 세션의 `last`(`last_result`)로 기록되고 상태가 `idle`이 된다. 사용자에게는 `→ @<name>(Codex)로 보냈습니다. 결과는 끝난 뒤 다음 메시지나 상태 확인 때 보입니다.`처럼 말한다. 주입된 목록에서 Codex 세션의 `last`가 새로 바뀌었으면 그 턴에 핵심을 전한다. `[<topic>] blocked: …`면 사용자 결정이 필요한 질문으로 바꿔 묻는다.
+- **결과 알림**: 보고 메시지가 오지 않는다. 실행이 끝나면 마지막 메시지가 그 세션의 `last`(`last_result`)로 기록되고 상태가 `idle`이 된다. `spawn`·`resume`(출력이 job id나 `held: …`) 뒤에는 아래 명령을 Bash 도구의 `run_in_background: true`로 실행한다(그 세션의 `wait`가 이미 돌고 있으면 또 걸지 않는다). 사용자에게는 `→ @<name>(Codex)로 보냈습니다. 끝나면 알려 드립니다.`처럼 말한다.
+
+  ```bash
+  python3 "${CLAUDE_PLUGIN_ROOT}/scripts/registry.py" --data "${CLAUDE_PLUGIN_DATA}" wait <name>
+  ```
+
+  명령이 끝나면 알림으로 `[router] wait <name> …` 한 줄이 온다. 결과면 핵심을 전하고, `[<topic>] blocked: …`면 사용자 결정이 필요한 질문으로 바꿔 묻는다. `WAITING`이면 아래 "Waiting workers"대로 알린다. `WAITING`이거나 `wait again`이 있으면 같은 명령을 다시 백그라운드로 건다. `still running`이면 그렇다고만 전한다. 주입된 목록에서 Codex 세션의 `last`나 `earlier result`가 새로 바뀌었는데 아직 전하지 않았으면 그 턴에 전한다.
 - **승인**: front 모드가 `default`·`acceptEdits`·`auto`면 Codex 작업 세션도 승인을 물을 수 있고, 그 요청은 Claude 작업 세션처럼 `[WAITING: …]`와 `approval <id>` 줄로 보인다(아래 "Waiting workers"). 다만 `claude attach`를 안내하지 않는다(답할 길은 `/router:approve`뿐이고, 시간 안에 답이 없으면 거부된다). 그 밖의 모드에서는 묻지 않고, sandbox가 막은 일은 `blocked`로 끝난다.
 - `idle/failed`는 실행이 실패한 것이다. `last`의 오류(`codex run failed …`)를 전하고, 다시 보내면 같은 thread로 재개된다.
 

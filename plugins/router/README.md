@@ -32,7 +32,7 @@ front에는 `/rename <고정 이름>`(또는 `claude -n <고정 이름>`으로 �
 - **front 등록**: 사용자가 입력한 `/router:front`의 UserPromptExpansion 훅이 그 입력의 `session_id`·`permission_mode`와 `claude agents`에서 찾은 그 세션의 이름을 대장에 기록한다. `registry.py`에는 front를 쓰는 명령이 없다.
 - **UserPromptSubmit 훅**: `session_id`가 front일 때만 그 턴의 `permission_mode`를 대장에 기록하고(`front.permission_mode`·`mode_updated`), 대장 요약을 `additionalContext`로 주입한다(열린 승인 요청과 최근에 입력한 결정 포함, 아래 "승인 전달"). 다른 세션에서는 아무것도 하지 않는다. 시간 제한은 15초다(6차 시험의 부하에서 5초를 넘겨 그 턴의 문맥이 빠졌다).
 - **작업 세션**: `agents/topic-worker.md`. 한 주제만 맡고, 완료·막힘 시 front에 `SendMessage`로 짧게 보고하고, 라우팅하지 않는다. 대장에 기록된 front의 권한 모드로 뜬다(아래 보안 모델).
-- **Stop 훅**: 작업 세션(`session_id`, 아직 모르면 `$CLAUDE_JOB_DIR`의 job id가 대장에 있음)에서만 `last_assistant_message`를 `last_result`로 기록한다. 보고가 빠져도 front가 결과를 읽을 수 있다.
+- **Stop 훅**: 작업 세션(`session_id`, 아직 모르면 `$CLAUDE_JOB_DIR`의 job id가 대장에 있음)에서만 `last_assistant_message`를 `last_result`로 기록한다. 보고가 빠져도 front가 결과를 읽을 수 있다. 입력의 `background_tasks`에 아직 도는 subagent가 있으면 상태를 `idle`로 내리지 않고 `active`로 둔다(0.5.0, 문서: hooks "Stop input". 셸 백그라운드 작업만 있으면 `idle`).
 - **승인 전달**: 작업 세션의 PermissionRequest 훅과 front의 `/router:approve` 훅(아래 "승인 전달").
 - **보고 대상 고정**: 작업 세션의 PreToolUse(`SendMessage`) 훅이 front·형제가 아닌 살아 있는 세션(`claude agents`)으로의 전송을 거부한다. front가 사라진 뒤 보고하면 `SendMessage`가 "Did you mean <다른 세션>?"을 제안하고, 작업 세션이 그 제안을 따라 무관한 세션에 보고를 보낸 일이 있었다. 주소는 Claude Code가 쓰는 꼴을 벗겨 비교한다: `@`, `"공백 든 이름"`, 이름이 겹칠 때 붙는 ` [ref]`(예: `router-front-5 [09e9dd]`), 앞뒤 공백, 대소문자. ref는 `claude agents`에 없어 검증할 수 없으므로, front·작업 세션(id 기준)이 아닌 살아 있는 세션과 이름이 같으면 front 이름이라도 거부한다. 벗기고 나서 빈 주소(ref만)도 거부한다. 작업 세션 자신의 subagent 이름·id는 막지 않는다. front를 `/clear`하거나 다시 띄운 뒤 `/router:front`를 다시 입력하기 전에는 front의 새 session id가 대장에 없어 보고가 거부된다(0.2.1까지는 이름으로 전달됐다). 주소가 front 이름이면 거부 사유가 그 사정을 알린다: front가 아직 `/router:front`로 재등록하지 않았거나 다른 세션이 이름을 가져갔고, 결과는 Stop 훅으로 저장되니 다음 턴에도 계속 보고하라고(0.2.4. 6차 시험에서는 "another session" 거부 뒤 작업 세션이 다음 턴에 보고하지 않았다). 그동안 결과는 Stop 훅의 `last_result`로만 남는다. Claude Code는 이름이 하나뿐이어도 `name [ref]`로 주소를 쓴다(6차 시험).
 - **백엔드**: 세션 생성·재개·목록·정지·요약은 `scripts/backend.sh` 한 파일만 Claude Code CLI를 부른다. 다른 백엔드(Orca 등)로 바꿀 때 이 파일만 교체한다. `registry.py`만 부르고, 인자 목록이 고정되어 있다(추가 claude 인자 없음, 권한 모드는 문서의 6개 값만). `spawn`/`resume`은 프롬프트를 표준 입력으로 받고, stdout은 job id 한 줄뿐이다(안내 문구는 stderr).
@@ -41,7 +41,7 @@ front에는 `/rename <고정 이름>`(또는 `claude -n <고정 이름>`으로 �
 
 ## 권한 프롬프트 줄이기
 
-front는 `registry.py`를 플러그인 경로째 부르는 단일 명령만 쓴다. `front`/`route`/`merge` 스킬의 `allowed-tools`는 스킬을 불러온 그 턴에만 이 스크립트를 사전 승인한다. front는 `route`를 세션에 한 번만 불러오고, 작업 세션 보고처럼 메시지로 시작된 턴에는 스킬이 없다. 그래서 **사람이 지켜보지 않는 라우팅에는 아래 allow 규칙이 필수다.** 사용자 설정(`~/.claude/settings.json`)에 넣고, `<HOME>`은 홈 디렉터리의 절대 경로(`echo $HOME`)로, `<VERSION>`은 설치된 버전(예: `0.4.0`)으로 바꾼다. 마켓플레이스 설치본의 `${CLAUDE_PLUGIN_ROOT}`는 `~/.claude/plugins/cache/hexoskeleton/router/<version>/`이다. 버전 자리에 `*`를 쓰지 않는다(아래 보안 모델). 플러그인을 업데이트하면 규칙의 버전도 바꾼다. 바꾸지 않으면 확인이 다시 뜰 뿐이다. `Skill(...)` 규칙은 front가 스킬을 불러올 때의 `Use skill "router:route"?` 확인을 없앤다(`Skill(name)`은 정확히 그 이름, `Skill(name *)`은 인자가 붙은 호출까지). 사용자가 직접 입력한 `/router:front`·`/router:approve`는 Skill 도구 호출이 아니라서 확인이 없으므로 `front`·`approve` 규칙은 두지 않는다.
+front는 `registry.py`를 플러그인 경로째 부르는 단일 명령만 쓴다. `front`/`route`/`merge` 스킬의 `allowed-tools`는 스킬을 불러온 그 턴에만 이 스크립트를 사전 승인한다. front는 `route`를 세션에 한 번만 불러오고, 작업 세션 보고처럼 메시지로 시작된 턴에는 스킬이 없다. 그래서 **사람이 지켜보지 않는 라우팅에는 아래 allow 규칙이 필수다.** 사용자 설정(`~/.claude/settings.json`)에 넣고, `<HOME>`은 홈 디렉터리의 절대 경로(`echo $HOME`)로, `<VERSION>`은 설치된 버전(예: `0.5.0`)으로 바꾼다. 마켓플레이스 설치본의 `${CLAUDE_PLUGIN_ROOT}`는 `~/.claude/plugins/cache/hexoskeleton/router/<version>/`이다. 버전 자리에 `*`를 쓰지 않는다(아래 보안 모델). 플러그인을 업데이트하면 규칙의 버전도 바꾼다. 바꾸지 않으면 확인이 다시 뜰 뿐이다. `Skill(...)` 규칙은 front가 스킬을 불러올 때의 `Use skill "router:route"?` 확인을 없앤다(`Skill(name)`은 정확히 그 이름, `Skill(name *)`은 인자가 붙은 호출까지). 사용자가 직접 입력한 `/router:front`·`/router:approve`는 Skill 도구 호출이 아니라서 확인이 없으므로 `front`·`approve` 규칙은 두지 않는다.
 
 ```json
 {
@@ -75,7 +75,9 @@ front는 `registry.py`를 플러그인 경로째 부르는 단일 명령만 쓴�
 
    사용자가 `claude attach`로 먼저 응답해도 Claude Code는 이 훅을 멈추지 않는다(4차 시험). 그래서 훅은 3초마다 `claude agents`를 본다. 자기 작업 세션이 `status: waiting`·`waitingFor: permission prompt`인 것을 한 번 보면 요청에 `seen`을 기록하고, 그 뒤 더는 그 상태가 아니면 출력 없이 끝나 요청을 지운다. 첫 확인이 확인 창보다 먼저일 수 있어서, 본 적 없이 아니라고만 나오면 끝내지 않는다. 훅의 입력에는 `tool_use_id`가 없다(문서: PermissionRequest input).
 
-   subagent 안의 확인(`agent_id`가 있는 요청)은 이 방법으로 알 수 없다. subagent가 확인 창에서 기다리는 동안 `claude agents`는 작업 세션을 `busy`로 보인다(6차 시험). 그래서 이런 요청은 `claude agents`를 보지 않고 subagent 자신의 transcript `<transcript_path에서 .jsonl을 뗀 경로>/subagents/agent-<agent_id>.jsonl`을 본다(문서: sub-agents의 transcript 위치, hooks의 SubagentStop. 6차 시험의 파일 위치. `claude -p` 실측: subagent 안의 PermissionRequest 입력에서 `transcript_path`는 본 세션의 것이고 `agent_id`가 있다). 같은 도구·입력의 `tool_use`에 요청 시각 뒤의 `tool_result`가 생기면 응답된 것으로 보고, 훅은 출력 없이 끝난다. 요청 전에 끝난 같은 호출의 결과나 다른 호출의 결과는 세지 않는다. 파일 크기가 늘었을 때만 읽고, 일반 파일만 연다(0.2.4).
+   subagent 안의 확인(`agent_id`가 있는 요청)은 이 방법으로 알 수 없다. subagent가 확인 창에서 기다리는 동안 `claude agents`는 작업 세션을 `busy`로 보인다(6차 시험). 그래서 이런 요청은 `claude agents`를 보지 않고 subagent 자신의 transcript `<transcript_path에서 .jsonl을 뗀 경로>/subagents/agent-<agent_id>.jsonl`을 본다(문서: sub-agents의 transcript 위치, hooks의 SubagentStop. 6차 시험의 파일 위치. `claude -p` 실측: subagent 안의 PermissionRequest 입력에서 `transcript_path`는 본 세션의 것이고 `agent_id`가 있다). 같은 도구·입력의 `tool_use`에 요청 시각 뒤의 `tool_result`가 생기면 응답된 것으로 보고, 훅은 출력 없이 끝난다. 요청 전에 끝난 같은 호출의 결과나 다른 호출의 결과는 세지 않는다. 파일 크기가 늘었을 때만 읽고, 일반 파일만 연다(0.2.4). 백그라운드 subagent는 아래처럼 훅이 기다리는 동안 attach에 확인 창이 뜨지 않으므로, 이 감지는 주로 만료 뒤의 기록을 닫는 데 쓰인다.
+
+   **백그라운드 subagent의 확인(0.5.0)**: 7차 시험에서 `claude attach`는 백그라운드 subagent의 확인 창을 이 훅이 기다리는 동안 보여 주지 않았다(요청 3개, 본 화면·subagent 화면 모두). 훅이 대기 시간(300초)을 넘겨 끝난 뒤에야 확인 창이 떴다. 본 스레드의 확인 창은 훅이 기다리는 동안에도 보였다. 그래서 **대기 중에는 `/router:approve`로만 답하고, attach는 대기 시간이 지난 뒤에만 쓸 수 있다.** 결정 없이 대기 시간이 지나면 훅은 그 요청을 `approvals/expired/<id>.json`으로 남긴다. front 목록은 그 작업 세션을 `WAITING: subagent prompt — claude attach <job_id> to answer`와 요청 내용 한 줄로 보인다(Stop 훅이 `idle`로 적었어도). subagent transcript에 결과가 생기거나, 같은 subagent가 다시 묻거나, 작업 세션 프로세스가 사라지거나, 1시간이 지나면 더는 보이지 않는다. 그 id의 `/router:approve`는 `not sent. <id> expired: … claude attach <job_id>`로 거부된다.
 
    병렬 도구 호출은 확인 창이 하나씩 뜬다. 첫 확인에 응답하면 다음 확인이 곧 떠서(5차 시험 0.6초, 6차 시험의 부하에서 2.3·4.3초), 작업 세션은 확인 창을 떠나지 않고 `claude agents`로는 응답을 알 수 없다. 그래서 같은 스레드의 더 새 요청이 있으면 이전 요청은 응답된 것으로 본다. 스레드는 `session_id`, 그리고 subagent 안이면 `agent_id`로 가른다(문서: 훅 공통 입력의 `agent_id`는 subagent 안에서만 있다). `seen` 요청의 훅은 0.5초 안에 출력 없이 끝나고, front 목록은 그 요청을 숨긴다. 작업 세션 본 스레드와 그 subagent의 요청은 서로 밀어내지 않는다.
 
@@ -99,7 +101,7 @@ front는 `registry.py`를 플러그인 경로째 부르는 단일 명령만 쓴�
    - 입력한 세션이 대장의 front인지.
    - id가 8자리 소문자 hex이고 열린(만료 전) 요청인지.
 
-   결정을 쓴 뒤 프롬프트를 막는다. 그래서 모델 턴이 없고, 화면에는 무엇을 허용·거부했는지(`router: approved <id>: @<세션> <도구>: <명령>`) 나온다. 인자 없이 입력하면 열린 요청 목록을 보여 준다. front가 아니거나, 모르는 id·만료된 id면 `not sent`로 막는다. 이미 `claude attach`로 응답됐거나 같은 작업 세션의 다음 요청에 밀린 요청도 결정을 쓰지 않고 막는다. 보통은 훅이 먼저 끝나 요청이 지워졌으므로 `not sent. No open request <id> (answered, expired or unknown).`가 나온다(5·6차 시험). 훅이 아직 끝나지 않았으면 `not sent. <id> was already answered (e.g. via claude attach) or superseded by the same worker's next request; nothing approved.`가 나온다.
+   결정을 쓴 뒤 프롬프트를 막는다. 그래서 모델 턴이 없고, 화면에는 무엇을 허용·거부했는지(`router: approved <id>: @<세션> <도구>: <명령>`) 나온다. 거부하면 작업 세션의 도구 결과 끝에 `Report this as blocked to the front (not done).`가 붙는다(0.5.0. 6·7차 시험에서 거부가 `완료` 머리말 아래 보고됐다). Codex의 거부(`decline`)에는 메시지 칸이 없어, Codex 작업 지시에 같은 뜻을 적었다. 인자 없이 입력하면 열린 요청 목록을 보여 준다. front가 아니거나, 모르는 id·만료된 id면 `not sent`로 막는다. 이미 `claude attach`로 응답됐거나 같은 작업 세션의 다음 요청에 밀린 요청도 결정을 쓰지 않고 막는다. 보통은 훅이 먼저 끝나 요청이 지워졌으므로 `not sent. No open request <id> (answered, expired or unknown).`가 나온다(5·6차 시험). 훅이 아직 끝나지 않았으면 `not sent. <id> was already answered (e.g. via claude attach) or superseded by the same worker's next request; nothing approved.`가 나온다.
 
 **끄기**: 사용자 설정의 `"env": {"ROUTER_APPROVAL_WAIT": "0"}`. 훅이 기다리지 않고 바로 끝나, 일반 확인 창과 `claude attach`만 남는다.
 
@@ -134,7 +136,7 @@ front는 `registry.py`를 플러그인 경로째 부르는 단일 명령만 쓴�
   - `bypassPermissions` front, 또는 `auto` front에서 분류기가 허용한 명령.
   - 모델이 임의 코드를 실행하게 하는 allow 규칙은 무엇이든 그렇다. 예: `Bash(python3 -c *)`, `Bash(node:*)`(`node -e`), `Bash(rtk:*)`처럼 다른 명령을 대신 실행하는 래퍼(`rtk proxy …`), `Bash(claude --plugin-dir:*)`. 이런 규칙이 하나라도 있으면 작업 세션이나 front 모델이 확인 없이 결정을 위조할 수 있다. router를 쓸 때는 이런 규칙을 설정(사용자·프로젝트·로컬)에서 뺀다.
 - 이 위험은 이 플러그인의 다른 훅 정책과 같다. 플러그인은 자동 승인되는 경로(allow 규칙이 승인하는 `registry.py`, Skill 호출, 세션 간 메시지)를 막고, OS 수준 경계는 sandbox에 맡긴다.
-- 표시는 정리하고 잘라서 보이므로, 300자를 넘는 입력은 끝까지 보이지 않는다. 긴 명령은 `claude attach`로 원문을 보고 응답한다.
+- 표시는 정리하고 잘라서 보이므로, 300자를 넘는 입력은 끝까지 보이지 않는다. 긴 명령은 `claude attach`로 원문을 보고 응답한다. 백그라운드 subagent의 요청은 router 대기 시간이 지난 뒤에야 attach에 보인다(위 "백그라운드 subagent의 확인").
 - front는 다음 턴에야 새 요청을 안다. 인자 없는 `/router:approve`는 즉시 최신 목록을 보여 준다.
 - 본 스레드의 확인을 `claude attach`로 응답한 뒤 훅이 알아채기 전(다음 확인 창이 뜨기 전, 또는 최대 약 3초)에 입력한 `/router:approve`는 `approved`라고 답하지만 아무 일도 일어나지 않는다(Claude Code는 이미 응답된 확인 창에 대한 늦은 훅 답을 무시했다, 4·5차 시험). subagent 요청은 그 결과가 transcript에 쓰이는 즉시 숨긴다(transcript는 비동기로 쓰여 조금 늦을 수 있다). 결과가 쓰이기 전에 입력한 승인은 같다.
 - 같은 스레드의 확인 창은 하나씩 뜬다는 것은 5차 시험의 병렬 호출 관찰이다. 같은 스레드에 열린 확인 창이 둘 생기면 이전 요청은 relay되지 않고(거부도 승인도 아님) `claude attach`로만 응답한다.
@@ -168,8 +170,12 @@ front는 그대로 Claude Code 세션이고, 작업 세션 하나하나를 Codex
 - 작업 지시는 `topic-worker` 에이전트 대신 프롬프트 머리에 들어간다. 내용은 다음과 같다. 한 주제만 한다. 세션을 만들거나 라우팅하지 않는다. sandbox가 막으면 승인을 요청하고, 거부되거나 요청할 수 없으면 우회하지 않고 `blocked`로 끝낸다. 마지막 메시지에 `[<topic>] done|blocked: …` 보고를 쓴다.
 
 **Claude 작업 세션과 다른 점**:
-- **결과는 끌어온다(pull-only)**: Codex 작업 세션은 `SendMessage`를 쓸 수 없어 보고 메시지가 오지 않는다. front는 다음 턴에 UserPromptSubmit 훅이 주입한 대장(또는 상태 확인)에서 `last`를 읽는다. 사용자가 다음 메시지를 보내기 전까지 front는 끝난 것을 모른다.
-- **실행 중 후속 요청은 보류된다**: `route`는 Codex 세션에 늘 `registry.py resume`으로 보낸다. 실행이 진행 중이면 요청이 대장의 `held`에 쌓이고(목록에 `held N`), 감독 프로세스가 실행이 끝나면 쌓인 요청을 묶어 다음 실행으로 보낸다. 그때의 front 모드를 쓴다. 한 thread에 실행 두 개를 겹쳐 띄우지 않는다. 다음 실행을 띄우지 못하면 요청은 대장에 남아, 다음 전달 때 함께 간다.
+- **결과 알림(0.5.0)**: Codex 작업 세션은 `SendMessage`를 쓸 수 없어 보고 메시지가 오지 않는다. 대신 `route`가 Codex 세션에 `spawn`·`resume`한 뒤 `registry.py wait <이름>`을 Bash 도구의 `run_in_background: true`(문서: tools reference "Background commands", hooks의 Bash `tool_input`)로 돌린다. 이 명령은 그 세션이 결과를 기록하거나, 실행을 멈추거나, 새 승인 요청을 열 때 한 줄을 출력하고 끝난다. 끝난 백그라운드 명령은 유휴 front에 입력 없이 새 턴을 연다(7차 시험 H5: 25초 뒤). 사용자에게는 전달 직후 `→ @<이름>(Codex)로 보냈습니다. 끝나면 알려 드립니다.`가 보이고, 실행이 끝나면 따로 입력하지 않아도 front가 결과(`[<topic>] done|blocked: …`)나 승인 대기(`WAITING`)를 알린다.
+  - `wait`는 읽기만 한다. 대장 파일과 `approvals/pending`의 mtime을 보고(기본 0.5초 간격), 잠금을 잡거나 파일을 쓰지 않는다. 그래서 위 `registry.py` allow 규칙 밖의 권한이 늘지 않는다.
+  - 출력: `[router] wait <이름> (codex): idle — last: <결과>`, `… active (held follow-ups are running now: wait again) — last: …`(보류된 후속 요청이 이어서 실행 중, front가 다시 건다), `… WAITING: approval @<이름> Bash: <명령> — …`(front가 다시 건다. wait 시작 전에 열린 요청으로는 끝나지 않는다), `… still running after 600 s …`. 결과 글은 승인 요청 표시처럼 정리하고 300자로 자른다.
+  - 기본 600초, `--timeout`은 최대 1800초(비대화형 세션은 백그라운드 명령을 기본 30분에 멈춘다. 대화형 세션에는 제한이 없다). `still running`이면 결과는 다음 메시지나 상태 확인 때 대장에서 보인다.
+  - Claude Code는 이 알림 앞에 사람 입력이 아니라는 안내를 붙인다(문서: Agent SDK task notification). 알림은 사용자 동의가 아니다.
+- **실행 중 후속 요청은 보류된다**: `route`는 Codex 세션에 늘 `registry.py resume`으로 보낸다. 실행이 진행 중이면 요청이 대장의 `held`에 쌓이고(목록에 `held N`), 감독 프로세스가 실행이 끝나면 쌓인 요청을 묶어 다음 실행으로 보낸다. 그때의 front 모드를 쓴다. 한 thread에 실행 두 개를 겹쳐 띄우지 않는다. 다음 실행을 띄우지 못하면 요청은 대장에 남아, 다음 전달 때 함께 간다. 그 다음 실행의 결과가 `last_result`를 바꾸기 전에 front가 앞 결과를 읽지 못할 수 있어(7차 시험에서 17초 만에 덮어썼다), 대장은 실행마다 결과를 최근 3개(`results`)로 남기고 목록은 연쇄의 앞 결과를 그 세션 줄 아래 `earlier result (its held follow-ups ran right after): …`로 보인다(0.5.0). front가 직접 보낸 실행이 끝나면 그 줄은 사라진다. 주제가 넓어졌으면 `resume`에 `--topic`을 주어 대장 주제와 프롬프트를 함께 바꾼다(0.5.0. 0.4.0까지는 `unrecognized arguments`로 실패했다).
 - **승인은 front로만 온다(attach 없음)**: 아래 "승인 전달". 요청 하나의 답은 front에서 직접 입력한 `/router:approve`뿐이다. app-server의 클라이언트가 `codex-turn.py` 하나라 `claude attach`나 Codex 화면으로 답할 길이 없고, 대기 시간(`ROUTER_APPROVAL_WAIT`, 기본 300초) 안에 답이 없으면 거부로 끝난다. 작업 세션은 `blocked`로 보고하고, 다시 보내면 새 요청이 온다.
 - **router 훅이 없다**: router는 Claude Code 플러그인으로 설치되므로 Codex 작업 세션은 router 훅을 실행하지 않는다. Stop·PermissionRequest·`SendMessage` 가드가 돌지 않는다. 승인 전달도 Codex 훅이 아니라 `codex-turn.py`(app-server 클라이언트)가 한다. Codex에 router를 플러그인으로 따로 설치하면 Codex가 `hooks.json`을 읽지만, 사용자가 신뢰하기 전까지 훅은 꺼져 있다. 켜져도 `CLAUDE_PLUGIN_DATA`가 Codex 쪽 디렉터리(`~/.codex/plugins/data/router-<marketplace>`)라 front의 대장을 보지 못한다. 가드가 필요 없는 이유는 Codex 세션이 `SendMessage`를 쓸 수 없기 때문이다. front 쪽 훅과 보안 모델(front 등록, 모드 기록, 승인 위조 방지)은 그대로다.
 - **정지·요약**: `registry.py stop <이름>`은 실행의 프로세스 그룹(감독 프로세스, `codex-turn.py`, app-server)에 SIGTERM을 보낸다. 열린 승인 요청 파일도 지운다. thread는 남아 다시 보내면 재개된다. `summarize`는 `codex exec fork --ephemeral`을 read-only sandbox로 실행해 원본 thread를 건드리지 않고 요약한다(실행이 끝나면 app-server가 끝나 thread가 풀려 있다). `merge`는 Codex 원본에 메시지를 보내지 않고 `last_result`나 `summarize`로 요약을 얻는다.
@@ -212,6 +218,13 @@ A2(Claude front + app-server에서 도는 Codex thread + 승인 전달)를 만�
 
 ### 실측 확인 (2026-10-06, codex-cli 0.159.0)
 
+0.5.0 `wait` (CLI로 front 역할을 대신함, `gpt-6-luna`, front 모드 `default`, 대장은 `~/.claude/plugins/data/` 아래 임시 디렉터리, git 저장소가 아닌 임시 작업 디렉터리):
+
+- `spawn … --request "reply with the word pong"` 직후 `wait`: 5.5초 뒤 `[router] wait live1 (codex): idle — last: [live wait check] done: pong`, exit 0.
+- 보류 연쇄: `sleep 8`을 시킨 `resume` 3초 뒤 `resume --topic "live wait chain"`이 `held: …`. 첫 `wait`가 19.3초에 `active (held follow-ups are running now: wait again) — last: … first-done`, 다시 건 `wait`가 24.5초에 `idle — last: [live wait chain] done: second-done`. 목록은 `last`에 둘째 결과, 그 아래 `earlier result …`에 첫 결과를 보였다. 보류된 요청에 준 `--topic`이 다음 실행의 프롬프트 주제가 됐다.
+- 시험 thread는 `codex delete --force <id>`로 지웠다. 남은 프로세스와 `~/.codex/config.toml`의 신뢰 항목 추가는 없었다.
+- 대화형 front가 `route`대로 `wait`를 백그라운드로 걸고 알림에 답하는 전체 흐름은 시험하지 않았다(아래 "미검증").
+
 0.4.0 (app-server, `gpt-6-luna`, front 모드 `default`, 대장은 `~/.claude/plugins/data/` 아래 임시 디렉터리, 작업 디렉터리는 git 저장소가 아닌 임시 디렉터리):
 
 - spawn(`pong`): job id가 바로 나오고 3.5초 뒤 `idle`, `last_result` `pong`, `pid` 없음. 실행이 끝난 뒤 그 thread의 쓰기 잠금(`~/.codex/thread-writer-locks/<id>.lock`)은 없었다.
@@ -228,7 +241,7 @@ A2(Claude front + app-server에서 도는 Codex thread + 승인 전달)를 만�
 
 ### 미검증 (Codex)
 
-- U1: front가 `registry.py wait <이름>`을 백그라운드 Bash로 돌려 끝날 때 깨어나는 push 알림. 끝난 백그라운드 명령이 유휴 대화형 front를 깨우는지 확인하지 못해 만들지 않았다(향후 과제).
+- 결과 알림(0.5.0): 끝난 백그라운드 Bash가 유휴 대화형 front에 새 턴을 여는 것은 7차 시험(H5)에서, `wait` 자체는 위 CLI 실측과 단위 테스트로 확인했다. 대화형 front 모델이 `route`대로 `wait`를 백그라운드로 걸고, 알림에 결과·`WAITING`을 전하고, `wait again`·`WAITING`에서 다시 거는 흐름은 실측하지 않았다. 감독 프로세스가 강제 종료되면 대장이 `active`로 남아 `wait`는 시간 초과(`still running`)로 끝난다.
 - 파일 변경(`apply_patch`) 승인, 네트워크 승인, 동시에 두 개 오는 승인, 대기 시간 만료, 쓰기 가능 sandbox 거부는 stub app-server로만 시험했다. `on-request`에서 모델이 승인을 요청하지 않고 바로 `blocked`로 끝낼 수도 있다(모델 판단).
 - `read-only`·`danger-full-access` 실행, 실제 app-server 실행의 `stop`, Codex 원본의 `merge`(단위 테스트만).
 - 사용자 config의 권한 프로필(`permissions`)이 요청한 sandbox를 바꾸는 경우. router는 Codex가 돌려준 sandbox·정책이 요청과 다르면 실행을 실패시킨다(단위 테스트만).
@@ -333,6 +346,17 @@ front는 sonnet `default` 모드(Claude Code 2.1.290), 작업 세션은 haiku. �
 - subagent: Agent 도구가 백그라운드로 띄운 subagent의 확인 요청에 `agent_id`(`a1cd1b52c8806f0d5`)가 있었다. 목록에 보였고, 거부가 subagent에 전달돼 파일은 생기지 않았다. 요청이 열린 동안 `claude agents`는 작업 세션을 `busy`(`waitingFor` 없음)로 보였다. subagent transcript는 `<세션 id>/subagents/agent-<agent_id>.jsonl`에 있었고, 거부 시각에 `tool_result` 줄이 쓰였다. 0.2.4에서 이것으로 응답을 알아챈다(위 "승인 전달").
 - 부하에서 UserPromptSubmit 훅이 5초 시간 제한을 넘겨 출력이 버려졌다(front `timed out after 5s`, 작업 세션 `hook_cancelled`). 0.2.4에서 15초로 늘렸다.
 
+### 실측 확인 (대화형 7차 시험 2026-10-06, 0.3.0, Orca terminal, marketplace install)
+
+front는 sonnet `default` 모드(Claude Code 2.1.290), 작업 세션은 haiku와 Codex 0.159.0(`gpt-6-luna`, 0.3.0의 `codex exec` 경로. 0.4.0 app-server 경로는 위 "Codex 작업 세션 → 실측 확인"). 로컬 설정에 고정 allow 규칙, 권장 deny 규칙, `"promptSuggestionEnabled": false`를 두었다.
+
+- H1 백그라운드 subagent의 확인: 작업 세션이 Agent 도구로 띄운 subagent는 늘 백그라운드였다. PermissionRequest 훅이 기다리는 동안 `claude attach`는 그 확인 창을 보이지 않았다(요청 3개, 본 화면·subagent 화면 모두). 훅이 만료로 끝나 pending이 지워진 뒤 15초 안에 확인 창이 떴고, attach로 승인하자 파일은 한 줄이었다. 늦은 `/router:approve <id>`는 `No open request … (answered, expired or unknown)`로 막혔고 결정 파일은 없었다. 본 스레드의 확인 창은 훅이 기다리는 동안에도 보였다. `answered()`는 잘못 숨기지 않았다(transcript에 앞선 같은 Bash의 결과가 있어도 요청은 남았다). 만료 뒤에는 요청이 목록에서 빠지고 작업 세션이 refresh 전 `idle`(Stop이 이미 돎), refresh 뒤 `active`로만 보였다(`claude agents`는 `busy`, `waitingFor` 없음). 0.5.0에서 고쳤다(위 "백그라운드 subagent의 확인", Stop의 `background_tasks`). 동기 subagent는 시험하지 않았다.
+- H2 최근 결정: 허용 2·거부 1 뒤 "방금 승인/거부한 것 확인해줘"에 front가 도구 호출 없이 주입된 `[router] decided …` 블록과 같은 3행 표로 답했다. 10분 창도 맞았다(13:03:18에는 12:53:31 항목만 남음).
+- H3 재등록 전 보고: `/clear`로 session id가 바뀐 뒤 작업 세션의 보고는 `… is your front's name, but that session is not registered as the front: the front has not re-registered yet … keep reporting …`으로 거부됐다. attach 응답 2.1초 뒤 pending이 지워졌고, `/router:front`가 `last_result`를 보였으며, 다음 전달의 보고는 front에 왔다.
+- H4 Codex(0.3.0 `codex exec`): spawn은 6초에 끝나 `last_result`가 기록되고 다음 턴에 보였다. 유휴 `resume`은 같은 thread에 `exec resume -c sandbox_mode="workspace-write" -m gpt-6-luna`였다. 실행 중 전달은 `held`로 쌓였다가 실행이 끝난 0.5초 뒤 새 실행으로 나갔다. sandbox는 홈의 파일과 플러그인 데이터 `approvals/` 아래 파일 쓰기를 모두 `operation not permitted`로 막았고, 작업 세션은 `blocked`로 보고했다(두 파일 모두 없음). rollout의 모든 실행이 `sandbox_policy: workspace-write`였다. 보류 연쇄가 읽지 않은 결과를 17초 만에 덮어쓴 것과 `resume --topic`이 `unrecognized arguments`로 실패한 것은 0.5.0에서 고쳤다. `codex exec`는 작업 디렉터리의 신뢰 항목을 `~/.codex/config.toml`에 더했다(app-server 경로의 0.5.0 실측에서는 더하지 않았다).
+- H5 백그라운드 알림: front가 띄운 백그라운드 Bash가 끝나자 입력 없이 25.0초 뒤 `<task-notification>`이 와 유휴 front에 새 턴이 열렸다(문맥 주입 0.2초 뒤, 응답 약 4초 뒤). 0.5.0의 결과 알림(`wait`)이 이것을 쓴다.
+- 거부된 호출이 있는 보고가 또 `완료` 머리말 아래 왔다(6차와 같음). 0.5.0에서 거부 메시지에 `Report this as blocked to the front (not done).`를 붙였다.
+
 ### 미검증 (unverified)
 
 - `dontAsk` 작업 세션이 거부된 일을 `blocked`로 보고하는지(문서 기준).
@@ -346,13 +370,14 @@ front는 sonnet `default` 모드(Claude Code 2.1.290), 작업 세션은 haiku. �
   - `topic-worker`의 보고 시점.
 - `SendMessage`가 이름 없는 ref(예: `09e9dd`)만으로도 전달하는지(문서에 없음). 그렇다면 가드는 그 주소를 알아보지 못한다.
 - 0.2.4 수정은 stub `claude`와 고정 transcript를 쓴 단위 테스트로만 확인했다. 대상은 subagent transcript로 응답 알아채기, front 이름 거부 사유, 최근 결정 표시, `topic-worker` 지침, UserPromptSubmit 15초다. subagent 안의 PermissionRequest 입력(`transcript_path`는 본 세션 것, `agent_id` 있음, `tool_use_id` 없음)과 transcript 위치, `tool_use` 입력과 `tool_input`의 일치는 `claude -p`(2.1.290) 실측으로 확인했다. 대화형에서 attach로 응답한 subagent 요청이 사라지는지는 실측하지 않았다. Bash 밖의 도구에서 transcript의 `tool_use` 입력이 훅의 `tool_input`과 다르면 이 방법은 동작하지 않는다(만료·superseded로만 닫힌다).
+- 0.5.0 수정은 stub과 고정 transcript의 단위 테스트로만 확인했다. 대상은 만료된 백그라운드 subagent 요청의 attach 대기 표시·거부·닫힘, 거부 메시지의 `blocked` 지시(작업 세션이 따르는지는 실측하지 않음), Stop 입력의 `background_tasks`(문서 기준, 실제 입력은 보지 못함)다. 보류 연쇄 결과 보존·`resume --topic`·`wait`는 위 "Codex 작업 세션 → 실측 확인"의 CLI 실측도 거쳤다.
 
 ## 개발
 
 ```bash
-python3 plugins/router/tests/test_registry.py   # 대장: 유일 이름·실패 이름 재사용, 갱신(id로만), merged, 원자적 쓰기, stub claude로 spawn/resume·프롬프트 조립, front 모드 고정, CLI로 front·id·모드·대장 파일 지정 불가, backend.sh 고정 인자, 승인 대기(WAITING) 표시, 승인 요청 표시 정리(ANSI·bidi·줄바꿈·절단), claude attach로 응답된 요청 숨김, 같은 스레드의 새 요청에 밀린 요청 숨김(subagent 요청은 유지), Stop 뒤 대기 기록 정리
-python3 plugins/router/tests/test_hooks.py      # 훅: 입력한 /router:front만 front 등록, front만 모드 기록·주입(살아 있는 pid만 표시), 작업 세션만 기록, 승인 전달(PermissionRequest 대기·allow/deny·오래된/다른 id/잘못된 결정 무시·시간 초과, front에서 입력한 /router:approve만 결정, claude attach 먼저 응답 → 훅 종료·already answered, 병렬 호출의 새 요청 → 이전 요청 훅 종료·superseded 거부, subagent 요청은 유지, subagent 요청은 그 transcript의 새 결과로 훅 종료·숨김·already answered — 이전 같은 호출·다른 호출의 결과·FIFO는 무시), 결정·보고 뒤 대기 기록 정리, front 문맥의 최근 10분 결정 표시, SendMessage 보고 대상 가드(name [ref]·따옴표·대소문자, 이름을 공유한 다른 세션, 재등록 전 front 이름은 사유를 알리고 계속 보고)
-python3 plugins/router/tests/test_codex.py      # Codex 작업 세션(stub codex app-server): backend-codex.sh 고정 인자, spawn/resume/list/stop/summarize, 모드 → sandbox·승인 정책(bypass는 front가 bypass일 때만, 돌려준 값이 다르면 실패), 결과·실패 기록, 실행 중 요청 보류와 종료 뒤 전달, 백엔드 분기, Codex의 permission_mode를 대장에 쓰지 않음, 승인 전달(허용·거부·파일 변경·오래된 결정·만료·쓰기 가능 sandbox·never·다른 요청 거절·정지)
+python3 plugins/router/tests/test_registry.py   # 대장: 유일 이름·실패 이름 재사용, 갱신(id로만), merged, 원자적 쓰기, stub claude로 spawn/resume·프롬프트 조립, front 모드 고정, CLI로 front·id·모드·대장 파일 지정 불가, backend.sh 고정 인자, 승인 대기(WAITING) 표시, 승인 요청 표시 정리(ANSI·bidi·줄바꿈·절단), claude attach로 응답된 요청 숨김, 같은 스레드의 새 요청에 밀린 요청 숨김(subagent 요청은 유지), Stop 뒤 대기 기록 정리, wait(결과·WAITING·연쇄 wait again·시간 초과·즉시·파일 무변경)
+python3 plugins/router/tests/test_hooks.py      # 훅: 입력한 /router:front만 front 등록, front만 모드 기록·주입(살아 있는 pid만 표시), 작업 세션만 기록, 승인 전달(PermissionRequest 대기·allow/deny·오래된/다른 id/잘못된 결정 무시·시간 초과, front에서 입력한 /router:approve만 결정, claude attach 먼저 응답 → 훅 종료·already answered, 병렬 호출의 새 요청 → 이전 요청 훅 종료·superseded 거부, subagent 요청은 유지, subagent 요청은 그 transcript의 새 결과로 훅 종료·숨김·already answered — 이전 같은 호출·다른 호출의 결과·FIFO는 무시), 결정·보고 뒤 대기 기록 정리, front 문맥의 최근 10분 결정 표시, SendMessage 보고 대상 가드(name [ref]·따옴표·대소문자, 이름을 공유한 다른 세션, 재등록 전 front 이름은 사유를 알리고 계속 보고), 거부 메시지의 blocked 지시, 백그라운드 subagent가 돌면 Stop 뒤에도 active, 만료된 subagent 요청의 attach 대기 표시(거부·superseded·1시간·종료된 세션·응답 뒤 숨김, 본 스레드는 기록 없음)
+python3 plugins/router/tests/test_codex.py      # Codex 작업 세션(stub codex app-server): backend-codex.sh 고정 인자, spawn/resume/list/stop/summarize, 모드 → sandbox·승인 정책(bypass는 front가 bypass일 때만, 돌려준 값이 다르면 실패), 결과·실패 기록, 실행 중 요청 보류와 종료 뒤 전달, 백엔드 분기, Codex의 permission_mode를 대장에 쓰지 않음, 승인 전달(허용·거부·파일 변경·오래된 결정·만료·쓰기 가능 sandbox·never·다른 요청 거절·정지), 보류 연쇄의 앞 결과 표시, resume --topic, 거부 시 blocked 지시
 claude --plugin-dir plugins/router              # 작업 트리를 플러그인으로 로드
 ```
 

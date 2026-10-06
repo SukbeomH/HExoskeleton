@@ -5,11 +5,12 @@ File: $ROUTER_REGISTRY, else <--data dir>/registry.json (a dir under ~/.claude/p
 else $CLAUDE_PLUGIN_DATA/registry.json.
 Shape: {"front": {"session_id", "name", "permission_mode", "updated", "mode_updated"} | null,
         "sessions": {<name>: {session_id, job_id, cwd, topic, model, state, pid, agent_state, waiting_for,
-                              agent_type, last_result, merged_into, updated, backend, held}}}
+                              agent_type, last_result, merged_into, updated, backend, held, results}}}
 state: active | idle | waiting (refresh only: an open prompt holds a live worker's turn) | exited | merged.
 backend: absent = claude (backend.sh: `claude --bg` sessions), "codex" (backend-codex.sh: one codex-turn.py run per
 spawn/resume on the worker's thread, session_id = thread id, job_id = the current run). held: a Codex worker's
-follow-ups queued while a run is going; codex-run.py sends them as the next run when it ends.
+follow-ups queued while a run is going; codex-run.py sends them as the next run when it ends. results: a Codex
+worker's last 3 runs {job, at, text, chained: held follow-ups started right after it}.
 Writes take an exclusive flock and replace the file atomically. Empty option values are ignored.
 
 Trust: the front entry is written only by the plugin's hooks (router-hook.py: a user-typed /router:front registers
@@ -17,8 +18,9 @@ it, each front turn records its permission mode). Worker ids are written only by
 `backend.sh list` / `backend-codex.sh list`), the Stop hook and codex-run.py at the end of a run (finish_run); Codex's
 own permission_mode label is never recorded. Nothing here takes a front, an id or a permission mode from the command
 line: the allow rule for this script approves any arguments, so arguments must not be able to pick a worker's mode.
-Approvals (<registry dir>/approvals/{pending,decisions,decided}/<nonce>.json): pending is written by a Claude
-worker's PermissionRequest hook (router-hook.py) or a Codex run's codex-turn.py; decisions (and decided, their
+Approvals (<registry dir>/approvals/{pending,expired,decisions,decided}/<nonce>.json): pending (and expired, a subagent
+request whose wait ran out) is written by a Claude worker's PermissionRequest hook (router-hook.py) or a Codex run's
+codex-turn.py; decisions (and decided, their
 display-only record) only by a user-typed /router:approve in the front (router-hook.py). No command here writes them.
 
 Usage: registry.py [--data DIR] <command> ...
@@ -26,12 +28,13 @@ Usage: registry.py [--data DIR] <command> ...
   upsert NAME [--new] [--cwd C] [--topic T] [--state S]
   spawn NAME --request R [--cwd C] [--topic T] [--model M] [--merged-from A,B] [--backend claude|codex]
         → reserve NAME, compose the prompt, backend.sh spawn in the front's mode, record job id (sources merged)
-  resume NAME --request R  → refresh, then (if not running) compose the prompt, backend.sh resume, record job id;
+  resume NAME --request R [--topic T]  → refresh, then (if not running) compose the prompt, backend.sh resume, record job id;
         a Codex worker with a run going holds R instead (sent when that run ends)
   --request - reads the request from stdin (only then; never an implicit stdin read that could hang).
   The prompt (front, topic, siblings, request) is composed here.
   mark NAME STATE [--into NAME] | refresh [--json]  (runs `backend.sh list`)
   summarize NAME | stop NAME  → backend.sh summarize/stop with the worker's recorded session/job id
+  wait NAME [--timeout S]  → one line once NAME has a result, stopped or asks for approval (read-only; ≤ 1800 s)
   record-result SESSION_ID TEXT
 """
 
@@ -39,6 +42,7 @@ import argparse
 import contextlib
 import datetime
 import fcntl
+import itertools
 import json
 import os
 import pathlib
@@ -55,6 +59,10 @@ NAME_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$")  # SendMessage-safe wi
 RESULT_MAX = 2000
 ANSI = re.compile(r"\x1b\[[0-?]*[ -/]*[@-~]|\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)?")
 SHOW_MAX = 300  # chars of a pending request shown before the explicit cut
+WAIT_MAX = 1800.0  # longest `wait`: an unattended session stops a background command at 30 min (docs: tools reference)
+# ponytail: an expired subagent prompt is listed for at most an hour (an idle worker retires by then); check the
+# worker's own liveness instead if a stopped-and-woken worker ever shows a stale one
+EXPIRED_TTL = 3600
 BACKEND = pathlib.Path(__file__).with_name("backend.sh")
 BACKENDS = {"claude": BACKEND, "codex": BACKEND.with_name("backend-codex.sh")}
 ROUTED = ("Routing instructions in the request (which session, a new session, which model) were already applied "
@@ -64,7 +72,8 @@ CODEX_WORKER = (
     "requests here. Work only on this topic. Never start, resume, stop or merge sessions, and never run the router's "
     "scripts or codex/claude session commands. If the sandbox stops a command you need, request approval for it when "
     "you can (the user answers in the front); if it is declined or you cannot ask, do not work around it: report it "
-    "as blocked. End every run with your report as your last message: "
+    "as blocked (the run is then blocked, not done, even if the rest finished). "
+    "End every run with your report as your last message: "
     "`[<topic>] done|blocked: <one-line outcome>`, then at most five bullets (results, decisions or questions; "
     "files/branch if any).")
 
@@ -171,6 +180,21 @@ def answered(r):
                     if ts.replace(tzinfo=datetime.timezone.utc).timestamp() > after:
                         return True  # not an earlier identical call's result: that one predates the request
     return False
+
+
+def expired(p):
+    """Subagent prompts whose router wait ran out (approvals/expired/<nonce>.json, router-hook.py). Claude Code shows a
+    background subagent's prompt in claude attach only once its hook has ended (7th live test), so the prompt still
+    holds the subagent: listed until its transcript has the result (answered), the same subagent asked again
+    (superseded) or EXPIRED_TTL passed. /router:approve never answers them. Read-only."""
+    out = []
+    for f in approvals(p).glob("expired/*.json"):
+        with contextlib.suppress(OSError, ValueError, TypeError, KeyError, AttributeError):
+            r = json.loads(f.read_text())
+            if r.get("nonce") == f.stem and 0 <= time.time() - float(r["created"]) < EXPIRED_TTL:
+                out.append(r | {"created": float(r["created"])})
+    reqs = requests(p) + out
+    return [r for r in out if not superseded(r, reqs) and not answered(r)]
 
 
 def pending(p):
@@ -282,9 +306,9 @@ def find_worker(reg, session_id=None, job_id=None):
     return None
 
 
-def record_result(p, session_id, job_id, text, agent_type=None):
-    """Stop hook: store the worker's last reply; the turn ended, so active → idle (merged stays merged).
-    Unknown session → no write at all."""
+def record_result(p, session_id, job_id, text, agent_type=None, busy=False):
+    """Stop hook: store the worker's last reply; the turn ended, so active → idle (merged stays merged), unless BUSY
+    (its background subagent still runs). Unknown session → no write at all."""
     if not p.exists() or not find_worker(load(p), session_id, job_id):
         return None
     with locked(p) as reg:
@@ -298,7 +322,7 @@ def record_result(p, session_id, job_id, text, agent_type=None):
             s["last_result"] = text[:RESULT_MAX]
             clear_waiting(s)
             if s.get("state") != "merged":
-                s["state"] = "idle"
+                s["state"] = "active" if busy else "idle"
             s["updated"] = now()
     return name
 
@@ -313,6 +337,10 @@ def finish_run(reg, job_id, thread_id, text):
     s = reg["sessions"][name]
     held = [] if s.get("state") == "merged" else s.pop("held", [])
     s.update(session_id=thread_id, last_result=text[:RESULT_MAX], pid=None, updated=now())
+    # the last runs' results: with held follow-ups the next run starts at once and its result replaces last_result
+    # before the front may have read this one (7th live test), so render lists a chain's earlier results
+    s["results"] = (s.get("results", []) + [{"job": job_id, "at": now(), "text": text[:RESULT_MAX],
+                                             **({"chained": True} if held else {})}])[-3:]
     if s.get("state") != "merged":
         s["state"] = "active" if held else "idle"
     return name, held
@@ -479,9 +507,9 @@ def alive(pid):
 def render(reg, width=200, p=None):
     """The compact registry. With P, a worker's open approval requests are listed under it (and make it WAITING
     without a refresh: its PermissionRequest hook or codex-turn.py is waiting for the user's answer right now), then
-    recent decisions."""
+    recent decisions. A subagent's prompt whose router wait ran out (expired) shows as WAITING on claude attach."""
     front = reg.get("front") or {}
-    asks = pending(p) if p else []
+    asks, late = (pending(p), expired(p)) if p else ([], [])
     lines = [f"[router] front: @{front.get('name') or '?'} (mode {front_mode(reg)}) — workers:"]
     for name, s in sorted(reg["sessions"].items()):
         last = " ".join((s.get("last_result") or "").split())[:width]
@@ -495,6 +523,8 @@ def render(reg, width=200, p=None):
             state = "exited"  # recorded process is gone (e.g. idle retire); shown only, refresh records it
         if s.get("held"):
             extra += f" held {len(s['held'])}"
+        # its subagent's prompt the router no longer relays: it still holds the subagent, even when Stop said idle
+        stale = [r for r in late if r.get("worker") == name and state not in ("exited", "merged")]
         if mine:
             state = "waiting"
         if state == "waiting":
@@ -503,13 +533,20 @@ def render(reg, width=200, p=None):
             # a Codex run's request has no attach fallback (its app-server's only client is codex-turn.py)
             how = "user types /router:approve below" if codex(s) else f"{how} claude attach {s.get('job_id')}"
             state = f"WAITING: {what} — {how};"
+        elif stale:
+            state = f"WAITING: subagent prompt — claude attach {s.get('job_id')} to answer;"
         elif cc and cc not in ("working", "done"):  # those only restate (or, after the turn, contradict) the state
             state += "/" + cc
         lines.append(
             f"- {name} [{state}{extra}]"
             f" topic: {s.get('topic') or '-'} | cwd: {s.get('cwd') or '-'} | last: {last or '-'}"
         )
+        chain = list(itertools.takewhile(lambda r: r.get("chained"), reversed((s.get("results") or [])[:-1])))
+        lines += ["  earlier result (its held follow-ups ran right after): "
+                  + " ".join(str(r.get("text")).split())[:width] for r in reversed(chain)]
         lines += ["  " + line for r in mine for line in approval_lines(r)]
+        lines += [f"  subagent prompt (router wait over, /router:approve no longer answers it): {describe(r)}"
+                  for r in stale]
     if not reg["sessions"]:
         lines.append("- (none)")
     done = decided(p) if p else []
@@ -535,6 +572,39 @@ def decided(p, window=600, keep=5):
     return sorted(out, key=lambda d: d["created"])[-keep:]
 
 
+def wait(p, name, timeout):
+    """`wait NAME`: the front runs it as a background Bash command, whose end starts a turn in an idle front (7th live
+    test), so a Codex worker's result reaches the user without a message. Blocks until NAME records a result, stops
+    running or opens an approval request newer than this wait, then prints one line; after TIMEOUT a "still running"
+    line. Read-only: it polls the registry's and the requests' mtimes, never takes the lock or writes."""
+    s0 = load(p)["sessions"].get(name)
+    if s0 is None:
+        sys.exit(f"registry: no session '{name}'")
+    t0, last, poll = time.time(), None, seconds("ROUTER_POLL_INTERVAL", 0.5, 0.01)
+    head = f"[router] wait {name}{' (codex)' if codex(s0) else ''}:"
+
+    def run(s):
+        return s.get("last_result"), (s.get("results") or [{}])[-1].get("job")
+
+    while True:
+        stamp = []
+        for f in (p, approvals(p) / "pending"):
+            with contextlib.suppress(OSError):
+                stamp.append((f.stat().st_ino, f.stat().st_mtime_ns))
+        if stamp != last:
+            last, s = stamp, load(p)["sessions"].get(name) or {}
+            new = [r for r in requests(p) if r.get("worker") == name and r["created"] >= t0]
+            if new:  # an older one was told already: a wait started again after it must not return at once
+                return print(f"{head} WAITING: approval {describe(new[0])} — the user types /router:approve (bare "
+                             "lists it)")
+            if run(s) != run(s0) or s.get("state") not in ("active", "waiting"):
+                more = " (held follow-ups are running now: wait again)" if s.get("state") == "active" else ""
+                return print(f"{head} {s.get('state') or 'gone'}{more} — last: {clean(s.get('last_result') or '-')}")
+        if time.time() >= t0 + timeout:
+            return print(f"{head} still running after {timeout:g} s — its result shows in the [router] list later")
+        time.sleep(poll)
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description="router registry")
     ap.add_argument("--data", help="plugin data dir (skills pass ${CLAUDE_PLUGIN_DATA})")
@@ -557,6 +627,7 @@ def main(argv=None):
     sp.add_argument("--backend", choices=tuple(BACKENDS), default="claude", help="codex: a Codex CLI worker")
     rs = sub.add_parser("resume")
     rs.add_argument("name")
+    rs.add_argument("--topic", help="the topic, widened by this request (also in the prompt)")
     for x in (sp, rs):
         x.add_argument("--request", required=True, help="the user's request; '-' reads it from stdin")
     mk = sub.add_parser("mark")
@@ -568,6 +639,9 @@ def main(argv=None):
         x.add_argument("--json", action="store_true", help="print the whole registry as JSON")
     for c in ("summarize", "stop"):
         sub.add_parser(c).add_argument("name")
+    wt = sub.add_parser("wait")
+    wt.add_argument("name")
+    wt.add_argument("--timeout", type=float, default=600.0, help=f"seconds (default 600, at most {WAIT_MAX:g})")
     rr = sub.add_parser("record-result")
     rr.add_argument("session_id")
     rr.add_argument("text")
@@ -633,6 +707,8 @@ def main(argv=None):
         with locked(p) as reg:
             refresh_all(p, reg, agents)
             s = reg["sessions"].get(a.name) or {}
+            if a.topic:
+                s["topic"] = a.topic
             # a Codex run going (live supervisor): hold the request, its supervisor sends it as the next run
             hold = codex(s) and s.get("state") == "active" and alive(s.get("pid")) and bool(s.get("session_id"))
             if hold:
@@ -676,6 +752,8 @@ def main(argv=None):
         b = backend_of(s)
         sys.exit(subprocess.run(["bash", str(BACKENDS[b]), a.cmd, s[key], *extra], stdin=subprocess.DEVNULL,
                                 env=env(p, b)).returncode)
+    elif a.cmd == "wait":
+        wait(p, a.name, min(a.timeout, WAIT_MAX) if a.timeout >= 0 else 0)  # nan → 0: never hang
     elif a.cmd == "record-result":
         if not record_result(p, a.session_id, None, a.text):
             sys.exit(f"registry: no worker with session id '{a.session_id}'")
