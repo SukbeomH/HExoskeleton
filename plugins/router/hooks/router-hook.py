@@ -108,8 +108,8 @@ def guard_send(p, sid, data):
     raw = str((data.get("tool_input") or {}).get("to") or "")
     ours = {front.get("session_id"), *(s.get(k) for s in reg["sessions"].values() for k in ("session_id", "job_id"))}
     ours.discard(None)
-    others = {str(a[k]).casefold() for a in registry.backend_agents() or []
-              if not {a.get("sessionId"), a.get("id")} & ours for k in ("name", "sessionId", "id") if a.get(k)}
+    others = {x for a in registry.backend_agents() or [] if not {a.get("sessionId"), a.get("id")} & ours
+              for k in ("name", "sessionId", "id") if a.get(k) for x in (str(a[k]).casefold(), address(a[k]))}
     to = address(raw)
     if not to or to in others:
         why = (f"router: '{raw}' is another session, not your front @{front.get('name')} or a sibling. Message no other "

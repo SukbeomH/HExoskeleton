@@ -332,8 +332,9 @@ for to in ("boss", "@boss", "front-uuid", "ui", "bbbb2222", "my-subagent", "boss
     assert send("w-uuid", to) is None, to
 # the front is gone and an unrelated session took its name: the name (with or without a ref) is that session's now
 AGENTS.write_text(json.dumps([AGENT_LIST[1], {"kind": "interactive", "sessionId": "new-uuid", "name": "Boss", "pid": 4},
-                              {"kind": "interactive", "sessionId": "rn-uuid", "name": "release notes", "pid": 5}]))
-for to in ("boss", "boss [09e9dd]", '@"release notes"', '"release notes" [1a2b3c]'):
+                              {"kind": "interactive", "sessionId": "rn-uuid", "name": "release notes", "pid": 5},
+                              {"kind": "interactive", "sessionId": "wd-uuid", "name": "weird [ab12]", "pid": 6}]))
+for to in ("boss", "boss [09e9dd]", '@"release notes"', '"release notes" [1a2b3c]', "weird [ab12]", "weird"):
     assert denied(to), to
 assert send("w-uuid", "ui") is None
 AGENTS.unlink()
