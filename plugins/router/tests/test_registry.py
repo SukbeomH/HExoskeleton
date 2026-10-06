@@ -415,5 +415,10 @@ assert r.returncode == 0 and r.stdout == "[router] wait wt (codex): idle — las
 assert cli("summarize", "w2").returncode == 0 and argv_lines()[-1].startswith("-p --resume w2-uuid --fork-session ")
 assert cli("stop", "w2").returncode == 0 and argv_lines()[-1] == "stop 5eed0001"
 assert cli("stop", "noid").returncode == 1 and cli("summarize", "ghost").returncode == 1
+# a stopped worker is exited at once (an armed `wait` ends); a merged source the user stops after a merge stays merged
+put("w2", state="merged")
+assert cli("stop", "w2").returncode == 0 and reg()["sessions"]["w2"]["state"] == "merged"
+put("w2", state="active")
+assert cli("stop", "w2").returncode == 0 and reg()["sessions"]["w2"]["state"] == "exited"
 
 print("PASS test_registry")

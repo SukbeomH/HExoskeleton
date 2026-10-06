@@ -753,8 +753,14 @@ def main(argv=None):
             sys.exit(f"registry: no {key} for '{a.name}'")
         extra = [s.get("model") or ""] if a.cmd == "summarize" else []
         b = backend_of(s)
-        sys.exit(subprocess.run(["bash", str(BACKENDS[b]), a.cmd, s[key], *extra], stdin=subprocess.DEVNULL,
-                                env=env(p, b)).returncode)
+        rc = subprocess.run(["bash", str(BACKENDS[b]), a.cmd, s[key], *extra], stdin=subprocess.DEVNULL,
+                            env=env(p, b)).returncode
+        if a.cmd == "stop" and rc == 0:  # a stopped Codex run records nothing (no finish_run): mark it, `wait` ends
+            with locked(p) as reg:
+                w = reg["sessions"].get(a.name) or {}
+                if w.get("job_id") == s[key] and w.get("state") != "merged":  # not a run started meanwhile
+                    w.update(state="exited", pid=None, updated=now())  # held stays: the next forward sends it
+        sys.exit(rc)
     elif a.cmd == "wait":
         wait(p, a.name, min(a.timeout, WAIT_MAX) if a.timeout >= 0 else 0)  # nan → 0: never hang
     elif a.cmd == "record-result":

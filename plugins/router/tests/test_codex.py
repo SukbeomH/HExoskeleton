@@ -349,20 +349,22 @@ assert worker("cx")["held"] == ["f2", "R"] and worker("cx")["state"] == "exited"
 assert cli("resume", "cx", "--request", "R2").returncode == 0
 assert "held" not in idle("cx") and prompts()[-1].endswith("Request from the user:\nf2\n\nR\n\nR2"), prompts()[-1]
 
-# stop: SIGTERM to the run's process group (supervisor, codex-turn.py, app-server); refresh then shows it exited;
-# resumable
-(BIN / "hold").touch()
-n = len(calls())
-job = cli("resume", "cx", "--request", "long").stdout.strip()
-call_after(n)  # the app-server is running, in the supervisor's process group
-pid = json.loads((RUNS / job / "run.json").read_text())["pid"]
+# stop: SIGTERM to the run's process group (supervisor, codex-turn.py, app-server). The worker is exited at once, so
+# an armed `wait` ends (9th live test: active until a refresh); held follow-ups stay for the next forward. Resumable.
+pid = busy_with("kept")
+w = subprocess.Popen([sys.executable, str(ROOT / "scripts/registry.py"), "wait", "cx", "--timeout", "20"], env=ENV,
+                     stdout=subprocess.PIPE, text=True)
 assert cli("stop", "cx").returncode == 0
+assert worker("cx")["state"] == "exited" and worker("cx")["held"] == ["kept"], worker("cx")
+assert w.communicate(timeout=5)[0].startswith("[router] wait cx (codex): exited — last: pong "), w
+job = worker("cx")["job_id"]
 until(lambda: json.loads((RUNS / job / "run.json").read_text())["state"] == "stopped", "run stopped")
 until(lambda: gone(pid), "process group gone")
 (BIN / "hold").unlink()
-assert "- cx [exited/stopped codex]" in cli("refresh").stdout
+assert "- cx [exited/stopped codex held 1]" in cli("refresh").stdout
 r = cli("resume", "cx", "--request", "back")
 assert r.returncode == 0 and idle("cx")["last_result"] == f"pong {len(calls())}", r
+assert prompts()[-1].endswith("Request from the user:\nkept\n\nback"), prompts()[-1]
 assert "earlier result" not in cli("list").stdout  # a run the front sent itself ends the chain's listing
 
 # a failed run: its error becomes last_result (not a stale result), the worker stays resumable (idle/failed)
