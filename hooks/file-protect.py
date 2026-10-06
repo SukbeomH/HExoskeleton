@@ -83,9 +83,10 @@ except (json.JSONDecodeError, EOFError):
 
 tool_input = data.get("tool_input", {})
 file_path = tool_input.get("file_path", "")
-# Codex apply_patch·Hermes V4A patch: file_path 없음 → 패치 본문의 모든 대상 경로(이동 대상 포함).
+# Codex apply_patch·Hermes V4A patch: 패치 본문(command)의 모든 대상 경로(이동 대상 포함)도 검사한다.
+# Hermes patch 는 path 와 V4A 본문을 함께 받을 수 있다 (tools/file_tools.py patch_tool).
 # Hermes 파서는 공백을 느슨하게 받고 이동을 `*** Move File: a -> b` 로 쓴다 (tools/patch_parser.py).
-paths = [file_path] if file_path else [
+paths = ([file_path] if file_path else []) + [
     p
     for m in re.findall(
         r"^\*\*\*\s*(?:(?:Add|Update|Delete|Move)\s+File|Move\s+to):\s*(.+)$",

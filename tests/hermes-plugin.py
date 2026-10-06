@@ -100,8 +100,12 @@ try:
         check(f"{tag} patch .env blocked", blocked(pre(ctx, "patch", {"path": ".env", "old_string": "a", "new_string": "b"})))
         v4a = "*** Begin Patch\n*** Update File: notes.txt\n@@\n-a\n+b\n*** Move File: notes.txt -> .env\n*** End Patch\n"
         check(f"{tag} V4A patch move onto .env blocked", blocked(pre(ctx, "patch", {"mode": "patch", "patch": v4a})))
+        # Hermes patch_tool 은 path 와 V4A 본문을 둘 다 검사·적용한다 → 본문 헤더도 검사해야 한다
+        check(f"{tag} V4A patch with harmless path still blocked",
+              blocked(pre(ctx, "patch", {"mode": "patch", "path": "notes.txt", "patch": v4a})))
         v4a_ok = "*** Begin Patch\n***Update File:  notes.txt\n@@\n-a\n+b\n*** End Patch\n"
-        check(f"{tag} V4A patch notes.txt allowed", pre(ctx, "patch", {"mode": "patch", "patch": v4a_ok}) is None)
+        check(f"{tag} V4A patch notes.txt allowed",
+              pre(ctx, "patch", {"mode": "patch", "path": "notes.txt", "patch": v4a_ok}) is None)
         check(f"{tag} write_file existing blocked (write-guard)",
               blocked(pre(ctx, "write_file", {"path": "existing.txt", "content": "x"}), "NO WRITE TO EXISTING FILES"))
         check(f"{tag} write_file new allowed", pre(ctx, "write_file", {"path": "new.txt", "content": "x"}) is None)

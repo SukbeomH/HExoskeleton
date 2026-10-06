@@ -47,12 +47,13 @@ def _claude_payload(tool_name, args, project):
     name = GUARDS[tool_name][0]
     if tool_name == "terminal":
         return {"tool_name": name, "tool_input": {"command": str(args.get("command") or "")}}
-    path = args.get("path")
-    if not path:  # V4A patch: file-protect reads the `*** ... File:` headers from command
-        return {"tool_name": name, "tool_input": {"command": str(args.get("patch") or "")}}
-    # ponytail: relative paths join the launch dir; Hermes joins the session cwd after a `cd`
-    # (tools/file_tools_paths.py _authoritative_workspace_root). Matters only to write-guard.
-    return {"tool_name": name, "tool_input": {"file_path": os.path.join(project, os.path.expanduser(str(path)))}}
+    # V4A patch text may come with or without `path`; file-protect checks its `*** ... File:` headers too.
+    tool_input = {"command": str(args.get("patch") or "")}
+    if args.get("path"):
+        # ponytail: relative paths join the launch dir; Hermes joins the session cwd after a `cd`
+        # (tools/file_tools_paths.py _authoritative_workspace_root). Matters only to write-guard.
+        tool_input["file_path"] = os.path.join(project, os.path.expanduser(str(args["path"])))
+    return {"tool_name": name, "tool_input": tool_input}
 
 
 def _run(script, payload, project, timeout=5, capture=True):
