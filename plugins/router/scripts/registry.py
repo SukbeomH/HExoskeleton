@@ -528,10 +528,11 @@ def render(reg, width=200, p=None):
         if mine:
             state = "waiting"
         if state == "waiting":
-            how = "user types /router:approve below, or runs:" if mine else "user must run:"
+            how = "user types /router:approve (bare: lists ids), or runs:" if mine else "user must run:"
             what = s.get("waiting_for") or ("permission prompt" if mine else "prompt")
             # a Codex run's request has no attach fallback (its app-server's only client is codex-turn.py)
-            how = "user types /router:approve below" if codex(s) else f"{how} claude attach {s.get('job_id')}"
+            how = ("user types /router:approve (bare: lists ids; unanswered = denied when it expires)" if codex(s)
+                   else f"{how} claude attach {s.get('job_id')}")
             state = f"WAITING: {what} — {how};"
         elif stale:
             state = f"WAITING: subagent prompt — claude attach {s.get('job_id')} to answer;"
@@ -544,7 +545,9 @@ def render(reg, width=200, p=None):
         chain = list(itertools.takewhile(lambda r: r.get("chained"), reversed((s.get("results") or [])[:-1])))
         lines += ["  earlier result (its held follow-ups ran right after): "
                   + " ".join(str(r.get("text")).split())[:width] for r in reversed(chain)]
-        lines += ["  " + line for r in mine for line in approval_lines(r)]
+        # the id and the exact call, no ready-made approve command: the front's context feeds its replies and the
+        # prompt suggestion (9th live test). The user's bare /router:approve lists the commands (approval_lines).
+        lines += ["  " + approval_lines(r)[0] for r in mine]
         lines += [f"  subagent prompt (router wait over, /router:approve no longer answers it): {describe(r)}"
                   for r in stale]
     if not reg["sessions"]:

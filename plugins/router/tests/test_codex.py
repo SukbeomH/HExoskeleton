@@ -408,7 +408,8 @@ assert {k: r[k] for k in ("worker", "backend", "job_id", "thread", "tool_name", 
     "worker": "cx", "backend": "codex", "job_id": job, "thread": thread, "tool_name": "Bash",
     "tool_input": {"command": "/bin/zsh -lc 'touch x'", "cwd": str(CWD)}} and "session_id" not in r, r
 out = cli("list").stdout
-assert "- cx [WAITING: permission prompt — user types /router:approve below; codex" in out, out
+assert ("- cx [WAITING: permission prompt — user types /router:approve (bare: lists ids; unanswered = denied when it "
+        "expires); codex") in out, out
 assert f"approval {r['nonce']}: @cx Bash: /bin/zsh -lc 'touch x' [input: " in out and "claude attach" not in out, out
 registry.save(APPR / "decisions" / f"{r['nonce']}.json",
               {"nonce": r["nonce"], "behavior": "allow", "created": r["created"] - 1})  # older than the request
