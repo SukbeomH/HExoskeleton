@@ -115,12 +115,14 @@ assert "job_id" not in noid and "session_id" not in noid and noid["state"] == "e
 # record_result: by session id, by job id (backfills session id), unknown → no write
 assert registry.record_result(REG, "api-uuid", None, "pong") == "api"
 assert reg()["sessions"]["api"]["last_result"] == "pong"
-put("new", job_id="dddd4444")
+put("new", job_id="dddd4444", state="waiting", waiting_for="permission prompt", agent_state="blocked")  # refresh saw
 assert registry.record_result(REG, "new-uuid", "dddd4444", "x" * 5000, "router:topic-worker") == "new"
 n = reg()["sessions"]["new"]
 assert n["session_id"] == "new-uuid" and len(n["last_result"]) == registry.RESULT_MAX and n["agent_type"]
-# a finished turn means the worker is idle now (was active); a merged source stays merged
+# a finished turn means the worker is idle now (was active or waiting: no stale WAITING or idle/blocked); a merged
+# source stays merged
 assert n["state"] == "idle" and reg()["sessions"]["api"]["state"] == "idle", n
+assert "waiting_for" not in n and "agent_state" not in n and "- new [idle] " in registry.render(reg()), n
 assert registry.record_result(REG, None, "cccc3333", "summary for merge") == "old"
 assert reg()["sessions"]["old"]["state"] == "merged"
 before = REG.read_bytes()
@@ -323,6 +325,13 @@ assert ("\n  approval 0a0a0a0a: @hk Bash: echo hi⏎rm x [4 hidden chars removed
         "   deny: /router:approve 0a0a0a0a deny   (or claude attach fc6d12ed)\n") in out, out
 assert not any(x in out for x in ("0b0b0b0b", "0c0c0c0c", "0d0d0d0d", "SAFE")), out
 assert "- pow2 [WAITING: permission prompt — user must run: claude attach 7895904c;" in out  # no request: attach only
+# answered elsewhere (claude attach): a request its hook saw on the prompt ("seen") is hidden once `claude agents` no
+# longer shows its worker there (the hook ends a few seconds later); unseen requests never consult the list
+ask("0e0e0e0e", seen=True)
+assert "0e0e0e0e" not in cli("list").stdout  # hk is on no prompt in the stub list
+(BIN / "agents.json").write_text(json.dumps([{"id": "fc6d12ed", "pid": 1, "status": "waiting",
+                                              "waitingFor": "permission prompt"}]))
+assert "approval 0e0e0e0e" in cli("list").stdout
 
 # approval display of untrusted text: ANSI/OSC sequences, control, zero-width and bidi characters removed and counted,
 # line breaks visible (two commands must not read as one), long text cut with its full length stated

@@ -1,5 +1,20 @@
 # Changelog
 
+## router 0.2.1 (2026-10-06)
+
+대화형 4차 시험(0.2.0, Orca terminal, marketplace install)에서 나온 결함 수정.
+
+### Bug Fixes
+
+* **router**: `claude attach`로 먼저 응답한 승인 요청이 열린 채 남았다. Claude Code는 이때 PermissionRequest 훅을 멈추지 않아, 훅이 300초까지 기다렸고 늦은 `/router:approve`가 `approved`라고 답했다(두 번째 실행은 없었다). 이제 훅이 3초마다 `claude agents`를 보고, 자기 작업 세션이 `waitingFor: permission prompt`인 것을 본 뒤 더는 아니면 출력 없이 끝나 요청을 지운다. front 목록은 그런 요청을 숨기고, `/router:approve`는 `already answered (e.g. via claude attach)`로 막아 결정을 쓰지 않는다.
+* **router**: 승인 결정을 받았거나, `claude attach`로 응답을 받았거나, 보고를 보냈거나, 턴을 끝낸 작업 세션이 front 문맥에 `WAITING … claude attach`로, Stop 뒤에는 `idle/blocked`로 남았다. 그때 refresh가 기록한 대기(`waiting`·`waiting_for`·`blocked`)를 지운다.
+* **router**: front가 응답에 `/router:approve <id>`를 쓰자 입력창의 프롬프트 제안이 그 명령을 미리 채웠다. `route`는 id가 든 승인 명령을 쓰지 않고, 인자 없는 `/router:approve`(훅이 id와 정확한 명령을 보여 줌)를 안내한다.
+* **router**: front가 `/router:approve`로 보류된 세션 간 메시지를 풀 수 있다고 안내했다. `route`에 `approval <id>` 요청에만 답한다고 적었다.
+
+### Documentation
+
+* **router**: README에 프롬프트 제안 끄기(`"promptSuggestionEnabled": false`, `CLAUDE_CODE_ENABLE_PROMPT_SUGGESTION=false`), 모델이 임의 코드를 실행하게 하는 allow 규칙(`Bash(python3 -c *)`, `Bash(node:*)`, `Bash(rtk:*)` 같은 래퍼, `Bash(claude --plugin-dir:*)`)은 무엇이든 결정 위조를 허용한다는 경고, 4차 실측(대화형 allow/deny/목록, 300초 만료, 라우팅 지시 제거, merge 순서, attach 먼저 응답)을 적었다.
+
 ## router 0.2.0 (2026-10-02)
 
 작업 세션의 권한 확인을 front에서 사용자가 직접 입력한 명령으로 허용·거부하는 승인 전달.

@@ -73,14 +73,29 @@ def approvals(p):
 
 
 def pending(p):
-    """Open approval requests (pending files not yet expired), oldest first. Read-only: router-hook.py writes them."""
+    """Open approval requests (pending files not yet expired), oldest first. Read-only: router-hook.py writes them.
+    Not open either: answered elsewhere (claude attach). Claude Code does not stop the hook then, so a request its
+    hook saw on the prompt ("seen") whose worker `claude agents` no longer shows there is hidden until the hook ends."""
     out = []
     for f in approvals(p).glob("pending/*.json"):
         with contextlib.suppress(OSError, ValueError, TypeError):  # removed meanwhile, or not a request
             r = json.loads(f.read_text())
             if isinstance(r, dict) and r.get("nonce") == f.stem and float(r.get("expires") or 0) > time.time():
                 out.append((float(r.get("created") or 0), r))
+    if any(r.get("seen") for _, r in out):
+        agents = backend_agents()
+        out = [x for x in out if not x[1].get("seen") or on_prompt(agents, x[1].get("session_id"), x[1].get("job_id"))
+               is not False]
     return [r for _, r in sorted(out, key=lambda x: x[0])]
+
+
+def on_prompt(agents, session_id, job_id):
+    """Is this worker's turn held by a permission prompt right now (`claude agents`: status waiting, waitingFor
+    permission prompt)? None if the list is unavailable. Matched by recorded ids only."""
+    if agents is None:
+        return None
+    return any(a.get("status") == "waiting" and a.get("waitingFor") == "permission prompt" for a in agents
+               if (session_id and a.get("sessionId") == session_id) or (job_id and a.get("id") == job_id))
 
 
 def clean(text, limit=SHOW_MAX):
@@ -183,10 +198,28 @@ def record_result(p, session_id, job_id, text, agent_type=None):
             if agent_type:
                 s["agent_type"] = agent_type
             s["last_result"] = text[:RESULT_MAX]
+            clear_waiting(s)
             if s.get("state") != "merged":
                 s["state"] = "idle"
             s["updated"] = now()
     return name
+
+
+def clear_waiting(s):
+    """The worker's prompt got its answer or its turn moved on: drop what refresh saw while it waited, so it renders
+    running or idle again, not WAITING or `idle/blocked`. The next refresh records the current state."""
+    s.pop("waiting_for", None)
+    if s.get("agent_state") == "blocked":
+        s.pop("agent_state")
+    if s.get("state") == "waiting":
+        s["state"] = "active"
+
+
+def unblock(p, name):
+    """router-hook.py: a relayed decision, an answer in claude attach, or a report (SendMessage) from NAME."""
+    with locked(p) as reg:
+        if name in reg["sessions"]:
+            clear_waiting(reg["sessions"][name])
 
 
 def set_front(p, session_id, name, mode):
@@ -253,7 +286,8 @@ def launch(p, name, args, prompt):
 def backend_agents():
     """`backend.sh list` parsed, or None if it failed."""
     r = subprocess.run(["bash", str(BACKEND), "list"], stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, text=True)
-    return json.loads(r.stdout) if r.returncode == 0 else None
+    with contextlib.suppress(ValueError):
+        return json.loads(r.stdout) if r.returncode == 0 else None
 
 
 def compose(reg, name, request, merged_from=()):
