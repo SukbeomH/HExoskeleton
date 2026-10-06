@@ -259,15 +259,16 @@ assert not any("permission_mode" in s for s in reg()["sessions"].values())
 # model kept
 registry.record_mode(REG, "front-uuid", "plan")
 n = len(calls())
-r = cli("resume", "cx", "--request", "again")
+r = cli("resume", "cx", "--topic", "T wide", "--request", "again")  # a widened topic goes with the forward (route)
 assert r.returncode == 0 and re.fullmatch(r"[0-9a-f]{8}\n", r.stdout) and r.stdout.strip() != job, r
+assert worker("cx")["topic"] == "T wide", worker("cx")
 job = r.stdout.strip()
 c = call_after(n)
 assert c["call"] == "thread/resume" and c["params"] == {
     "threadId": thread, "excludeTurns": True, "cwd": str(CWD), "sandbox": "read-only", "approvalPolicy": "never",
     "model": "gpt-mini"}, c
 cx = idle("cx")
-assert prompts()[-1].endswith("Request from the user:\nagain")
+assert "\nTopic: T wide\n" in prompts()[-1] and prompts()[-1].endswith("Request from the user:\nagain")
 assert cx["session_id"] == thread and cx["last_result"] == f"pong {len(calls())}", cx
 registry.record_mode(REG, "front-uuid", "default")
 

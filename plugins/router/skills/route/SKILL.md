@@ -37,7 +37,7 @@ python3 "${CLAUDE_PLUGIN_ROOT}/scripts/registry.py" --data "${CLAUDE_PLUGIN_DATA
 
 ## 3. Act
 
-**forward** — 대상이 `codex` 세션이면 아래 "Codex workers"대로 `resume`으로만 보낸다. 대상이 `WAITING`이면 보내지 않고 아래 "Waiting workers"대로 사용자에게 알린다(프롬프트가 그 세션의 턴을 잡고 있다). 2의 refresh 출력에서 대상에 `pid N`이 있으면 먼저 `active`로 표시하고(보내기 전에: 빨리 끝난 작업의 Stop 훅 `idle`을 덮지 않게), `SendMessage`로 대상 이름에 요청 본문(아래 "Request body")을 보낸다. 앞에 `[router] 사용자 요청 전달:` 한 줄을 붙인다. 후속 요청으로 주제가 넓어졌으면 같은 명령에 `--topic "<넓어진 한 줄 주제>"`를 더한다.
+**forward** — 대상이 `codex` 세션이면 아래 "Codex workers"대로 `resume`으로만 보낸다. 대상이 `WAITING`이면 보내지 않고 아래 "Waiting workers"대로 사용자에게 알린다(프롬프트가 그 세션의 턴을 잡고 있다). 2의 refresh 출력에서 대상에 `pid N`이 있으면 먼저 `active`로 표시하고(보내기 전에: 빨리 끝난 작업의 Stop 훅 `idle`을 덮지 않게), `SendMessage`로 대상 이름에 요청 본문(아래 "Request body")을 보낸다. 앞에 `[router] 사용자 요청 전달:` 한 줄을 붙인다. 후속 요청으로 주제가 넓어졌으면 아래 `upsert` 명령(아래 `resume`으로 보낼 때는 그 명령)에 `--topic "<넓어진 한 줄 주제>"`를 더한다.
 
 ```bash
 python3 "${CLAUDE_PLUGIN_ROOT}/scripts/registry.py" --data "${CLAUDE_PLUGIN_DATA}" upsert <name> --state active

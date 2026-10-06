@@ -28,7 +28,7 @@ Usage: registry.py [--data DIR] <command> ...
   upsert NAME [--new] [--cwd C] [--topic T] [--state S]
   spawn NAME --request R [--cwd C] [--topic T] [--model M] [--merged-from A,B] [--backend claude|codex]
         → reserve NAME, compose the prompt, backend.sh spawn in the front's mode, record job id (sources merged)
-  resume NAME --request R  → refresh, then (if not running) compose the prompt, backend.sh resume, record job id;
+  resume NAME --request R [--topic T]  → refresh, then (if not running) compose the prompt, backend.sh resume, record job id;
         a Codex worker with a run going holds R instead (sent when that run ends)
   --request - reads the request from stdin (only then; never an implicit stdin read that could hang).
   The prompt (front, topic, siblings, request) is composed here.
@@ -626,6 +626,7 @@ def main(argv=None):
     sp.add_argument("--backend", choices=tuple(BACKENDS), default="claude", help="codex: a Codex CLI worker")
     rs = sub.add_parser("resume")
     rs.add_argument("name")
+    rs.add_argument("--topic", help="the topic, widened by this request (also in the prompt)")
     for x in (sp, rs):
         x.add_argument("--request", required=True, help="the user's request; '-' reads it from stdin")
     mk = sub.add_parser("mark")
@@ -705,6 +706,8 @@ def main(argv=None):
         with locked(p) as reg:
             refresh_all(p, reg, agents)
             s = reg["sessions"].get(a.name) or {}
+            if a.topic:
+                s["topic"] = a.topic
             # a Codex run going (live supervisor): hold the request, its supervisor sends it as the next run
             hold = codex(s) and s.get("state") == "active" and alive(s.get("pid")) and bool(s.get("session_id"))
             if hold:
