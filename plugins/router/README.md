@@ -75,7 +75,7 @@ front는 `registry.py`를 플러그인 경로째 부르는 단일 명령만 쓴�
 
    사용자가 `claude attach`로 먼저 응답해도 Claude Code는 이 훅을 멈추지 않는다(4차 시험). 그래서 훅은 3초마다 `claude agents`를 본다. 자기 작업 세션이 `status: waiting`·`waitingFor: permission prompt`인 것을 한 번 보면 요청에 `seen`을 기록하고, 그 뒤 더는 그 상태가 아니면 출력 없이 끝나 요청을 지운다. 첫 확인이 확인 창보다 먼저일 수 있어서, 본 적 없이 아니라고만 나오면 끝내지 않는다. 훅의 입력에는 `tool_use_id`가 없다(문서: PermissionRequest input).
 
-   subagent 안의 확인(`agent_id`가 있는 요청)은 이 방법으로 알 수 없다. subagent가 확인 창에서 기다리는 동안 `claude agents`는 작업 세션을 `busy`로 보인다(6차 시험). 그래서 이런 요청은 `claude agents`를 보지 않고 subagent 자신의 transcript `<transcript_path에서 .jsonl을 뗀 경로>/subagents/agent-<agent_id>.jsonl`을 본다(문서: sub-agents의 transcript 위치, hooks의 SubagentStop. 6차 시험의 파일 위치. `claude -p` 실측: subagent 안의 PermissionRequest 입력에서 `transcript_path`는 본 세션의 것이고 `agent_id`가 있다). 같은 도구·입력의 `tool_use`에 요청 시각 뒤의 `tool_result`가 생기면 응답된 것으로 보고, 훅은 출력 없이 끝난다. 요청 전에 끝난 같은 호출의 결과나 다른 호출의 결과는 세지 않는다. 파일 크기가 늘었을 때만 읽고, 일반 파일만 연다(0.2.4). 백그라운드 subagent는 아래처럼 훅이 기다리는 동안 attach에 확인 창이 뜨지 않으므로, 이 감지는 주로 만료 뒤의 기록을 닫는 데 쓰인다.
+   subagent 안의 확인(`agent_id`가 있는 요청)은 이 방법으로 알 수 없다. subagent가 확인 창에서 기다리는 동안 `claude agents`는 작업 세션을 `busy`로 보인다(6차 시험). 그래서 이런 요청은 `claude agents`를 보지 않고 subagent 자신의 transcript `<transcript_path에서 .jsonl을 뗀 경로>/subagents/agent-<agent_id>.jsonl`을 본다(문서: sub-agents의 transcript 위치, hooks의 SubagentStop. 6차 시험의 파일 위치. `claude -p` 실측: subagent 안의 PermissionRequest 입력에서 `transcript_path`는 본 세션의 것이고 `agent_id`가 있으며, Bash의 `tool_input`은 transcript의 `tool_use` 입력과 같다). 같은 도구·입력의 `tool_use`에 요청 시각 뒤의 `tool_result`가 생기면 응답된 것으로 보고, 훅은 출력 없이 끝난다. 요청 전에 끝난 같은 호출의 결과나 다른 호출의 결과는 세지 않는다. 파일 크기가 늘었을 때만 읽고, 일반 파일만 연다(0.2.4). 백그라운드 subagent는 아래처럼 훅이 기다리는 동안 attach에 확인 창이 뜨지 않으므로, 이 감지는 주로 만료 뒤의 기록을 닫는 데 쓰인다.
 
    **백그라운드 subagent의 확인(0.5.0)**: 7차 시험에서 `claude attach`는 백그라운드 subagent의 확인 창을 이 훅이 기다리는 동안 보여 주지 않았다(요청 3개, 본 화면·subagent 화면 모두). 훅이 대기 시간(300초)을 넘겨 끝난 뒤에야 확인 창이 떴다. 본 스레드의 확인 창은 훅이 기다리는 동안에도 보였다. 그래서 **대기 중에는 `/router:approve`로만 답하고, attach는 대기 시간이 지난 뒤에만 쓸 수 있다.** 결정 없이 대기 시간이 지나면 훅은 그 요청을 `approvals/expired/<id>.json`으로 남긴다. front 목록은 그 작업 세션을 `WAITING: subagent prompt — claude attach <job_id> to answer`와 요청 내용 한 줄로 보인다(Stop 훅이 `idle`로 적었어도). subagent transcript에 결과가 생기거나, 같은 subagent가 다시 묻거나, 작업 세션 프로세스가 사라지거나, 1시간이 지나면 더는 보이지 않는다. 그 id의 `/router:approve`는 `not sent. <id> expired: … claude attach <job_id>`로 거부된다. 만료 뒤에는 대기 중과 달리 `claude agents`가 작업 세션을 `waiting`·`permission prompt`로 보이므로(8차 시험), front의 refresh가 그 상태를 대장에 적는다. 이 `WAITING: permission prompt — user must run: claude attach <job_id>` 줄은 작업 세션의 보고, 결정, Stop, 다음 refresh에서만 지워진다. 그래서 attach로 답한 뒤에도 작업 세션이 보고하거나 다음 refresh가 올 때까지 몇 초 남을 수 있다(8차 시험 약 13초).
 
@@ -230,7 +230,7 @@ A2(Claude front + app-server에서 도는 Codex thread + 승인 전달)를 만�
 - `spawn … --request "reply with the word pong"` 직후 `wait`: 5.5초 뒤 `[router] wait live1 (codex): idle — last: [live wait check] done: pong`, exit 0.
 - 보류 연쇄: `sleep 8`을 시킨 `resume` 3초 뒤 `resume --topic "live wait chain"`이 `held: …`. 첫 `wait`가 19.3초에 `active (held follow-ups are running now: wait again) — last: … first-done`, 다시 건 `wait`가 24.5초에 `idle — last: [live wait chain] done: second-done`. 목록은 `last`에 둘째 결과, 그 아래 `earlier result …`에 첫 결과를 보였다. 보류된 요청에 준 `--topic`이 다음 실행의 프롬프트 주제가 됐다.
 - 시험 thread는 `codex delete --force <id>`로 지웠다. 남은 프로세스는 없었다. 작업 디렉터리가 git 저장소가 아니어서 `~/.codex/config.toml`에 신뢰 항목도 더해지지 않았다. git 저장소에서는 더해진다(위 "신뢰 항목", 8차 시험).
-- 대화형 front가 `route`대로 `wait`를 백그라운드로 걸고 알림에 답하는 전체 흐름은 시험하지 않았다(아래 "미검증").
+- 대화형 front가 `route`대로 `wait`를 백그라운드로 걸고 알림에 결과·승인 대기를 전하는 흐름은 8차 시험에서 확인했다(아래 "실측 확인 (대화형 8차 시험)"의 I1·I2).
 
 0.4.0 (app-server, `gpt-6-luna`, front 모드 `default`, 대장은 `~/.claude/plugins/data/` 아래 임시 디렉터리, 작업 디렉터리는 git 저장소가 아닌 임시 디렉터리):
 
@@ -246,14 +246,14 @@ A2(Claude front + app-server에서 도는 Codex thread + 승인 전달)를 만�
 - 보류: `sleep 8`을 시킨 실행 중 refresh는 `[active codex pid N]`이었다. 그동안 보낸 `resume`은 `held: …`를 출력했고, 실행이 끝나자 감독 프로세스가 그 요청을 다음 실행으로 보냈다. 20초 안에 `held-done` 보고가 기록되고 `held`가 비었다.
 - 대장에 `permission_mode`를 가진 작업 세션은 없었고, front 모드는 `default` 그대로였다. 남은 프로세스는 없었고, 시험 thread는 `codex delete --force <id>`로 지웠다.
 
-### 미검증 (Codex)
+### 미검증 (Codex 작업 세션)
 
-- 결과 알림(0.5.0): 끝난 백그라운드 Bash가 유휴 대화형 front에 새 턴을 여는 것은 7차 시험(H5)에서, `wait` 자체는 위 CLI 실측과 단위 테스트로 확인했다. 대화형 front 모델이 `route`대로 `wait`를 백그라운드로 걸고, 알림에 결과·`WAITING`을 전하고, `wait again`·`WAITING`에서 다시 거는 흐름은 실측하지 않았다. 감독 프로세스가 강제 종료되면 대장이 `active`로 남아 `wait`는 시간 초과(`still running`)로 끝난다.
-- 파일 변경(`apply_patch`) 승인, 네트워크 승인, 동시에 두 개 오는 승인, 대기 시간 만료, 쓰기 가능 sandbox 거부는 stub app-server로만 시험했다. `on-request`에서 모델이 승인을 요청하지 않고 바로 `blocked`로 끝낼 수도 있다(모델 판단).
+- 승인 전달은 Bash 명령의 허용·거부만 실측했다(8차 I2). 파일 변경(`apply_patch`)·네트워크 승인, 동시에 두 개 오는 승인, 대기 시간 만료, 쓰기 가능 sandbox에서의 바로 거부는 stub app-server로만 시험했다.
 - `read-only`·`danger-full-access` 실행, 실제 app-server 실행의 `stop`, Codex 원본의 `merge`(단위 테스트만).
 - 사용자 config의 권한 프로필(`permissions`)이 요청한 sandbox를 바꾸는 경우. router는 Codex가 돌려준 sandbox·정책이 요청과 다르면 실행을 실패시킨다(단위 테스트만).
-- 사용자 Codex 훅(`~/.codex/hooks.json`)의 PermissionRequest가 먼저 allow/deny하면 그 요청은 router에 오지 않는다(G1). 그런 훅이 있으면 그 훅이 결정한다.
-- 감독 프로세스가 강제 종료(SIGKILL)되면 그 실행은 `exited`가 되고 보류된 요청은 다음 전달 때 간다(단위 테스트 없음). 실행 기록 디렉터리는 지우지 않는다.
+- 감독 프로세스의 강제 종료(SIGKILL, 시험 없음). 대장은 `active`로 남아 `wait`는 `still running`으로 끝나고, 다음 refresh에서 그 실행은 `exited`가 되며 보류된 요청은 다음 전달 때 간다. 실행 기록 디렉터리는 지우지 않는다.
+- `on-request`에서 모델이 승인을 요청하지 않고 바로 `blocked`로 끝낼 수 있다(모델 판단).
+- 사용자 Codex 훅(`~/.codex/hooks.json`)의 PermissionRequest가 먼저 allow/deny하면 그 요청은 router에 오지 않고 그 훅이 결정한다(게이트 실측 G1, 설계상 한계).
 
 ## 한계
 
@@ -345,12 +345,12 @@ front는 sonnet `default` 모드(Claude Code 2.1.290), 작업 세션은 haiku. �
 
 front는 sonnet `default` 모드(Claude Code 2.1.290), 작업 세션은 haiku. 다른 작업의 CPU 부하(load 65–128)가 걸린 채 진행했다.
 
-- 보고 주소: 작업 세션은 front를 `router-front-6 [75d2bb]`로 불렀다. 그 이름의 세션은 하나뿐이었는데도(`peer_mention total: 1`) Claude Code가 ref를 붙였고, `/clear` 뒤에도 ref는 같았다. 이름만 쓴 보고도 전달됐다.
-- decoy: 대장에 없는 살아 있는 세션 `decoy-6`으로 보낸 `SendMessage`는 `router: 'decoy-6' is another session …`으로 거부됐고, decoy의 transcript는 그대로였다(43줄).
-- `/clear` 뒤: 이름은 남고 session id가 바뀌었다. `/router:approve`는 `works only in the router front session`으로 막혔다. 작업 세션의 보고는 `/router:front`를 다시 입력할 때까지 거부됐고 front는 아무것도 받지 못했다. Stop 훅의 `last_result`는 남아 `/router:front` 뒤 front가 보였다. 거부 뒤 다음 턴에 작업 세션이 보고하지 않았다. 0.2.4에서 거부 사유를 고쳤다(위 "보고 대상 고정").
-- 늦은 승인: attach로 먼저 응답한 뒤 같은 스레드의 다음 요청이 4.3초(1회차)·2.3초(2회차) 뒤에 떴다. 이전 요청은 1회차에 `claude agents`로 0.5초 만에, 2회차에 다음 요청과 같은 0.1초 안에(superseded) 지워졌다. 늦은 `/router:approve`는 둘 다 `not sent. No open request …`였고 결정 파일은 없었다. 파일은 모두 한 줄이었다.
-- 보고 시점: 4턴 모두 `SendMessage`가 모든 `tool_result` 뒤에 나왔다. 거부는 한 번 보고됐지만 `완료` 머리말 아래였다. 0.2.4에서 `topic-worker`에 `blocked`를 명시했다.
-- subagent: Agent 도구가 백그라운드로 띄운 subagent의 확인 요청에 `agent_id`(`a1cd1b52c8806f0d5`)가 있었다. 목록에 보였고, 거부가 subagent에 전달돼 파일은 생기지 않았다. 요청이 열린 동안 `claude agents`는 작업 세션을 `busy`(`waitingFor` 없음)로 보였다. subagent transcript는 `<세션 id>/subagents/agent-<agent_id>.jsonl`에 있었고, 거부 시각에 `tool_result` 줄이 쓰였다. 0.2.4에서 이것으로 응답을 알아챈다(위 "승인 전달").
+- G1 보고 주소: 작업 세션은 front를 `router-front-6 [75d2bb]`로 불렀다. 그 이름의 세션은 하나뿐이었는데도(`peer_mention total: 1`) Claude Code가 ref를 붙였고, `/clear` 뒤에도 ref는 같았다. 이름만 쓴 보고도 전달됐다.
+- G1 decoy: 대장에 없는 살아 있는 세션 `decoy-6`으로 보낸 `SendMessage`는 `router: 'decoy-6' is another session …`으로 거부됐고, decoy의 transcript는 그대로였다(43줄). 0.2.2 가드가 실제 `name [ref]` 주소를 통과시키고 다른 세션을 거부했다(따옴표·대소문자, 이름을 공유한 다른 세션은 단위 테스트만).
+- G1 `/clear` 뒤: 이름은 남고 session id가 바뀌었다. `/router:approve`는 `works only in the router front session`으로 막혔다. 작업 세션의 보고는 `/router:front`를 다시 입력할 때까지 거부됐고 front는 아무것도 받지 못했다. Stop 훅의 `last_result`는 남아 `/router:front` 뒤 front가 보였다. 거부 뒤 다음 턴에 작업 세션이 보고하지 않았다. 0.2.4에서 거부 사유를 고쳤다(위 "보고 대상 고정").
+- G2 늦은 승인: attach로 먼저 응답한 뒤 같은 스레드의 다음 요청이 4.3초(1회차)·2.3초(2회차) 뒤에 떴다. 이전 요청은 1회차에 `claude agents`로 0.5초 만에, 2회차에 다음 요청과 같은 0.1초 안에(superseded) 지워졌다. 늦은 `/router:approve`는 둘 다 `not sent. No open request …`였고 결정 파일은 없었다. 파일은 모두 한 줄이었다.
+- G3 보고 시점: 4턴 모두 `SendMessage`가 모든 `tool_result` 뒤에 나왔다. 거부는 한 번 보고됐지만 `완료` 머리말 아래였다. 0.2.4에서 `topic-worker`에 `blocked`를 명시했다.
+- G4 subagent: Agent 도구가 백그라운드로 띄운 subagent의 확인 요청에 `agent_id`(`a1cd1b52c8806f0d5`)가 있었다. 목록에 보였고, 거부가 subagent에 전달돼 파일은 생기지 않았다. 요청이 열린 동안 `claude agents`는 작업 세션을 `busy`(`waitingFor` 없음)로 보였다. subagent transcript는 `<세션 id>/subagents/agent-<agent_id>.jsonl`에 있었고, 거부 시각에 `tool_result` 줄이 쓰였다. 0.2.4에서 이것으로 응답을 알아챈다(위 "승인 전달").
 - 부하에서 UserPromptSubmit 훅이 5초 시간 제한을 넘겨 출력이 버려졌다(front `timed out after 5s`, 작업 세션 `hook_cancelled`). 0.2.4에서 15초로 늘렸다.
 
 ### 실측 확인 (대화형 7차 시험 2026-10-06, 0.3.0, Orca terminal, marketplace install)
@@ -364,20 +364,25 @@ front는 sonnet `default` 모드(Claude Code 2.1.290), 작업 세션은 haiku와
 - H5 백그라운드 알림: front가 띄운 백그라운드 Bash가 끝나자 입력 없이 25.0초 뒤 `<task-notification>`이 와 유휴 front에 새 턴이 열렸다(문맥 주입 0.2초 뒤, 응답 약 4초 뒤). 0.5.0의 결과 알림(`wait`)이 이것을 쓴다.
 - 거부된 호출이 있는 보고가 또 `완료` 머리말 아래 왔다(6차와 같음). 0.5.0에서 거부 메시지에 `Report this as blocked to the front (not done).`를 붙였다.
 
-### 미검증 (unverified)
+### 실측 확인 (대화형 8차 시험 2026-10-06, 0.5.0, Orca terminal, marketplace install)
 
-- `dontAsk` 작업 세션이 거부된 일을 `blocked`로 보고하는지(문서 기준).
+front는 sonnet `default` 모드(Claude Code 2.1.291), 작업 세션은 haiku와 Codex 0.159.0(모델을 지정하지 않아 설정 기본값 `gpt-6.1-sol`, 작업 디렉터리는 git 저장소). 로컬 설정에 고정 allow 규칙, 권장 deny 규칙, `"promptSuggestionEnabled": false`를 두었다.
+
+- I1 Codex 결과 알림: front가 `spawn … --backend codex` 뒤 `wait`를 `run_in_background`로 걸고 턴을 끝냈다. 1.4초 뒤 입력 없이 알림이 와 결과를 전했다. 후속 요청은 `resume --topic`과 새 `wait`로 보냈고, 9초 뒤의 둘째 후속 요청은 `held`가 되어 `wait`를 더 걸지 않았다. `wait`가 `active (held follow-ups are running now: wait again) — last: …`로 끝나자 front가 그 결과를 전하고 다시 걸었고, 다음 `wait`의 `idle — last: …`도 전했다.
+- I2 Codex 승인 전달: `workspace-write`는 작업 디렉터리 안이어도 `.git/` 쓰기를 막아(EPERM) `touch .git/…`로 요청을 냈다. 알림으로 깨어난 front가 정확한 명령(`/bin/zsh -lc 'touch .git/r8-allow.txt'`)을 보였다. `/router:approve <id>` 2.7초 뒤 실행이 끝나 `done`이 전해졌고 파일이 생겼다. `… deny`는 파일 없이 `blocked` 보고로 끝났다.
+- I3 Claude 거부: 도구 결과 끝에 `Report this as blocked to the front (not done).`가 붙었고, 작업 세션은 `[…] blocked: Bash denied — …`로 보고했다. 파일은 없었다.
+- I4 백그라운드 subagent: `agent_id`가 있는 요청이 열린 동안 작업 세션의 Stop이 지나도 상태는 `active`였다. 300초 뒤 요청이 `expired/`로 옮겨지고, 목록에 `WAITING: subagent prompt — claude attach <job_id> to answer`와 요청 줄이 보였다. 그 id의 `/router:approve`는 `not sent. … expired: … claude attach <job_id> (answer it there)`로 거부됐고 결정 파일은 없었다. attach에 확인 창이 보였고, 승인 6초 안에 subagent 줄이 사라졌으며 파일은 한 줄이었다. 그 뒤 약 13초 남은 `WAITING: permission prompt` 줄은 위 "백그라운드 subagent의 확인".
+
+### 미검증 (Claude 작업 세션)
+
+- `dontAsk` 작업 세션이 거부된 일을 `blocked`로 보고하는지, 그 모드에서 PermissionRequest가 실행되는지(문서 기준. 실행되더라도 훅은 기다리지 않는다).
 - 실패한 이름 재사용과 `resume`의 살아 있는 세션 거절(단위 테스트만).
-- `dontAsk` 모드에서 PermissionRequest가 실행되는지. 실행되더라도 훅은 기다리지 않는다.
-- 0.2.1 수정 중 `already answered` 문구는 단위 테스트로만 확인했다(5차 시험에서는 훅이 먼저 끝나 나오지 않았다). attach 먼저 응답 뒤 훅 종료·요청 정리, 대기 기록 정리, `route`가 응답에 id를 쓰지 않는 것은 5차 시험에서 확인했다.
+- `/router:approve`의 `already answered` 문구(단위 테스트만). 실측에서는 훅이 먼저 끝나 요청이 지워져 `No open request`가 나왔다(5·6차).
 - 프롬프트 제안을 `Tab`·`Enter`로 받았을 때의 동작(문서 기준).
-- 0.2.2 수정은 stub `claude`를 쓴 단위 테스트로만 확인했다. 대상은 세 가지다.
-  - `SendMessage` 가드의 주소 정규화(`name [ref]`·따옴표·공백·대소문자, 이름을 공유한 다른 세션 거부).
-  - 같은 스레드의 새 요청이 이전 요청을 밀어내는 것(훅 종료, 목록 숨김, `superseded` 거부). subagent 요청에 `agent_id`가 실리는 것은 6차 시험에서 확인했다.
-  - `topic-worker`의 보고 시점.
 - `SendMessage`가 이름 없는 ref(예: `09e9dd`)만으로도 전달하는지(문서에 없음). 그렇다면 가드는 그 주소를 알아보지 못한다.
-- 0.2.4 수정은 stub `claude`와 고정 transcript를 쓴 단위 테스트로만 확인했다. 대상은 subagent transcript로 응답 알아채기, front 이름 거부 사유, 최근 결정 표시, `topic-worker` 지침, UserPromptSubmit 15초다. subagent 안의 PermissionRequest 입력(`transcript_path`는 본 세션 것, `agent_id` 있음, `tool_use_id` 없음)과 transcript 위치, `tool_use` 입력과 `tool_input`의 일치는 `claude -p`(2.1.290) 실측으로 확인했다. 대화형에서 attach로 응답한 subagent 요청이 사라지는지는 실측하지 않았다. Bash 밖의 도구에서 transcript의 `tool_use` 입력이 훅의 `tool_input`과 다르면 이 방법은 동작하지 않는다(만료·superseded로만 닫힌다).
-- 0.5.0 수정은 stub과 고정 transcript의 단위 테스트로만 확인했다. 대상은 만료된 백그라운드 subagent 요청의 attach 대기 표시·거부·닫힘, 거부 메시지의 `blocked` 지시(작업 세션이 따르는지는 실측하지 않음), Stop 입력의 `background_tasks`(문서 기준, 실제 입력은 보지 못함)다. 보류 연쇄 결과 보존·`resume --topic`·`wait`는 위 "Codex 작업 세션 → 실측 확인"의 CLI 실측도 거쳤다.
+- 같은 스레드의 새 요청이 이전 요청을 밀어내는 경로(훅 종료, 목록 숨김, `superseded` 거부). 6차 G2의 2회차 관찰과 맞지만 그 경로임을 가르지는 못했다.
+- subagent transcript로 응답 알아채기: 백그라운드 subagent의 확인 창은 router가 기다리는 동안 attach에 뜨지 않아(7차 H1) 대기 중 attach 응답은 일어나지 않고, 만료 뒤 기록이 닫히는 것만 실측했다(8차 I4). Bash 밖의 도구와 동기 subagent는 시험하지 않았다. transcript의 `tool_use` 입력이 훅의 `tool_input`과 다르면 이 방법은 동작하지 않는다(만료·superseded로만 닫힌다).
+- UserPromptSubmit 15초 시간 제한이 부하에서 충분한지(직접 관찰하지 않음).
 
 ## 개발
 
