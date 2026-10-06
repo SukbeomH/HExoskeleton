@@ -13,7 +13,8 @@ Stop: only in a worker (session_id, or $CLAUDE_JOB_DIR's job id, is in the regis
   last_assistant_message as last_result.
 PermissionRequest: only in a worker → approvals/pending/<nonce>.json (the exact tool_input), then wait for the decision
   a user-typed /router:approve writes in the front; answer allow/deny only. No decision in time → no output, so the
-  normal prompt stays (claude attach). Prompt answered in claude attach first (`claude agents`) → end, no output.
+  normal prompt stays (claude attach). Prompt answered in claude attach first (`claude agents`, or the same thread's
+  next request) → end, no output.
 PreToolUse SendMessage: only in a worker → deny a recipient that is another live session (not the front, not a
   sibling; `name [ref]`, quotes and case normalized): a stale front name's "Did you mean" hint must not carry a
   report to an unrelated session.
@@ -132,8 +133,8 @@ def approve(p, sid, args):
         return "router: not sent. Usage: /router:approve <id> [deny]. Open requests:\n" + listing
     r = next((r for r in open_ if r["nonce"] == a[0]), None)
     if not r and (registry.approvals(p) / "pending" / f"{a[0]}.json").exists():  # its hook waits, its prompt doesn't
-        return (f"router: not sent. {a[0]} was already answered (e.g. via claude attach); nothing approved. "
-                "Open requests:\n" + listing)
+        return (f"router: not sent. {a[0]} was already answered (e.g. via claude attach) or superseded by the same "
+                "worker's next request; nothing approved. Open requests:\n" + listing)
     if not r:
         return f"router: not sent. No open request {a[0]} (answered, expired or unknown). Open requests:\n" + listing
     behavior = "deny" if a[1:] else "allow"
@@ -163,7 +164,8 @@ def permission_request(p, sid, data):
     pend, dec = a / "pending" / f"{nonce}.json", a / "decisions" / f"{nonce}.json"
     signal.signal(signal.SIGTERM, lambda *_: sys.exit(0))  # a cancelled hook still removes its pending file
     rec = {"nonce": nonce, "worker": name, "session_id": sid, "job_id": job_id(), "tool_name": data.get("tool_name"),
-           "tool_input": data.get("tool_input"), "created": t0, "expires": t0 + WAIT}
+           "tool_input": data.get("tool_input"), "created": t0, "expires": t0 + WAIT,
+           "agent_id": data.get("agent_id")}  # set only inside a subagent: its prompts are a thread of their own
     registry.save(pend, rec)
     check = t0
     try:
@@ -181,11 +183,14 @@ def permission_request(p, sid, data):
                 print(json.dumps({"hookSpecificOutput": {"hookEventName": "PermissionRequest", "decision": out}}))
                 registry.unblock(p, name)
                 return
-            # Answered elsewhere (claude attach): Claude Code does not stop this hook, so watch `claude agents`.
-            # End only after this worker was seen on the prompt and no longer is (the first look may precede it).
-            # ponytail: a check every CHECK s misses an answer followed by the next prompt within one interval; the
-            # request then stays listed until it expires, and approving it does nothing (Claude Code ignores the
-            # late answer). Upgrade: watch transcript_path for the tool result if the input ever carries tool_use_id.
+            # Answered elsewhere (claude attach): Claude Code does not stop this hook. End, no output, once this worker
+            # was seen on the prompt (the first look may precede it) and then either is off it (`claude agents`) or
+            # its thread asked again: a newer request (parallel calls: the next prompt within 0.6 s, inside one
+            # CHECK) means this prompt was answered; the worker stays on a prompt, so `claude agents` cannot tell.
+            # ponytail: an approve typed between an attach answer and the next look or request still says approved,
+            # and Claude Code ignores that late answer. Upgrade: match the transcript if the input gets tool_use_id.
+            if rec.get("seen") and registry.superseded(rec, registry.requests(p)):
+                return  # no output; the newer request's hook relays the prompt the worker is on now
             if time.time() >= check:
                 check = time.time() + CHECK
                 on = registry.on_prompt(registry.backend_agents(), sid, job_id())

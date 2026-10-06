@@ -122,14 +122,15 @@ def perm(sid, mode="default"):
             "tool_input": {"command": CMD, "description": "harmless echo"}, "permission_suggestions": []}
 
 
-def ask(sid="w-uuid", wait="10", **env):
-    """Start the hook; return (process, its pending record) once the pending file appears."""
+def ask(sid="w-uuid", wait="10", extra=(), **env):
+    """Start the hook (EXTRA: more input fields); return (process, its pending record) once its pending file appears."""
+    before = set(APPR.glob("pending/*.json"))
     proc = subprocess.Popen([str(HOOK)], stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True,
                             env=hook_env(ROUTER_APPROVAL_WAIT=wait, **env))
-    proc.stdin.write(json.dumps(perm(sid)))
+    proc.stdin.write(json.dumps(perm(sid) | dict(extra)))
     proc.stdin.close()
     for _ in range(200):
-        for f in APPR.glob("pending/*.json"):
+        for f in set(APPR.glob("pending/*.json")) - before:
             with contextlib.suppress(FileNotFoundError):  # the hook may sweep the planted leftover meanwhile
                 rec = json.loads(f.read_text())
                 if rec.get("nonce"):  # not the planted leftover below
@@ -273,6 +274,36 @@ api_status(status="waiting", waitingFor="permission prompt")
 proc, rec = ask()
 assert approve(args=seen(rec))["reason"].startswith(f"router: approved {rec['nonce']}")
 assert json.loads(answer(proc))["hookSpecificOutput"]["decision"] == {"behavior": "allow"}
+
+
+# parallel calls: the first prompt answered in claude attach, the same thread's next prompt within one CHECK (the worker
+# never leaves the prompt). The newer request supersedes the older: its hook ends at once (no output, pending removed),
+# the front hides it, a typed approve refuses it and writes no decision. Another thread's (a subagent's) request stays.
+def relays(proc, rec):
+    assert approve(args=rec["nonce"])["reason"].startswith(f"router: approved {rec['nonce']}")
+    assert json.loads(proc.stdout.read())["hookSpecificOutput"]["decision"] == {"behavior": "allow"}
+    assert proc.wait(timeout=30) == 0
+
+
+proc, rec = ask(wait="20")
+old = seen(rec)
+proc2, rec2 = ask(wait="20")
+assert proc.stdout.read() == "" and proc.wait(timeout=30) == 0 and time.time() - rec2["created"] < 5
+assert not (APPR / "pending" / f"{old}.json").exists()
+gone = APPR / "pending" / "0a1b2c3d.json"  # a superseded request whose hook has not ended yet
+gone.write_text(json.dumps(rec2 | {"nonce": "0a1b2c3d", "created": rec2["created"] - 1, "seen": True}))
+out = approve(args="0a1b2c3d")
+assert "superseded" in out["reason"] and "nothing approved" in out["reason"], out
+assert not list(APPR.glob("decisions/*.json")) and "0a1b2c3d" not in approve()["reason"]
+gone.unlink()
+proc3, rec3 = ask(wait="20", extra={"agent_id": "a1b2c3d4e5f6a7b8c"})  # the worker's subagent: a thread of its own
+seen(rec2), seen(rec3)
+time.sleep(1.5)
+listing = approve()["reason"]
+assert proc2.poll() is None and f"approval {rec2['nonce']}" in listing and f"approval {rec3['nonce']}" in listing
+relays(proc2, rec2)
+relays(proc3, rec3)
+assert not list(APPR.glob("pending/*.json"))
 AGENTS.unlink()
 
 # PreToolUse SendMessage in a worker: another live session of the user's (e.g. a stale front name's "Did you mean"

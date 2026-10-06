@@ -332,6 +332,13 @@ assert "0e0e0e0e" not in cli("list").stdout  # hk is on no prompt in the stub li
 (BIN / "agents.json").write_text(json.dumps([{"id": "fc6d12ed", "pid": 1, "status": "waiting",
                                               "waitingFor": "permission prompt"}]))
 assert "approval 0e0e0e0e" in cli("list").stdout
+# the same thread (session, and agent_id inside a subagent) asked again: the older prompt was answered → hidden. Another
+# thread's request, and requests without a session id, stay.
+ask("0f0f0f0f", session_id="hk-uuid", created=t - 2)
+ask("1a1a1a1a", session_id="hk-uuid", created=t - 1, agent_id="a1b2c3d4e5f6a7b8c")
+ask("1b1b1b1b", session_id="hk-uuid", created=t)
+out = cli("list").stdout
+assert "approval 0f0f0f0f" not in out and all(f"approval {n}" in out for n in ("1a1a1a1a", "1b1b1b1b", "0a0a0a0a")), out
 
 # approval display of untrusted text: ANSI/OSC sequences, control, zero-width and bidi characters removed and counted,
 # line breaks visible (two commands must not read as one), long text cut with its full length stated

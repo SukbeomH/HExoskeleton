@@ -72,21 +72,37 @@ def approvals(p):
     return p.parent / "approvals"
 
 
-def pending(p):
-    """Open approval requests (pending files not yet expired), oldest first. Read-only: router-hook.py writes them.
-    Not open either: answered elsewhere (claude attach). Claude Code does not stop the hook then, so a request its
-    hook saw on the prompt ("seen") whose worker `claude agents` no longer shows there is hidden until the hook ends."""
+def requests(p):
+    """Every approval request file not yet expired (created as a float). Read-only: router-hook.py writes them."""
     out = []
     for f in approvals(p).glob("pending/*.json"):
         with contextlib.suppress(OSError, ValueError, TypeError):  # removed meanwhile, or not a request
             r = json.loads(f.read_text())
             if isinstance(r, dict) and r.get("nonce") == f.stem and float(r.get("expires") or 0) > time.time():
-                out.append((float(r.get("created") or 0), r))
-    if any(r.get("seen") for _, r in out):
+                out.append(r | {"created": float(r.get("created") or 0)})
+    return out
+
+
+def superseded(r, reqs):
+    """A newer request from the same thread (session_id, plus agent_id inside a subagent). Claude Code asks one
+    prompt at a time per thread (5th live test), so R's prompt was answered elsewhere (claude attach): a late answer
+    is ignored."""
+    return bool(r.get("session_id")) and any(
+        (o.get("session_id"), o.get("agent_id")) == (r.get("session_id"), r.get("agent_id"))
+        and o["created"] > r["created"] for o in reqs)
+
+
+def pending(p):
+    """Open approval requests, oldest first. Not open: answered elsewhere (claude attach). Claude Code does not stop
+    the hook then, so a request is hidden until its hook ends when the same thread asked again (superseded), or when
+    its hook saw it on the prompt ("seen") and `claude agents` no longer shows its worker there."""
+    reqs = requests(p)
+    out = [r for r in reqs if not superseded(r, reqs)]
+    if any(r.get("seen") for r in out):
         agents = backend_agents()
-        out = [x for x in out if not x[1].get("seen") or on_prompt(agents, x[1].get("session_id"), x[1].get("job_id"))
+        out = [r for r in out if not r.get("seen") or on_prompt(agents, r.get("session_id"), r.get("job_id"))
                is not False]
-    return [r for _, r in sorted(out, key=lambda x: x[0])]
+    return sorted(out, key=lambda r: r["created"])
 
 
 def on_prompt(agents, session_id, job_id):
