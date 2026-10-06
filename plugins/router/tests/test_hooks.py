@@ -21,10 +21,12 @@ DATA = TMP / "data"  # hooks get CLAUDE_PLUGIN_DATA from Claude Code
 REG = DATA / "registry.json"
 BIN = TMP / "bin"  # stub `claude`: `claude agents --json --all` names the sessions (front name lookup, SendMessage guard)
 BIN.mkdir()
-(BIN / "claude").write_text("""#!/usr/bin/env bash
-[ "$1" = agents ] && echo '[{"kind": "interactive", "sessionId": "front-uuid", "name": "boss", "pid": 1},
-  {"kind": "background", "id": "aaaa1111", "sessionId": "w-uuid", "name": "api", "pid": 2},
-  {"kind": "interactive", "sessionId": "other-uuid", "name": "hexo-21", "pid": 3}]'
+AGENTS = BIN / "agents.json"  # when present, the stub prints it instead (worker status for the approval relay)
+AGENT_LIST = [{"kind": "interactive", "sessionId": "front-uuid", "name": "boss", "pid": 1},
+              {"kind": "background", "id": "aaaa1111", "sessionId": "w-uuid", "name": "api", "pid": 2},
+              {"kind": "interactive", "sessionId": "other-uuid", "name": "hexo-21", "pid": 3}]
+(BIN / "claude").write_text(f"""#!/usr/bin/env bash
+[ "$1" = agents ] && {{ cat "{AGENTS}" 2>/dev/null || echo '{json.dumps(AGENT_LIST)}'; }}
 """)
 (BIN / "claude").chmod(0o755)
 
@@ -222,6 +224,40 @@ assert json.loads(answer(proc))["hookSpecificOutput"]["decision"]["behavior"] ==
 # answered or expired → no longer open
 assert "not sent" in approve(args=rec["nonce"])["reason"]
 assert approve()["reason"].endswith("(none)")
+
+
+# answered in `claude attach` first: Claude Code keeps the hook running, so the hook watches `claude agents`. Once it
+# saw its worker on the prompt (marks the request "seen") and no longer does, it ends without output, pending removed.
+# Until then the front hides the request, and a typed approve says already answered and writes no decision.
+def api_status(**kw):
+    AGENTS.write_text(json.dumps([{**a, **kw} if a["name"] == "api" else a for a in AGENT_LIST]))
+
+
+def seen(rec):
+    for _ in range(100):  # the hook's first `claude agents` look
+        if json.loads((APPR / "pending" / f"{rec['nonce']}.json").read_text()).get("seen"):
+            return rec["nonce"]
+        time.sleep(0.05)
+    raise AssertionError("request never marked seen")
+
+
+api_status(status="waiting", waitingFor="permission prompt")
+proc, rec = ask(wait="20")
+n = seen(rec)
+assert f"approval {n}:" in approve()["reason"]  # still on its prompt → open
+api_status(status="busy")  # the user answered in claude attach
+out = approve(args=n)
+assert out["decision"] == "block" and "already answered (e.g. via claude attach)" in out["reason"], out
+assert not out["reason"].startswith("router: approved") and not list(APPR.glob("decisions/*.json")), out
+ctx = json.loads(run(prompt("front-uuid")))["hookSpecificOutput"]["additionalContext"]
+assert f"approval {n}" not in ctx, ctx
+assert answer(proc) == "" and time.time() - rec["created"] < 10  # ended on the signal, long before its 20 s wait
+# the normal path with the worker on its prompt (seen) still relays
+api_status(status="waiting", waitingFor="permission prompt")
+proc, rec = ask()
+assert approve(args=seen(rec))["reason"].startswith(f"router: approved {rec['nonce']}")
+assert json.loads(answer(proc))["hookSpecificOutput"]["decision"] == {"behavior": "allow"}
+AGENTS.unlink()
 
 # PreToolUse SendMessage in a worker: another live session of the user's (e.g. a stale front name's "Did you mean"
 # suggestion) is refused; the front, siblings (by name or id), and names that are no session (its own subagents) pass

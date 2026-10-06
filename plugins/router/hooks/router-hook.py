@@ -13,7 +13,7 @@ Stop: only in a worker (session_id, or $CLAUDE_JOB_DIR's job id, is in the regis
   last_assistant_message as last_result.
 PermissionRequest: only in a worker → approvals/pending/<nonce>.json (the exact tool_input), then wait for the decision
   a user-typed /router:approve writes in the front; answer allow/deny only. No decision in time → no output, so the
-  normal prompt stays (claude attach).
+  normal prompt stays (claude attach). Prompt answered in claude attach first (`claude agents`) → end, no output.
 PreToolUse SendMessage: only in a worker → deny a recipient that is another live session (not the front, not a
   sibling): a stale front name's "Did you mean" hint must not carry a report to an unrelated session.
 Anything else, including a missing registry: no output, no write.
@@ -34,6 +34,7 @@ import registry  # noqa: E402
 
 WAIT = float(os.environ.get("ROUTER_APPROVAL_WAIT", "300"))  # poll limit (s); well under the hook timeout (600)
 TTL = 600  # the PermissionRequest timeout in hooks.json: an older file belongs to a hook that was killed
+CHECK = 3  # s between `claude agents` looks (~0.3 s each) for a prompt answered elsewhere
 
 HINT = (
     "This is the router front session. Before answering, follow the router:route skill: classify the "
@@ -111,6 +112,9 @@ def approve(p, sid, args):
     if len(a) > 2 or a[1:] not in ([], ["deny"]) or not re.fullmatch(r"[0-9a-f]{8}", a[0]):
         return "router: not sent. Usage: /router:approve <id> [deny]. Open requests:\n" + listing
     r = next((r for r in open_ if r["nonce"] == a[0]), None)
+    if not r and (registry.approvals(p) / "pending" / f"{a[0]}.json").exists():  # its hook waits, its prompt doesn't
+        return (f"router: not sent. {a[0]} was already answered (e.g. via claude attach); nothing approved. "
+                "Open requests:\n" + listing)
     if not r:
         return f"router: not sent. No open request {a[0]} (answered, expired or unknown). Open requests:\n" + listing
     behavior = "deny" if a[1:] else "allow"
@@ -139,9 +143,10 @@ def permission_request(p, sid, data):
     nonce, t0 = secrets.token_hex(4), time.time()
     pend, dec = a / "pending" / f"{nonce}.json", a / "decisions" / f"{nonce}.json"
     signal.signal(signal.SIGTERM, lambda *_: sys.exit(0))  # a cancelled hook still removes its pending file
-    registry.save(pend, {"nonce": nonce, "worker": name, "session_id": sid, "job_id": job_id(),
-                         "tool_name": data.get("tool_name"), "tool_input": data.get("tool_input"),
-                         "created": t0, "expires": t0 + WAIT})
+    rec = {"nonce": nonce, "worker": name, "session_id": sid, "job_id": job_id(), "tool_name": data.get("tool_name"),
+           "tool_input": data.get("tool_input"), "created": t0, "expires": t0 + WAIT}
+    registry.save(pend, rec)
+    check = t0
     try:
         while time.time() < t0 + WAIT:
             d = None
@@ -156,6 +161,19 @@ def permission_request(p, sid, data):
                     out["message"] = f"The user denied this in the router front (/router:approve {nonce} deny)."
                 print(json.dumps({"hookSpecificOutput": {"hookEventName": "PermissionRequest", "decision": out}}))
                 return
+            # Answered elsewhere (claude attach): Claude Code does not stop this hook, so watch `claude agents`.
+            # End only after this worker was seen on the prompt and no longer is (the first look may precede it).
+            # ponytail: a check every CHECK s misses an answer followed by the next prompt within one interval; the
+            # request then stays listed until it expires, and approving it does nothing (Claude Code ignores the
+            # late answer). Upgrade: watch transcript_path for the tool result if the input ever carries tool_use_id.
+            if time.time() >= check:
+                check = time.time() + CHECK
+                on = registry.on_prompt(registry.backend_agents(), sid, job_id())
+                if on and not rec.get("seen"):
+                    registry.save(pend, rec | {"seen": True})  # lets the front hide it once answered elsewhere
+                    rec["seen"] = True
+                elif on is False and rec.get("seen"):
+                    return  # no output: the prompt is already answered
             time.sleep(0.5)
     finally:
         pend.unlink(missing_ok=True)

@@ -323,6 +323,13 @@ assert ("\n  approval 0a0a0a0a: @hk Bash: echo hi⏎rm x [4 hidden chars removed
         "   deny: /router:approve 0a0a0a0a deny   (or claude attach fc6d12ed)\n") in out, out
 assert not any(x in out for x in ("0b0b0b0b", "0c0c0c0c", "0d0d0d0d", "SAFE")), out
 assert "- pow2 [WAITING: permission prompt — user must run: claude attach 7895904c;" in out  # no request: attach only
+# answered elsewhere (claude attach): a request its hook saw on the prompt ("seen") is hidden once `claude agents` no
+# longer shows its worker there (the hook ends a few seconds later); unseen requests never consult the list
+ask("0e0e0e0e", seen=True)
+assert "0e0e0e0e" not in cli("list").stdout  # hk is on no prompt in the stub list
+(BIN / "agents.json").write_text(json.dumps([{"id": "fc6d12ed", "pid": 1, "status": "waiting",
+                                              "waitingFor": "permission prompt"}]))
+assert "approval 0e0e0e0e" in cli("list").stdout
 
 # approval display of untrusted text: ANSI/OSC sequences, control, zero-width and bidi characters removed and counted,
 # line breaks visible (two commands must not read as one), long text cut with its full length stated
