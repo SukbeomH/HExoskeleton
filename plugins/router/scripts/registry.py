@@ -96,6 +96,31 @@ def approvals(p):
     return p.parent / "approvals"
 
 
+def seconds(name, default, low):
+    """$NAME in seconds if LOW <= it <= DEFAULT, else DEFAULT (not a number, nan, negative, longer): a setting can only
+    shorten a wait, never spin the loop or widen a window. Tests shorten them; users set only ROUTER_APPROVAL_WAIT."""
+    with contextlib.suppress(ValueError):
+        v = float(os.environ.get(name, default))
+        if low <= v <= default:
+            return v
+    return default
+
+
+def take_decision(p, nonce, t0):
+    """The user's answer to request NONCE (decisions/<nonce>.json, written only by a typed /router:approve), read once
+    (deleted first, valid or not): "allow" or "deny" if it names NONCE and is no older than the request (T0), else
+    None."""
+    f = approvals(p) / "decisions" / f"{nonce}.json"
+    with contextlib.suppress(FileNotFoundError, ValueError):
+        raw = f.read_text()
+        f.unlink()
+        d = json.loads(raw)
+        if (isinstance(d, dict) and d.get("nonce") == nonce and isinstance(d.get("created"), (int, float))
+                and d["created"] >= t0 and d.get("behavior") in ("allow", "deny")):
+            return d["behavior"]
+    return None
+
+
 def requests(p):
     """Every approval request file not yet expired (created as a float). Read-only: router-hook.py writes them."""
     out = []
