@@ -120,6 +120,7 @@ def finish(p, jd, st, text):
 
 
 def agents(d):
+    # ponytail: one small run dir per run, never pruned; prune finished ones older than a few days here if they pile up.
     out = []
     for f in sorted(pathlib.Path(d).glob("*/run.json")):
         st = read(f.parent)

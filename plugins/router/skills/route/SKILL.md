@@ -1,7 +1,7 @@
 ---
 name: route
 description: "Per-message procedure for the router front session: classify the user's message against the registered topic sessions, then forward it with SendMessage, start a new background topic session, broadcast to several, or report status, reviving exited sessions safely. Use in the front session whenever the [router] registry context is present, and when a worker's report arrives."
-compatibility: "Claude Code only, v2.1.236+ (cross-session SendMessage/ListAgents, claude --bg with --agent); in-place --resume --bg needs v2.1.257+; python3."
+compatibility: "Claude Code only, v2.1.236+ (cross-session SendMessage/ListAgents, claude --bg with --agent); in-place --resume --bg needs v2.1.257+; python3. Codex workers (on request): Codex CLI, tested 0.159.0."
 allowed-tools:
 - Bash(python3 "${CLAUDE_PLUGIN_ROOT}/scripts/registry.py" *)
 ---
@@ -11,7 +11,7 @@ allowed-tools:
 ## Quick Reference
 - front는 라우팅만 한다. 주제 작업은 작업 세션이 한다.
 - 판단: forward / new / broadcast / status (merge는 명시 요청 시 `router:merge`). 애매하면 후보를 들어 한 번 묻는다.
-- 살아 있음 = 목록 항목에 `pid N`이 보임(프로세스가 있을 때만 표시). 없으면 `registry.py resume`으로 session id 재개 (이름으로 재개하지 않는다).
+- 살아 있음 = 목록 항목에 `pid N`이 보임(프로세스가 있을 때만 표시). 없으면 `registry.py resume`으로 session id 재개 (이름으로 재개하지 않는다). `codex` 표시 세션은 늘 `resume`(아래 "Codex workers").
 - 대장 쓰기, 세션 생성·재개·목록·정지는 모두 `registry.py`로만 한다(안에서 `backend.sh` 호출). `backend.sh`를 직접 부르지 않는다.
 - 작업 세션에 넘기는 본문은 요청 내용만: 라우팅 지시(세션 지목·새 세션·모델)는 front가 적용하고 뺀다(아래 "Request body").
 
@@ -37,7 +37,7 @@ python3 "${CLAUDE_PLUGIN_ROOT}/scripts/registry.py" --data "${CLAUDE_PLUGIN_DATA
 
 ## 3. Act
 
-**forward** — 대상이 `WAITING`이면 보내지 않고 아래 "Waiting workers"대로 사용자에게 알린다(프롬프트가 그 세션의 턴을 잡고 있다). 2의 refresh 출력에서 대상에 `pid N`이 있으면 먼저 `active`로 표시하고(보내기 전에: 빨리 끝난 작업의 Stop 훅 `idle`을 덮지 않게), `SendMessage`로 대상 이름에 요청 본문(아래 "Request body")을 보낸다. 앞에 `[router] 사용자 요청 전달:` 한 줄을 붙인다. 후속 요청으로 주제가 넓어졌으면 같은 명령에 `--topic "<넓어진 한 줄 주제>"`를 더한다.
+**forward** — 대상이 `codex` 세션이면 아래 "Codex workers"대로 `resume`으로만 보낸다. 대상이 `WAITING`이면 보내지 않고 아래 "Waiting workers"대로 사용자에게 알린다(프롬프트가 그 세션의 턴을 잡고 있다). 2의 refresh 출력에서 대상에 `pid N`이 있으면 먼저 `active`로 표시하고(보내기 전에: 빨리 끝난 작업의 Stop 훅 `idle`을 덮지 않게), `SendMessage`로 대상 이름에 요청 본문(아래 "Request body")을 보낸다. 앞에 `[router] 사용자 요청 전달:` 한 줄을 붙인다. 후속 요청으로 주제가 넓어졌으면 같은 명령에 `--topic "<넓어진 한 줄 주제>"`를 더한다.
 
 ```bash
 python3 "${CLAUDE_PLUGIN_ROOT}/scripts/registry.py" --data "${CLAUDE_PLUGIN_DATA}" upsert <name> --state active
@@ -61,13 +61,13 @@ python3 "${CLAUDE_PLUGIN_ROOT}/scripts/registry.py" --data "${CLAUDE_PLUGIN_DATA
 ROUTER_REQUEST
 ```
 
-cwd는 front의 cwd가 기본이다. 사용자가 다른 저장소를 말했을 때만 `--cwd "<dir>"`를 더한다(신뢰된 디렉터리여야 한다). 권한 모드는 넘기지 않는다. `registry.py`가 대장에 기록된 front의 모드(훅이 front의 매 턴 갱신)로 띄운다. 모델은 사용자가 지정할 때만 `--model <model>`로 넘긴다(대장에 남아 병합 때 재사용된다).
+cwd는 front의 cwd가 기본이다. 사용자가 다른 저장소를 말했을 때만 `--cwd "<dir>"`를 더한다(신뢰된 디렉터리여야 한다). 권한 모드는 넘기지 않는다. `registry.py`가 대장에 기록된 front의 모드(훅이 front의 매 턴 갱신)로 띄운다. 모델은 사용자가 지정할 때만 `--model <model>`로 넘긴다(대장에 남아 병합 때 재사용된다). 사용자가 Codex로 띄우라고 하면(예: `코덱스로`, `codex로`, `with codex`) `--backend codex`를 더한다(아래 "Codex workers"). 그 밖에는 넘기지 않는다(기본 Claude).
 
 **broadcast** — 대상마다 forward와 같이 `active`로 표시한 뒤 `SendMessage` 한 번. 본문 첫 줄: `[router] broadcast to: <a>, <b>, <c> — 서로 존재를 알고, 필요하면 직접 조율하세요.` 그 아래 요청 본문. 죽은 대상은 forward와 같이 재개한다(표준 입력에 같은 본문).
 
 **status** — refresh 출력을 표로 줄여 보여 준다. `WAITING` 항목은 아래 "Waiting workers"대로 따로 알린다. 더 필요하면 `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/registry.py" --data "${CLAUDE_PLUGIN_DATA}" list --json`의 `last_result`를 인용한다.
 
-**Request body** — 사용자 말 그대로이되, front가 이미 적용한 라우팅 지시(어느 세션으로·새 세션으로·어떤 모델로)는 뺀다. 작업 세션은 세션을 만들거나 모델을 바꿀 수 없어, 남겨 두면 그 부분을 거절하거나 헷갈린다. 예: `haiku 모델로 새 세션 띄워서 1부터 30까지 소수 나열해 줘` → `spawn … --model haiku`, 본문 `1부터 30까지 소수 나열해 줘`. `api-auth 세션에 토큰 만료도 처리하라고 전해 줘` → `api-auth`로 forward, 본문 `토큰 만료도 처리해 줘`.
+**Request body** — 사용자 말 그대로이되, front가 이미 적용한 라우팅 지시(어느 세션으로·새 세션으로·어떤 모델로·Codex로)는 뺀다. 작업 세션은 세션을 만들거나 모델을 바꿀 수 없어, 남겨 두면 그 부분을 거절하거나 헷갈린다. 예: `haiku 모델로 새 세션 띄워서 1부터 30까지 소수 나열해 줘` → `spawn … --model haiku`, 본문 `1부터 30까지 소수 나열해 줘`. `api-auth 세션에 토큰 만료도 처리하라고 전해 줘` → `api-auth`로 forward, 본문 `토큰 만료도 처리해 줘`.
 
 ## 4. Reply to the user
 
@@ -76,6 +76,15 @@ cwd는 front의 cwd가 기본이다. 사용자가 다른 저장소를 말했을 
 ## When a worker reports
 
 작업 세션의 `SendMessage` 보고가 도착하면 핵심만 사용자에게 전한다. 보고가 오지 않았으면 refresh 후 그 세션의 `last_result`(Stop 훅 기록)를 인용한다. `notify_when_idle`은 걸지 않는다(보고와 Stop 훅으로 충분하고, 걸면 같은 결과가 한 턴 더 온다). 사용자가 요청해 걸었던 idle 알림은 보고가 이미 왔으면 다시 전하지 않는다. 보고를 다른 세션으로 되돌려 보내지 않는다. 막힘(blocked) 보고는 사용자 결정이 필요한 질문으로 바꿔 묻는다. 목록의 `idle/blocked`(질문하고 턴을 끝낸 세션)도 같고, 답은 forward로 보낸다.
+
+## Codex workers
+
+목록에서 상태 뒤에 `codex`가 붙은 세션(예: `[idle codex]`, `[active codex pid N held 1]`)은 `codex exec`로 도는 작업 세션이다.
+
+- **전달**: `SendMessage`하지 않는다(받지 못한다). forward·broadcast 모두 위 `resume` 명령(표준 입력 heredoc)으로 보낸다. `upsert … --state active`도 하지 않는다. 출력이 job id면 새 실행이 시작된 것이고, `held: …`면 지금 실행이 끝난 뒤 이어서 보내진다(같은 세션에 실행이 겹치지 않는다).
+- **결과**: 보고 메시지가 오지 않는다. 실행이 끝나면 마지막 메시지가 그 세션의 `last`(`last_result`)로 기록되고 상태가 `idle`이 된다. 사용자에게는 `→ @<name>(Codex)로 보냈습니다. 결과는 끝난 뒤 다음 메시지나 상태 확인 때 보입니다.`처럼 말한다. 주입된 목록에서 Codex 세션의 `last`가 새로 바뀌었으면 그 턴에 핵심을 전한다. `[<topic>] blocked: …`면 사용자 결정이 필요한 질문으로 바꿔 묻는다.
+- **승인**: Codex 작업 세션은 승인을 묻지 않는다. sandbox(front 모드에서 정해짐)가 막은 일은 `blocked`로 끝난다. `/router:approve`·`claude attach`를 안내하지 않는다. 더 넓은 권한이 필요하면 사용자가 front 모드를 바꾸거나 직접 하도록 알린다.
+- `idle/failed`는 실행이 실패한 것이다. `last`의 오류(`codex exec failed …`)를 전하고, 다시 보내면 같은 thread로 재개된다.
 
 ## Waiting workers
 

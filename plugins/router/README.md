@@ -141,6 +141,55 @@ front는 `registry.py`를 플러그인 경로째 부르는 단일 명령만 쓴�
   - front가 `auto`나 `bypassPermissions`면 작업 세션도 그 모드로 뜬다.
   - 목록에 남은 세션의 제자리 재개는 처음 띄울 때의 모드(그때의 front 모드)를 유지한다. 플래그를 주면 사본이 생기기 때문이다. front 모드를 낮췄으면 새 세션을 띄운다.
 
+## Codex 작업 세션
+
+front는 그대로 Claude Code 세션이고, 작업 세션 하나하나를 Codex CLI(`codex exec`)로 띄울 수 있다(0.3.0).
+
+**요청하기**: front에 `코덱스로 …`, `codex로 …`, `with codex …`처럼 말한다. `route`가 `registry.py spawn <이름> --backend codex …`로 띄우고, 본문에서 그 지시는 뺀다. 지정하지 않으면 지금처럼 Claude 작업 세션이다. 백엔드는 작업 세션마다 대장에 `backend: codex`로 남고, 재개·정지·요약·병합은 그 값으로 나뉜다.
+
+**필요한 것**: `codex`가 PATH에 있고 로그인돼 있어야 한다(`codex login status`). 작업 디렉터리는 git 저장소 안이어야 한다. `codex exec`는 저장소 밖에서 실행을 거부하고, router는 `--skip-git-repo-check`를 넘기지 않는다. 사용자의 `~/.codex/config.toml`(모델, MCP, rules)은 그대로 적용된다.
+
+**동작**:
+- 요청 하나가 `codex exec --json` 실행(run) 하나다. 첫 실행이 thread를 만들고(대장의 `session_id` = thread id), 이후 요청은 `codex exec resume <thread>`로 같은 thread에 이어진다. 실행마다 job id가 새로 생긴다.
+- `scripts/backend-codex.sh`가 `backend.sh`와 같은 인터페이스(고정 인자, stdout은 job id만)로 Codex를 부른다. 다만 `resume`은 모델도 받는다. `exec resume`은 설정의 모델을 thread에 보내므로, `--model`로 띄운 세션은 재개 때마다 같은 `-m`을 다시 준다.
+- `scripts/codex-run.py`가 실행을 감독한다. 자기 세션으로 떨어져 front의 Bash 호출보다 오래 살고, 실행 기록을 `<데이터 디렉터리>/codex/<job>/`(`run.json`, `last.txt`, `stderr`)에 둔다. 실행이 끝나면 마지막 메시지(`-o last.txt`)를 그 작업 세션의 `last_result`로 기록하고 `idle`로 바꾼다. Claude 작업 세션에서 Stop 훅이 하는 일이다. 실패하면 `codex exec failed (exit N): <오류>`가 기록되고 목록에 `idle/failed`로 보인다.
+- 대장에 쓰는 것은 router 자신의 필드뿐이다. Codex 훅은 sandbox 안의 exec도 `permission_mode: bypassPermissions`로 보고하는데, 이 값을 대장에 옮기지 않는다. 옮기면 다음 Claude 작업 세션이 진짜 bypass로 뜬다.
+- 작업 지시는 `topic-worker` 에이전트 대신 프롬프트 머리에 들어간다. 내용은 다음과 같다. 한 주제만 한다. 세션을 만들거나 라우팅하지 않는다. 막히면 `blocked`로 끝낸다. 마지막 메시지에 `[<topic>] done|blocked: …` 보고를 쓴다.
+
+**Claude 작업 세션과 다른 점**:
+- **결과는 끌어온다(pull-only)**: Codex 작업 세션은 `SendMessage`를 쓸 수 없어 보고 메시지가 오지 않는다. front는 다음 턴에 UserPromptSubmit 훅이 주입한 대장(또는 상태 확인)에서 `last`를 읽는다. 사용자가 다음 메시지를 보내기 전까지 front는 끝난 것을 모른다.
+- **실행 중 후속 요청은 보류된다**: `route`는 Codex 세션에 늘 `registry.py resume`으로 보낸다. 실행이 진행 중이면 요청이 대장의 `held`에 쌓이고(목록에 `held N`), 감독 프로세스가 실행이 끝나면 쌓인 요청을 묶어 다음 실행으로 보낸다. 그때의 front 모드를 쓴다. 한 thread에 실행 두 개를 겹쳐 띄우지 않는다. 다음 실행을 띄우지 못하면 요청은 대장에 남아, 다음 전달 때 함께 간다.
+- **승인 전달이 없다**: `codex exec`는 승인을 묻지 않는다(approval `never`로 고정. Claude의 `dontAsk`와 같다). sandbox가 막은 명령은 실패하고, 작업 세션은 `blocked`로 보고한다. `/router:approve`와 `claude attach`는 Codex 작업 세션과 관계없다. 권한이 더 필요하면 front 모드를 바꾼 뒤 다시 보낸다(다음 실행부터 적용).
+- **router 훅이 없다**: router는 Claude Code 플러그인으로 설치되므로 Codex 작업 세션은 router 훅을 실행하지 않는다. Stop·PermissionRequest·`SendMessage` 가드가 돌지 않는다. Codex에 router를 플러그인으로 따로 설치하면 Codex가 `hooks.json`을 읽지만, 사용자가 신뢰하기 전까지 훅은 꺼져 있다. 켜져도 `UserPromptSubmit`은 front session id에서만 모드를 기록한다. 가드가 필요 없는 이유는 Codex 세션이 `SendMessage`를 쓸 수 없기 때문이다. front 쪽 훅과 보안 모델(front 등록, 모드 기록, 승인 위조 방지)은 그대로다.
+- **정지·요약**: `registry.py stop <이름>`은 실행의 프로세스 그룹(감독 프로세스와 `codex exec`)에 SIGTERM을 보낸다. thread는 남아 다시 보내면 재개된다. `summarize`는 `codex exec fork --ephemeral`을 read-only sandbox로 실행해 원본 thread를 건드리지 않고 요약한다. `merge`는 Codex 원본에 메시지를 보내지 않고 `last_result`나 `summarize`로 요약을 얻는다.
+
+**권한 모드 → sandbox** (spawn은 `-s`, resume은 `-s`가 없어 `-c sandbox_mode=`로 매번 명시):
+
+| front 모드(대장 기록) | Codex sandbox |
+|---|---|
+| `plan` | `read-only` |
+| `default`, `acceptEdits`, `auto`, `dontAsk` | `workspace-write` |
+| `bypassPermissions` | `danger-full-access` |
+
+모드는 늘 front의 UserPromptSubmit 훅이 기록한 값이다(인자로 받지 않는다). 그래서 `danger-full-access`는 front 자신이 `bypassPermissions`일 때만 나온다. `--dangerously-bypass-approvals-and-sandbox`는 쓰지 않는다. `workspace-write`는 작업 디렉터리와 임시 디렉터리에만 쓸 수 있다. `auto`도 분류기 없이 `workspace-write`로 간다. `--approve-for-me`(자동 검토)는 쓰지 않는다.
+
+### 실측 확인 (2026-10-06, codex-cli 0.159.0, 임시 대장, 기본 모델)
+
+- `registry.py spawn live-cx --backend codex --request "reply with the word pong"`: 0.6초 만에 job id를 출력했다. 6.1초 뒤 대장에 thread id(`session_id`), `last_result`(`pong …`), `idle`, `pid` 없음이 기록됐다. `run.json`은 `done`·exit 0, stderr는 비어 있었다.
+- `resume`(`… pang`): 같은 thread, 새 job id, 5.0초 뒤 `last_result`가 `pang` 보고로 바뀌었다(`-c sandbox_mode="workspace-write"` 수용).
+- 보류: `sleep 8`을 시킨 실행 중 refresh는 `[active codex pid N]`이었다. 그동안 보낸 `resume`은 `held: …`를 출력했고, 실행이 끝나자 감독 프로세스가 그 요청을 다음 실행으로 보냈다. 20초 안에 `held-done` 보고가 기록되고 `held`가 비었다.
+- 대장에 `permission_mode`를 가진 작업 세션은 없었고, front 모드는 `default` 그대로였다. 남은 프로세스는 없었고, 시험 thread는 `codex delete --force <id>`로 지웠다.
+
+### 미검증 (Codex)
+
+- U1: front가 `registry.py wait <이름>`을 백그라운드 Bash로 돌려 끝날 때 깨어나는 push 알림. 끝난 백그라운드 명령이 유휴 대화형 front를 깨우는지 확인하지 못해 만들지 않았다(향후 과제).
+- U3: `workspace-write` sandbox가 Codex 모델의 플러그인 데이터 디렉터리(대장) 쓰기와 `codex queue` 실행을 막는지. 문서상 작업 디렉터리 밖 쓰기는 막히지만 실측하지 않았다.
+- U4: `-c sandbox_mode` 없이 `exec resume`이 저장된 sandbox를 유지하는지. router는 매번 명시하므로 영향이 없다.
+- `exec resume --json`이 `thread.started`를 내는지. router는 resume에 thread id를 미리 채워 두므로 영향이 없다.
+- `read-only`·`danger-full-access` 실행, 실제 `codex exec`의 `stop`, sandbox에 막힌 작업 세션의 `blocked` 보고, Codex 원본의 `merge`(단위 테스트만).
+- 사용자 config의 권한 프로필(`permissions`)이 `-s`와 함께 어떻게 적용되는지.
+- 감독 프로세스가 강제 종료(SIGKILL)되면 그 실행은 `exited`가 되고 보류된 요청은 다음 전달 때 간다(단위 테스트 없음). 실행 기록 디렉터리는 지우지 않는다.
+
 ## 한계
 
 - **Claude Code 전용**: cross-session `SendMessage`/`ListAgents`와 `claude --bg`가 필요하다. 최소 버전은 각 `SKILL.md`의 `compatibility`를 본다.
@@ -245,6 +294,7 @@ front는 sonnet `default` 모드(Claude Code 2.1.290), 작업 세션은 haiku. �
 ```bash
 python3 plugins/router/tests/test_registry.py   # 대장: 유일 이름·실패 이름 재사용, 갱신(id로만), merged, 원자적 쓰기, stub claude로 spawn/resume·프롬프트 조립, front 모드 고정, CLI로 front·id·모드·대장 파일 지정 불가, backend.sh 고정 인자, 승인 대기(WAITING) 표시, 승인 요청 표시 정리(ANSI·bidi·줄바꿈·절단), claude attach로 응답된 요청 숨김, 같은 스레드의 새 요청에 밀린 요청 숨김(subagent 요청은 유지), Stop 뒤 대기 기록 정리
 python3 plugins/router/tests/test_hooks.py      # 훅: 입력한 /router:front만 front 등록, front만 모드 기록·주입(살아 있는 pid만 표시), 작업 세션만 기록, 승인 전달(PermissionRequest 대기·allow/deny·오래된/다른 id/잘못된 결정 무시·시간 초과, front에서 입력한 /router:approve만 결정, claude attach 먼저 응답 → 훅 종료·already answered, 병렬 호출의 새 요청 → 이전 요청 훅 종료·superseded 거부, subagent 요청은 유지), 결정·보고 뒤 대기 기록 정리, SendMessage 보고 대상 가드(name [ref]·따옴표·대소문자, 이름을 공유한 다른 세션)
+python3 plugins/router/tests/test_codex.py      # Codex 작업 세션(stub codex): backend-codex.sh 고정 인자, spawn/resume/list/stop/summarize, 모드 → sandbox(bypass는 front가 bypass일 때만), 결과 기록·실패 기록, 실행 중 요청 보류와 종료 뒤 전달, 백엔드 분기, Codex의 permission_mode를 대장에 쓰지 않음
 claude --plugin-dir plugins/router              # 작업 트리를 플러그인으로 로드
 ```
 
