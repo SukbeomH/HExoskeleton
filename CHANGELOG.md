@@ -1,5 +1,19 @@
 # Changelog
 
+## router 0.5.1 (2026-10-07)
+
+9차 대화형 시험의 수정. 실측은 README "실측 확인 (대화형 9차 시험)". 거절된 재개와 감독 강제 종료는 실제 Codex로 CLI 실측도 했다(README "Codex 작업 세션 → 실측 확인"). 나머지는 단위 테스트로만 확인했다.
+
+### Bug Fixes
+
+* **router**: 거절된 Codex 재개가 요청과 보류된 후속 요청을 잃지 않는다(9차 C4). `codex-run.py`가 재개의 thread id를 미리 넣어, `thread/resume`이 `already has an active writer`로 거절돼도 실행이 시작된 것으로 보았다. 이제 `codex-turn.py`의 `thread.started`가 와야 시작이고, 그 전에 끝나면 `spawn`·`resume`이 그 오류로 실패한다. `resume`은 요청을 보류된 후속 요청 뒤에 `held`로 남겨 다음 전달 때 먼저 보내고, 감독의 연쇄 실행도 같다. 감독 프로세스가 SIGKILL되면 `codex-turn.py`가 부모 pid 변화를 보고 app-server를 끝내, 고아가 thread 쓰기 잠금을 쥐지 않는다(macOS에는 parent-death signal이 없어 폴링).
+* **router**: `registry.py stop`이 성공하면 작업 세션을 바로 `exited`로 기록해, 걸어 둔 `wait`가 끝난다(9차 C2b: refresh 전까지 `active`). 그사이 새 실행이 기록됐거나 병합된 원본이면 건드리지 않는다. 보류된 후속 요청은 남아 다음 전달 때 간다.
+* **router**: front 문맥(`list`·refresh 출력 포함)에서 `approve: /router:approve <id>   deny: …` 줄을 빼고, 요청 id나 id가 든 승인 명령을 응답에 쓰지 말고 인자 없는 `/router:approve`를 안내하라는 규칙을 매 턴 주입한다(9차 L4: front가 id를 써서 프롬프트 제안이 그 명령을 채웠다). 인자 없는 `/router:approve` 목록은 그대로다.
+
+### Documentation
+
+* **router**: README에 9차 시험 실측(C1–C5, L1–L5, L7b), 0.5.1 동작, 미검증 정리, 시험 폴더의 `~/.codex/config.toml`·`~/.claude.json` 항목.
+
 ## 6.1.0 (2026-10-06)
 
 ### Features
