@@ -1,5 +1,25 @@
 # Changelog
 
+## router 0.5.0 (2026-10-06)
+
+Codex 결과 알림(push)과 7차 대화형 시험의 수정. 실측은 README "실측 확인 (대화형 7차 시험)"과 "Codex 작업 세션 → 실측 확인".
+
+### Features
+
+* **router**: `registry.py wait <name> [--timeout S]`. 그 작업 세션이 결과를 기록하거나, 실행을 멈추거나, 새 승인 요청을 열면 한 줄(상태와 정리한 결과, 또는 `WAITING`과 요청 내용)을 출력하고 끝난다. 시간이 지나면 `still running`(기본 600초, 최대 1800초). 대장과 요청 디렉터리의 mtime만 보는 읽기 전용이라 allow 규칙 범위가 그대로다. `route`는 Codex 세션에 `spawn`·`resume`한 뒤 이 명령을 Bash `run_in_background`로 돌린다. 끝난 백그라운드 명령이 유휴 front에 새 턴을 열어(7차 시험 H5), 사용자가 다음 메시지를 보내지 않아도 결과나 승인 대기를 알린다.
+
+### Bug Fixes
+
+* **router**: 백그라운드 subagent의 확인 창은 PermissionRequest 훅이 기다리는 동안 `claude attach`에 보이지 않고 만료 뒤에야 보인다(7차 시험). 만료된 subagent 요청을 `approvals/expired/`에 남겨, front 목록이 그 작업 세션을 `WAITING: subagent prompt — claude attach <job> to answer`로 보이게 한다. transcript에 결과가 생기거나, 같은 subagent가 다시 묻거나, 프로세스가 사라지거나, 1시간이 지나면 닫힌다. 그 id의 `/router:approve`는 attach를 안내하며 거부한다.
+* **router**: 보류된 후속 요청이 이어 실행될 때 앞 실행의 Codex 결과가 덮어써지지 않는다. 실행마다 결과를 최근 3개(`results`) 남기고, 목록이 연쇄의 앞 결과를 `earlier result`로 보인다.
+* **router**: `registry.py resume`이 `--topic`을 받는다(대장 주제와 프롬프트). route가 Codex 전달에 `--topic`을 붙여 실패하던 문제.
+* **router**: 거부 메시지 끝에 `Report this as blocked to the front (not done).`를 붙이고, Codex 작업 지시에 거부된 실행은 `blocked`라고 적는다(Codex의 decline에는 메시지 칸이 없다).
+* **router**: Stop 훅 입력의 `background_tasks`에 아직 도는 subagent가 있으면 작업 세션을 `idle`로 내리지 않는다.
+
+### Documentation
+
+* **router**: README에 결과 알림(사용자가 보는 것, 출력, 제한), 백그라운드 subagent는 대기 중에는 `/router:approve`로만 답한다는 정정, 7차 시험 실측(H1–H5), 0.5.0 `wait` CLI 실측, 미검증 갱신.
+
 ## router 0.4.0 (2026-10-06)
 
 Codex 작업 세션의 승인 전달(아키텍처 A2: Claude front + app-server에서 도는 Codex thread). 게이트 실측(G1–G5)은 README "Codex 작업 세션 → 게이트 실측". Claude 작업 세션의 동작은 그대로다.

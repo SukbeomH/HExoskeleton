@@ -1,7 +1,7 @@
 {
   "name": "router",
-  "version": "0.4.0",
-  "description": "One session to rule them all (Claude Code only): talk to one front session that forwards each message to the background session owning its topic, starts new topic sessions (Claude, or Codex CLI on request), broadcasts to several, collects their results, relays workers' permission prompts (Claude and Codex) to a user-typed /router:approve in the front, and merges converged sessions on request.",
+  "version": "0.5.0",
+  "description": "One session to rule them all (Claude Code only): talk to one front session that forwards each message to the background session owning its topic, starts new topic sessions (Claude, or Codex CLI on request), broadcasts to several, collects their results, relays workers' permission prompts (Claude and Codex) to a user-typed /router:approve in the front, pushes Codex results to an idle front, and merges converged sessions on request.",
   "author": {
     "name": "SukbeomH",
     "url": "https://github.com/SukbeomH"
