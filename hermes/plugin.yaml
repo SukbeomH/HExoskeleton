@@ -1,0 +1,10 @@
+name: hxsk
+version: "6.0.3"
+description: "HExoskeleton guard and state hooks for Hermes Agent: runs the hxsk Claude Code hook scripts (file-protect, write-guard, bash-guard, session context, context save) and adds /hxsk-init"
+author: SukbeomH
+homepage: https://github.com/SukbeomH/HExoskeleton
+license: MIT
+requires_env:
+  - name: HXSK_ROOT
+    description: "Path to a HExoskeleton checkout (git clone https://github.com/SukbeomH/HExoskeleton). A subdirectory install ships only hermes/, and the hook scripts live in the checkout."
+provides_hooks: [pre_tool_call, post_tool_call, pre_llm_call, on_session_end]
