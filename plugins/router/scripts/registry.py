@@ -33,6 +33,7 @@ Usage: registry.py [--data DIR] <command> ...
   The prompt (front, topic, siblings, request) is composed here.
   mark NAME STATE [--into NAME] | refresh [--json]  (runs `backend.sh list`)
   summarize NAME | stop NAME  → backend.sh summarize/stop with the worker's recorded session/job id
+  wait NAME [--timeout S]  → one line once NAME has a result, stopped or asks for approval (read-only; ≤ 1800 s)
   record-result SESSION_ID TEXT
 """
 
@@ -57,6 +58,7 @@ NAME_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$")  # SendMessage-safe wi
 RESULT_MAX = 2000
 ANSI = re.compile(r"\x1b\[[0-?]*[ -/]*[@-~]|\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)?")
 SHOW_MAX = 300  # chars of a pending request shown before the explicit cut
+WAIT_MAX = 1800.0  # longest `wait`: an unattended session stops a background command at 30 min (docs: tools reference)
 BACKEND = pathlib.Path(__file__).with_name("backend.sh")
 BACKENDS = {"claude": BACKEND, "codex": BACKEND.with_name("backend-codex.sh")}
 ROUTED = ("Routing instructions in the request (which session, a new session, which model) were already applied "
@@ -544,6 +546,39 @@ def decided(p, window=600, keep=5):
     return sorted(out, key=lambda d: d["created"])[-keep:]
 
 
+def wait(p, name, timeout):
+    """`wait NAME`: the front runs it as a background Bash command, whose end starts a turn in an idle front (7th live
+    test), so a Codex worker's result reaches the user without a message. Blocks until NAME records a result, stops
+    running or opens an approval request newer than this wait, then prints one line; after TIMEOUT a "still running"
+    line. Read-only: it polls the registry's and the requests' mtimes, never takes the lock or writes."""
+    s0 = load(p)["sessions"].get(name)
+    if s0 is None:
+        sys.exit(f"registry: no session '{name}'")
+    t0, last, poll = time.time(), None, seconds("ROUTER_POLL_INTERVAL", 0.5, 0.01)
+    head = f"[router] wait {name}{' (codex)' if codex(s0) else ''}:"
+
+    def run(s):
+        return s.get("last_result"), (s.get("results") or [{}])[-1].get("job")
+
+    while True:
+        stamp = []
+        for f in (p, approvals(p) / "pending"):
+            with contextlib.suppress(OSError):
+                stamp.append((f.stat().st_ino, f.stat().st_mtime_ns))
+        if stamp != last:
+            last, s = stamp, load(p)["sessions"].get(name) or {}
+            new = [r for r in requests(p) if r.get("worker") == name and r["created"] >= t0]
+            if new:  # an older one was told already: a wait started again after it must not return at once
+                return print(f"{head} WAITING: approval {describe(new[0])} — the user types /router:approve (bare "
+                             "lists it)")
+            if run(s) != run(s0) or s.get("state") not in ("active", "waiting"):
+                more = " (held follow-ups are running now: wait again)" if s.get("state") == "active" else ""
+                return print(f"{head} {s.get('state') or 'gone'}{more} — last: {clean(s.get('last_result') or '-')}")
+        if time.time() >= t0 + timeout:
+            return print(f"{head} still running after {timeout:g} s — its result shows in the [router] list later")
+        time.sleep(poll)
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description="router registry")
     ap.add_argument("--data", help="plugin data dir (skills pass ${CLAUDE_PLUGIN_DATA})")
@@ -577,6 +612,9 @@ def main(argv=None):
         x.add_argument("--json", action="store_true", help="print the whole registry as JSON")
     for c in ("summarize", "stop"):
         sub.add_parser(c).add_argument("name")
+    wt = sub.add_parser("wait")
+    wt.add_argument("name")
+    wt.add_argument("--timeout", type=float, default=600.0, help=f"seconds (default 600, at most {WAIT_MAX:g})")
     rr = sub.add_parser("record-result")
     rr.add_argument("session_id")
     rr.add_argument("text")
@@ -685,6 +723,8 @@ def main(argv=None):
         b = backend_of(s)
         sys.exit(subprocess.run(["bash", str(BACKENDS[b]), a.cmd, s[key], *extra], stdin=subprocess.DEVNULL,
                                 env=env(p, b)).returncode)
+    elif a.cmd == "wait":
+        wait(p, a.name, min(a.timeout, WAIT_MAX) if a.timeout >= 0 else 0)  # nan → 0: never hang
     elif a.cmd == "record-result":
         if not record_result(p, a.session_id, None, a.text):
             sys.exit(f"registry: no worker with session id '{a.session_id}'")
