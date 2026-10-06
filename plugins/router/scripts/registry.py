@@ -13,8 +13,9 @@ Trust: the front entry is written only by the plugin's hooks (router-hook.py: a 
 it, each front turn records its permission mode). Worker ids are written only by launch, refresh (from the real
 `backend.sh list`) and the Stop hook. Nothing here takes a front, an id or a permission mode from the command line:
 the allow rule for this script approves any arguments, so arguments must not be able to pick a worker's mode.
-Approvals (<registry dir>/approvals/{pending,decisions}/<nonce>.json) are written only by router-hook.py: a worker's
-PermissionRequest hook writes pending, a user-typed /router:approve writes the decision. No command here writes them.
+Approvals (<registry dir>/approvals/{pending,decisions,decided}/<nonce>.json) are written only by router-hook.py: a
+worker's PermissionRequest hook writes pending, a user-typed /router:approve writes the decision (and decided, its
+display-only record). No command here writes them.
 
 Usage: registry.py [--data DIR] <command> ...
   init | get-front | list [--json]
@@ -31,11 +32,13 @@ Usage: registry.py [--data DIR] <command> ...
 
 import argparse
 import contextlib
+import datetime
 import fcntl
 import json
 import os
 import pathlib
 import re
+import stat
 import subprocess
 import sys
 import tempfile
@@ -92,12 +95,43 @@ def superseded(r, reqs):
         and o["created"] > r["created"] for o in reqs)
 
 
+def answered(r):
+    """A subagent's request (agent_id) answered elsewhere (claude attach): its own transcript (r["transcript"]) holds
+    a result, written after the request, for a tool_use with this exact tool and input. `claude agents` cannot tell:
+    it shows the worker busy while its subagent waits (6th live test). Cheap: the file is read only once it has grown
+    past r["size"], which then keeps the size read (a hook's own copy reads each growth once). Regular files only."""
+    try:
+        st = os.stat(r.get("transcript"))
+        if not stat.S_ISREG(st.st_mode) or st.st_size <= r.get("size", 0):
+            return False
+        r["size"] = st.st_size
+        with open(r["transcript"], encoding="utf-8", errors="replace") as f:
+            lines = f.read().splitlines()
+    except (OSError, TypeError):
+        return False
+    uses, after = set(), float(r.get("created") or 0)
+    for line in lines:
+        if '"tool_use"' not in line and '"tool_result"' not in line:
+            continue
+        with contextlib.suppress(ValueError, TypeError, AttributeError, KeyError):
+            e = json.loads(line)
+            for b in e["message"]["content"]:
+                if b["type"] == "tool_use" and (b["name"], b["input"]) == (r.get("tool_name"), r.get("tool_input")):
+                    uses.add(b["id"])
+                elif b["type"] == "tool_result" and b["tool_use_id"] in uses:
+                    ts = datetime.datetime.strptime(e["timestamp"], "%Y-%m-%dT%H:%M:%S.%fZ")
+                    if ts.replace(tzinfo=datetime.timezone.utc).timestamp() > after:
+                        return True  # not an earlier identical call's result: that one predates the request
+    return False
+
+
 def pending(p):
     """Open approval requests, oldest first. Not open: answered elsewhere (claude attach). Claude Code does not stop
-    the hook then, so a request is hidden until its hook ends when the same thread asked again (superseded), or when
-    its hook saw it on the prompt ("seen") and `claude agents` no longer shows its worker there."""
+    the hook then, so a request is hidden until its hook ends when the same thread asked again (superseded), when a
+    subagent's transcript has the result (answered), or when its hook saw it on the prompt ("seen") and `claude agents`
+    no longer shows its worker there."""
     reqs = requests(p)
-    out = [r for r in reqs if not superseded(r, reqs)]
+    out = [r for r in reqs if not superseded(r, reqs) and not answered(r)]
     if any(r.get("seen") for r in out):
         agents = backend_agents()
         out = [r for r in out if not r.get("seen") or on_prompt(agents, r.get("session_id"), r.get("job_id"))
@@ -337,7 +371,7 @@ def alive(pid):
 
 def render(reg, width=200, p=None):
     """The compact registry. With P, a worker's open approval requests are listed under it (and make it WAITING
-    without a refresh: its PermissionRequest hook is waiting for the user's answer right now)."""
+    without a refresh: its PermissionRequest hook is waiting for the user's answer right now), then recent decisions."""
     front = reg.get("front") or {}
     asks = pending(p) if p else []
     lines = [f"[router] front: @{front.get('name') or '?'} (mode {front_mode(reg)}) — workers:"]
@@ -365,7 +399,27 @@ def render(reg, width=200, p=None):
         lines += ["  " + line for r in mine for line in approval_lines(r)]
     if not reg["sessions"]:
         lines.append("- (none)")
+    done = decided(p) if p else []
+    if done:
+        lines.append("[router] decided by the user's typed /router:approve (last 10 min; the worker's report tells "
+                     "what then ran):")
+    for d in done:
+        when, verdict = time.strftime("%H:%M:%S", time.localtime(d["created"])), d.get("behavior") == "allow"
+        lines.append(f"- {when} {'approved' if verdict else 'denied'} {clean(d.get('nonce'), 8)} "
+                     f"{clean(d.get('what') or '', 120)}")
     return "\n".join(lines)
+
+
+def decided(p, window=600, keep=5):
+    """The last KEEP decisions typed in the front within WINDOW seconds, oldest first: approve (router-hook.py)
+    writes approvals/decided/<nonce>.json, since the blocked prompt never reaches the front's model. Display only."""
+    out = []
+    for f in approvals(p).glob("decided/*.json"):
+        with contextlib.suppress(OSError, ValueError, TypeError, KeyError):
+            d = json.loads(f.read_text())
+            if 0 <= time.time() - float(d["created"]) < window:  # not nan, inf or future
+                out.append(d | {"created": float(d["created"])})
+    return sorted(out, key=lambda d: d["created"])[-keep:]
 
 
 def main(argv=None):

@@ -28,7 +28,7 @@
           {
             "type": "command",
             "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/router-hook.py\"",
-            "timeout": 5
+            "timeout": 15
           }
         ]
       }
