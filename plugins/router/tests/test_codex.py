@@ -228,6 +228,7 @@ assert re.fullmatch(r"[0-9a-f-]{36}", thread), cx
 p = prompts()[-1]
 assert p.startswith("Router front: @boss — you cannot message it: your last message is your report"), p
 assert registry.CODEX_WORKER in p and registry.ROUTED in p and "SendMessage" not in p, p
+assert "report it as blocked (the run is then blocked, not done, even if the rest finished)." in p, p  # no deny text
 assert p.endswith("\n\nRequest from the user:\nreply pong"), p
 # list: one claude-agents-shaped entry per run; a finished run has no pid and leaves the worker idle on refresh
 e = json.loads(backend("list").stdout)

@@ -197,6 +197,7 @@ assert rec["worker"] == "ui", rec
 decide(rec, "deny")
 out = json.loads(answer(proc))["hookSpecificOutput"]["decision"]
 assert out["behavior"] == "deny" and rec["nonce"] in out["message"], out
+assert out["message"].endswith(" Report this as blocked to the front (not done)."), out  # not "done"/"완료" (7th test)
 # ignored: older than the request (planted before it), another request's nonce (replay), unknown behavior; or nothing
 # decided (timeout). Each is read once and deleted; no valid decision → no output, the normal prompt stays; pending
 # removed. The four hooks wait side by side: each needs its whole wait, long enough to read the decision under load.

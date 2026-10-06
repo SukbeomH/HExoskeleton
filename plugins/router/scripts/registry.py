@@ -72,7 +72,8 @@ CODEX_WORKER = (
     "requests here. Work only on this topic. Never start, resume, stop or merge sessions, and never run the router's "
     "scripts or codex/claude session commands. If the sandbox stops a command you need, request approval for it when "
     "you can (the user answers in the front); if it is declined or you cannot ask, do not work around it: report it "
-    "as blocked. End every run with your report as your last message: "
+    "as blocked (the run is then blocked, not done, even if the rest finished). "
+    "End every run with your report as your last message: "
     "`[<topic>] done|blocked: <one-line outcome>`, then at most five bullets (results, decisions or questions; "
     "files/branch if any).")
 

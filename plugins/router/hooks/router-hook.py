@@ -201,7 +201,8 @@ def permission_request(p, sid, data):
             if b:
                 out = {"behavior": b}  # never updatedInput/updatedPermissions: this call, as shown
                 if b == "deny":
-                    out["message"] = f"The user denied this in the router front (/router:approve {nonce} deny)."
+                    out["message"] = (f"The user denied this in the router front (/router:approve {nonce} deny). "
+                                      "Report this as blocked to the front (not done).")  # 7th live test: "완료"
                 print(json.dumps({"hookSpecificOutput": {"hookEventName": "PermissionRequest", "decision": out}}))
                 registry.unblock(p, name)
                 return
