@@ -1,5 +1,22 @@
 # Changelog
 
+## router 0.2.2 (2026-10-06)
+
+대화형 5차 시험(0.2.1, Orca terminal, marketplace install)에서 나온 결함 수정.
+
+### Security
+
+* **router**: 작업 세션의 `SendMessage` 가드가 Claude Code의 `name [ref]` 주소(예: `router-front-5 [09e9dd]`)를 알아보지 못해, 다른 세션 `notion-wbs-98`은 거부하면서 `notion-wbs-98 [b451e5]`는 통과시켰다. 이제 끝의 ` [hex]`·`@`·따옴표·앞뒤 공백을 벗기고 대소문자를 무시해 비교한다. ref는 검증할 수 없으므로 front·작업 세션(id 기준)이 아닌 살아 있는 세션과 이름이 같으면 거부하고, 벗긴 뒤 빈 주소도 거부한다.
+
+### Bug Fixes
+
+* **router**: 병렬 도구 호출에서 첫 확인을 `claude attach`로 응답하면 다음 확인이 0.6초 안에 떠, 이전 요청이 만료까지 열린 채 남고 늦은 `/router:approve`가 `approved`라고 잘못 답했다(실행은 없었다). 같은 스레드(`session_id`, subagent 안이면 `agent_id`)의 더 새 요청이 있으면 이전 요청은 응답된 것으로 본다. front 목록은 숨기고, `/router:approve`는 `superseded … nothing approved`로 막아 결정을 쓰지 않으며, 훅은 출력 없이 끝난다. subagent의 요청은 서로 밀어내지 않는다.
+* **router**: 작업 세션이 도구 호출과 같은 메시지로 보고를 보내, 거부된 뒤 `done`과 `blocked`가 함께 갔다. `topic-worker`는 도구 결과가 돌아온 뒤에만 보고하고, 거부된 호출은 `blocked`로 한 번 보고한다.
+
+### Documentation
+
+* **router**: README가 늦은 승인에 `already answered`가 나온다고 했으나 보통은 훅이 먼저 끝나 `No open request`가 나온다. 두 결과와 `superseded` 문구, 5차 실측(attach 먼저 응답 뒤 2.4초 안 정리, 늦은 승인 거절, 프롬프트 제안 끔, 수정 전 병렬 호출 동작)을 적었다.
+
 ## router 0.2.1 (2026-10-06)
 
 대화형 4차 시험(0.2.0, Orca terminal, marketplace install)에서 나온 결함 수정.
