@@ -5,11 +5,12 @@ File: $ROUTER_REGISTRY, else <--data dir>/registry.json (a dir under ~/.claude/p
 else $CLAUDE_PLUGIN_DATA/registry.json.
 Shape: {"front": {"session_id", "name", "permission_mode", "updated", "mode_updated"} | null,
         "sessions": {<name>: {session_id, job_id, cwd, topic, model, state, pid, agent_state, waiting_for,
-                              agent_type, last_result, merged_into, updated, backend, held}}}
+                              agent_type, last_result, merged_into, updated, backend, held, results}}}
 state: active | idle | waiting (refresh only: an open prompt holds a live worker's turn) | exited | merged.
 backend: absent = claude (backend.sh: `claude --bg` sessions), "codex" (backend-codex.sh: one codex-turn.py run per
 spawn/resume on the worker's thread, session_id = thread id, job_id = the current run). held: a Codex worker's
-follow-ups queued while a run is going; codex-run.py sends them as the next run when it ends.
+follow-ups queued while a run is going; codex-run.py sends them as the next run when it ends. results: a Codex
+worker's last 3 runs {job, at, text, chained: held follow-ups started right after it}.
 Writes take an exclusive flock and replace the file atomically. Empty option values are ignored.
 
 Trust: the front entry is written only by the plugin's hooks (router-hook.py: a user-typed /router:front registers
@@ -39,6 +40,7 @@ import argparse
 import contextlib
 import datetime
 import fcntl
+import itertools
 import json
 import os
 import pathlib
@@ -313,6 +315,10 @@ def finish_run(reg, job_id, thread_id, text):
     s = reg["sessions"][name]
     held = [] if s.get("state") == "merged" else s.pop("held", [])
     s.update(session_id=thread_id, last_result=text[:RESULT_MAX], pid=None, updated=now())
+    # the last runs' results: with held follow-ups the next run starts at once and its result replaces last_result
+    # before the front may have read this one (7th live test), so render lists a chain's earlier results
+    s["results"] = (s.get("results", []) + [{"job": job_id, "at": now(), "text": text[:RESULT_MAX],
+                                             **({"chained": True} if held else {})}])[-3:]
     if s.get("state") != "merged":
         s["state"] = "active" if held else "idle"
     return name, held
@@ -509,6 +515,9 @@ def render(reg, width=200, p=None):
             f"- {name} [{state}{extra}]"
             f" topic: {s.get('topic') or '-'} | cwd: {s.get('cwd') or '-'} | last: {last or '-'}"
         )
+        chain = list(itertools.takewhile(lambda r: r.get("chained"), reversed((s.get("results") or [])[:-1])))
+        lines += [f"  earlier result (its held follow-ups ran right after): {' '.join(str(r.get('text')).split())[:width]}"
+                  for r in reversed(chain)]
         lines += ["  " + line for r in mine for line in approval_lines(r)]
     if not reg["sessions"]:
         lines.append("- (none)")

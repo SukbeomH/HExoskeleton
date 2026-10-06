@@ -291,6 +291,11 @@ cx = idle("cx", busy)
 assert len(calls()) == n + 1 and calls()[-1]["call"] == "thread/resume" and "held" not in cx, (calls(), cx)
 assert prompts()[-1].endswith("Request from the user:\nfollow-up 1\n\nfollow-up 2"), prompts()[-1]
 assert cx["last_result"] == f"pong {n + 1}" and cx["job_id"] != busy, cx
+# both chained runs stay visible to the front: the held run's result does not hide the one before it (7th live test)
+assert [(r["job"], r["text"], r.get("chained")) for r in cx["results"][-2:]] == [
+    (busy, f"pong {n}", True), (cx["job_id"], f"pong {n + 1}", None)], cx["results"]
+out = cli("list").stdout
+assert f"last: pong {n + 1}\n  earlier result (its held follow-ups ran right after): pong {n}\n" in out, out
 
 # stop: SIGTERM to the run's process group (supervisor, codex-turn.py, app-server); refresh then shows it exited;
 # resumable
@@ -316,6 +321,7 @@ until(gone, "process group gone")
 assert "- cx [exited/stopped codex]" in cli("refresh").stdout
 r = cli("resume", "cx", "--request", "back")
 assert r.returncode == 0 and idle("cx")["last_result"] == f"pong {len(calls())}", r
+assert "earlier result" not in cli("list").stdout  # a run the front sent itself ends the chain's listing
 
 # a failed run: its error becomes last_result (not a stale result), the worker stays resumable (idle/failed)
 (BIN / "fail").touch()
