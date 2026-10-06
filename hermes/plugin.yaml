@@ -1,5 +1,5 @@
 name: hxsk
-version: "6.0.3"
+version: "6.1.0"
 description: "HExoskeleton guard and state hooks for Hermes Agent: runs the hxsk Claude Code hook scripts (file-protect, write-guard, bash-guard, session context, context save) and adds /hxsk-init"
 author: SukbeomH
 homepage: https://github.com/SukbeomH/HExoskeleton
