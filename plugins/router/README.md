@@ -75,7 +75,9 @@ front는 `registry.py`를 플러그인 경로째 부르는 단일 명령만 쓴�
 
    사용자가 `claude attach`로 먼저 응답해도 Claude Code는 이 훅을 멈추지 않는다(4차 시험). 그래서 훅은 3초마다 `claude agents`를 본다. 자기 작업 세션이 `status: waiting`·`waitingFor: permission prompt`인 것을 한 번 보면 요청에 `seen`을 기록하고, 그 뒤 더는 그 상태가 아니면 출력 없이 끝나 요청을 지운다. 첫 확인이 확인 창보다 먼저일 수 있어서, 본 적 없이 아니라고만 나오면 끝내지 않는다. 훅의 입력에는 `tool_use_id`가 없다(문서: PermissionRequest input).
 
-   subagent 안의 확인(`agent_id`가 있는 요청)은 이 방법으로 알 수 없다. subagent가 확인 창에서 기다리는 동안 `claude agents`는 작업 세션을 `busy`로 보인다(6차 시험). 그래서 이런 요청은 `claude agents`를 보지 않고 subagent 자신의 transcript `<transcript_path에서 .jsonl을 뗀 경로>/subagents/agent-<agent_id>.jsonl`을 본다(문서: sub-agents의 transcript 위치, hooks의 SubagentStop. 6차 시험의 파일 위치. `claude -p` 실측: subagent 안의 PermissionRequest 입력에서 `transcript_path`는 본 세션의 것이고 `agent_id`가 있다). 같은 도구·입력의 `tool_use`에 요청 시각 뒤의 `tool_result`가 생기면 응답된 것으로 보고, 훅은 출력 없이 끝난다. 요청 전에 끝난 같은 호출의 결과나 다른 호출의 결과는 세지 않는다. 파일 크기가 늘었을 때만 읽고, 일반 파일만 연다(0.2.4).
+   subagent 안의 확인(`agent_id`가 있는 요청)은 이 방법으로 알 수 없다. subagent가 확인 창에서 기다리는 동안 `claude agents`는 작업 세션을 `busy`로 보인다(6차 시험). 그래서 이런 요청은 `claude agents`를 보지 않고 subagent 자신의 transcript `<transcript_path에서 .jsonl을 뗀 경로>/subagents/agent-<agent_id>.jsonl`을 본다(문서: sub-agents의 transcript 위치, hooks의 SubagentStop. 6차 시험의 파일 위치. `claude -p` 실측: subagent 안의 PermissionRequest 입력에서 `transcript_path`는 본 세션의 것이고 `agent_id`가 있다). 같은 도구·입력의 `tool_use`에 요청 시각 뒤의 `tool_result`가 생기면 응답된 것으로 보고, 훅은 출력 없이 끝난다. 요청 전에 끝난 같은 호출의 결과나 다른 호출의 결과는 세지 않는다. 파일 크기가 늘었을 때만 읽고, 일반 파일만 연다(0.2.4). 백그라운드 subagent는 아래처럼 훅이 기다리는 동안 attach에 확인 창이 뜨지 않으므로, 이 감지는 주로 만료 뒤의 기록을 닫는 데 쓰인다.
+
+   **백그라운드 subagent의 확인(0.5.0)**: 7차 시험에서 `claude attach`는 백그라운드 subagent의 확인 창을 이 훅이 기다리는 동안 보여 주지 않았다(요청 3개, 본 화면·subagent 화면 모두). 훅이 대기 시간(300초)을 넘겨 끝난 뒤에야 확인 창이 떴다. 본 스레드의 확인 창은 훅이 기다리는 동안에도 보였다. 그래서 **대기 중에는 `/router:approve`로만 답하고, attach는 대기 시간이 지난 뒤에만 쓸 수 있다.** 결정 없이 대기 시간이 지나면 훅은 그 요청을 `approvals/expired/<id>.json`으로 남긴다. front 목록은 그 작업 세션을 `WAITING: subagent prompt — claude attach <job_id> to answer`와 요청 내용 한 줄로 보인다(Stop 훅이 `idle`로 적었어도). subagent transcript에 결과가 생기거나, 같은 subagent가 다시 묻거나, 작업 세션 프로세스가 사라지거나, 1시간이 지나면 더는 보이지 않는다. 그 id의 `/router:approve`는 `not sent. <id> expired: … claude attach <job_id>`로 거부된다.
 
    병렬 도구 호출은 확인 창이 하나씩 뜬다. 첫 확인에 응답하면 다음 확인이 곧 떠서(5차 시험 0.6초, 6차 시험의 부하에서 2.3·4.3초), 작업 세션은 확인 창을 떠나지 않고 `claude agents`로는 응답을 알 수 없다. 그래서 같은 스레드의 더 새 요청이 있으면 이전 요청은 응답된 것으로 본다. 스레드는 `session_id`, 그리고 subagent 안이면 `agent_id`로 가른다(문서: 훅 공통 입력의 `agent_id`는 subagent 안에서만 있다). `seen` 요청의 훅은 0.5초 안에 출력 없이 끝나고, front 목록은 그 요청을 숨긴다. 작업 세션 본 스레드와 그 subagent의 요청은 서로 밀어내지 않는다.
 
@@ -134,7 +136,7 @@ front는 `registry.py`를 플러그인 경로째 부르는 단일 명령만 쓴�
   - `bypassPermissions` front, 또는 `auto` front에서 분류기가 허용한 명령.
   - 모델이 임의 코드를 실행하게 하는 allow 규칙은 무엇이든 그렇다. 예: `Bash(python3 -c *)`, `Bash(node:*)`(`node -e`), `Bash(rtk:*)`처럼 다른 명령을 대신 실행하는 래퍼(`rtk proxy …`), `Bash(claude --plugin-dir:*)`. 이런 규칙이 하나라도 있으면 작업 세션이나 front 모델이 확인 없이 결정을 위조할 수 있다. router를 쓸 때는 이런 규칙을 설정(사용자·프로젝트·로컬)에서 뺀다.
 - 이 위험은 이 플러그인의 다른 훅 정책과 같다. 플러그인은 자동 승인되는 경로(allow 규칙이 승인하는 `registry.py`, Skill 호출, 세션 간 메시지)를 막고, OS 수준 경계는 sandbox에 맡긴다.
-- 표시는 정리하고 잘라서 보이므로, 300자를 넘는 입력은 끝까지 보이지 않는다. 긴 명령은 `claude attach`로 원문을 보고 응답한다.
+- 표시는 정리하고 잘라서 보이므로, 300자를 넘는 입력은 끝까지 보이지 않는다. 긴 명령은 `claude attach`로 원문을 보고 응답한다. 백그라운드 subagent의 요청은 router 대기 시간이 지난 뒤에야 attach에 보인다(위 "백그라운드 subagent의 확인").
 - front는 다음 턴에야 새 요청을 안다. 인자 없는 `/router:approve`는 즉시 최신 목록을 보여 준다.
 - 본 스레드의 확인을 `claude attach`로 응답한 뒤 훅이 알아채기 전(다음 확인 창이 뜨기 전, 또는 최대 약 3초)에 입력한 `/router:approve`는 `approved`라고 답하지만 아무 일도 일어나지 않는다(Claude Code는 이미 응답된 확인 창에 대한 늦은 훅 답을 무시했다, 4·5차 시험). subagent 요청은 그 결과가 transcript에 쓰이는 즉시 숨긴다(transcript는 비동기로 쓰여 조금 늦을 수 있다). 결과가 쓰이기 전에 입력한 승인은 같다.
 - 같은 스레드의 확인 창은 하나씩 뜬다는 것은 5차 시험의 병렬 호출 관찰이다. 같은 스레드에 열린 확인 창이 둘 생기면 이전 요청은 relay되지 않고(거부도 승인도 아님) `claude attach`로만 응답한다.
