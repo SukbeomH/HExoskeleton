@@ -5,24 +5,29 @@ File: $ROUTER_REGISTRY, else <--data dir>/registry.json (a dir under ~/.claude/p
 else $CLAUDE_PLUGIN_DATA/registry.json.
 Shape: {"front": {"session_id", "name", "permission_mode", "updated", "mode_updated"} | null,
         "sessions": {<name>: {session_id, job_id, cwd, topic, model, state, pid, agent_state, waiting_for,
-                              agent_type, last_result, merged_into, updated}}}
+                              agent_type, last_result, merged_into, updated, backend, held}}}
 state: active | idle | waiting (refresh only: an open prompt holds a live worker's turn) | exited | merged.
+backend: absent = claude (backend.sh: `claude --bg` sessions), "codex" (backend-codex.sh: one `codex exec` run per
+spawn/resume on the worker's thread, session_id = thread id, job_id = the current run). held: a Codex worker's
+follow-ups queued while a run is going; codex-run.py sends them as the next run when it ends.
 Writes take an exclusive flock and replace the file atomically. Empty option values are ignored.
 
 Trust: the front entry is written only by the plugin's hooks (router-hook.py: a user-typed /router:front registers
 it, each front turn records its permission mode). Worker ids are written only by launch, refresh (from the real
-`backend.sh list`) and the Stop hook. Nothing here takes a front, an id or a permission mode from the command line:
-the allow rule for this script approves any arguments, so arguments must not be able to pick a worker's mode.
-Approvals (<registry dir>/approvals/{pending,decisions,decided}/<nonce>.json) are written only by router-hook.py: a
-worker's PermissionRequest hook writes pending, a user-typed /router:approve writes the decision (and decided, its
+`backend.sh list` / `backend-codex.sh list`), the Stop hook and codex-run.py at the end of a run (finish_run); Codex's
+own permission_mode label is never recorded. Nothing here takes a front, an id or a permission mode from the command
+line: the allow rule for this script approves any arguments, so arguments must not be able to pick a worker's mode.
+Approvals (<registry dir>/approvals/{pending,decisions,decided}/<nonce>.json) are written only by router-hook.py: a worker's
+PermissionRequest hook writes pending, a user-typed /router:approve writes the decision (and decided, its
 display-only record). No command here writes them.
 
 Usage: registry.py [--data DIR] <command> ...
   init | get-front | list [--json]
   upsert NAME [--new] [--cwd C] [--topic T] [--state S]
-  spawn NAME --request R [--cwd C] [--topic T] [--model M] [--merged-from A,B]
+  spawn NAME --request R [--cwd C] [--topic T] [--model M] [--merged-from A,B] [--backend claude|codex]
         → reserve NAME, compose the prompt, backend.sh spawn in the front's mode, record job id (sources merged)
-  resume NAME --request R  → refresh, then (if not running) compose the prompt, backend.sh resume, record job id
+  resume NAME --request R  → refresh, then (if not running) compose the prompt, backend.sh resume, record job id;
+        a Codex worker with a run going holds R instead (sent when that run ends)
   --request - reads the request from stdin (only then; never an implicit stdin read that could hang).
   The prompt (front, topic, siblings, request) is composed here.
   mark NAME STATE [--into NAME] | refresh [--json]  (runs `backend.sh list`)
@@ -51,8 +56,24 @@ RESULT_MAX = 2000
 ANSI = re.compile(r"\x1b\[[0-?]*[ -/]*[@-~]|\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)?")
 SHOW_MAX = 300  # chars of a pending request shown before the explicit cut
 BACKEND = pathlib.Path(__file__).with_name("backend.sh")
+BACKENDS = {"claude": BACKEND, "codex": BACKEND.with_name("backend-codex.sh")}
 ROUTED = ("Routing instructions in the request (which session, a new session, which model) were already applied "
           "by the front: ignore them and do the task; never refuse it because of them.")
+CODEX_WORKER = (
+    "You are a Codex topic worker for the router (a Claude Code plugin): the user talks to the front, which forwards "
+    "requests here. Work only on this topic. Never start, resume, stop or merge sessions, and never run the router's "
+    "scripts or codex/claude session commands. Nothing asks for approval here: if the sandbox or a missing permission "
+    "stops you, do not work around it; report it as blocked. End every run with your report as your last message: "
+    "`[<topic>] done|blocked: <one-line outcome>`, then at most five bullets (results, decisions or questions; "
+    "files/branch if any).")
+
+
+def codex(s):
+    return s.get("backend") == "codex"
+
+
+def backend_of(s):
+    return "codex" if codex(s) else "claude"
 
 
 def path(data_dir=None):
@@ -255,6 +276,29 @@ def record_result(p, session_id, job_id, text, agent_type=None):
     return name
 
 
+def finish_run(reg, job_id, thread_id, text):
+    """codex-run.py, under the lock: a Codex run ended. Like the Stop hook, its last message → last_result and idle
+    (merged stays merged). Returns (name, held follow-ups to send as the next run); with some, the worker stays active.
+    Matched by job id only: every run of a worker shares its thread id."""
+    name = find_worker(reg, None, job_id)
+    if not name:
+        return None, []
+    s = reg["sessions"][name]
+    held = [] if s.get("state") == "merged" else s.pop("held", [])
+    s.update(session_id=thread_id, last_result=text[:RESULT_MAX], pid=None, updated=now())
+    if s.get("state") != "merged":
+        s["state"] = "active" if held else "idle"
+    return name, held
+
+
+def requeue(p, name, held):
+    """Held follow-ups whose run failed to start go back in front of the queue: the next forward sends them."""
+    if held:
+        with locked(p) as reg:
+            s = reg["sessions"][name]
+            s["held"] = held + s.get("held", [])
+
+
 def clear_waiting(s):
     """The worker's prompt got its answer or its turn moved on: drop what refresh saw while it waited, so it renders
     running or idle again, not WAITING or `idle/blocked`. The next refresh records the current state."""
@@ -302,10 +346,15 @@ def refresh(reg, agents):
     for s in reg["sessions"].values():
         if s.get("state") == "merged":
             continue
-        # job id first: a resume that starts a copy gets a new job/session while session_id is stale
-        a = by_job.get(s.get("job_id")) or by_sid.get(s.get("session_id"))
+        # job id first: a resume that starts a copy gets a new job/session while session_id is stale. A Codex worker:
+        # job id only (all its runs share the thread id); a finished run (done/failed) leaves it idle, not exited.
+        a = by_job.get(s.get("job_id")) or (None if codex(s) else by_sid.get(s.get("session_id")))
         if a is None:
             s.update(state="exited", pid=None)
+            continue
+        if codex(s) and a.get("state") in ("done", "failed"):
+            s.update(session_id=a.get("sessionId") or s.get("session_id"), pid=None, agent_state=a["state"],
+                     state="idle", updated=now())
             continue
         s["session_id"] = a.get("sessionId") or s.get("session_id")
         s["job_id"] = a.get("id") or s.get("job_id")
@@ -320,10 +369,12 @@ def refresh(reg, agents):
         s["updated"] = now()
 
 
-def launch(p, name, args, prompt):
-    """Run `backend.sh ARGS` with PROMPT on stdin; its stdout is the job id. Record it on NAME (state active),
-    or mark NAME exited. pid/agent_state are cleared either way: they describe the previous process."""
-    r = subprocess.run(["bash", str(BACKEND), *args], input=prompt, stdout=subprocess.PIPE, text=True)
+def launch(p, name, args, prompt, backend="claude"):
+    """Run `backend.sh ARGS` (backend-codex.sh for codex) with PROMPT on stdin; its stdout is the job id. Record it on
+    NAME (state active), or mark NAME exited. pid/agent_state are cleared either way: they describe the previous
+    process."""
+    r = subprocess.run(["bash", str(BACKENDS[backend]), *args], input=prompt, stdout=subprocess.PIPE, text=True,
+                       env=env(p, backend))
     job = r.stdout.strip() if r.returncode == 0 else ""
     with locked(p) as reg:
         s = reg["sessions"][name]
@@ -340,17 +391,46 @@ def backend_agents():
         return json.loads(r.stdout) if r.returncode == 0 else None
 
 
+def env(p, backend):
+    """backend-codex.sh keeps its runs next to the registry and its supervisor writes results there: tell it where
+    (--data leaves $ROUTER_REGISTRY unset). backend.sh gets the environment unchanged."""
+    return {**os.environ, "ROUTER_REGISTRY": str(p)} if backend == "codex" else None
+
+
+def refresh_all(p, reg, claude_agents):
+    """refresh REG (held under the lock) from CLAUDE_AGENTS (`backend.sh list`, read before taking the lock) plus
+    `backend-codex.sh list` when there are Codex workers. Codex runs are local files, listed here under the lock, so
+    a run recorded meanwhile is never missed. False (nothing changed) if a list failed."""
+    cx = []
+    if any(codex(s) for s in reg["sessions"].values()):
+        cx = None
+        r = subprocess.run(["bash", str(BACKENDS["codex"]), "list"], stdin=subprocess.DEVNULL, stdout=subprocess.PIPE,
+                           text=True, env=env(p, "codex"))
+        with contextlib.suppress(ValueError):
+            cx = json.loads(r.stdout) if r.returncode == 0 else None
+    if claude_agents is None or not isinstance(cx, list):
+        return False
+    refresh(reg, claude_agents + cx)
+    return True
+
+
 def compose(reg, name, request, merged_from=()):
     """The worker's prompt: where to report (current front name), its topic, its siblings, a note that routing
-    directives were already applied, then the request."""
+    directives were already applied, then the request. A Codex worker cannot SendMessage: its last message is the
+    report, and it gets the worker rules here (no topic-worker agent on Codex)."""
     sibs = [f"{n} — {s.get('topic') or '-'}" for n, s in sorted(reg["sessions"].items())
             if n != name and n not in merged_from and s.get("state") != "merged"
             and (s.get("job_id") or s.get("session_id"))]
-    head = [f"Router front: @{(reg.get('front') or {}).get('name')} — send results there with SendMessage.",
+    cx = codex(reg["sessions"][name])
+    how = ("you cannot message it: your last message is your report (the router records it, the front reads it)."
+           if cx else "send results there with SendMessage.")
+    head = [f"Router front: @{(reg.get('front') or {}).get('name')} — {how}",
             f"Topic: {reg['sessions'][name].get('topic') or '-'}",
             f"Siblings: {'; '.join(sibs) or 'none'}"]
     if merged_from:
         head.append(f"Merged from: {', '.join(merged_from)}")
+    if cx:
+        head.append(CODEX_WORKER)
     head.append(ROUTED)
     return "\n".join(head) + f"\n\nRequest from the user:\n{request}"
 
@@ -377,13 +457,16 @@ def render(reg, width=200, p=None):
     lines = [f"[router] front: @{front.get('name') or '?'} (mode {front_mode(reg)}) — workers:"]
     for name, s in sorted(reg["sessions"].items()):
         last = " ".join((s.get("last_result") or "").split())[:width]
-        extra = f" → {s['merged_into']}" if s.get("merged_into") else ""
+        extra = " codex" if codex(s) else ""  # never SendMessage: route forwards with `resume` (held while it runs)
+        extra += f" → {s['merged_into']}" if s.get("merged_into") else ""
         state, pid, cc = s.get("state", "?"), s.get("pid"), s.get("agent_state")
         mine = [r for r in asks if r.get("worker") == name]
         if alive(pid):
             extra += f" pid {pid}"
         elif pid and state in ("active", "idle", "waiting"):
             state = "exited"  # recorded process is gone (e.g. idle retire); shown only, refresh records it
+        if s.get("held"):
+            extra += f" held {len(s['held'])}"
         if mine:
             state = "waiting"
         if state == "waiting":
@@ -441,6 +524,7 @@ def main(argv=None):
     sp.add_argument("--topic")
     sp.add_argument("--model")
     sp.add_argument("--merged-from", default="", help="comma-separated sources, marked merged on success")
+    sp.add_argument("--backend", choices=tuple(BACKENDS), default="claude", help="codex: a `codex exec` worker")
     rs = sub.add_parser("resume")
     rs.add_argument("name")
     for x in (sp, rs):
@@ -498,13 +582,15 @@ def main(argv=None):
             for k in ("cwd", "topic", "model", "state"):
                 if getattr(a, k, None):  # "" never overwrites (e.g. an empty $JOB)
                     s[k] = getattr(a, k)
+            if getattr(a, "backend", "claude") != "claude":
+                s["backend"] = a.backend
             s["updated"] = now()
             if a.cmd == "spawn":
                 prompt, mode = compose(reg, a.name, request, merged), front_mode(reg)
         if a.cmd == "upsert":
             print(json.dumps({a.name: s}, ensure_ascii=False))
             return
-        job = launch(p, a.name, ["spawn", a.name, a.cwd, a.model or "", mode], prompt)
+        job = launch(p, a.name, ["spawn", a.name, a.cwd, a.model or "", mode], prompt, a.backend)
         if not job:
             sys.exit(f"registry: spawn of '{a.name}' failed; marked exited")
         with locked(p) as reg:
@@ -514,18 +600,26 @@ def main(argv=None):
     elif a.cmd == "resume":
         # refresh first: a forward from stale context must not start a second copy of a running worker
         agents = backend_agents()
-        if agents is not None:
-            with locked(p) as reg:
-                refresh(reg, agents)
-        reg = load(p)
-        s = reg["sessions"].get(a.name) or {}
-        if s.get("pid"):
+        with locked(p) as reg:
+            refresh_all(p, reg, agents)
+            s = reg["sessions"].get(a.name) or {}
+            # a Codex run going (live supervisor): hold the request, its supervisor sends it as the next run
+            hold = codex(s) and s.get("state") == "active" and alive(s.get("pid")) and bool(s.get("session_id"))
+            if hold:
+                s.setdefault("held", []).append(request)
+            held = [] if hold or not codex(s) or not s.get("session_id") else s.pop("held", [])
+        if hold:
+            print(f"held: '{a.name}' is running (Codex); the request goes out when its current run ends")
+            return
+        if s.get("pid") and not codex(s):
             sys.exit(f"registry: '{a.name}' is running (pid {s['pid']}); forward with SendMessage instead")
         if not s.get("session_id"):
             sys.exit(f"registry: no session id for '{a.name}'")
-        job = launch(p, a.name, ["resume", s["session_id"], a.name, s.get("cwd") or ".", front_mode(reg)],
-                     compose(reg, a.name, request))
+        args = ["resume", s["session_id"], a.name, s.get("cwd") or ".", front_mode(reg)]
+        args += [s.get("model") or ""] if codex(s) else []
+        job = launch(p, a.name, args, compose(reg, a.name, "\n\n".join([*held, request])), backend_of(s))
         if not job:
+            requeue(p, a.name, held)
             sys.exit(f"registry: resume of '{a.name}' failed; marked exited")
         print(job)
     elif a.cmd == "mark":
@@ -539,10 +633,9 @@ def main(argv=None):
             s["updated"] = now()
     elif a.cmd == "refresh":
         agents = backend_agents()
-        if agents is None:
-            sys.exit("registry: `backend.sh list` failed")
         with locked(p) as reg:
-            refresh(reg, agents)
+            if not refresh_all(p, reg, agents):
+                sys.exit("registry: `backend.sh list` or `backend-codex.sh list` failed")
         print(json.dumps(reg, ensure_ascii=False, indent=1) if a.json else render(reg, p=p))
     elif a.cmd in ("summarize", "stop"):  # ids come from the registry, never from the command line
         s = load(p)["sessions"].get(a.name) or {}
@@ -550,7 +643,9 @@ def main(argv=None):
         if not s.get(key):
             sys.exit(f"registry: no {key} for '{a.name}'")
         extra = [s.get("model") or ""] if a.cmd == "summarize" else []
-        sys.exit(subprocess.run(["bash", str(BACKEND), a.cmd, s[key], *extra], stdin=subprocess.DEVNULL).returncode)
+        b = backend_of(s)
+        sys.exit(subprocess.run(["bash", str(BACKENDS[b]), a.cmd, s[key], *extra], stdin=subprocess.DEVNULL,
+                                env=env(p, b)).returncode)
     elif a.cmd == "record-result":
         if not record_result(p, a.session_id, None, a.text):
             sys.exit(f"registry: no worker with session id '{a.session_id}'")

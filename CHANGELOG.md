@@ -1,5 +1,19 @@
 # Changelog
 
+## router 0.3.0 (2026-10-06)
+
+Codex 작업 세션(아키텍처 A1: Claude front + `codex exec` 작업 세션). Claude 작업 세션의 동작은 그대로다.
+
+### Features
+
+* **router**: 작업 세션을 Codex CLI로 띄울 수 있다. front에 "코덱스로"/"with codex"라고 하면 `registry.py spawn … --backend codex`로 뜨고, 대장에 `backend: codex`가 남아 재개·정지·요약·병합이 그 백엔드로 간다. 기본은 Claude.
+* **router**: `scripts/backend-codex.sh`(`backend.sh`와 같은 고정 인자 인터페이스, `resume`만 모델을 더 받음)와 `scripts/codex-run.py`(실행 감독)를 더했다. 요청 하나가 `codex exec --json` 실행 하나이고, 이어지는 요청은 `codex exec resume <thread>`다. 실행이 끝나면 마지막 메시지가 `last_result`로 기록되고 `idle`이 된다. 실패하면 오류가 기록되고 `idle/failed`로 보인다.
+* **router**: 실행 중인 Codex 작업 세션으로의 `resume`은 요청을 `held`에 보류하고(`held: …`, 목록 `held N`), 실행이 끝나면 감독 프로세스가 다음 실행으로 보낸다. 한 thread에 실행 두 개를 겹쳐 띄우지 않는다.
+
+### Security
+
+* **router**: front 모드를 spawn·resume마다 Codex sandbox로 명시한다(`plan` → read-only, `default`·`acceptEdits`·`auto`·`dontAsk` → workspace-write, `bypassPermissions` → danger-full-access, resume은 `-c sandbox_mode=`). 모드는 front 훅이 기록한 값뿐이라 danger-full-access는 front가 bypass일 때만 나온다. Codex가 sandbox 안의 exec에도 보고하는 `permission_mode: bypassPermissions`는 대장에 쓰지 않는다. Codex 작업 세션은 승인을 묻지 않으므로 승인 전달이 없고, 막힌 일은 `blocked`로 보고한다.
+
 ## router 0.2.4 (2026-10-06)
 
 대화형 6차 시험(0.2.2, Orca terminal, marketplace install, 부하 65–128)에서 나온 결함 수정.
