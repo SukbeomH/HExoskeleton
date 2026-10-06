@@ -1,17 +1,18 @@
 #!/usr/bin/env bash
-# backend-codex.sh — backend.sh's interface on the Codex CLI: each spawn/resume is one `codex exec` run.
+# backend-codex.sh — backend.sh's interface on the Codex CLI: each spawn/resume is one turn on the worker's thread.
 #   spawn <name> <cwd> <model|""> <perm-mode> <prompt                 → prints job id (one per run)
 #   resume <thread-id> <name> <cwd> <perm-mode> <model|""> <prompt     → prints job id
 #   list                                   → one claude-agents-shaped JSON entry per run (no waitingFor)
-#   stop <job-id>                          → stop that run (its supervisor and codex exec)
+#   stop <job-id>                          → stop that run (its supervisor, codex-turn.py and its app-server)
 #   summarize <thread-id> [model]          → summary text from an ephemeral read-only fork
-# resume takes the model too (backend.sh's does not): `exec resume` sends the configured model on thread/resume.
+# resume takes the model too (backend.sh's does not): thread/resume would otherwise send the configured model.
 # Fixed argument lists, no passthrough: registry.py is the only caller and passes the front's recorded mode, mapped
-# here to a sandbox on every spawn and resume (`exec resume` has no -s, so `-c sandbox_mode=`). `codex exec` never
-# asks for approval (it runs like dontAsk): no approval relay; a worker the sandbox stops reports `blocked`.
+# here to a sandbox and an approval policy on every spawn and resume. A run is codex-turn.py driving a router-private
+# `codex app-server` (stdio); the requests it asks are relayed to the front's /router:approve.
 # Runs live in <registry dir>/codex/<job>/ (registry.py sets ROUTER_REGISTRY); codex-run.py supervises each one.
 set -euo pipefail
 RUN=$(dirname "$0")/codex-run.py
+TURN=$(dirname "$0")/codex-turn.py
 DIR=$(dirname "${ROUTER_REGISTRY:?backend-codex: ROUTER_REGISTRY not set}")/codex
 
 # sandbox <mode> — Claude permission mode → Codex sandbox. danger-full-access only for bypassPermissions, which
@@ -22,6 +23,14 @@ sandbox() {
     default | acceptEdits | auto | dontAsk) echo workspace-write ;;
     bypassPermissions) echo danger-full-access ;;
     *) echo "backend-codex: bad permission mode '$1'" >&2; return 2 ;;
+    esac
+}
+
+# approval <mode> — modes that ask before acting → on-request (each request goes to the front); the others never ask
+approval() {
+    case "$1" in
+    default | acceptEdits | auto) echo on-request ;;
+    *) echo never ;;
     esac
 }
 
@@ -42,8 +51,7 @@ spawn)
     check model "$model" "$MODEL"
     j=$(job)
     cd "$cwd"
-    python3 "$RUN" start "$DIR/$j" "$name" "" \
-        codex exec --json -o "$DIR/$j/last.txt" -C "$cwd" -s "$sb" ${model:+-m "$model"} -
+    python3 "$RUN" start "$DIR/$j" "$name" "" python3 "$TURN" "$DIR/$j" "$name" "$cwd" "$sb" "$(approval "$4")" "$model" ""
     ;;
 resume)
     [ $# -eq 5 ] || { echo "usage: backend-codex.sh resume <thread-id> <name> <cwd> <perm-mode> <model|\"\"> <prompt" >&2; exit 2; }
@@ -52,9 +60,9 @@ resume)
     check model "$model" "$MODEL"
     check "thread id" "$thread" "$ID"
     j=$(job)
-    cd "$cwd" # exec resume has no -C: the thread runs in the process cwd
+    cd "$cwd"
     python3 "$RUN" start "$DIR/$j" "$name" "$thread" \
-        codex exec resume --json -o "$DIR/$j/last.txt" -c "sandbox_mode=\"$sb\"" ${model:+-m "$model"} "$thread" -
+        python3 "$TURN" "$DIR/$j" "$name" "$cwd" "$sb" "$(approval "$4")" "$model" "$thread"
     ;;
 list) python3 "$RUN" list "$DIR" ;;
 stop)
