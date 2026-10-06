@@ -1,6 +1,6 @@
 {
   "name": "router",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "One session to rule them all (Claude Code only): talk to one front session that forwards each message to the background session owning its topic, starts new topic sessions, broadcasts to several, collects their results, relays workers' permission prompts to a user-typed /router:approve in the front, and merges converged sessions on request.",
   "author": {
     "name": "SukbeomH",

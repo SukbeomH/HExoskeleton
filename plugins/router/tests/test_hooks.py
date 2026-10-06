@@ -26,15 +26,24 @@ AGENT_LIST = [{"kind": "interactive", "sessionId": "front-uuid", "name": "boss",
               {"kind": "background", "id": "aaaa1111", "sessionId": "w-uuid", "name": "api", "pid": 2},
               {"kind": "interactive", "sessionId": "other-uuid", "name": "hexo-21", "pid": 3}]
 (BIN / "claude").write_text(f"""#!/usr/bin/env bash
-[ "$1" = agents ] && {{ cat "{AGENTS}" 2>/dev/null || echo '{json.dumps(AGENT_LIST)}'; }}
+[ "$1" = agents ] && {{ cat "${{STUB_AGENTS:-{AGENTS}}}" 2>/dev/null || echo '{json.dumps(AGENT_LIST)}'; }}
 """)
 (BIN / "claude").chmod(0o755)
 
 
 def hook_env(**env):
     e = {k: v for k, v in os.environ.items() if k not in ("ROUTER_REGISTRY", "CLAUDE_JOB_DIR")}
-    e.update(CLAUDE_PLUGIN_DATA=str(DATA), PATH=f"{BIN}{os.pathsep}{os.environ['PATH']}", **env)
-    return e
+    # the approval wait reads a decision every 0.5 s and `claude agents` every 3 s; tests look 10x and 30x as often
+    e.update(CLAUDE_PLUGIN_DATA=str(DATA), PATH=f"{BIN}{os.pathsep}{os.environ['PATH']}",
+             ROUTER_POLL_INTERVAL="0.05", ROUTER_AGENTS_CHECK_INTERVAL="0.1")
+    return e | env
+
+
+def put(f, obj):
+    """Write JSON whole (temp file + rename): a hook polling F must never read it half-written."""
+    tmp = f.with_name(f".{f.name}.tmp")
+    tmp.write_text(json.dumps(obj))
+    os.replace(tmp, f)
 
 
 def run(payload, **env):
@@ -143,7 +152,7 @@ def decide(rec, behavior="allow", **kw):
     """What the front's /router:approve writes: decisions/<nonce>.json naming the nonce, newer than the request."""
     d = {"nonce": rec["nonce"], "behavior": behavior, "created": time.time(), **kw}
     (APPR / "decisions").mkdir(parents=True, exist_ok=True)
-    (APPR / "decisions" / f"{rec['nonce']}.json").write_text(json.dumps(d))
+    put(APPR / "decisions" / f"{rec['nonce']}.json", d)
 
 
 def answer(proc):
@@ -186,20 +195,22 @@ assert rec["worker"] == "ui", rec
 decide(rec, "deny")
 out = json.loads(answer(proc))["hookSpecificOutput"]["decision"]
 assert out["behavior"] == "deny" and rec["nonce"] in out["message"], out
-# ignored: older than the request (planted before it), another request's nonce (replay), unknown behavior.
-# Each is read once and deleted; no valid decision → no output, the normal prompt stays; pending removed.
+# ignored: older than the request (planted before it), another request's nonce (replay), unknown behavior; or nothing
+# decided (timeout). Each is read once and deleted; no valid decision → no output, the normal prompt stays; pending
+# removed. The four hooks wait side by side: each needs its whole wait, long enough to read the decision under load.
 old = APPR / "pending/0ld0ld00.json"  # a killed hook's leftover → swept (older than the hook timeout)
 old.write_text("{}")
 os.utime(old, (time.time() - 700,) * 2)
-for bad in ({"created": 0}, {"nonce": "deadbeef"}, {"behavior": "yes"}):
+waiting = []
+for bad in ({"created": 0}, {"nonce": "deadbeef"}, {"behavior": "yes"}, None):
     proc, rec = ask(wait="2")
     assert not old.exists()
-    decide(rec, **bad)
-    assert answer(proc) == "", bad
-    assert not list(APPR.glob("decisions/*.json")), bad
-# timeout, nothing decided → no output, pending removed
-proc, rec = ask(wait="1")
-assert answer(proc) == ""
+    if bad:
+        decide(rec, **bad)
+    waiting.append((proc, bad))
+for proc, bad in waiting:
+    assert proc.stdout.read() == "" and proc.wait(timeout=30) == 0, bad
+assert not list(APPR.glob("pending/*.json")) and not list(APPR.glob("decisions/*.json"))
 
 
 # /router:approve (front side): the typed command's UserPromptExpansion hook writes the decision and blocks the prompt
@@ -244,8 +255,8 @@ assert approve()["reason"].endswith("(none)")
 # answered in `claude attach` first: Claude Code keeps the hook running, so the hook watches `claude agents`. Once it
 # saw its worker on the prompt (marks the request "seen") and no longer does, it ends without output, pending removed.
 # Until then the front hides the request, and a typed approve says already answered and writes no decision.
-def api_status(**kw):
-    AGENTS.write_text(json.dumps([{**a, **kw} if a["name"] == "api" else a for a in AGENT_LIST]))
+def api_status(f=AGENTS, **kw):
+    put(f, [{**a, **kw} if a["name"] == "api" else a for a in AGENT_LIST])
 
 
 def seen(rec):
@@ -256,8 +267,10 @@ def seen(rec):
     raise AssertionError("request never marked seen")
 
 
+VIEW = BIN / "hook-agents.json"  # the hook's own `claude agents`: told of the answer only after the front's checks
 api_status(status="waiting", waitingFor="permission prompt")
-proc, rec = ask(wait="20")
+api_status(VIEW, status="waiting", waitingFor="permission prompt")
+proc, rec = ask(wait="20", STUB_AGENTS=str(VIEW))
 n = seen(rec)
 assert f"approval {n}:" in approve()["reason"]  # still on its prompt → open
 stuck()
@@ -267,6 +280,7 @@ assert out["decision"] == "block" and "already answered (e.g. via claude attach)
 assert not out["reason"].startswith("router: approved") and not list(APPR.glob("decisions/*.json")), out
 ctx = json.loads(run(prompt("front-uuid")))["hookSpecificOutput"]["additionalContext"]
 assert f"approval {n}" not in ctx, ctx
+api_status(VIEW, status="busy")
 assert answer(proc) == "" and time.time() - rec["created"] < 10  # ended on the signal, long before its 20 s wait
 assert unstuck()
 # the normal path with the worker on its prompt (seen) still relays
@@ -298,7 +312,7 @@ assert not list(APPR.glob("decisions/*.json")) and "0a1b2c3d" not in approve()["
 gone.unlink()
 proc3, rec3 = ask(wait="20", extra={"agent_id": "a1b2c3d4e5f6a7b8c"})  # the worker's subagent: a thread of its own
 seen(rec2), seen(rec3)
-time.sleep(1.5)
+time.sleep(0.3)  # several polls: a request taken as superseded by the subagent's would have ended by now
 listing = approve()["reason"]
 assert proc2.poll() is None and f"approval {rec2['nonce']}" in listing and f"approval {rec3['nonce']}" in listing
 relays(proc2, rec2)
@@ -341,6 +355,18 @@ AGENTS.unlink()
 # a worker that sends (its report) is running: a WAITING that refresh recorded earlier is cleared
 stuck()
 assert send("w-uuid", "boss") is None and unstuck()
+
+# wait settings: only low..default counts (0 = the documented approval-wait off switch); anything else is the default,
+# so a bad value never spins the loop or waits longer
+def waits(wait, poll, check):
+    env = hook_env(ROUTER_APPROVAL_WAIT=wait, ROUTER_POLL_INTERVAL=poll, ROUTER_AGENTS_CHECK_INTERVAL=check)
+    code = f"import runpy; g = runpy.run_path({str(HOOK)!r}); print(g['WAIT'], g['POLL'], g['CHECK'])"
+    return subprocess.run(["python3", "-c", code], env=env, capture_output=True, text=True).stdout.split()
+
+
+assert waits("nan", "0", "9") == ["300.0", "0.5", "3.0"]
+assert waits("0", "abc", "-1") == ["0.0", "0.5", "3.0"]
+assert waits("1e9", "0.05", "0.1") == ["300.0", "0.05", "0.1"]
 
 # garbage stdin → still exit 0
 r = subprocess.run([str(HOOK)], input="not json", capture_output=True, text=True)

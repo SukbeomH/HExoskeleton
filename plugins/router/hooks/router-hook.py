@@ -35,9 +35,20 @@ import time
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent.parent / "scripts"))
 import registry  # noqa: E402
 
-WAIT = float(os.environ.get("ROUTER_APPROVAL_WAIT", "300"))  # poll limit (s); well under the hook timeout (600)
+def seconds(name, default, low):
+    """$NAME in seconds if LOW <= it <= DEFAULT, else DEFAULT (not a number, nan, negative, longer): a setting can only
+    shorten a wait, never spin the loop or widen a window. Tests shorten them; users set only ROUTER_APPROVAL_WAIT."""
+    with contextlib.suppress(ValueError):
+        v = float(os.environ.get(name, default))
+        if low <= v <= default:
+            return v
+    return default
+
+
+WAIT = seconds("ROUTER_APPROVAL_WAIT", 300.0, 0)  # poll limit; 0 = off (README); well under the hook timeout (600)
 TTL = 600  # the PermissionRequest timeout in hooks.json: an older file belongs to a hook that was killed
-CHECK = 3  # s between `claude agents` looks (~0.3 s each) for a prompt answered elsewhere
+POLL = seconds("ROUTER_POLL_INTERVAL", 0.5, 0.01)  # between decision reads
+CHECK = seconds("ROUTER_AGENTS_CHECK_INTERVAL", 3.0, 0.05)  # between `claude agents` looks (~0.3 s each)
 REF = re.compile(r"(\s*\[[0-9A-Fa-f]+\])+\s*$")  # the ` [ref]` Claude Code appends to a name several sessions share
 
 HINT = (
@@ -200,7 +211,7 @@ def permission_request(p, sid, data):
                 elif on is False and rec.get("seen"):
                     registry.unblock(p, name)
                     return  # no output: the prompt is already answered
-            time.sleep(0.5)
+            time.sleep(POLL)
     finally:
         pend.unlink(missing_ok=True)
 
