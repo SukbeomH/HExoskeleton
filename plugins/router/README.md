@@ -77,7 +77,7 @@ front는 `registry.py`를 플러그인 경로째 부르는 단일 명령만 쓴�
 
    subagent 안의 확인(`agent_id`가 있는 요청)은 이 방법으로 알 수 없다. subagent가 확인 창에서 기다리는 동안 `claude agents`는 작업 세션을 `busy`로 보인다(6차 시험). 그래서 이런 요청은 `claude agents`를 보지 않고 subagent 자신의 transcript `<transcript_path에서 .jsonl을 뗀 경로>/subagents/agent-<agent_id>.jsonl`을 본다(문서: sub-agents의 transcript 위치, hooks의 SubagentStop. 6차 시험의 파일 위치. `claude -p` 실측: subagent 안의 PermissionRequest 입력에서 `transcript_path`는 본 세션의 것이고 `agent_id`가 있다). 같은 도구·입력의 `tool_use`에 요청 시각 뒤의 `tool_result`가 생기면 응답된 것으로 보고, 훅은 출력 없이 끝난다. 요청 전에 끝난 같은 호출의 결과나 다른 호출의 결과는 세지 않는다. 파일 크기가 늘었을 때만 읽고, 일반 파일만 연다(0.2.4). 백그라운드 subagent는 아래처럼 훅이 기다리는 동안 attach에 확인 창이 뜨지 않으므로, 이 감지는 주로 만료 뒤의 기록을 닫는 데 쓰인다.
 
-   **백그라운드 subagent의 확인(0.5.0)**: 7차 시험에서 `claude attach`는 백그라운드 subagent의 확인 창을 이 훅이 기다리는 동안 보여 주지 않았다(요청 3개, 본 화면·subagent 화면 모두). 훅이 대기 시간(300초)을 넘겨 끝난 뒤에야 확인 창이 떴다. 본 스레드의 확인 창은 훅이 기다리는 동안에도 보였다. 그래서 **대기 중에는 `/router:approve`로만 답하고, attach는 대기 시간이 지난 뒤에만 쓸 수 있다.** 결정 없이 대기 시간이 지나면 훅은 그 요청을 `approvals/expired/<id>.json`으로 남긴다. front 목록은 그 작업 세션을 `WAITING: subagent prompt — claude attach <job_id> to answer`와 요청 내용 한 줄로 보인다(Stop 훅이 `idle`로 적었어도). subagent transcript에 결과가 생기거나, 같은 subagent가 다시 묻거나, 작업 세션 프로세스가 사라지거나, 1시간이 지나면 더는 보이지 않는다. 그 id의 `/router:approve`는 `not sent. <id> expired: … claude attach <job_id>`로 거부된다.
+   **백그라운드 subagent의 확인(0.5.0)**: 7차 시험에서 `claude attach`는 백그라운드 subagent의 확인 창을 이 훅이 기다리는 동안 보여 주지 않았다(요청 3개, 본 화면·subagent 화면 모두). 훅이 대기 시간(300초)을 넘겨 끝난 뒤에야 확인 창이 떴다. 본 스레드의 확인 창은 훅이 기다리는 동안에도 보였다. 그래서 **대기 중에는 `/router:approve`로만 답하고, attach는 대기 시간이 지난 뒤에만 쓸 수 있다.** 결정 없이 대기 시간이 지나면 훅은 그 요청을 `approvals/expired/<id>.json`으로 남긴다. front 목록은 그 작업 세션을 `WAITING: subagent prompt — claude attach <job_id> to answer`와 요청 내용 한 줄로 보인다(Stop 훅이 `idle`로 적었어도). subagent transcript에 결과가 생기거나, 같은 subagent가 다시 묻거나, 작업 세션 프로세스가 사라지거나, 1시간이 지나면 더는 보이지 않는다. 그 id의 `/router:approve`는 `not sent. <id> expired: … claude attach <job_id>`로 거부된다. 만료 뒤에는 대기 중과 달리 `claude agents`가 작업 세션을 `waiting`·`permission prompt`로 보이므로(8차 시험), front의 refresh가 그 상태를 대장에 적는다. 이 `WAITING: permission prompt — user must run: claude attach <job_id>` 줄은 작업 세션의 보고, 결정, Stop, 다음 refresh에서만 지워진다. 그래서 attach로 답한 뒤에도 작업 세션이 보고하거나 다음 refresh가 올 때까지 몇 초 남을 수 있다(8차 시험 약 13초).
 
    병렬 도구 호출은 확인 창이 하나씩 뜬다. 첫 확인에 응답하면 다음 확인이 곧 떠서(5차 시험 0.6초, 6차 시험의 부하에서 2.3·4.3초), 작업 세션은 확인 창을 떠나지 않고 `claude agents`로는 응답을 알 수 없다. 그래서 같은 스레드의 더 새 요청이 있으면 이전 요청은 응답된 것으로 본다. 스레드는 `session_id`, 그리고 subagent 안이면 `agent_id`로 가른다(문서: 훅 공통 입력의 `agent_id`는 subagent 안에서만 있다). `seen` 요청의 훅은 0.5초 안에 출력 없이 끝나고, front 목록은 그 요청을 숨긴다. 작업 세션 본 스레드와 그 subagent의 요청은 서로 밀어내지 않는다.
 
@@ -162,6 +162,13 @@ front는 그대로 Claude Code 세션이고, 작업 세션 하나하나를 Codex
 
 **필요한 것**: `codex`가 PATH에 있고 로그인돼 있어야 한다(`codex login status`). 작업 디렉터리가 git 저장소일 필요는 없다(0.4.0 실측). 사용자의 `~/.codex/config.toml`(모델, MCP, rules, 사용자 훅)은 그대로 적용된다.
 
+**신뢰 항목**: 작업 디렉터리가 git 저장소 안이면 첫 실행의 `thread/start`가 `~/.codex/config.toml`에 `[projects."<저장소 루트>"] trust_level = "trusted"`를 더한다. Codex app-server는 cwd를 받은 `thread/start`에서 세 조건이 모두 맞을 때 이 항목을 쓴다(소스: codex-rs `app-server/src/request_processors/thread_processor.rs:1353-1378`, rust-v0.159.0).
+- 그 프로젝트에 신뢰 항목(trusted·untrusted)이 아직 없다.
+- 프로젝트 디렉터리다. `.git`이 있거나, 소스상 프로젝트 `.codex/` 폴더가 있다(`config/src/loader/mod.rs:408`).
+- 실효 sandbox가 cwd에 쓸 수 있다(`workspace-write`·`danger-full-access`).
+
+router에서는 front 모드가 `plan`(read-only)이 아닌 spawn이 해당한다. 키는 cwd가 아니라 저장소 루트다. 같은 `thread/start`를 쓰는 `codex exec`(0.3.0 경로, `exec/src/lib.rs:1372`)도 같은 조건에서 쓴다. 소스상 `thread/resume`과 `summarize`(read-only `exec fork`)는 쓰지 않는다. `codex sandbox`(`cli/src/debug_sandbox.rs`)에는 설정을 쓰는 코드가 없다. 격리 실측(2026-10-06, 빈 `CODEX_HOME`, 로그인 없이 턴 없이)의 결과는 다음과 같다. git 저장소의 `workspace-write` `thread/start`만 항목을 만들었다. git이 아닌 디렉터리의 `workspace-write`, git 저장소의 `read-only`, `codex sandbox`(기본·`workspace-write`)는 만들지 않았다. 8차 시험에서 시험 폴더(git 저장소)의 항목이 생긴 것도 이 경로다. 버리는 폴더에서 시험했다면 시험 뒤 `~/.codex/config.toml`에서 그 항목을 지워도 된다.
+
 **동작**:
 - 요청 하나가 실행(run) 하나다. `scripts/codex-turn.py`가 router 전용 `codex app-server`를 stdio 자식으로 띄워 턴 하나를 돌리고, 턴이 끝나면 app-server도 끝낸다. 첫 실행이 `thread/start`로 thread를 만들고(대장의 `session_id` = thread id), 이후 요청은 `thread/resume`으로 같은 thread에 이어진다. 실행마다 job id가 새로 생긴다. 공유 데몬(`codex app-server daemon`)은 쓰지 않는다(아래 "게이트 실측").
 - `scripts/backend-codex.sh`가 `backend.sh`와 같은 인터페이스(고정 인자, stdout은 job id만)로 Codex를 부른다. 다만 `resume`은 모델도 받는다. `thread/resume`은 모델을 주지 않으면 설정의 모델을 쓰므로, `--model`로 띄운 세션은 재개 때마다 같은 모델을 다시 준다.
@@ -222,7 +229,7 @@ A2(Claude front + app-server에서 도는 Codex thread + 승인 전달)를 만�
 
 - `spawn … --request "reply with the word pong"` 직후 `wait`: 5.5초 뒤 `[router] wait live1 (codex): idle — last: [live wait check] done: pong`, exit 0.
 - 보류 연쇄: `sleep 8`을 시킨 `resume` 3초 뒤 `resume --topic "live wait chain"`이 `held: …`. 첫 `wait`가 19.3초에 `active (held follow-ups are running now: wait again) — last: … first-done`, 다시 건 `wait`가 24.5초에 `idle — last: [live wait chain] done: second-done`. 목록은 `last`에 둘째 결과, 그 아래 `earlier result …`에 첫 결과를 보였다. 보류된 요청에 준 `--topic`이 다음 실행의 프롬프트 주제가 됐다.
-- 시험 thread는 `codex delete --force <id>`로 지웠다. 남은 프로세스와 `~/.codex/config.toml`의 신뢰 항목 추가는 없었다.
+- 시험 thread는 `codex delete --force <id>`로 지웠다. 남은 프로세스는 없었다. 작업 디렉터리가 git 저장소가 아니어서 `~/.codex/config.toml`에 신뢰 항목도 더해지지 않았다. git 저장소에서는 더해진다(위 "신뢰 항목", 8차 시험).
 - 대화형 front가 `route`대로 `wait`를 백그라운드로 걸고 알림에 답하는 전체 흐름은 시험하지 않았다(아래 "미검증").
 
 0.4.0 (app-server, `gpt-6-luna`, front 모드 `default`, 대장은 `~/.claude/plugins/data/` 아래 임시 디렉터리, 작업 디렉터리는 git 저장소가 아닌 임시 디렉터리):
@@ -353,7 +360,7 @@ front는 sonnet `default` 모드(Claude Code 2.1.290), 작업 세션은 haiku와
 - H1 백그라운드 subagent의 확인: 작업 세션이 Agent 도구로 띄운 subagent는 늘 백그라운드였다. PermissionRequest 훅이 기다리는 동안 `claude attach`는 그 확인 창을 보이지 않았다(요청 3개, 본 화면·subagent 화면 모두). 훅이 만료로 끝나 pending이 지워진 뒤 15초 안에 확인 창이 떴고, attach로 승인하자 파일은 한 줄이었다. 늦은 `/router:approve <id>`는 `No open request … (answered, expired or unknown)`로 막혔고 결정 파일은 없었다. 본 스레드의 확인 창은 훅이 기다리는 동안에도 보였다. `answered()`는 잘못 숨기지 않았다(transcript에 앞선 같은 Bash의 결과가 있어도 요청은 남았다). 만료 뒤에는 요청이 목록에서 빠지고 작업 세션이 refresh 전 `idle`(Stop이 이미 돎), refresh 뒤 `active`로만 보였다(`claude agents`는 `busy`, `waitingFor` 없음). 0.5.0에서 고쳤다(위 "백그라운드 subagent의 확인", Stop의 `background_tasks`). 동기 subagent는 시험하지 않았다.
 - H2 최근 결정: 허용 2·거부 1 뒤 "방금 승인/거부한 것 확인해줘"에 front가 도구 호출 없이 주입된 `[router] decided …` 블록과 같은 3행 표로 답했다. 10분 창도 맞았다(13:03:18에는 12:53:31 항목만 남음).
 - H3 재등록 전 보고: `/clear`로 session id가 바뀐 뒤 작업 세션의 보고는 `… is your front's name, but that session is not registered as the front: the front has not re-registered yet … keep reporting …`으로 거부됐다. attach 응답 2.1초 뒤 pending이 지워졌고, `/router:front`가 `last_result`를 보였으며, 다음 전달의 보고는 front에 왔다.
-- H4 Codex(0.3.0 `codex exec`): spawn은 6초에 끝나 `last_result`가 기록되고 다음 턴에 보였다. 유휴 `resume`은 같은 thread에 `exec resume -c sandbox_mode="workspace-write" -m gpt-6-luna`였다. 실행 중 전달은 `held`로 쌓였다가 실행이 끝난 0.5초 뒤 새 실행으로 나갔다. sandbox는 홈의 파일과 플러그인 데이터 `approvals/` 아래 파일 쓰기를 모두 `operation not permitted`로 막았고, 작업 세션은 `blocked`로 보고했다(두 파일 모두 없음). rollout의 모든 실행이 `sandbox_policy: workspace-write`였다. 보류 연쇄가 읽지 않은 결과를 17초 만에 덮어쓴 것과 `resume --topic`이 `unrecognized arguments`로 실패한 것은 0.5.0에서 고쳤다. `codex exec`는 작업 디렉터리의 신뢰 항목을 `~/.codex/config.toml`에 더했다(app-server 경로의 0.5.0 실측에서는 더하지 않았다).
+- H4 Codex(0.3.0 `codex exec`): spawn은 6초에 끝나 `last_result`가 기록되고 다음 턴에 보였다. 유휴 `resume`은 같은 thread에 `exec resume -c sandbox_mode="workspace-write" -m gpt-6-luna`였다. 실행 중 전달은 `held`로 쌓였다가 실행이 끝난 0.5초 뒤 새 실행으로 나갔다. sandbox는 홈의 파일과 플러그인 데이터 `approvals/` 아래 파일 쓰기를 모두 `operation not permitted`로 막았고, 작업 세션은 `blocked`로 보고했다(두 파일 모두 없음). rollout의 모든 실행이 `sandbox_policy: workspace-write`였다. 보류 연쇄가 읽지 않은 결과를 17초 만에 덮어쓴 것과 `resume --topic`이 `unrecognized arguments`로 실패한 것은 0.5.0에서 고쳤다. `codex exec`는 작업 디렉터리의 신뢰 항목을 `~/.codex/config.toml`에 더했다. app-server 경로도 git 저장소에서는 더한다. 0.5.0 실측은 git이 아닌 디렉터리라 더하지 않았다(위 "Codex 작업 세션 → 신뢰 항목").
 - H5 백그라운드 알림: front가 띄운 백그라운드 Bash가 끝나자 입력 없이 25.0초 뒤 `<task-notification>`이 와 유휴 front에 새 턴이 열렸다(문맥 주입 0.2초 뒤, 응답 약 4초 뒤). 0.5.0의 결과 알림(`wait`)이 이것을 쓴다.
 - 거부된 호출이 있는 보고가 또 `완료` 머리말 아래 왔다(6차와 같음). 0.5.0에서 거부 메시지에 `Report this as blocked to the front (not done).`를 붙였다.
 
