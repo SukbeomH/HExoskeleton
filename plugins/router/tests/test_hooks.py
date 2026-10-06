@@ -342,6 +342,18 @@ AGENTS.unlink()
 stuck()
 assert send("w-uuid", "boss") is None and unstuck()
 
+# wait settings: only low..default counts (0 = the documented approval-wait off switch); anything else is the default,
+# so a bad value never spins the loop or waits longer
+def waits(wait, poll, check):
+    env = hook_env(ROUTER_APPROVAL_WAIT=wait, ROUTER_POLL_INTERVAL=poll, ROUTER_AGENTS_CHECK_INTERVAL=check)
+    code = f"import runpy; g = runpy.run_path({str(HOOK)!r}); print(g['WAIT'], g['POLL'], g['CHECK'])"
+    return subprocess.run(["python3", "-c", code], env=env, capture_output=True, text=True).stdout.split()
+
+
+assert waits("nan", "0", "9") == ["300.0", "0.5", "3.0"]
+assert waits("0", "abc", "-1") == ["0.0", "0.5", "3.0"]
+assert waits("1e9", "0.05", "0.1") == ["300.0", "0.05", "0.1"]
+
 # garbage stdin → still exit 0
 r = subprocess.run([str(HOOK)], input="not json", capture_output=True, text=True)
 assert r.returncode == 0 and r.stdout == ""
