@@ -306,9 +306,9 @@ def find_worker(reg, session_id=None, job_id=None):
     return None
 
 
-def record_result(p, session_id, job_id, text, agent_type=None):
-    """Stop hook: store the worker's last reply; the turn ended, so active → idle (merged stays merged).
-    Unknown session → no write at all."""
+def record_result(p, session_id, job_id, text, agent_type=None, busy=False):
+    """Stop hook: store the worker's last reply; the turn ended, so active → idle (merged stays merged), unless BUSY
+    (its background subagent still runs). Unknown session → no write at all."""
     if not p.exists() or not find_worker(load(p), session_id, job_id):
         return None
     with locked(p) as reg:
@@ -322,7 +322,7 @@ def record_result(p, session_id, job_id, text, agent_type=None):
             s["last_result"] = text[:RESULT_MAX]
             clear_waiting(s)
             if s.get("state") != "merged":
-                s["state"] = "idle"
+                s["state"] = "active" if busy else "idle"
             s["updated"] = now()
     return name
 

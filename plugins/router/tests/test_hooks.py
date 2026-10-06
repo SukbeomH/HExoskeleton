@@ -117,6 +117,13 @@ assert REG.read_bytes() == before
 assert run(stop("w-uuid", "API done: 3 endpoints")) == ""
 api = json.loads(REG.read_text())["sessions"]["api"]
 assert api["last_result"] == "API done: 3 endpoints" and api["state"] == "idle", api
+# its background subagent still running (Stop input background_tasks) will wake it again: result recorded, not idle.
+# A background shell task alone (e.g. a dev server) does not keep it busy.
+for tasks, state in (([{"id": "t1", "type": "subagent", "status": "running"}], "active"),
+                     ([{"id": "t2", "type": "shell", "status": "running"}, "junk"], "idle")):
+    assert run({**stop("w-uuid", f"API: {state}"), "background_tasks": tasks}) == ""
+    api = json.loads(REG.read_text())["sessions"]["api"]
+    assert api["state"] == state and api["last_result"] == f"API: {state}", api
 # worker not yet mapped → found via $CLAUDE_JOB_DIR job id, session id backfilled
 assert run({**stop("ui-uuid", "UI blocked: need token"), "agent_type": "router:topic-worker"},
            CLAUDE_JOB_DIR="/Users/x/.claude/jobs/bbbb2222") == ""

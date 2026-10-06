@@ -11,7 +11,7 @@ UserPromptExpansion of a user-typed /router:approve [<id> [deny]] (same rule) �
 UserPromptSubmit: only in the front session (session_id == registry front) → record its permission_mode (the mode
   every worker gets) and add additionalContext with the compact registry.
 Stop: only in a worker (session_id, or $CLAUDE_JOB_DIR's job id, is in the registry) → store
-  last_assistant_message as last_result.
+  last_assistant_message as last_result; idle, or active while a background subagent of it still runs.
 PermissionRequest: only in a worker → approvals/pending/<nonce>.json (the exact tool_input), then wait for the decision
   a user-typed /router:approve writes in the front; answer allow/deny only. No decision in time → no output, so the
   normal prompt stays (claude attach); a subagent's request is kept as approvals/expired/<nonce>.json, which the front
@@ -81,7 +81,10 @@ def main():
         ctx = registry.render(reg, p=p) + "\n" + HINT
         print(json.dumps({"hookSpecificOutput": {"hookEventName": "UserPromptSubmit", "additionalContext": ctx}}))
     elif event == "Stop":
-        registry.record_result(p, sid, job_id(), data.get("last_assistant_message") or "", data.get("agent_type"))
+        # a background subagent still running (Stop input background_tasks, Claude Code 2.1.145+) will wake the worker
+        # again: its turn is over, but it is not idle (7th live test: `idle` while `claude agents` said busy)
+        bg = any(isinstance(t, dict) and t.get("type") == "subagent" for t in data.get("background_tasks") or [])
+        registry.record_result(p, sid, job_id(), data.get("last_assistant_message") or "", data.get("agent_type"), bg)
     elif event == "PermissionRequest":
         permission_request(p, sid, data)
     elif event == "PreToolUse" and data.get("tool_name") == "SendMessage":
