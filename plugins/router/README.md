@@ -233,6 +233,12 @@ A2(Claude front + app-server에서 도는 Codex thread + 승인 전달)를 만�
 
 대화형 front로 본 Codex 승인·정지·병합·강제 종료는 아래 "실측 확인 (대화형 9차 시험)"의 C1–C5.
 
+0.5.1 재개 거절·감독 강제 종료 (2026-10-07, CLI로 front 역할을 대신함, `gpt-6-luna`, front 모드 `plan`, `ROUTER_REGISTRY`로 임시 대장, git 저장소가 아닌 임시 작업 디렉터리):
+
+- `sleep 40`을 시킨 실행 중 감독 프로세스만 SIGKILL: 0.41초 뒤 그 프로세스 그룹(`codex-turn.py`, app-server)이 사라졌고, 1초 안에 `sleep`도 끝났으며 thread 쓰기 잠금(`lsof`)도 풀렸다.
+- 다른 app-server 클라이언트가 같은 thread를 `thread/resume`해 쥔 동안 `resume`: exit 1, `… already has an active writer`와 `Its request is kept (held 1)`, 대장은 `exited`·`held` 1개. 그 클라이언트를 닫은 뒤의 전달은 job id를 받았고, 한 실행에 보류된 요청과 새 요청이 함께 가(답 `R1 slept`) `held`가 비었다.
+- 시험 thread 둘은 `codex delete --force <id>`로 지웠다. 남은 프로세스는 없었고, `session_index.jsonl`과 `~/.codex/config.toml`의 신뢰 항목 수는 시험 전과 같았다.
+
 0.5.0 `wait` (CLI로 front 역할을 대신함, `gpt-6-luna`, front 모드 `default`, 대장은 `~/.claude/plugins/data/` 아래 임시 디렉터리, git 저장소가 아닌 임시 작업 디렉터리):
 
 - `spawn … --request "reply with the word pong"` 직후 `wait`: 5.5초 뒤 `[router] wait live1 (codex): idle — last: [live wait check] done: pong`, exit 0.
@@ -259,7 +265,7 @@ A2(Claude front + app-server에서 도는 Codex thread + 승인 전달)를 만�
 - 승인 디렉터리가 sandbox 안에서 쓰기 가능할 때의 바로 거부(stub app-server로만 시험).
 - `danger-full-access` 실행(단위 테스트만).
 - 사용자 config의 권한 프로필(`permissions`)이 요청한 sandbox를 바꾸는 경우. router는 Codex가 돌려준 sandbox·정책이 요청과 다르면 실행을 실패시킨다(단위 테스트만).
-- 0.5.1 수정(stub app-server 단위 테스트만): 거절된 재개(`already has an active writer`)가 요청과 보류된 후속 요청을 `held`로 남기는 것, 감독 SIGKILL 뒤 `codex-turn.py`·app-server가 함께 끝나는 것, `stop` 직후 `exited`와 걸어 둔 `wait`의 종료.
+- 0.5.1 `stop` 직후 `exited`와 걸어 둔 `wait`의 종료, 감독의 연쇄 실행이 거절될 때의 재보류(stub app-server 단위 테스트만). 거절된 `resume`과 감독 강제 종료는 위 CLI 실측뿐이고 대화형 front로는 다시 보지 않았다.
 - 사용자 Codex 훅(`~/.codex/hooks.json`)의 PermissionRequest가 먼저 allow/deny하면 그 요청은 router에 오지 않고 그 훅이 결정한다(게이트 실측 G1, 설계상 한계).
 
 ## 한계
@@ -391,7 +397,7 @@ front는 sonnet `default` 모드(Claude Code 2.1.291), 작업 세션은 haiku와
 - C2 read-only: plan 턴(계획 승인 직후 같은 턴 포함)의 실행은 `read-only`·`never`였다. 쓰기는 EPERM으로 막혔고, 요청 없이 `blocked`로 끝났다.
 - C2b stop: pending과 감독 프로세스, `codex-turn.py`, app-server, 실행 중이던 `sleep`까지 끝냈다. 대장은 refresh 전까지 `active`였고, 미리 건 `wait`는 시간 제한까지 돌았다. 0.5.1에서 고쳤다(위 "정지·요약", 단위 테스트만).
 - C2c merge: Codex 원본의 `last_result`·`results`를 썼고 원본에 메시지를 보내지 않았다. 새 세션이 떴고 원본은 `merged`가 됐다.
-- C4 감독 SIGKILL(보류 1건): 고아 `codex-turn.py`·app-server가 턴 끝까지 thread 쓰기 잠금을 쥐었고, 그 결과는 기록되지 않았다. 그사이 전달은 `already has an active writer`로 실패했고, 보류 요청과 새 요청이 함께 사라졌다. 턴이 끝난 뒤의 전달은 시험하지 않았다. 0.5.1은 재개가 받아들여진 뒤에야 실행을 시작된 것으로 보고, 거절되면 두 요청을 `held`로 남긴다. 감독이 죽으면 `codex-turn.py`가 app-server를 끝낸다(위 "동작", 단위 테스트만).
+- C4 감독 SIGKILL(보류 1건): 고아 `codex-turn.py`·app-server가 턴 끝까지 thread 쓰기 잠금을 쥐었고, 그 결과는 기록되지 않았다. 그사이 전달은 `already has an active writer`로 실패했고, 보류 요청과 새 요청이 함께 사라졌다. 턴이 끝난 뒤의 전달은 시험하지 않았다. 0.5.1은 재개가 받아들여진 뒤에야 실행을 시작된 것으로 보고, 거절되면 두 요청을 `held`로 남긴다. 감독이 죽으면 `codex-turn.py`가 app-server를 끝낸다(위 "동작". 실측은 위 "Codex 작업 세션 → 실측 확인"의 0.5.1 CLI 실측).
 - C5 on-request: 4건 모두 승인을 요청했다(2건은 프롬프트로 유도).
 - L1 dontAsk: Bash 거부(79 ms)가 `blocked`로 보고됐다. pending은 없었다. 20–40 ms 샘플러에 router 훅 프로세스는 보이지 않았다(작업 세션의 다른 훅은 보였다).
 - L2 실패 이름 재사용·resume: 없는 `--cwd`는 `name not reserved`로 끝났다. 실행 실패는 `exited`(id 없음)였고, 같은 이름이 다시 떴다. 살아 있는 세션의 `resume`은 `is running`으로 거절됐다.
