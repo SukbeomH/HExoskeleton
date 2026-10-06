@@ -78,6 +78,17 @@ def main(jd, name, cwd, sandbox, approval, model, thread):
 
     signal.signal(signal.SIGTERM, bye)  # stop: codex-run.py signals the process group; drop open requests first
 
+    def orphaned(ppid=os.getppid()):
+        """The supervisor was killed (SIGKILL: no stop) → end like a stop. Its result could never be recorded, and an
+        orphaned app-server would hold the thread's writer lock until its turn ends (9th live test). The parent-death
+        signal (Linux prctl) is not portable to macOS: poll the parent pid instead."""
+        while os.getppid() == ppid:
+            time.sleep(POLL)
+        srv.terminate()
+        bye()
+
+    threading.Thread(target=orphaned, daemon=True).start()
+
     def read():
         for line in srv.stdout:
             try:

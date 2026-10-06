@@ -2,14 +2,15 @@
 """codex-run.py — supervises one Codex run for backend-codex.sh (stdlib only): a command speaking `codex exec --json`
 (codex-turn.py: thread.started first, turn.failed on error, last message in JOB_DIR/last.txt).
 
-  start JOB_DIR NAME THREAD|"" CODEX_ARGV...  prompt on stdin → `run` in a session of its own (outlives the caller),
-        then waits for the thread id and prints the job id (JOB_DIR's name); exit 1 if the run ended without one
+  start JOB_DIR NAME CODEX_ARGV...  prompt on stdin → `run` in a session of its own (outlives the caller), then waits
+        for the run's thread.started (thread started or resumed) and prints the job id (JOB_DIR's name); exit 1 with
+        the run's error if it ended without one (e.g. thread/resume refused: `already has an active writer`)
   run   (same arguments)  the supervisor, internal
   list  DIR       one claude-agents-shaped entry per run: id, sessionId (thread), name, state, status, pid (live only)
   stop  JOB_DIR   SIGTERM to the run's process group (supervisor, codex-turn.py and its app-server)
 
-JOB_DIR/run.json {pid, name, thread, state: working|done|failed|stopped, exit}. When the run ends, its last message
-(JOB_DIR/last.txt) becomes the worker's last_result, as the Stop hook does for Claude workers, and follow-ups the
+JOB_DIR/run.json {pid, name, thread, state: working|done|failed|stopped, exit, error}. When the run ends, its last
+message (JOB_DIR/last.txt) becomes the worker's last_result, as the Stop hook does for Claude workers, and follow-ups the
 front held meanwhile go out as the next run (`backend-codex.sh resume` in the front's current mode). Only the
 registry's own fields are written: nothing Codex reports (e.g. its hooks' permission_mode) reaches the registry.
 $ROUTER_REGISTRY (set by registry.py) names the registry; it is not passed on to the run.
@@ -41,10 +42,10 @@ def write(jd, st):
     registry.save(jd / "run.json", st)
 
 
-def start(jd, name, thread, argv):
+def start(jd, name, argv):
     jd.mkdir(parents=True)
     prompt = sys.stdin.read()
-    proc = subprocess.Popen([sys.executable, __file__, "run", str(jd), name, thread, *argv], stdin=subprocess.PIPE,
+    proc = subprocess.Popen([sys.executable, __file__, "run", str(jd), name, *argv], stdin=subprocess.PIPE,
                             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=True, text=True)
     proc.stdin.write(prompt)
     proc.stdin.close()
@@ -57,15 +58,20 @@ def start(jd, name, thread, argv):
         if proc.poll() is not None or st.get("state", "working") != "working":
             break
         time.sleep(0.05)
+    if proc.poll() is None:  # no thread in time: end the run, the caller keeps its request (no second copy later)
+        with contextlib.suppress(OSError):
+            os.killpg(proc.pid, signal.SIGTERM)
     err = (jd / "stderr").read_text(errors="replace")[-2000:] if (jd / "stderr").exists() else ""
-    print(f"backend-codex: no thread id from codex\n{err}".rstrip(), file=sys.stderr)
+    print(f"backend-codex: no thread id from codex: {read(jd).get('error') or '?'}\n{err}".rstrip(), file=sys.stderr)
     return 1
 
 
-def run(jd, name, thread, argv):
+def run(jd, name, argv):
     p = pathlib.Path(os.environ["ROUTER_REGISTRY"])
     prompt = sys.stdin.read()
-    st = {"pid": os.getpid(), "name": name, "thread": thread or None, "state": "working", "started": time.time()}
+    # no thread until the run reports it: a resume Codex refuses (e.g. another writer holds the thread) never counts
+    # as started, so registry.py keeps its request and held follow-ups (requeue) instead of losing them
+    st = {"pid": os.getpid(), "name": name, "thread": None, "state": "working", "started": time.time()}
     write(jd, st)
     signal.signal(signal.SIGTERM, lambda *_: (write(jd, st | {"state": "stopped"}), os._exit(143)))
     env = {k: v for k, v in os.environ.items() if k != "ROUTER_REGISTRY"}
@@ -92,7 +98,7 @@ def run(jd, name, thread, argv):
     if rc:
         tail = (jd / "stderr").read_text(errors="replace").strip().splitlines()[-1:]
         text = f"codex run failed (exit {rc}): {err or ' '.join(tail) or '?'}"
-    st.update(state="failed" if rc else "done", exit=rc)
+    st.update(state="failed" if rc else "done", exit=rc, **({"error": text} if rc else {}))
     if st["thread"]:
         finish(p, jd, st, text)
     write(jd, st)
@@ -144,8 +150,8 @@ def stop(jd):
 
 def main(argv):
     cmd, rest = (argv[0], argv[1:]) if argv else ("", [])
-    if cmd in ("start", "run") and len(rest) > 3:
-        return (start if cmd == "start" else run)(pathlib.Path(rest[0]), rest[1], rest[2], rest[3:])
+    if cmd in ("start", "run") and len(rest) > 2:
+        return (start if cmd == "start" else run)(pathlib.Path(rest[0]), rest[1], rest[2:])
     if cmd == "list" and len(rest) == 1:
         print(json.dumps(agents(rest[0])))
     elif cmd == "stop" and len(rest) == 1:

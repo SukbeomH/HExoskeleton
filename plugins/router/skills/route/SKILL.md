@@ -81,7 +81,7 @@ cwd는 front의 cwd가 기본이다. 사용자가 다른 저장소를 말했을 
 
 목록에서 상태 뒤에 `codex`가 붙은 세션(예: `[idle codex]`, `[active codex pid N held 1]`)은 Codex CLI로 도는 작업 세션이다.
 
-- **전달**: `SendMessage`하지 않는다(받지 못한다). forward·broadcast 모두 위 `resume` 명령(표준 입력 heredoc)으로 보낸다. `upsert … --state active`도 하지 않는다. 출력이 job id면 새 실행이 시작된 것이고, `held: …`면 지금 실행이 끝난 뒤 이어서 보내진다(같은 세션에 실행이 겹치지 않는다).
+- **전달**: `SendMessage`하지 않는다(받지 못한다). forward·broadcast 모두 위 `resume` 명령(표준 입력 heredoc)으로 보낸다. `upsert … --state active`도 하지 않는다. 출력이 job id면 새 실행이 시작된 것이고, `held: …`면 지금 실행이 끝난 뒤 이어서 보내진다(같은 세션에 실행이 겹치지 않는다). `resume of '<name>' failed … Its request is kept`로 실패하면 그 요청은 대장에 남아(`held N`) 다음 전달 때 먼저 간다. 같은 본문을 다시 보내지 말고, 오류를 사용자에게 전한다.
 - **결과 알림**: 보고 메시지가 오지 않는다. 실행이 끝나면 마지막 메시지가 그 세션의 `last`(`last_result`)로 기록되고 상태가 `idle`이 된다. `spawn`·`resume`(출력이 job id나 `held: …`) 뒤에는 아래 명령을 Bash 도구의 `run_in_background: true`로 실행한다(그 세션의 `wait`가 이미 돌고 있으면 또 걸지 않는다). 사용자에게는 `→ @<name>(Codex)로 보냈습니다. 끝나면 알려 드립니다.`처럼 말한다.
 
   ```bash

@@ -29,7 +29,7 @@ Usage: registry.py [--data DIR] <command> ...
   spawn NAME --request R [--cwd C] [--topic T] [--model M] [--merged-from A,B] [--backend claude|codex]
         → reserve NAME, compose the prompt, backend.sh spawn in the front's mode, record job id (sources merged)
   resume NAME --request R [--topic T]  → refresh, then (if not running) compose the prompt, backend.sh resume, record job id;
-        a Codex worker with a run going holds R instead (sent when that run ends)
+        a Codex worker with a run going holds R instead (sent when that run ends); a failed Codex resume keeps R held
   --request - reads the request from stdin (only then; never an implicit stdin read that could hang).
   The prompt (front, topic, siblings, request) is composed here.
   mark NAME STATE [--into NAME] | refresh [--json]  (runs `backend.sh list`)
@@ -725,7 +725,10 @@ def main(argv=None):
         args += [s.get("model") or ""] if codex(s) else []
         job = launch(p, a.name, args, compose(reg, a.name, "\n\n".join([*held, request])), backend_of(s))
         if not job:
-            requeue(p, a.name, held)
+            if codex(s):  # e.g. thread/resume refused: nothing reached Codex, so its request waits with the held ones
+                requeue(p, a.name, [*held, request])
+                sys.exit(f"registry: resume of '{a.name}' failed; marked exited. Its request is kept (held "
+                         f"{len(held) + 1}) and goes out first with the next forward: do not send it again")
             sys.exit(f"registry: resume of '{a.name}' failed; marked exited")
         print(job)
     elif a.cmd == "mark":
