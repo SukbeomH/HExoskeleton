@@ -1,5 +1,24 @@
 # Changelog
 
+## router 0.4.0 (2026-10-06)
+
+Codex 작업 세션의 승인 전달(아키텍처 A2: Claude front + app-server에서 도는 Codex thread). 게이트 실측(G1–G5)은 README "Codex 작업 세션 → 게이트 실측". Claude 작업 세션의 동작은 그대로다.
+
+### Features
+
+* **router**: Codex 실행 하나를 `codex exec` 대신 `scripts/codex-turn.py`가 router 전용 `codex app-server`(stdio 자식)에서 `thread/start`·`thread/resume` + 턴 하나로 돌린다. `codex exec --json`과 같은 줄을 내므로 감독(`codex-run.py`)·보류·결과 기록은 그대로다. 작업 디렉터리가 git 저장소일 필요가 없어졌다.
+* **router**: front 모드가 `default`·`acceptEdits`·`auto`면 Codex 승인 정책을 `on-request`로 두고, Codex의 명령·파일 변경 승인 요청을 Claude 작업 세션과 같은 `approvals/pending/<id>.json`으로 올린다. front 목록에 `WAITING`과 정확한 명령이 보이고, 사용자가 직접 입력한 `/router:approve <id> [deny]`만 `accept`/`decline`으로 답한다. 답이 없으면 대기 시간(기본 300초) 뒤 거부한다(`claude attach` 같은 다른 응답 경로는 없다).
+
+### Security
+
+* **router**: Codex 작업 세션은 결정을 쓰거나 승인 통로에 닿을 수 없다. `workspace-write` 모델 셸에서 플러그인 데이터 디렉터리·`~/.codex` 쓰기, 유닉스 소켓 연결, `codex queue`가 모두 막힘을 실측했고, app-server는 소켓 없이 stdio로만 열린다. 승인 디렉터리가 그 thread의 sandbox에서 쓰기 가능하면(작업 디렉터리·writable roots·`/tmp`·`$TMPDIR` 아래) 요청을 올리지 않고 거부한다. `never` 정책 실행의 요청도 거부한다.
+* **router**: sandbox와 승인 정책을 `thread/start`·`thread/resume`마다 명시하고, Codex가 돌려준 값이 다르면 턴 없이 실패한다. `acceptForSession`·실행 정책 변경은 보내지 않는다. 그 밖의 server request(추가 권한, MCP elicitation, 사용자 입력)는 거절해 턴이 멈추지 않는다. 정지하면 열린 요청 파일을 지운다.
+* **router**: 승인 결정 읽기(nonce 일치, 요청 이후 작성, 한 번만 사용)를 `registry.take_decision`으로 모아 Claude 훅과 Codex 실행이 같은 검증을 쓴다.
+
+### Documentation
+
+* **router**: README에 Codex 승인 전달 흐름, 모드 → sandbox·승인 정책 표, A2 게이트 실측, 0.4.0 실측(허용·거부·요약·쓰기 잠금 해제·프로세스 정리)을 적었다. route·approve 스킬은 Codex 요청에 `claude attach`를 안내하지 않는다.
+
 ## router 0.3.0 (2026-10-06)
 
 Codex 작업 세션(아키텍처 A1: Claude front + `codex exec` 작업 세션). Claude 작업 세션의 동작은 그대로다.

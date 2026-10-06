@@ -1,17 +1,18 @@
 #!/usr/bin/env python3
-"""codex-run.py — supervises one `codex exec --json` run for backend-codex.sh (stdlib only).
+"""codex-run.py — supervises one Codex run for backend-codex.sh (stdlib only): a command speaking `codex exec --json`
+(codex-turn.py: thread.started first, turn.failed on error, last message in JOB_DIR/last.txt).
 
   start JOB_DIR NAME THREAD|"" CODEX_ARGV...  prompt on stdin → `run` in a session of its own (outlives the caller),
         then waits for the thread id and prints the job id (JOB_DIR's name); exit 1 if the run ended without one
   run   (same arguments)  the supervisor, internal
   list  DIR       one claude-agents-shaped entry per run: id, sessionId (thread), name, state, status, pid (live only)
-  stop  JOB_DIR   SIGTERM to the run's process group (supervisor and codex exec)
+  stop  JOB_DIR   SIGTERM to the run's process group (supervisor, codex-turn.py and its app-server)
 
-JOB_DIR/run.json {pid, name, thread, state: working|done|failed|stopped, exit}. When codex exec ends, its last message
-(`-o JOB_DIR/last.txt`) becomes the worker's last_result, as the Stop hook does for Claude workers, and follow-ups the
+JOB_DIR/run.json {pid, name, thread, state: working|done|failed|stopped, exit}. When the run ends, its last message
+(JOB_DIR/last.txt) becomes the worker's last_result, as the Stop hook does for Claude workers, and follow-ups the
 front held meanwhile go out as the next run (`backend-codex.sh resume` in the front's current mode). Only the
 registry's own fields are written: nothing Codex reports (e.g. its hooks' permission_mode) reaches the registry.
-$ROUTER_REGISTRY (set by registry.py) names the registry; it is not passed on to codex exec.
+$ROUTER_REGISTRY (set by registry.py) names the registry; it is not passed on to the run.
 """
 
 import contextlib
@@ -26,7 +27,7 @@ import time
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 import registry  # noqa: E402
 
-WAIT_THREAD = 60  # start: seconds for codex exec to report its thread id
+WAIT_THREAD = 60  # start: seconds for the run to report its thread id
 WAIT_JOB = 10  # run: seconds for registry.py to record this job id (it does so right after start returns)
 
 
@@ -57,7 +58,7 @@ def start(jd, name, thread, argv):
             break
         time.sleep(0.05)
     err = (jd / "stderr").read_text(errors="replace")[-2000:] if (jd / "stderr").exists() else ""
-    print(f"backend-codex: no thread id from codex exec\n{err}".rstrip(), file=sys.stderr)
+    print(f"backend-codex: no thread id from codex\n{err}".rstrip(), file=sys.stderr)
     return 1
 
 
@@ -90,7 +91,7 @@ def run(jd, name, thread, argv):
     text = (jd / "last.txt").read_text(errors="replace") if (jd / "last.txt").exists() else ""
     if rc:
         tail = (jd / "stderr").read_text(errors="replace").strip().splitlines()[-1:]
-        text = f"codex exec failed (exit {rc}): {err or ' '.join(tail) or '?'}"
+        text = f"codex run failed (exit {rc}): {err or ' '.join(tail) or '?'}"
     st.update(state="failed" if rc else "done", exit=rc)
     if st["thread"]:
         finish(p, jd, st, text)

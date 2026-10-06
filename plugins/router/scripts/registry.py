@@ -7,7 +7,7 @@ Shape: {"front": {"session_id", "name", "permission_mode", "updated", "mode_upda
         "sessions": {<name>: {session_id, job_id, cwd, topic, model, state, pid, agent_state, waiting_for,
                               agent_type, last_result, merged_into, updated, backend, held}}}
 state: active | idle | waiting (refresh only: an open prompt holds a live worker's turn) | exited | merged.
-backend: absent = claude (backend.sh: `claude --bg` sessions), "codex" (backend-codex.sh: one `codex exec` run per
+backend: absent = claude (backend.sh: `claude --bg` sessions), "codex" (backend-codex.sh: one codex-turn.py run per
 spawn/resume on the worker's thread, session_id = thread id, job_id = the current run). held: a Codex worker's
 follow-ups queued while a run is going; codex-run.py sends them as the next run when it ends.
 Writes take an exclusive flock and replace the file atomically. Empty option values are ignored.
@@ -17,9 +17,9 @@ it, each front turn records its permission mode). Worker ids are written only by
 `backend.sh list` / `backend-codex.sh list`), the Stop hook and codex-run.py at the end of a run (finish_run); Codex's
 own permission_mode label is never recorded. Nothing here takes a front, an id or a permission mode from the command
 line: the allow rule for this script approves any arguments, so arguments must not be able to pick a worker's mode.
-Approvals (<registry dir>/approvals/{pending,decisions,decided}/<nonce>.json) are written only by router-hook.py: a worker's
-PermissionRequest hook writes pending, a user-typed /router:approve writes the decision (and decided, its
-display-only record). No command here writes them.
+Approvals (<registry dir>/approvals/{pending,decisions,decided}/<nonce>.json): pending is written by a Claude
+worker's PermissionRequest hook (router-hook.py) or a Codex run's codex-turn.py; decisions (and decided, their
+display-only record) only by a user-typed /router:approve in the front (router-hook.py). No command here writes them.
 
 Usage: registry.py [--data DIR] <command> ...
   init | get-front | list [--json]
@@ -62,8 +62,9 @@ ROUTED = ("Routing instructions in the request (which session, a new session, wh
 CODEX_WORKER = (
     "You are a Codex topic worker for the router (a Claude Code plugin): the user talks to the front, which forwards "
     "requests here. Work only on this topic. Never start, resume, stop or merge sessions, and never run the router's "
-    "scripts or codex/claude session commands. Nothing asks for approval here: if the sandbox or a missing permission "
-    "stops you, do not work around it; report it as blocked. End every run with your report as your last message: "
+    "scripts or codex/claude session commands. If the sandbox stops a command you need, request approval for it when "
+    "you can (the user answers in the front); if it is declined or you cannot ask, do not work around it: report it "
+    "as blocked. End every run with your report as your last message: "
     "`[<topic>] done|blocked: <one-line outcome>`, then at most five bullets (results, decisions or questions; "
     "files/branch if any).")
 
@@ -96,8 +97,34 @@ def approvals(p):
     return p.parent / "approvals"
 
 
+def seconds(name, default, low):
+    """$NAME in seconds if LOW <= it <= DEFAULT, else DEFAULT (not a number, nan, negative, longer): a setting can only
+    shorten a wait, never spin the loop or widen a window. Tests shorten them; users set only ROUTER_APPROVAL_WAIT."""
+    with contextlib.suppress(ValueError):
+        v = float(os.environ.get(name, default))
+        if low <= v <= default:
+            return v
+    return default
+
+
+def take_decision(p, nonce, t0):
+    """The user's answer to request NONCE (decisions/<nonce>.json, written only by a typed /router:approve), read once
+    (deleted first, valid or not): "allow" or "deny" if it names NONCE and is no older than the request (T0), else
+    None."""
+    f = approvals(p) / "decisions" / f"{nonce}.json"
+    with contextlib.suppress(FileNotFoundError, ValueError):
+        raw = f.read_text()
+        f.unlink()
+        d = json.loads(raw)
+        if (isinstance(d, dict) and d.get("nonce") == nonce and isinstance(d.get("created"), (int, float))
+                and d["created"] >= t0 and d.get("behavior") in ("allow", "deny")):
+            return d["behavior"]
+    return None
+
+
 def requests(p):
-    """Every approval request file not yet expired (created as a float). Read-only: router-hook.py writes them."""
+    """Every approval request file not yet expired (created as a float). Read-only: router-hook.py and codex-turn.py
+    write them."""
     out = []
     for f in approvals(p).glob("pending/*.json"):
         with contextlib.suppress(OSError, ValueError, TypeError):  # removed meanwhile, or not a request
@@ -193,9 +220,9 @@ def describe(r):
 
 def approval_lines(r):
     n = r["nonce"]
-    return [f"approval {n}: {describe(r)}",
-            f"approve: /router:approve {n}   deny: /router:approve {n} deny   "
-            f"(or claude attach {clean(r.get('job_id') or '<job_id>', 64)})"]
+    alt = ("(Codex: no attach; unanswered = denied when it expires)" if r.get("backend") == "codex"
+           else f"(or claude attach {clean(r.get('job_id') or '<job_id>', 64)})")
+    return [f"approval {n}: {describe(r)}", f"approve: /router:approve {n}   deny: /router:approve {n} deny   {alt}"]
 
 
 def now():
@@ -451,7 +478,8 @@ def alive(pid):
 
 def render(reg, width=200, p=None):
     """The compact registry. With P, a worker's open approval requests are listed under it (and make it WAITING
-    without a refresh: its PermissionRequest hook is waiting for the user's answer right now), then recent decisions."""
+    without a refresh: its PermissionRequest hook or codex-turn.py is waiting for the user's answer right now), then
+    recent decisions."""
     front = reg.get("front") or {}
     asks = pending(p) if p else []
     lines = [f"[router] front: @{front.get('name') or '?'} (mode {front_mode(reg)}) — workers:"]
@@ -472,7 +500,9 @@ def render(reg, width=200, p=None):
         if state == "waiting":
             how = "user types /router:approve below, or runs:" if mine else "user must run:"
             what = s.get("waiting_for") or ("permission prompt" if mine else "prompt")
-            state = f"WAITING: {what} — {how} claude attach {s.get('job_id')};"
+            # a Codex run's request has no attach fallback (its app-server's only client is codex-turn.py)
+            how = "user types /router:approve below" if codex(s) else f"{how} claude attach {s.get('job_id')}"
+            state = f"WAITING: {what} — {how};"
         elif cc and cc not in ("working", "done"):  # those only restate (or, after the turn, contradict) the state
             state += "/" + cc
         lines.append(
@@ -524,7 +554,7 @@ def main(argv=None):
     sp.add_argument("--topic")
     sp.add_argument("--model")
     sp.add_argument("--merged-from", default="", help="comma-separated sources, marked merged on success")
-    sp.add_argument("--backend", choices=tuple(BACKENDS), default="claude", help="codex: a `codex exec` worker")
+    sp.add_argument("--backend", choices=tuple(BACKENDS), default="claude", help="codex: a Codex CLI worker")
     rs = sub.add_parser("resume")
     rs.add_argument("name")
     for x in (sp, rs):

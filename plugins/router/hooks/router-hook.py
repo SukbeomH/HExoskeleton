@@ -36,16 +36,7 @@ import time
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent.parent / "scripts"))
 import registry  # noqa: E402
 
-def seconds(name, default, low):
-    """$NAME in seconds if LOW <= it <= DEFAULT, else DEFAULT (not a number, nan, negative, longer): a setting can only
-    shorten a wait, never spin the loop or widen a window. Tests shorten them; users set only ROUTER_APPROVAL_WAIT."""
-    with contextlib.suppress(ValueError):
-        v = float(os.environ.get(name, default))
-        if low <= v <= default:
-            return v
-    return default
-
-
+seconds = registry.seconds
 WAIT = seconds("ROUTER_APPROVAL_WAIT", 300.0, 0)  # poll limit; 0 = off (README); well under the hook timeout (600)
 TTL = 600  # the PermissionRequest timeout in hooks.json: an older file belongs to a hook that was killed
 POLL = seconds("ROUTER_POLL_INTERVAL", 0.5, 0.01)  # between decision reads
@@ -185,7 +176,7 @@ def permission_request(p, sid, data):
             if time.time() - f.stat().st_mtime > TTL:
                 f.unlink()
     nonce, t0 = secrets.token_hex(4), time.time()
-    pend, dec = a / "pending" / f"{nonce}.json", a / "decisions" / f"{nonce}.json"
+    pend = a / "pending" / f"{nonce}.json"
     signal.signal(signal.SIGTERM, lambda *_: sys.exit(0))  # a cancelled hook still removes its pending file
     aid = data.get("agent_id")  # set only inside a subagent: its prompts are a thread of their own
     rec = {"nonce": nonce, "worker": name, "session_id": sid, "job_id": job_id(), "tool_name": data.get("tool_name"),
@@ -199,15 +190,10 @@ def permission_request(p, sid, data):
     check = t0
     try:
         while time.time() < t0 + WAIT:
-            d = None
-            with contextlib.suppress(FileNotFoundError, ValueError):
-                raw = dec.read_text()
-                dec.unlink()  # used once, valid or not
-                d = json.loads(raw)
-            if (isinstance(d, dict) and d.get("nonce") == nonce and isinstance(d.get("created"), (int, float))
-                    and d["created"] >= t0 and d.get("behavior") in ("allow", "deny")):
-                out = {"behavior": d["behavior"]}  # never updatedInput/updatedPermissions: this call, as shown
-                if d["behavior"] == "deny":
+            b = registry.take_decision(p, nonce, t0)
+            if b:
+                out = {"behavior": b}  # never updatedInput/updatedPermissions: this call, as shown
+                if b == "deny":
                     out["message"] = f"The user denied this in the router front (/router:approve {nonce} deny)."
                 print(json.dumps({"hookSpecificOutput": {"hookEventName": "PermissionRequest", "decision": out}}))
                 registry.unblock(p, name)
