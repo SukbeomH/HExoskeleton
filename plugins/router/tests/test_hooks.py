@@ -285,12 +285,27 @@ def send(sid, to):
     return json.loads(out)["hookSpecificOutput"] if out else None
 
 
-for to in ("hexo-21", "@hexo-21", "other-uuid"):
-    out = send("w-uuid", to)
-    assert out["permissionDecision"] == "deny" and "another session" in out["permissionDecisionReason"], (to, out)
+def denied(to):
+    out = send("w-uuid", to) or {}
+    return out.get("permissionDecision") == "deny" and "another session" in out["permissionDecisionReason"]
+
+
+# Claude Code's address forms (`name [ref]` when a name is shared, `@"quoted name"`), spacing and case are normalized;
+# an address that is empty once normalized (a bare ref) is refused
+for to in ("hexo-21", "@hexo-21", "other-uuid", "hexo-21 [b451e5]", "hexo-21[d15204]", "  @hexo-21  [31FA3A] ",
+           '"hexo-21"', '@"hexo-21" [b451e5]', '"hexo-21 [b451e5]"', "HEXO-21", "other-uuid [abcdef]", "[09e9dd]", ""):
+    assert denied(to), to
 assert send("ui-unknown-sid", "hexo-21") is None  # not a worker (no job dir) → not ours to police
-for to in ("boss", "@boss", "front-uuid", "ui", "bbbb2222", "my-subagent"):
+for to in ("boss", "@boss", "front-uuid", "ui", "bbbb2222", "my-subagent", "boss [09e9dd]", '@"boss" [09e9dd]',
+           ' "boss" ', "ui [c0ffee]"):
     assert send("w-uuid", to) is None, to
+# the front is gone and an unrelated session took its name: the name (with or without a ref) is that session's now
+AGENTS.write_text(json.dumps([AGENT_LIST[1], {"kind": "interactive", "sessionId": "new-uuid", "name": "Boss", "pid": 4},
+                              {"kind": "interactive", "sessionId": "rn-uuid", "name": "release notes", "pid": 5}]))
+for to in ("boss", "boss [09e9dd]", '@"release notes"', '"release notes" [1a2b3c]'):
+    assert denied(to), to
+assert send("w-uuid", "ui") is None
+AGENTS.unlink()
 # a worker that sends (its report) is running: a WAITING that refresh recorded earlier is cleared
 stuck()
 assert send("w-uuid", "boss") is None and unstuck()

@@ -15,7 +15,8 @@ PermissionRequest: only in a worker → approvals/pending/<nonce>.json (the exac
   a user-typed /router:approve writes in the front; answer allow/deny only. No decision in time → no output, so the
   normal prompt stays (claude attach). Prompt answered in claude attach first (`claude agents`) → end, no output.
 PreToolUse SendMessage: only in a worker → deny a recipient that is another live session (not the front, not a
-  sibling): a stale front name's "Did you mean" hint must not carry a report to an unrelated session.
+  sibling; `name [ref]`, quotes and case normalized): a stale front name's "Did you mean" hint must not carry a
+  report to an unrelated session.
 A worker that sends, gets a decision or ends its turn is no longer WAITING: its recorded wait is cleared.
 Anything else, including a missing registry: no output, no write.
 """
@@ -36,6 +37,7 @@ import registry  # noqa: E402
 WAIT = float(os.environ.get("ROUTER_APPROVAL_WAIT", "300"))  # poll limit (s); well under the hook timeout (600)
 TTL = 600  # the PermissionRequest timeout in hooks.json: an older file belongs to a hook that was killed
 CHECK = 3  # s between `claude agents` looks (~0.3 s each) for a prompt answered elsewhere
+REF = re.compile(r"(\s*\[[0-9A-Fa-f]+\])+\s*$")  # the ` [ref]` Claude Code appends to a name several sessions share
 
 HINT = (
     "This is the router front session. Before answering, follow the router:route skill: classify the "
@@ -80,22 +82,36 @@ def main():
         guard_send(p, sid, data)
 
 
+def address(to):
+    """SendMessage's `to` as the name or id it reaches. Claude Code writes `name`, `@name`, `@"name with spaces"`
+    and, when several live sessions share a name, `name [ref]` with a short hex ref (docs: cross-session messaging).
+    The ref is not in `claude agents`, so it cannot be checked: dropped, the name decides."""
+    t = REF.sub("", str(to).strip()).lstrip("@").strip()
+    if len(t) > 1 and t[0] == t[-1] == '"':
+        t = REF.sub("", t[1:-1]).strip()
+    return t.casefold()  # matched only against other sessions (the deny side), so folding can only add refusals
+
+
 def guard_send(p, sid, data):
     """A worker may message its front and its siblings, never another of the user's sessions. A report to a front
     that is gone gets "Did you mean <some other session>?", and a worker that followed it leaked the report there.
-    Only live sessions (`claude agents`) are refused, so a worker's own subagent ids/names still pass."""
+    Refused: a name or id of a live session (`claude agents`) that is not the front or a worker by id, so a name
+    such a session shares with ours (a ref cannot say which), and an address that is empty once normalized. A
+    worker's own subagent ids/names are no session and still pass."""
     reg = registry.load(p)
     name = registry.find_worker(reg, sid, job_id())
     if not name:
         return
     registry.unblock(p, name)  # it is sending (e.g. its report), so no prompt holds its turn: no stale WAITING
     front = reg.get("front") or {}
-    to = str((data.get("tool_input") or {}).get("to") or "").lstrip("@")
-    ours = {front.get("name"), front.get("session_id"), *reg["sessions"],
-            *(s.get(k) for s in reg["sessions"].values() for k in ("session_id", "job_id"))}
-    live = {a.get(k) for a in registry.backend_agents() or [] for k in ("name", "sessionId", "id")}
-    if to and to in live - ours:
-        why = (f"router: '{to}' is another session, not your front @{front.get('name')} or a sibling. Message no other "
+    raw = str((data.get("tool_input") or {}).get("to") or "")
+    ours = {front.get("session_id"), *(s.get(k) for s in reg["sessions"].values() for k in ("session_id", "job_id"))}
+    ours.discard(None)
+    others = {str(a[k]).casefold() for a in registry.backend_agents() or []
+              if not {a.get("sessionId"), a.get("id")} & ours for k in ("name", "sessionId", "id") if a.get(k)}
+    to = address(raw)
+    if not to or to in others:
+        why = (f"router: '{raw}' is another session, not your front @{front.get('name')} or a sibling. Message no other "
                "session, not even one SendMessage suggests; if the front is unreachable, end your turn with the summary "
                "(the router records it).")
         print(json.dumps({"hookSpecificOutput": {"hookEventName": "PreToolUse", "permissionDecision": "deny",
