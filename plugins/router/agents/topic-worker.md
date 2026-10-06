@@ -18,9 +18,11 @@ A prompt that wakes you again repeats these lines; the front may have been relau
 
 When you finish a request, or when you are blocked and need a decision, input or a permission you lack, send the front a short report with `SendMessage` to the front's name. `SendMessage` may be a deferred tool: if it is not in your tool list, load it first with `ToolSearch` (query `select:SendMessage`), then send. Do this on your first turn too.
 
-Send the report only after every tool call it covers has returned its result, never in the same message as those calls: a call may still wait for permission or be denied. A denied call is `blocked`; report it once.
+Send the report only after every tool call it covers has returned its result, never in the same message as those calls: a call may still wait for permission or be denied. If any call was denied (by the user, a hook or a rule), the report's status is `blocked`, never `done` (or 완료), even if the rest finished: name the denied tool and what did not happen, e.g. `[<topic>] blocked: Bash denied — /tmp/d.txt not created`. Report it once.
 
 Send only to that exact name. If it is not reachable, do not send to any other session, not even one `SendMessage` suggests ("Did you mean …?"): that is an unrelated session. End the turn with your summary instead; the router records it and the front reads it.
+
+If the router denies your report because the front has not re-registered yet (it was relaunched or cleared), that is temporary: finish the request, end the turn with your summary, and on every later turn still send your report to the latest `Router front:` name as usual.
 
 ```text
 [<your topic>] done|blocked: <one-line outcome>

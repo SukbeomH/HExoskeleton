@@ -6,15 +6,16 @@ UserPromptExpansion of a user-typed /router:front (command_name router:front, co
   Only a typed command expands (a model Skill call or a cross-session message does not), so the front is
   human-registered; registry.py has no CLI for it.
 UserPromptExpansion of a user-typed /router:approve [<id> [deny]] (same rule) → only in the front: write the decision
-  for that open request, then block the prompt with what was approved (no model turn). Bare → list open requests.
+  for that open request (and a record the front's context lists for 10 min), then block the prompt with what was
+  approved (no model turn). Bare → list open requests.
 UserPromptSubmit: only in the front session (session_id == registry front) → record its permission_mode (the mode
   every worker gets) and add additionalContext with the compact registry.
 Stop: only in a worker (session_id, or $CLAUDE_JOB_DIR's job id, is in the registry) → store
   last_assistant_message as last_result.
 PermissionRequest: only in a worker → approvals/pending/<nonce>.json (the exact tool_input), then wait for the decision
   a user-typed /router:approve writes in the front; answer allow/deny only. No decision in time → no output, so the
-  normal prompt stays (claude attach). Prompt answered in claude attach first (`claude agents`, or the same thread's
-  next request) → end, no output.
+  normal prompt stays (claude attach). Prompt answered in claude attach first (`claude agents`, the same thread's
+  next request, or for a subagent the tool's result in its own transcript) → end, no output.
 PreToolUse SendMessage: only in a worker → deny a recipient that is another live session (not the front, not a
   sibling; `name [ref]`, quotes and case normalized): a stale front name's "Did you mean" hint must not carry a
   report to an unrelated session.
@@ -122,12 +123,21 @@ def guard_send(p, sid, data):
     others = {x for a in registry.backend_agents() or [] if not {a.get("sessionId"), a.get("id")} & ours
               for k in ("name", "sessionId", "id") if a.get(k) for x in (str(a[k]).casefold(), address(a[k]))}
     to = address(raw)
-    if not to or to in others:
+    if to and to in others and to == address(front.get("name") or ""):
+        # the front's name, but not on the registered front's session: it was relaunched or /clear-ed and not yet
+        # re-registered (a stranger taking the name looks the same). Denied either way; the worker must not give up.
+        why = (f"router: not sent. '{raw}' is your front's name, but that session is not registered as the front: the "
+               "front has not re-registered yet (the user must type /router:front there), or another session took its "
+               "name. Your result is saved via the Stop hook: end this turn with your summary, and keep reporting to "
+               "the front on later turns. Message no other session.")
+    elif not to or to in others:
         why = (f"router: '{raw}' is another session, not your front @{front.get('name')} or a sibling. Message no other "
                "session, not even one SendMessage suggests; if the front is unreachable, end your turn with the summary "
                "(the router records it).")
-        print(json.dumps({"hookSpecificOutput": {"hookEventName": "PreToolUse", "permissionDecision": "deny",
-                                                 "permissionDecisionReason": why}}))
+    else:
+        return
+    print(json.dumps({"hookSpecificOutput": {"hookEventName": "PreToolUse", "permissionDecision": "deny",
+                                             "permissionDecisionReason": why}}))
 
 
 def approve(p, sid, args):
@@ -148,9 +158,12 @@ def approve(p, sid, args):
                 "worker's next request; nothing approved. Open requests:\n" + listing)
     if not r:
         return f"router: not sent. No open request {a[0]} (answered, expired or unknown). Open requests:\n" + listing
-    behavior = "deny" if a[1:] else "allow"
+    behavior, now = "deny" if a[1:] else "allow", time.time()
     registry.save(registry.approvals(p) / "decisions" / f"{a[0]}.json",
-                  {"nonce": a[0], "behavior": behavior, "created": time.time(), "by": sid})
+                  {"nonce": a[0], "behavior": behavior, "created": now, "by": sid})
+    # what the front's context lists as recently decided (the blocked prompt never reaches its model); display only
+    registry.save(registry.approvals(p) / "decided" / f"{a[0]}.json",
+                  {"nonce": a[0], "behavior": behavior, "created": now, "what": registry.describe(r)})
     return f"router: {'approved' if behavior == 'allow' else 'denied'} {a[0]}: {registry.describe(r)}"
 
 
@@ -167,16 +180,21 @@ def permission_request(p, sid, data):
     if not name:
         return
     a = registry.approvals(p)
-    for f in [*a.glob("pending/*.json"), *a.glob("decisions/*.json")]:
+    for f in [*a.glob("pending/*.json"), *a.glob("decisions/*.json"), *a.glob("decided/*.json")]:
         with contextlib.suppress(FileNotFoundError):
             if time.time() - f.stat().st_mtime > TTL:
                 f.unlink()
     nonce, t0 = secrets.token_hex(4), time.time()
     pend, dec = a / "pending" / f"{nonce}.json", a / "decisions" / f"{nonce}.json"
     signal.signal(signal.SIGTERM, lambda *_: sys.exit(0))  # a cancelled hook still removes its pending file
+    aid = data.get("agent_id")  # set only inside a subagent: its prompts are a thread of their own
     rec = {"nonce": nonce, "worker": name, "session_id": sid, "job_id": job_id(), "tool_name": data.get("tool_name"),
-           "tool_input": data.get("tool_input"), "created": t0, "expires": t0 + WAIT,
-           "agent_id": data.get("agent_id")}  # set only inside a subagent: its prompts are a thread of their own
+           "tool_input": data.get("tool_input"), "created": t0, "expires": t0 + WAIT, "agent_id": aid}
+    if aid and data.get("transcript_path") and re.fullmatch(r"[\w-]+", str(aid)):
+        # the subagent's own transcript, <main transcript minus .jsonl>/subagents/agent-<agent_id>.jsonl (docs:
+        # sub-agents; transcript_path is the main one here too, -p probe), and its size now: only growth is read
+        t = pathlib.Path(data["transcript_path"]).with_suffix("") / "subagents" / f"agent-{aid}.jsonl"
+        rec.update(transcript=str(t), size=t.stat().st_size if t.is_file() else 0)
     registry.save(pend, rec)
     check = t0
     try:
@@ -196,13 +214,17 @@ def permission_request(p, sid, data):
                 return
             # Answered elsewhere (claude attach): Claude Code does not stop this hook. End, no output, once this worker
             # was seen on the prompt (the first look may precede it) and then either is off it (`claude agents`) or
-            # its thread asked again: a newer request (parallel calls: the next prompt within 0.6 s, inside one
-            # CHECK) means this prompt was answered; the worker stays on a prompt, so `claude agents` cannot tell.
-            # ponytail: an approve typed between an attach answer and the next look or request still says approved,
-            # and Claude Code ignores that late answer. Upgrade: match the transcript if the input gets tool_use_id.
+            # its thread asked again: a newer request (parallel calls: the next prompt within 0.6–4.3 s) means this
+            # prompt was answered; the worker stays on a prompt, so `claude agents` cannot tell. A subagent's prompt
+            # never shows there (the worker reads busy): its transcript tells instead, so `claude agents` is skipped.
+            # ponytail: a main-thread approve typed between an attach answer and the next look or request still says
+            # approved, and Claude Code ignores that late answer. Upgrade: answered() on the main transcript too.
             if rec.get("seen") and registry.superseded(rec, registry.requests(p)):
                 return  # no output; the newer request's hook relays the prompt the worker is on now
-            if time.time() >= check:
+            if aid:
+                if registry.answered(rec):  # a stat per poll; read only when the file grew
+                    return  # no output; the worker's own (main-thread) state is not this prompt's
+            elif time.time() >= check:
                 check = time.time() + CHECK
                 on = registry.on_prompt(registry.backend_agents(), sid, job_id())
                 if on and not rec.get("seen"):

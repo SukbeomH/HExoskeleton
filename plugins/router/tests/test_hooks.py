@@ -6,6 +6,7 @@ Usage: python3 plugins/router/tests/test_hooks.py"""
 
 import atexit
 import contextlib
+import datetime
 import json
 import os
 import pathlib
@@ -47,7 +48,8 @@ def put(f, obj):
 
 
 def run(payload, **env):
-    r = subprocess.run([str(HOOK)], input=json.dumps(payload), env=hook_env(**env), capture_output=True, text=True)
+    r = subprocess.run([str(HOOK)], input=json.dumps(payload), env=hook_env(**env), capture_output=True, text=True,
+                       timeout=60)
     assert r.returncode == 0, r
     return r.stdout
 
@@ -250,6 +252,16 @@ assert json.loads(answer(proc))["hookSpecificOutput"]["decision"]["behavior"] ==
 # answered or expired → no longer open
 assert "not sent" in approve(args=rec["nonce"])["reason"]
 assert approve()["reason"].endswith("(none)")
+# the front's model never sees a typed approve (blocked prompt): its context lists the last decisions of 10 minutes
+(APPR / "decided").mkdir(exist_ok=True)  # approve made it; a missing decided record must fail an assert below
+(APPR / "decided/0ld0ld00.json").write_text(json.dumps({"nonce": "0ld0ld00", "behavior": "allow",
+                                                         "created": time.time() - 700, "what": "@api Bash: old"}))
+(APPR / "decided/1af1af1a.json").write_text(json.dumps({"nonce": "1af1af1a", "behavior": "allow", "created": "inf"}))
+ctx = json.loads(run(prompt("front-uuid")))["hookSpecificOutput"]["additionalContext"]
+assert "\n[router] decided by the user's typed /router:approve (last 10 min;" in ctx, ctx
+assert f" approved {n} @api Bash: echo relay-ok > /tmp/x⏎rm -rf ~\n- " in ctx, ctx
+assert f" denied {rec['nonce']} @api Bash: echo relay-ok" in ctx, ctx
+assert "0ld0ld00" not in ctx and "1af1af1a" not in ctx, ctx  # older than 10 minutes, or no real time
 
 
 # answered in `claude attach` first: Claude Code keeps the hook running, so the hook watches `claude agents`. Once it
@@ -310,14 +322,55 @@ out = approve(args="0a1b2c3d")
 assert "superseded" in out["reason"] and "nothing approved" in out["reason"], out
 assert not list(APPR.glob("decisions/*.json")) and "0a1b2c3d" not in approve()["reason"]
 gone.unlink()
-proc3, rec3 = ask(wait="20", extra={"agent_id": "a1b2c3d4e5f6a7b8c"})  # the worker's subagent: a thread of its own
-seen(rec2), seen(rec3)
-time.sleep(0.3)  # several polls: a request taken as superseded by the subagent's would have ended by now
+
+
+# the worker's subagent (agent_id): a thread of its own. `claude agents` shows the worker busy while it waits (6th live
+# test), so its hook reads the subagent's transcript, <main transcript>/subagents/agent-<id>.jsonl: the result of a
+# tool_use with this exact tool and input, written after the request, means answered (claude attach).
+def entry(t, kind, block):
+    ts = datetime.datetime.fromtimestamp(t, datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3] + "Z"
+    return json.dumps({"type": kind, "timestamp": ts, "message": {"content": [block]}}) + "\n"
+
+
+def use(t, uid, cmd=CMD):
+    return entry(t, "assistant", {"type": "tool_use", "id": uid, "name": "Bash",
+                                  "input": {"command": cmd, "description": "harmless echo"}})
+
+
+def result(t, uid):
+    return entry(t, "user", {"type": "tool_result", "tool_use_id": uid, "content": "ok"})
+
+
+SUB = TMP / "main-uuid/subagents/agent-a1b2c3d4e5f6a7b8c.jsonl"
+SUB.parent.mkdir(parents=True)
+t = time.time()
+SUB.write_text(use(t - 9, "toolu_old") + result(t - 8, "toolu_old") + use(t, "toolu_now"))  # same call ran before
+proc3, rec3 = ask(wait="20", extra={"agent_id": "a1b2c3d4e5f6a7b8c", "transcript_path": str(TMP / "main-uuid.jsonl")})
+assert rec3["transcript"] == str(SUB) and rec3["size"] == SUB.stat().st_size, rec3
+seen(rec2)
+with SUB.open("a") as f:  # still open: another call's result, an older result of this one, attachments
+    f.write(use(t, "toolu_other", "ls") + result(time.time(), "toolu_other") + result(t - 1, "toolu_now")
+            + json.dumps({"type": "attachment", "timestamp": "x", "attachment": {"type": "hook_success"}}) + "\n")
+time.sleep(0.3)  # several polls: a request taken as superseded or answered would have ended by now
 listing = approve()["reason"]
-assert proc2.poll() is None and f"approval {rec2['nonce']}" in listing and f"approval {rec3['nonce']}" in listing
+assert proc2.poll() is None and proc3.poll() is None, listing
+assert f"approval {rec2['nonce']}" in listing and f"approval {rec3['nonce']}" in listing, listing
+assert "seen" not in json.loads((APPR / "pending" / f"{rec3['nonce']}.json").read_text())  # no `claude agents` look
 relays(proc2, rec2)
-relays(proc3, rec3)
-assert not list(APPR.glob("pending/*.json"))
+with SUB.open("a") as f:  # answered in claude attach → the hook ends, no output, pending removed
+    f.write(result(time.time(), "toolu_now"))
+assert answer(proc3) == "" and time.time() - rec3["created"] < 10
+# until its hook ends, the front hides it and a typed approve writes nothing; a FIFO transcript is never opened
+planted = APPR / "pending" / "0b1c2d3e.json"
+planted.write_text(json.dumps(rec3 | {"nonce": "0b1c2d3e"}))
+os.mkfifo(TMP / "fifo")
+(APPR / "pending" / "0c1d2e3f.json").write_text(
+    json.dumps(rec3 | {"nonce": "0c1d2e3f", "transcript": str(TMP / "fifo"), "size": -1}))
+out = approve(args="0b1c2d3e")
+assert "already answered" in out["reason"] and "approval 0b1c2d3e" not in out["reason"], out
+assert "approval 0c1d2e3f" in out["reason"] and not list(APPR.glob("decisions/*.json")), out
+for f in APPR.glob("pending/*.json"):
+    f.unlink()
 AGENTS.unlink()
 
 # PreToolUse SendMessage in a worker: another live session of the user's (e.g. a stale front name's "Did you mean"
@@ -332,7 +385,8 @@ def send(sid, to):
 
 def denied(to):
     out = send("w-uuid", to) or {}
-    return out.get("permissionDecision") == "deny" and "another session" in out["permissionDecisionReason"]
+    why = out.get("permissionDecisionReason") or ""
+    return out.get("permissionDecision") == "deny" and "is another session, not your front" in why
 
 
 # Claude Code's address forms (`name [ref]` when a name is shared, `@"quoted name"`), spacing and case are normalized;
@@ -344,11 +398,17 @@ assert send("ui-unknown-sid", "hexo-21") is None  # not a worker (no job dir) �
 for to in ("boss", "@boss", "front-uuid", "ui", "bbbb2222", "my-subagent", "boss [09e9dd]", '@"boss" [09e9dd]',
            ' "boss" ', "ui [c0ffee]"):
     assert send("w-uuid", to) is None, to
-# the front is gone and an unrelated session took its name: the name (with or without a ref) is that session's now
+# the front's name on another session (front relaunched or /clear-ed, not re-registered yet; or a stranger took the
+# name): the name (with or without a ref) is that session's now. Denied, saying so, and the worker keeps reporting.
 AGENTS.write_text(json.dumps([AGENT_LIST[1], {"kind": "interactive", "sessionId": "new-uuid", "name": "Boss", "pid": 4},
                               {"kind": "interactive", "sessionId": "rn-uuid", "name": "release notes", "pid": 5},
                               {"kind": "interactive", "sessionId": "wd-uuid", "name": "weird [ab12]", "pid": 6}]))
-for to in ("boss", "boss [09e9dd]", '@"release notes"', '"release notes" [1a2b3c]', "weird [ab12]", "weird"):
+for to in ("boss", "boss [09e9dd]", '@"Boss"'):
+    out = send("w-uuid", to)
+    why = out["permissionDecisionReason"]
+    assert out["permissionDecision"] == "deny" and "has not re-registered yet" in why and "/router:front" in why, out
+    assert "Stop hook" in why and "keep reporting to the front on later turns" in why and "unreachable" not in why, out
+for to in ('@"release notes"', '"release notes" [1a2b3c]', "weird [ab12]", "weird"):
     assert denied(to), to
 assert send("w-uuid", "ui") is None
 AGENTS.unlink()

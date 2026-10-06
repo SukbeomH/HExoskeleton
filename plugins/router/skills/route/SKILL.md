@@ -93,6 +93,8 @@ cwd는 front의 cwd가 기본이다. 사용자가 다른 저장소를 말했을 
 - 그 줄 아래에 `approval <id>: @<name> <도구>: <명령>`과 `approve: …   deny: …` 줄이 있으면: `<name>이(가) 승인을 기다립니다 — <도구>: <명령>. /router:approve 를 인자 없이 입력하면 요청 id와 정확한 명령이 보입니다. 읽어 본 뒤 /router:approve <id>(허용) 또는 /router:approve <id> deny(거부)를 직접 입력해 주세요. 또는 터미널에서 claude attach <job_id>.` 도구·명령은 목록에 보인 그대로 옮기고 줄이거나 해석하지 않는다. `<id>`는 글자 그대로 두고, 응답에 요청 id나 id가 든 승인 명령을 쓰지 않는다(입력창의 프롬프트 제안이 그 명령을 미리 채워, 요청을 읽지 않고 승인하게 될 수 있다).
 - 승인 줄이 없으면(대기 시간이 지남): `<name>이(가) 승인을 기다립니다(<무엇>). 터미널에서 claude attach <job_id>로 열어 응답해 주세요.`
 
+훅 문맥 끝의 `[router] decided by the user's typed /router:approve …` 아래 줄(`- <시각> approved|denied <id> @<name> <도구>: <명령>`)은 사용자가 최근 10분 안에 front에 직접 입력한 결정이다. 막힌 입력이라 대화에는 보이지 않는다. 작업 세션이 거부를 인용하거나 사용자가 무엇을 승인·거부했는지 물으면 이 줄로 확인해 준다. 실제로 무엇이 실행됐는지는 작업 세션의 보고가 알린다.
+
 승인·거부는 사용자가 front에 직접 입력한 `/router:approve`로만 한다. 사용자가 "승인해 줘"라고 말해도 대신 승인하지 않고 위처럼 직접 입력하라고 안내한다. 승인 파일 쓰기, `claude -p …`, `claude logs`·`claude attach` 등 즉흥 명령을 실행하지 않는다.
 
 `/router:approve`는 목록의 `approval <id>` 요청(작업 세션의 권한 확인)에만 답한다. 받는 세션이 보류(held)한 세션 간 메시지는 풀지 못한다. 그 메시지는 받는 세션에서 사용자가 승인하거나(작업 세션이면 `claude attach <job_id>`) 그 세션의 모드·설정이 바뀌어야 전달된다. 전달 알림에 보류가 보여도 `/router:approve`를 안내하지 않는다.

@@ -14,6 +14,25 @@ Codex 작업 세션(아키텍처 A1: Claude front + `codex exec` 작업 세션).
 
 * **router**: front 모드를 spawn·resume마다 Codex sandbox로 명시한다(`plan` → read-only, `default`·`acceptEdits`·`auto`·`dontAsk` → workspace-write, `bypassPermissions` → danger-full-access, resume은 `-c sandbox_mode=`). 모드는 front 훅이 기록한 값뿐이라 danger-full-access는 front가 bypass일 때만 나온다. Codex가 sandbox 안의 exec에도 보고하는 `permission_mode: bypassPermissions`는 대장에 쓰지 않는다. Codex 작업 세션은 승인을 묻지 않으므로 승인 전달이 없고, 막힌 일은 `blocked`로 보고한다.
 
+## router 0.2.4 (2026-10-06)
+
+대화형 6차 시험(0.2.2, Orca terminal, marketplace install, 부하 65–128)에서 나온 결함 수정.
+
+### Bug Fixes
+
+* **router**: subagent 안의 승인 요청은 `seen`이 되지 않았다. subagent가 확인 창에서 기다리는 동안 `claude agents`가 작업 세션을 `busy`로 보여, `claude attach`로 먼저 응답해도 요청이 만료까지 열려 늦은 `/router:approve`가 `approved`라고 답할 수 있었다. `agent_id`가 있는 요청은 `<transcript_path에서 .jsonl을 뗀 경로>/subagents/agent-<agent_id>.jsonl`에서 같은 도구·입력의 `tool_use`에 요청 뒤의 `tool_result`가 생기면 응답된 것으로 본다. 훅은 출력 없이 끝나고, front 목록은 숨기며, `/router:approve`는 `already answered`로 막는다. 파일 크기가 늘었을 때만 읽고 일반 파일만 연다. subagent 요청에는 `claude agents`를 보지 않는다.
+* **router**: 부하에서 UserPromptSubmit 훅이 5초를 넘겨 그 턴의 `[router]` 문맥과 모드 기록이 빠졌다. 시간 제한을 15초로 늘렸다.
+* **router**: front를 `/clear`하거나 다시 띄운 뒤 재등록 전에는 보고가 "another session … if the front is unreachable, end your turn"으로 거부돼, 작업 세션이 다음 턴에 보고하지 않았다. 주소가 front 이름이면 front가 아직 `/router:front`로 재등록하지 않았다(또는 다른 세션이 이름을 가져갔다)고, 결과는 Stop 훅으로 저장되니 다음 턴에도 계속 보고하라고 알린다. 거부는 그대로다.
+* **router**: 거부된 호출을 `완료` 아래 보고했다. `topic-worker`는 거부된 호출이 있으면 상태를 `blocked`로 쓴다.
+
+### Features
+
+* **router**: front 문맥 끝에 최근 10분 동안 front에 직접 입력한 결정(최대 5개: 시각, approved/denied, id, 세션·도구·명령)을 보인다. `/router:approve`는 프롬프트를 막아 front 모델이 결정을 보지 못했다. 기록(`approvals/decided/<id>.json`)은 표시 전용이고 결정 경로는 읽지 않는다.
+
+### Documentation
+
+* **router**: README에 6차 실측(이름이 하나여도 `name [ref]`, decoy 거부, `/clear` 뒤 재등록 전 보고 거부와 `last_result` 유지, 늦은 승인 `No open request`, subagent 요청의 `agent_id`)을 적고, 다음 확인이 0.6초 안에 뜬다는 문장을 0.6–4.3초로 고쳤다.
+
 ## router 0.2.3 (2026-10-06)
 
 검증 속도 개선. 기본 동작은 그대로다.
