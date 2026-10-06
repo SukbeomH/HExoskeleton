@@ -223,7 +223,7 @@ out = approve()
 assert out["decision"] == "block" and f"approval {n}: @api Bash: echo relay-ok > /tmp/x⏎rm -rf ~" in out["reason"], out
 assert f"approve: /router:approve {n}   deny: /router:approve {n} deny" in out["reason"], out
 # unknown id, bad syntax, path tricks → not sent
-for bad in ("ffffffff", f"{n} yes", f"{n} deny x", "../../x", n.upper()):
+for bad in ("ffffffff", f"{n} yes", f"{n} deny x", "../../x", "F" + n[1:]):  # n.upper() is n when n is all digits
     out = approve(args=bad)
     assert out["decision"] == "block" and "not sent" in out["reason"], (bad, out)
 assert not list(APPR.glob("decisions/*.json")) and proc.poll() is None
