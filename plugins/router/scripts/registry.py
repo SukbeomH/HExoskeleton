@@ -31,11 +31,13 @@ Usage: registry.py [--data DIR] <command> ...
 
 import argparse
 import contextlib
+import datetime
 import fcntl
 import json
 import os
 import pathlib
 import re
+import stat
 import subprocess
 import sys
 import tempfile
@@ -92,12 +94,43 @@ def superseded(r, reqs):
         and o["created"] > r["created"] for o in reqs)
 
 
+def answered(r):
+    """A subagent's request (agent_id) answered elsewhere (claude attach): its own transcript (r["transcript"]) holds
+    a result, written after the request, for a tool_use with this exact tool and input. `claude agents` cannot tell:
+    it shows the worker busy while its subagent waits (6th live test). Cheap: the file is read only once it has grown
+    past r["size"], which then keeps the size read (a hook's own copy reads each growth once). Regular files only."""
+    try:
+        st = os.stat(r.get("transcript"))
+        if not stat.S_ISREG(st.st_mode) or st.st_size <= r.get("size", 0):
+            return False
+        r["size"] = st.st_size
+        with open(r["transcript"], errors="replace") as f:
+            lines = f.read().splitlines()
+    except (OSError, TypeError):
+        return False
+    uses, after = set(), float(r.get("created") or 0)
+    for line in lines:
+        if '"tool_use"' not in line and '"tool_result"' not in line:
+            continue
+        with contextlib.suppress(ValueError, TypeError, AttributeError, KeyError):
+            e = json.loads(line)
+            for b in e["message"]["content"]:
+                if b["type"] == "tool_use" and (b["name"], b["input"]) == (r.get("tool_name"), r.get("tool_input")):
+                    uses.add(b["id"])
+                elif b["type"] == "tool_result" and b["tool_use_id"] in uses:
+                    ts = datetime.datetime.strptime(e["timestamp"], "%Y-%m-%dT%H:%M:%S.%fZ")
+                    if ts.replace(tzinfo=datetime.timezone.utc).timestamp() > after:
+                        return True  # not an earlier identical call's result: that one predates the request
+    return False
+
+
 def pending(p):
     """Open approval requests, oldest first. Not open: answered elsewhere (claude attach). Claude Code does not stop
-    the hook then, so a request is hidden until its hook ends when the same thread asked again (superseded), or when
-    its hook saw it on the prompt ("seen") and `claude agents` no longer shows its worker there."""
+    the hook then, so a request is hidden until its hook ends when the same thread asked again (superseded), when a
+    subagent's transcript has the result (answered), or when its hook saw it on the prompt ("seen") and `claude agents`
+    no longer shows its worker there."""
     reqs = requests(p)
-    out = [r for r in reqs if not superseded(r, reqs)]
+    out = [r for r in reqs if not superseded(r, reqs) and not answered(r)]
     if any(r.get("seen") for r in out):
         agents = backend_agents()
         out = [r for r in out if not r.get("seen") or on_prompt(agents, r.get("session_id"), r.get("job_id"))
