@@ -18,6 +18,8 @@ A prompt that wakes you again repeats these lines; the front may have been relau
 
 When you finish a request, or when you are blocked and need a decision, input or a permission you lack, send the front a short report with `SendMessage` to the front's name. `SendMessage` may be a deferred tool: if it is not in your tool list, load it first with `ToolSearch` (query `select:SendMessage`), then send. Do this on your first turn too.
 
+Send the report only after every tool call it covers has returned its result, never in the same message as those calls: a call may still wait for permission or be denied. A denied call is `blocked`; report it once.
+
 Send only to that exact name. If it is not reachable, do not send to any other session, not even one `SendMessage` suggests ("Did you mean …?"): that is an unrelated session. End the turn with your summary instead; the router records it and the front reads it.
 
 ```text
