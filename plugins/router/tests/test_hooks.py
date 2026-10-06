@@ -252,6 +252,16 @@ assert json.loads(answer(proc))["hookSpecificOutput"]["decision"]["behavior"] ==
 # answered or expired → no longer open
 assert "not sent" in approve(args=rec["nonce"])["reason"]
 assert approve()["reason"].endswith("(none)")
+# the front's model never sees a typed approve (blocked prompt): its context lists the last decisions of 10 minutes
+(APPR / "decided").mkdir(exist_ok=True)  # approve made it; a missing decided record must fail an assert below
+(APPR / "decided/0ld0ld00.json").write_text(json.dumps({"nonce": "0ld0ld00", "behavior": "allow",
+                                                         "created": time.time() - 700, "what": "@api Bash: old"}))
+(APPR / "decided/1af1af1a.json").write_text(json.dumps({"nonce": "1af1af1a", "behavior": "allow", "created": "inf"}))
+ctx = json.loads(run(prompt("front-uuid")))["hookSpecificOutput"]["additionalContext"]
+assert "\n[router] decided by the user's typed /router:approve (last 10 min;" in ctx, ctx
+assert f" approved {n} @api Bash: echo relay-ok > /tmp/x⏎rm -rf ~\n- " in ctx, ctx
+assert f" denied {rec['nonce']} @api Bash: echo relay-ok" in ctx, ctx
+assert "0ld0ld00" not in ctx and "1af1af1a" not in ctx, ctx  # older than 10 minutes, or no real time
 
 
 # answered in `claude attach` first: Claude Code keeps the hook running, so the hook watches `claude agents`. Once it

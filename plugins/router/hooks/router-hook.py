@@ -6,7 +6,8 @@ UserPromptExpansion of a user-typed /router:front (command_name router:front, co
   Only a typed command expands (a model Skill call or a cross-session message does not), so the front is
   human-registered; registry.py has no CLI for it.
 UserPromptExpansion of a user-typed /router:approve [<id> [deny]] (same rule) → only in the front: write the decision
-  for that open request, then block the prompt with what was approved (no model turn). Bare → list open requests.
+  for that open request (and a record the front's context lists for 10 min), then block the prompt with what was
+  approved (no model turn). Bare → list open requests.
 UserPromptSubmit: only in the front session (session_id == registry front) → record its permission_mode (the mode
   every worker gets) and add additionalContext with the compact registry.
 Stop: only in a worker (session_id, or $CLAUDE_JOB_DIR's job id, is in the registry) → store
@@ -157,9 +158,12 @@ def approve(p, sid, args):
                 "worker's next request; nothing approved. Open requests:\n" + listing)
     if not r:
         return f"router: not sent. No open request {a[0]} (answered, expired or unknown). Open requests:\n" + listing
-    behavior = "deny" if a[1:] else "allow"
+    behavior, now = "deny" if a[1:] else "allow", time.time()
     registry.save(registry.approvals(p) / "decisions" / f"{a[0]}.json",
-                  {"nonce": a[0], "behavior": behavior, "created": time.time(), "by": sid})
+                  {"nonce": a[0], "behavior": behavior, "created": now, "by": sid})
+    # what the front's context lists as recently decided (the blocked prompt never reaches its model); display only
+    registry.save(registry.approvals(p) / "decided" / f"{a[0]}.json",
+                  {"nonce": a[0], "behavior": behavior, "created": now, "what": registry.describe(r)})
     return f"router: {'approved' if behavior == 'allow' else 'denied'} {a[0]}: {registry.describe(r)}"
 
 
@@ -176,7 +180,7 @@ def permission_request(p, sid, data):
     if not name:
         return
     a = registry.approvals(p)
-    for f in [*a.glob("pending/*.json"), *a.glob("decisions/*.json")]:
+    for f in [*a.glob("pending/*.json"), *a.glob("decisions/*.json"), *a.glob("decided/*.json")]:
         with contextlib.suppress(FileNotFoundError):
             if time.time() - f.stat().st_mtime > TTL:
                 f.unlink()

@@ -13,8 +13,9 @@ Trust: the front entry is written only by the plugin's hooks (router-hook.py: a 
 it, each front turn records its permission mode). Worker ids are written only by launch, refresh (from the real
 `backend.sh list`) and the Stop hook. Nothing here takes a front, an id or a permission mode from the command line:
 the allow rule for this script approves any arguments, so arguments must not be able to pick a worker's mode.
-Approvals (<registry dir>/approvals/{pending,decisions}/<nonce>.json) are written only by router-hook.py: a worker's
-PermissionRequest hook writes pending, a user-typed /router:approve writes the decision. No command here writes them.
+Approvals (<registry dir>/approvals/{pending,decisions,decided}/<nonce>.json) are written only by router-hook.py: a
+worker's PermissionRequest hook writes pending, a user-typed /router:approve writes the decision (and decided, its
+display-only record). No command here writes them.
 
 Usage: registry.py [--data DIR] <command> ...
   init | get-front | list [--json]
@@ -370,7 +371,7 @@ def alive(pid):
 
 def render(reg, width=200, p=None):
     """The compact registry. With P, a worker's open approval requests are listed under it (and make it WAITING
-    without a refresh: its PermissionRequest hook is waiting for the user's answer right now)."""
+    without a refresh: its PermissionRequest hook is waiting for the user's answer right now), then recent decisions."""
     front = reg.get("front") or {}
     asks = pending(p) if p else []
     lines = [f"[router] front: @{front.get('name') or '?'} (mode {front_mode(reg)}) — workers:"]
@@ -398,7 +399,27 @@ def render(reg, width=200, p=None):
         lines += ["  " + line for r in mine for line in approval_lines(r)]
     if not reg["sessions"]:
         lines.append("- (none)")
+    done = decided(p) if p else []
+    if done:
+        lines.append("[router] decided by the user's typed /router:approve (last 10 min; the worker's report tells "
+                     "what then ran):")
+    for d in done:
+        when, verdict = time.strftime("%H:%M:%S", time.localtime(d["created"])), d.get("behavior") == "allow"
+        lines.append(f"- {when} {'approved' if verdict else 'denied'} {clean(d.get('nonce'), 8)} "
+                     f"{clean(d.get('what') or '', 120)}")
     return "\n".join(lines)
+
+
+def decided(p, window=600, keep=5):
+    """The last KEEP decisions typed in the front within WINDOW seconds, oldest first: approve (router-hook.py)
+    writes approvals/decided/<nonce>.json, since the blocked prompt never reaches the front's model. Display only."""
+    out = []
+    for f in approvals(p).glob("decided/*.json"):
+        with contextlib.suppress(OSError, ValueError, TypeError, KeyError):
+            d = json.loads(f.read_text())
+            if 0 <= time.time() - float(d["created"]) < window:  # not nan, inf or future
+                out.append(d | {"created": float(d["created"])})
+    return sorted(out, key=lambda d: d["created"])[-keep:]
 
 
 def main(argv=None):
