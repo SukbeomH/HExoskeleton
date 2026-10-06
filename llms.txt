@@ -18,6 +18,7 @@
 - [hooks/hooks.json](hooks/hooks.json): Claude Code 훅 등록
 - [templates/](templates/): 프로젝트 `.hxsk/` 스캐폴드
 - [scripts/init-project.sh](scripts/init-project.sh): 프로젝트에 `.hxsk/` 생성 (`--skills`로 `.agents/skills` 복사)
+- [hermes/](hermes/): Hermes Agent 플러그인 — 같은 가드·상태 훅과 `/hxsk-init` (README "Hermes Agent")
 
 ## Docs
 - [docs/DESIGN-PHILOSOPHY.md](docs/DESIGN-PHILOSOPHY.md): 설계 원칙과 근거

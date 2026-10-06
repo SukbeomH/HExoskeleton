@@ -32,6 +32,9 @@ for P in "$NO" "$HX"; do
     run "$P" file-protect.py "$(codex_patch apply_patch '*** Update File: .env\n@@\n-A=1\n+A=2')"; expect "$tag file-protect apply_patch .env" 2 $?
     run "$P" file-protect.py "$(codex_patch apply_patch '*** Add File: a.txt\n+hi\n*** Update File: existing.txt\n@@\n-existing\n+changed')"; expect "$tag file-protect apply_patch a.txt" 0 $?
     run "$P" file-protect.py "$(codex_patch apply_patch '*** Update File: a.txt\n*** Move to: .env\n@@\n-hi\n+A=1')"; expect "$tag file-protect apply_patch move to .env" 2 $?
+    # Hermes V4A: `*** Move File: a -> b`, 그리고 file_path 와 본문이 함께 오는 경우
+    run "$P" file-protect.py "$(codex_patch Edit '*** Move File: a.txt -> .env')"; expect "$tag file-protect V4A move file .env" 2 $?
+    run "$P" file-protect.py '{"tool_name":"Edit","tool_input":{"file_path":"'"$P"'/a.txt","command":"*** Move File: a.txt -> .env"}}'; expect "$tag file-protect file_path + V4A body" 2 $?
     run "$P" write-guard.py '{"tool_name":"Write","tool_input":{"file_path":"'"$P"'/existing.txt"}}'; expect "$tag write-guard existing" 2 $?
     run "$P" write-guard.py '{"tool_name":"Write","tool_input":{"file_path":"'"$P"'/new.txt"}}'; expect "$tag write-guard new" 0 $?
     run "$P" bash-guard.py '{"tool_name":"Bash","tool_input":{"command":"rm -rf build"}}'; expect "$tag bash-guard rm -rf" 2 $?

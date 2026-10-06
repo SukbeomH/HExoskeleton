@@ -35,6 +35,7 @@ else
     skip "shellcheck (not installed)"
 fi
 for t in tests/*.sh; do step "test: $t" bash "$t"; done
+for t in tests/*.py; do step "test: $t" python3 "$t"; done
 for t in plugins/router/tests/*.py; do step "test: $t" python3 "$t"; done
 step "skill scenarios (dry-run)" bash scripts/run-skill-test.sh --all
 step "markdown links" python3 skills/doc-lint/scripts/check-links.py

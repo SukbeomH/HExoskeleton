@@ -158,6 +158,8 @@ front는 `registry.py`를 플러그인 경로째 부르는 단일 명령만 쓴�
 
 front는 그대로 Claude Code 세션이고, 작업 세션 하나하나를 Codex CLI로 띄울 수 있다(0.3.0). 0.4.0부터 Codex 작업 세션의 승인 요청도 front의 `/router:approve`로 전달된다(아래 "승인 전달").
 
+Hermes 작업 세션은 지원하지 않는다 — 로컬 백엔드에 sandbox가 없어 작업 세션이 승인 결정·대장 파일을 써서 다른 작업 세션의 승인을 위조할 수 있다.
+
 **요청하기**: front에 `코덱스로 …`, `codex로 …`, `with codex …`처럼 말한다. `route`가 `registry.py spawn <이름> --backend codex …`로 띄우고, 본문에서 그 지시는 뺀다. 지정하지 않으면 지금처럼 Claude 작업 세션이다. 백엔드는 작업 세션마다 대장에 `backend: codex`로 남고, 재개·정지·요약·병합은 그 값으로 나뉜다.
 
 **필요한 것**: `codex`가 PATH에 있고 로그인돼 있어야 한다(`codex login status`). 작업 디렉터리가 git 저장소일 필요는 없다(0.4.0 실측). 사용자의 `~/.codex/config.toml`(모델, MCP, rules, 사용자 훅)은 그대로 적용된다.

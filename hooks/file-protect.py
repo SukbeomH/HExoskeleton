@@ -2,8 +2,8 @@
 """Hook: PreToolUse (Edit|Write) — 민감 파일 보호
 
 .env, 시크릿, 인증서 파일 등의 수정을 차단합니다.
-Codex apply_patch 는 file_path 없이 tool_input.command 의 패치 본문으로 오므로
-`*** Add/Update/Delete File:`·`*** Move to:` 줄의 경로를 같은 규칙으로 검사합니다.
+Codex apply_patch·Hermes V4A patch 는 file_path 없이 tool_input.command 의 패치 본문으로 오므로
+`*** Add/Update/Delete/Move File:`·`*** Move to:` 줄의 경로를 같은 규칙으로 검사합니다.
 Exit code 2 = 차단 (stderr가 Claude에게 전달됨)
 Exit code 0 = 허용
 """
@@ -83,12 +83,18 @@ except (json.JSONDecodeError, EOFError):
 
 tool_input = data.get("tool_input", {})
 file_path = tool_input.get("file_path", "")
-# Codex apply_patch: file_path 없음 → 패치 본문의 모든 대상 경로(이동 대상 포함)
-paths = [file_path] if file_path else re.findall(
-    r"^\*\*\* (?:Add File|Update File|Delete File|Move to): (.+)$",
-    str(tool_input.get("command", "")),
-    re.M,
-)
+# Codex apply_patch·Hermes V4A patch: 패치 본문(command)의 모든 대상 경로(이동 대상 포함)도 검사한다.
+# Hermes patch 는 path 와 V4A 본문을 함께 받을 수 있다 (tools/file_tools.py patch_tool).
+# Hermes 파서는 공백을 느슨하게 받고 이동을 `*** Move File: a -> b` 로 쓴다 (tools/patch_parser.py).
+paths = ([file_path] if file_path else []) + [
+    p
+    for m in re.findall(
+        r"^\*\*\*\s*(?:(?:Add|Update|Delete|Move)\s+File|Move\s+to):\s*(.+)$",
+        str(tool_input.get("command", "")),
+        re.M,
+    )
+    for p in m.split("->")
+]
 
 for path in paths:
     reason = check(path.strip())

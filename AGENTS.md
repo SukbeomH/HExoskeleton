@@ -9,6 +9,7 @@
 - `skills/` — Agent Skills. `.agents/skills`는 이 디렉터리를 가리키는 심볼릭 링크(Claude 외 하네스용)
 - `agents/` — 서브에이전트 정의
 - `hooks/` — `hooks.json` + 훅 스크립트 ([docs/HOOKS.md](docs/HOOKS.md))
+- `hermes/` — Hermes Agent 플러그인: Hermes 도구 호출을 Claude 훅 JSON으로 바꿔 `hooks/` 스크립트를 실행한다 (README "Hermes Agent", `tests/hermes-plugin.py`)
 - `scripts/` — `init-project.sh`(프로젝트 `.hxsk/` 생성), `verify.sh`(검증 단일 진입점) 등
 - `templates/` — `.hxsk/` 스캐폴드 (PLAN·SUMMARY·DEBUG·RESEARCH 같은 작업 문서 형식은 그 문서를 쓰는 스킬의 `references/`에 있다)
 - `tests/` — 회귀 테스트 (`verify.sh`가 전부 실행)
@@ -32,7 +33,7 @@
 - **훅**: `.hxsk/` 상태를 읽거나 쓰는 훅은 `.hxsk/`가 없으면 아무것도 하지 않고 exit 0. 차단은 exit 2 + stderr. 변경 시 `tests/hooks-smoke.sh`에 `.hxsk/` 유무 두 경우를 넣는다.
 - **런타임**: bash와 python3 표준 라이브러리만. 스크립트에서는 `python3`(not `python`).
 - **문서**: 컴포넌트 개수·버전 번호를 본문에 쓰지 않는다. 파일시스템을 복제하는 목록을 만들지 않는다.
-- **릴리스**: 버전은 `.claude-plugin/plugin.json`의 `version`과 `CHANGELOG.md`에만 둔다. `version`을 올려야 설치된 사용자가 업데이트를 받는다. `marketplace.json` 항목에는 `version`을 넣지 않는다.
+- **릴리스**: 버전은 `.claude-plugin/plugin.json`의 `version`(같은 값을 `hermes/plugin.yaml`에도, `tests/hermes-plugin.py`가 검사)과 `CHANGELOG.md`에만 둔다. `version`을 올려야 설치된 사용자가 업데이트를 받는다. `marketplace.json` 항목에는 `version`을 넣지 않는다.
 
 ## Validation
 

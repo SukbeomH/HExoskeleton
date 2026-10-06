@@ -1,5 +1,15 @@
 # Changelog
 
+## 6.1.0 (2026-10-06)
+
+### Features
+
+* **hermes**: Hermes Agent 네이티브 플러그인 `hermes/`(`plugin.yaml` + `register(ctx)`). Hermes 도구 호출을 Claude Code 훅 JSON으로 바꿔(`terminal`=Bash, `write_file`=Write, `patch`=Edit, `read_file`=Read, `path`→`file_path`) 기존 `file-protect`·`write-guard`·`bash-guard`를 `pre_tool_call`에서 돌린다. exit 2는 `{"action": "block"}`이고, 가드를 실행하지 못하면 Hermes가 차단한다. `.hxsk/`가 있는 프로젝트에서만 새 세션 첫 턴(`pre_llm_call`)에 session-start 문맥을 붙이고, `post_tool_call`이 변경을 기록하고, 매 턴 끝(`on_session_end`)에 컨텍스트를 저장한다. `/hxsk-init` 명령이 `init-project.sh --skills`를 실행하고 `hermes skills trust`를 안내한다. 설치: 체크아웃 + `hermes plugins install SukbeomH/HExoskeleton/hermes`(서브디렉터리 설치는 `hermes/`만 받으므로 `HXSK_ROOT`로 체크아웃을 찾는다) + `hermes plugins enable hxsk`. PreCompact·read-before-edit·post-turn-verify는 옮기지 않았다(README "Hermes Agent"). router의 Hermes 작업 세션은 지원하지 않는다(로컬 백엔드에 sandbox가 없어 승인 위조 가능).
+
+### Bug Fixes
+
+* **hooks**: `file-protect`가 Hermes V4A 패치 헤더(`*** Move File: a -> b`, 느슨한 공백)의 경로도 검사하고, `file_path`와 패치 본문이 함께 오면 둘 다 검사한다. 이전에는 V4A 이동이나 `path`를 함께 준 patch로 `.env`를 덮을 수 있었다.
+
 ## router 0.5.0 (2026-10-06)
 
 Codex 결과 알림(push)과 7차 대화형 시험의 수정. 실측은 README "실측 확인 (대화형 7차 시험)"과 "Codex 작업 세션 → 실측 확인".
