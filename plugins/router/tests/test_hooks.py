@@ -152,6 +152,19 @@ def answer(proc):
     return out
 
 
+def stuck():
+    """What a refresh records while api's prompt holds its turn."""
+    r = json.loads(REG.read_text())
+    r["sessions"]["api"].update(state="waiting", waiting_for="permission prompt", agent_state="blocked")
+    REG.write_text(json.dumps(r))
+
+
+def unstuck():
+    """Answered or moving on → no stale WAITING (or idle/blocked) left behind."""
+    api = json.loads(REG.read_text())["sessions"]["api"]
+    return api["state"] == "active" and not api.get("waiting_for") and "agent_state" not in api
+
+
 # not a worker (front, stranger) or a dontAsk worker (never waits) → no output, nothing written, at once
 assert run(perm("front-uuid")) == "" and run(perm("stranger")) == ""
 assert run(perm("w-uuid", "dontAsk")) == ""
@@ -161,10 +174,11 @@ assert not APPR.exists()
 proc, rec = ask()
 assert rec["worker"] == "api" and rec["tool_name"] == "Bash" and rec["tool_input"]["command"] == CMD, rec
 assert len(rec["nonce"]) == 8 and rec["expires"] > rec["created"], rec
+stuck()
 decide(rec)
 out = json.loads(answer(proc))["hookSpecificOutput"]
 assert out == {"hookEventName": "PermissionRequest", "decision": {"behavior": "allow"}}, out
-assert not list(APPR.glob("decisions/*.json"))
+assert not list(APPR.glob("decisions/*.json")) and unstuck()
 # worker found by $CLAUDE_JOB_DIR job id; deny → deny with a message
 proc, rec = ask("ui-unknown-sid", CLAUDE_JOB_DIR="/x/jobs/bbbb2222")
 assert rec["worker"] == "ui", rec
@@ -245,6 +259,7 @@ api_status(status="waiting", waitingFor="permission prompt")
 proc, rec = ask(wait="20")
 n = seen(rec)
 assert f"approval {n}:" in approve()["reason"]  # still on its prompt → open
+stuck()
 api_status(status="busy")  # the user answered in claude attach
 out = approve(args=n)
 assert out["decision"] == "block" and "already answered (e.g. via claude attach)" in out["reason"], out
@@ -252,6 +267,7 @@ assert not out["reason"].startswith("router: approved") and not list(APPR.glob("
 ctx = json.loads(run(prompt("front-uuid")))["hookSpecificOutput"]["additionalContext"]
 assert f"approval {n}" not in ctx, ctx
 assert answer(proc) == "" and time.time() - rec["created"] < 10  # ended on the signal, long before its 20 s wait
+assert unstuck()
 # the normal path with the worker on its prompt (seen) still relays
 api_status(status="waiting", waitingFor="permission prompt")
 proc, rec = ask()
@@ -275,6 +291,9 @@ for to in ("hexo-21", "@hexo-21", "other-uuid"):
 assert send("ui-unknown-sid", "hexo-21") is None  # not a worker (no job dir) → not ours to police
 for to in ("boss", "@boss", "front-uuid", "ui", "bbbb2222", "my-subagent"):
     assert send("w-uuid", to) is None, to
+# a worker that sends (its report) is running: a WAITING that refresh recorded earlier is cleared
+stuck()
+assert send("w-uuid", "boss") is None and unstuck()
 
 # garbage stdin → still exit 0
 r = subprocess.run([str(HOOK)], input="not json", capture_output=True, text=True)

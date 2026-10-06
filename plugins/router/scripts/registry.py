@@ -198,10 +198,28 @@ def record_result(p, session_id, job_id, text, agent_type=None):
             if agent_type:
                 s["agent_type"] = agent_type
             s["last_result"] = text[:RESULT_MAX]
+            clear_waiting(s)
             if s.get("state") != "merged":
                 s["state"] = "idle"
             s["updated"] = now()
     return name
+
+
+def clear_waiting(s):
+    """The worker's prompt got its answer or its turn moved on: drop what refresh saw while it waited, so it renders
+    running or idle again, not WAITING or `idle/blocked`. The next refresh records the current state."""
+    s.pop("waiting_for", None)
+    if s.get("agent_state") == "blocked":
+        s.pop("agent_state")
+    if s.get("state") == "waiting":
+        s["state"] = "active"
+
+
+def unblock(p, name):
+    """router-hook.py: a relayed decision, an answer in claude attach, or a report (SendMessage) from NAME."""
+    with locked(p) as reg:
+        if name in reg["sessions"]:
+            clear_waiting(reg["sessions"][name])
 
 
 def set_front(p, session_id, name, mode):

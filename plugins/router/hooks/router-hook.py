@@ -16,6 +16,7 @@ PermissionRequest: only in a worker → approvals/pending/<nonce>.json (the exac
   normal prompt stays (claude attach). Prompt answered in claude attach first (`claude agents`) → end, no output.
 PreToolUse SendMessage: only in a worker → deny a recipient that is another live session (not the front, not a
   sibling): a stale front name's "Did you mean" hint must not carry a report to an unrelated session.
+A worker that sends, gets a decision or ends its turn is no longer WAITING: its recorded wait is cleared.
 Anything else, including a missing registry: no output, no write.
 """
 
@@ -84,8 +85,10 @@ def guard_send(p, sid, data):
     that is gone gets "Did you mean <some other session>?", and a worker that followed it leaked the report there.
     Only live sessions (`claude agents`) are refused, so a worker's own subagent ids/names still pass."""
     reg = registry.load(p)
-    if not registry.find_worker(reg, sid, job_id()):
+    name = registry.find_worker(reg, sid, job_id())
+    if not name:
         return
+    registry.unblock(p, name)  # it is sending (e.g. its report), so no prompt holds its turn: no stale WAITING
     front = reg.get("front") or {}
     to = str((data.get("tool_input") or {}).get("to") or "").lstrip("@")
     ours = {front.get("name"), front.get("session_id"), *reg["sessions"],
@@ -160,6 +163,7 @@ def permission_request(p, sid, data):
                 if d["behavior"] == "deny":
                     out["message"] = f"The user denied this in the router front (/router:approve {nonce} deny)."
                 print(json.dumps({"hookSpecificOutput": {"hookEventName": "PermissionRequest", "decision": out}}))
+                registry.unblock(p, name)
                 return
             # Answered elsewhere (claude attach): Claude Code does not stop this hook, so watch `claude agents`.
             # End only after this worker was seen on the prompt and no longer is (the first look may precede it).
@@ -173,6 +177,7 @@ def permission_request(p, sid, data):
                     registry.save(pend, rec | {"seen": True})  # lets the front hide it once answered elsewhere
                     rec["seen"] = True
                 elif on is False and rec.get("seen"):
+                    registry.unblock(p, name)
                     return  # no output: the prompt is already answered
             time.sleep(0.5)
     finally:

@@ -115,12 +115,14 @@ assert "job_id" not in noid and "session_id" not in noid and noid["state"] == "e
 # record_result: by session id, by job id (backfills session id), unknown → no write
 assert registry.record_result(REG, "api-uuid", None, "pong") == "api"
 assert reg()["sessions"]["api"]["last_result"] == "pong"
-put("new", job_id="dddd4444")
+put("new", job_id="dddd4444", state="waiting", waiting_for="permission prompt", agent_state="blocked")  # refresh saw
 assert registry.record_result(REG, "new-uuid", "dddd4444", "x" * 5000, "router:topic-worker") == "new"
 n = reg()["sessions"]["new"]
 assert n["session_id"] == "new-uuid" and len(n["last_result"]) == registry.RESULT_MAX and n["agent_type"]
-# a finished turn means the worker is idle now (was active); a merged source stays merged
+# a finished turn means the worker is idle now (was active or waiting: no stale WAITING or idle/blocked); a merged
+# source stays merged
 assert n["state"] == "idle" and reg()["sessions"]["api"]["state"] == "idle", n
+assert "waiting_for" not in n and "agent_state" not in n and "- new [idle] " in registry.render(reg()), n
 assert registry.record_result(REG, None, "cccc3333", "summary for merge") == "old"
 assert reg()["sessions"]["old"]["state"] == "merged"
 before = REG.read_bytes()
