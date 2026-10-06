@@ -13,9 +13,11 @@ Stop: only in a worker (session_id, or $CLAUDE_JOB_DIR's job id, is in the regis
   last_assistant_message as last_result.
 PermissionRequest: only in a worker → approvals/pending/<nonce>.json (the exact tool_input), then wait for the decision
   a user-typed /router:approve writes in the front; answer allow/deny only. No decision in time → no output, so the
-  normal prompt stays (claude attach). Prompt answered in claude attach first (`claude agents`) → end, no output.
+  normal prompt stays (claude attach). Prompt answered in claude attach first (`claude agents`, or the same thread's
+  next request) → end, no output.
 PreToolUse SendMessage: only in a worker → deny a recipient that is another live session (not the front, not a
-  sibling): a stale front name's "Did you mean" hint must not carry a report to an unrelated session.
+  sibling; `name [ref]`, quotes and case normalized): a stale front name's "Did you mean" hint must not carry a
+  report to an unrelated session.
 A worker that sends, gets a decision or ends its turn is no longer WAITING: its recorded wait is cleared.
 Anything else, including a missing registry: no output, no write.
 """
@@ -36,6 +38,7 @@ import registry  # noqa: E402
 WAIT = float(os.environ.get("ROUTER_APPROVAL_WAIT", "300"))  # poll limit (s); well under the hook timeout (600)
 TTL = 600  # the PermissionRequest timeout in hooks.json: an older file belongs to a hook that was killed
 CHECK = 3  # s between `claude agents` looks (~0.3 s each) for a prompt answered elsewhere
+REF = re.compile(r"(\s*\[[0-9A-Fa-f]+\])+\s*$")  # the ` [ref]` Claude Code appends to a name several sessions share
 
 HINT = (
     "This is the router front session. Before answering, follow the router:route skill: classify the "
@@ -80,22 +83,36 @@ def main():
         guard_send(p, sid, data)
 
 
+def address(to):
+    """SendMessage's `to` as the name or id it reaches. Claude Code writes `name`, `@name`, `@"name with spaces"`
+    and, when several live sessions share a name, `name [ref]` with a short hex ref (docs: cross-session messaging).
+    The ref is not in `claude agents`, so it cannot be checked: dropped, the name decides."""
+    t = REF.sub("", str(to).strip()).lstrip("@").strip()
+    if len(t) > 1 and t[0] == t[-1] == '"':
+        t = REF.sub("", t[1:-1]).strip()
+    return t.casefold()  # matched only against other sessions (the deny side), so folding can only add refusals
+
+
 def guard_send(p, sid, data):
     """A worker may message its front and its siblings, never another of the user's sessions. A report to a front
     that is gone gets "Did you mean <some other session>?", and a worker that followed it leaked the report there.
-    Only live sessions (`claude agents`) are refused, so a worker's own subagent ids/names still pass."""
+    Refused: a name or id of a live session (`claude agents`) that is not the front or a worker by id, so a name
+    such a session shares with ours (a ref cannot say which), and an address that is empty once normalized. A
+    worker's own subagent ids/names are no session and still pass."""
     reg = registry.load(p)
     name = registry.find_worker(reg, sid, job_id())
     if not name:
         return
     registry.unblock(p, name)  # it is sending (e.g. its report), so no prompt holds its turn: no stale WAITING
     front = reg.get("front") or {}
-    to = str((data.get("tool_input") or {}).get("to") or "").lstrip("@")
-    ours = {front.get("name"), front.get("session_id"), *reg["sessions"],
-            *(s.get(k) for s in reg["sessions"].values() for k in ("session_id", "job_id"))}
-    live = {a.get(k) for a in registry.backend_agents() or [] for k in ("name", "sessionId", "id")}
-    if to and to in live - ours:
-        why = (f"router: '{to}' is another session, not your front @{front.get('name')} or a sibling. Message no other "
+    raw = str((data.get("tool_input") or {}).get("to") or "")
+    ours = {front.get("session_id"), *(s.get(k) for s in reg["sessions"].values() for k in ("session_id", "job_id"))}
+    ours.discard(None)
+    others = {x for a in registry.backend_agents() or [] if not {a.get("sessionId"), a.get("id")} & ours
+              for k in ("name", "sessionId", "id") if a.get(k) for x in (str(a[k]).casefold(), address(a[k]))}
+    to = address(raw)
+    if not to or to in others:
+        why = (f"router: '{raw}' is another session, not your front @{front.get('name')} or a sibling. Message no other "
                "session, not even one SendMessage suggests; if the front is unreachable, end your turn with the summary "
                "(the router records it).")
         print(json.dumps({"hookSpecificOutput": {"hookEventName": "PreToolUse", "permissionDecision": "deny",
@@ -116,8 +133,8 @@ def approve(p, sid, args):
         return "router: not sent. Usage: /router:approve <id> [deny]. Open requests:\n" + listing
     r = next((r for r in open_ if r["nonce"] == a[0]), None)
     if not r and (registry.approvals(p) / "pending" / f"{a[0]}.json").exists():  # its hook waits, its prompt doesn't
-        return (f"router: not sent. {a[0]} was already answered (e.g. via claude attach); nothing approved. "
-                "Open requests:\n" + listing)
+        return (f"router: not sent. {a[0]} was already answered (e.g. via claude attach) or superseded by the same "
+                "worker's next request; nothing approved. Open requests:\n" + listing)
     if not r:
         return f"router: not sent. No open request {a[0]} (answered, expired or unknown). Open requests:\n" + listing
     behavior = "deny" if a[1:] else "allow"
@@ -147,7 +164,8 @@ def permission_request(p, sid, data):
     pend, dec = a / "pending" / f"{nonce}.json", a / "decisions" / f"{nonce}.json"
     signal.signal(signal.SIGTERM, lambda *_: sys.exit(0))  # a cancelled hook still removes its pending file
     rec = {"nonce": nonce, "worker": name, "session_id": sid, "job_id": job_id(), "tool_name": data.get("tool_name"),
-           "tool_input": data.get("tool_input"), "created": t0, "expires": t0 + WAIT}
+           "tool_input": data.get("tool_input"), "created": t0, "expires": t0 + WAIT,
+           "agent_id": data.get("agent_id")}  # set only inside a subagent: its prompts are a thread of their own
     registry.save(pend, rec)
     check = t0
     try:
@@ -165,11 +183,14 @@ def permission_request(p, sid, data):
                 print(json.dumps({"hookSpecificOutput": {"hookEventName": "PermissionRequest", "decision": out}}))
                 registry.unblock(p, name)
                 return
-            # Answered elsewhere (claude attach): Claude Code does not stop this hook, so watch `claude agents`.
-            # End only after this worker was seen on the prompt and no longer is (the first look may precede it).
-            # ponytail: a check every CHECK s misses an answer followed by the next prompt within one interval; the
-            # request then stays listed until it expires, and approving it does nothing (Claude Code ignores the
-            # late answer). Upgrade: watch transcript_path for the tool result if the input ever carries tool_use_id.
+            # Answered elsewhere (claude attach): Claude Code does not stop this hook. End, no output, once this worker
+            # was seen on the prompt (the first look may precede it) and then either is off it (`claude agents`) or
+            # its thread asked again: a newer request (parallel calls: the next prompt within 0.6 s, inside one
+            # CHECK) means this prompt was answered; the worker stays on a prompt, so `claude agents` cannot tell.
+            # ponytail: an approve typed between an attach answer and the next look or request still says approved,
+            # and Claude Code ignores that late answer. Upgrade: match the transcript if the input gets tool_use_id.
+            if rec.get("seen") and registry.superseded(rec, registry.requests(p)):
+                return  # no output; the newer request's hook relays the prompt the worker is on now
             if time.time() >= check:
                 check = time.time() + CHECK
                 on = registry.on_prompt(registry.backend_agents(), sid, job_id())
