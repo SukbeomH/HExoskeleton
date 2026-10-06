@@ -1,5 +1,13 @@
 # Changelog
 
+## router 0.2.3 (2026-10-06)
+
+검증 속도 개선. 기본 동작은 그대로다.
+
+### Bug Fixes
+
+* **router**: 승인 대기 훅의 결정 확인(0.5초)·`claude agents` 확인(3초) 간격을 `ROUTER_POLL_INTERVAL`·`ROUTER_AGENTS_CHECK_INTERVAL`로 줄일 수 있다(시험용). `ROUTER_APPROVAL_WAIT`를 포함해 세 값은 하한(0·0.01·0.05초)과 기본값(300·0.5·3초) 사이일 때만 쓰고, 숫자가 아니거나 nan·음수·기본값보다 크면 기본값을 쓴다. 숫자가 아닌 `ROUTER_APPROVAL_WAIT`로 훅이 시작 단계에서 죽던 것도 막았다. 300초보다 큰 `ROUTER_APPROVAL_WAIT`는 이제 300초다.
+
 ## router 0.2.2 (2026-10-06)
 
 대화형 5차 시험(0.2.1, Orca terminal, marketplace install)에서 나온 결함 수정.
