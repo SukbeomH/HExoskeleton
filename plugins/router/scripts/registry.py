@@ -105,7 +105,7 @@ def answered(r):
         if not stat.S_ISREG(st.st_mode) or st.st_size <= r.get("size", 0):
             return False
         r["size"] = st.st_size
-        with open(r["transcript"], errors="replace") as f:
+        with open(r["transcript"], encoding="utf-8", errors="replace") as f:
             lines = f.read().splitlines()
     except (OSError, TypeError):
         return False
