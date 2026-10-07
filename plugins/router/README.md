@@ -396,7 +396,7 @@ front는 sonnet `default` 모드(Claude Code 2.1.291), 작업 세션은 haiku와
 - C1c 병렬: 1 ms 간격의 두 요청이 함께 열려 목록에 둘 다 보였고, 차례로 승인돼 두 파일이 생겼다.
 - C1d 만료: 답 없는 요청은 300.6초에 지워졌고 작업 세션은 `blocked`로 보고했다.
 - C2 read-only: plan 턴(계획 승인 직후 같은 턴 포함)의 실행은 `read-only`·`never`였다. 쓰기는 EPERM으로 막혔고, 요청 없이 `blocked`로 끝났다.
-- C2b stop: pending과 감독 프로세스, `codex-turn.py`, app-server, 실행 중이던 `sleep`까지 끝냈다. 대장은 refresh 전까지 `active`였고, 미리 건 `wait`는 시간 제한까지 돌았다. 0.5.1에서 고쳤다(위 "정지·요약", 단위 테스트만).
+- C2b stop: pending과 감독 프로세스, `codex-turn.py`, app-server, 실행 중이던 `sleep`까지 끝냈다. 대장은 refresh 전까지 `active`였고, 미리 건 `wait`는 시간 제한까지 돌았다. 0.5.1에서 고쳤다(위 "정지·요약", 10차 R2에서 실측).
 - C2c merge: Codex 원본의 `last_result`·`results`를 썼고 원본에 메시지를 보내지 않았다. 새 세션이 떴고 원본은 `merged`가 됐다.
 - C4 감독 SIGKILL(보류 1건): 고아 `codex-turn.py`·app-server가 턴 끝까지 thread 쓰기 잠금을 쥐었고, 그 결과는 기록되지 않았다. 그사이 전달은 `already has an active writer`로 실패했고, 보류 요청과 새 요청이 함께 사라졌다. 턴이 끝난 뒤의 전달은 시험하지 않았다. 0.5.1은 재개가 받아들여진 뒤에야 실행을 시작된 것으로 보고, 거절되면 두 요청을 `held`로 남긴다. 감독이 죽으면 `codex-turn.py`가 app-server를 끝낸다(위 "동작". 실측은 위 "Codex 작업 세션 → 실측 확인"의 0.5.1 CLI 실측).
 - C5 on-request: 4건 모두 승인을 요청했다(2건은 프롬프트로 유도).
