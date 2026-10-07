@@ -239,6 +239,8 @@ A2(Claude front + app-server에서 도는 Codex thread + 승인 전달)를 만�
 - 다른 app-server 클라이언트가 같은 thread를 `thread/resume`해 쥔 동안 `resume`: exit 1, `… already has an active writer`와 `Its request is kept (held 1)`, 대장은 `exited`·`held` 1개. 그 클라이언트를 닫은 뒤의 전달은 job id를 받았고, 한 실행에 보류된 요청과 새 요청이 함께 가(답 `R1 slept`) `held`가 비었다.
 - 시험 thread 둘은 `codex delete --force <id>`로 지웠다. 남은 프로세스는 없었고, `session_index.jsonl`과 `~/.codex/config.toml`의 신뢰 항목 수는 시험 전과 같았다.
 
+10차 (CLI, `ROUTER_REGISTRY`로 작업 디렉터리 안의 임시 대장(cwd와 `/tmp` 둘 다 해당), git 저장소가 아닌 작업 디렉터리, front 모드 `default`): sandbox 밖 `curl`의 `require_escalated` 재요청이 174 ms 만에 거부됐다. 승인 디렉터리는 만들어지지 않았고(pending 없음), 작업 세션은 `blocked`로 보고했다.
+
 0.5.0 `wait` (CLI로 front 역할을 대신함, `gpt-6-luna`, front 모드 `default`, 대장은 `~/.claude/plugins/data/` 아래 임시 디렉터리, git 저장소가 아닌 임시 작업 디렉터리):
 
 - `spawn … --request "reply with the word pong"` 직후 `wait`: 5.5초 뒤 `[router] wait live1 (codex): idle — last: [live wait check] done: pong`, exit 0.
@@ -262,10 +264,9 @@ A2(Claude front + app-server에서 도는 Codex thread + 승인 전달)를 만�
 
 ### 미검증 (Codex 작업 세션)
 
-- 승인 디렉터리가 sandbox 안에서 쓰기 가능할 때의 바로 거부(stub app-server로만 시험).
 - `danger-full-access` 실행(단위 테스트만).
 - 사용자 config의 권한 프로필(`permissions`)이 요청한 sandbox를 바꾸는 경우. router는 Codex가 돌려준 sandbox·정책이 요청과 다르면 실행을 실패시킨다(단위 테스트만).
-- 0.5.1 `stop` 직후 `exited`와 걸어 둔 `wait`의 종료, 감독의 연쇄 실행이 거절될 때의 재보류(stub app-server 단위 테스트만). 거절된 `resume`과 감독 강제 종료는 위 CLI 실측뿐이고 대화형 front로는 다시 보지 않았다.
+- 감독의 연쇄 실행이 거절될 때의 재보류(stub app-server 단위 테스트만). 감독 강제 종료는 CLI 실측만.
 - 사용자 Codex 훅(`~/.codex/hooks.json`)의 PermissionRequest가 먼저 allow/deny하면 그 요청은 router에 오지 않고 그 훅이 결정한다(게이트 실측 G1, 설계상 한계).
 
 ## 한계
@@ -406,12 +407,19 @@ front는 sonnet `default` 모드(Claude Code 2.1.291), 작업 세션은 haiku와
 - L5 ref만 쓴 주소: 이름 없는 ref(`eecdaf`)는 가드를 지났지만 Claude Code가 `No agent named … reachable`로 전달하지 않았다. `[eecdaf]`는 가드가 거부했다.
 - L7b subagent 요청의 만료 뒤 attach 응답: Bash·Write 요청 모두 transcript에 결과가 생긴 1초 안에 목록에서 숨겨졌다.
 
+### 실측 확인 (대화형 10차 시험 2026-10-07, 0.5.1, Orca terminal, marketplace install)
+
+front는 sonnet `default` 모드(Claude Code 2.1.291), 작업 세션은 haiku(2.1.292)와 Codex 0.159.0(`gpt-6-luna`), 시험 폴더는 git 저장소. 로컬 설정에 고정 allow 규칙과 권장 deny 규칙을 두었고, 프롬프트 제안은 R1에서만 켰다.
+
+- R1 front 문맥: 승인 요청이 열린 front 턴 5번(Codex `wait` 알림 2번, '복사해 붙일 승인 명령' 요청 포함)의 응답에 요청 id도, id가 든 승인 명령도 없었다(`<id>` 자리표시만). 알림 턴에도 문맥과 안내가 주입됐다. 프롬프트 제안을 켠 채 제안은 인자 없는 `/router:approve`뿐이었고, 그 목록의 id로 Codex·Claude 요청을 승인했다.
+- R2 stop: 실행 중(보류 1건) `stop` 뒤 1초 안에 대장이 `exited`(`held` 유지)가 됐고, 걸어 둔 `wait`가 `exited — last: -`로 끝났다. 다음 전달은 보류 요청을 새 요청 앞에 붙여 한 실행으로 보냈다.
+- R3 재개 거절: 다른 app-server 클라이언트가 thread를 쥔 동안 front의 전달은 `already has an active writer`, `held 1`로 끝났다. front는 다시 보내지 않았고 `wait`도 걸지 않았다. 잠금이 풀린 뒤의 전달은 두 요청을 차례로 한 실행에 보냈다.
+
 ### 미검증 (Claude 작업 세션)
 
-- 같은 스레드의 새 요청이 이전 요청을 밀어내는 경로(훅 종료, 목록 숨김, `superseded` 거부). 6차 G2의 2회차 관찰과 맞지만 그 경로임을 가르지는 못했다. 9차 L6에서는 다음 확인 창이 3.3초 늦게 떠, 첫 요청이 `seen` 경로(`claude agents`)로 먼저 닫혔다.
-- 동기(foreground) subagent의 확인. `--bg` 작업 세션의 subagent는 7·9차 모두 비동기였다.
+- 같은 스레드의 새 요청이 이전 요청을 밀어내는 경로(훅 종료, 목록 숨김, `superseded` 거부). 6차 G2의 2회차 관찰과 맞지만 그 경로임을 가르지는 못했다. 9차 L6에서는 다음 확인 창이 3.3초 늦게 떠, 첫 요청이 `seen` 경로(`claude agents`)로 먼저 닫혔다. 10차에서도 다음 확인 창이 attach 응답 3.9초 뒤에 떴다. 첫 Bash 호출의 `tool_result`가 그 0.2초 전에 기록돼 지연은 그 호출 자체의 실행이었다(기록된 훅은 43–57 ms). 그래서 3초 간격의 `claude agents` 확인이 먼저 닫았다.
+- 동기(foreground) subagent의 확인. `--bg` 작업 세션의 subagent는 7·9차 모두 비동기였다. 10차에서 `run_in_background: false`를 지시한 haiku 작업 세션 둘이 인자 없이, 그리고 문자열 `"false"`로 Agent를 불렀다. 둘 다 `Async agent launched`였다(attach에는 `Backgrounded agent`, 대기 중 확인 창 없음).
 - UserPromptSubmit 15초 시간 제한이 부하에서 충분한지(직접 관찰하지 않음).
-- 0.5.1 front 문맥 변경(단위 테스트만): 승인 명령 줄을 빼고 매 턴 안내에 규칙을 둔 뒤 front가 응답에 id를 쓰지 않는지는 대화형으로 다시 보지 않았다.
 
 ## 개발
 
