@@ -29,7 +29,7 @@ Usage: registry.py [--data DIR] <command> ...
   spawn NAME --request R [--cwd C] [--topic T] [--model M] [--merged-from A,B] [--backend claude|codex]
         → reserve NAME, compose the prompt, backend.sh spawn in the front's mode, record job id (sources merged)
   resume NAME --request R [--topic T]  → refresh, then (if not running) compose the prompt, backend.sh resume, record job id;
-        a Codex worker with a run going holds R instead (sent when that run ends)
+        a Codex worker with a run going holds R instead (sent when that run ends); a failed Codex resume keeps R held
   --request - reads the request from stdin (only then; never an implicit stdin read that could hang).
   The prompt (front, topic, siblings, request) is composed here.
   mark NAME STATE [--into NAME] | refresh [--json]  (runs `backend.sh list`)
@@ -528,10 +528,11 @@ def render(reg, width=200, p=None):
         if mine:
             state = "waiting"
         if state == "waiting":
-            how = "user types /router:approve below, or runs:" if mine else "user must run:"
+            how = "user types /router:approve (bare: lists ids), or runs:" if mine else "user must run:"
             what = s.get("waiting_for") or ("permission prompt" if mine else "prompt")
             # a Codex run's request has no attach fallback (its app-server's only client is codex-turn.py)
-            how = "user types /router:approve below" if codex(s) else f"{how} claude attach {s.get('job_id')}"
+            how = ("user types /router:approve (bare: lists ids; unanswered = denied when it expires)" if codex(s)
+                   else f"{how} claude attach {s.get('job_id')}")
             state = f"WAITING: {what} — {how};"
         elif stale:
             state = f"WAITING: subagent prompt — claude attach {s.get('job_id')} to answer;"
@@ -544,7 +545,9 @@ def render(reg, width=200, p=None):
         chain = list(itertools.takewhile(lambda r: r.get("chained"), reversed((s.get("results") or [])[:-1])))
         lines += ["  earlier result (its held follow-ups ran right after): "
                   + " ".join(str(r.get("text")).split())[:width] for r in reversed(chain)]
-        lines += ["  " + line for r in mine for line in approval_lines(r)]
+        # the id and the exact call, no ready-made approve command: the front's context feeds its replies and the
+        # prompt suggestion (9th live test). The user's bare /router:approve lists the commands (approval_lines).
+        lines += ["  " + approval_lines(r)[0] for r in mine]
         lines += [f"  subagent prompt (router wait over, /router:approve no longer answers it): {describe(r)}"
                   for r in stale]
     if not reg["sessions"]:
@@ -725,7 +728,10 @@ def main(argv=None):
         args += [s.get("model") or ""] if codex(s) else []
         job = launch(p, a.name, args, compose(reg, a.name, "\n\n".join([*held, request])), backend_of(s))
         if not job:
-            requeue(p, a.name, held)
+            if codex(s):  # e.g. thread/resume refused: nothing reached Codex, so its request waits with the held ones
+                requeue(p, a.name, [*held, request])
+                sys.exit(f"registry: resume of '{a.name}' failed; marked exited. Its request is kept (held "
+                         f"{len(held) + 1}) and goes out first with the next forward: do not send it again")
             sys.exit(f"registry: resume of '{a.name}' failed; marked exited")
         print(job)
     elif a.cmd == "mark":
@@ -750,8 +756,14 @@ def main(argv=None):
             sys.exit(f"registry: no {key} for '{a.name}'")
         extra = [s.get("model") or ""] if a.cmd == "summarize" else []
         b = backend_of(s)
-        sys.exit(subprocess.run(["bash", str(BACKENDS[b]), a.cmd, s[key], *extra], stdin=subprocess.DEVNULL,
-                                env=env(p, b)).returncode)
+        rc = subprocess.run(["bash", str(BACKENDS[b]), a.cmd, s[key], *extra], stdin=subprocess.DEVNULL,
+                            env=env(p, b)).returncode
+        if a.cmd == "stop" and rc == 0:  # a stopped Codex run records nothing (no finish_run): mark it, `wait` ends
+            with locked(p) as reg:
+                w = reg["sessions"].get(a.name) or {}
+                if w.get("job_id") == s[key] and w.get("state") != "merged":  # not a run started meanwhile
+                    w.update(state="exited", pid=None, updated=now())  # held stays: the next forward sends it
+        sys.exit(rc)
     elif a.cmd == "wait":
         wait(p, a.name, min(a.timeout, WAIT_MAX) if a.timeout >= 0 else 0)  # nan → 0: never hang
     elif a.cmd == "record-result":

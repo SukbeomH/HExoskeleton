@@ -10,6 +10,7 @@ import datetime
 import json
 import os
 import pathlib
+import re
 import shutil
 import subprocess
 import tempfile
@@ -237,9 +238,12 @@ def approve(sid="front-uuid", args="", source="plugin"):
 
 proc, rec = ask()
 n = rec["nonce"]
-# the front's injected context shows the open request under its worker
+# the front's injected context shows the open request under its worker (id, exact call), but no ready-made approve
+# command, and the rule never to write ids in replies (9th live test: the front wrote one, the suggestion offered it)
 ctx = json.loads(run(prompt("front-uuid")))["hookSpecificOutput"]["additionalContext"]
-assert "- api [WAITING: permission prompt" in ctx and f"  approve: /router:approve {n}   deny:" in ctx, ctx
+assert "- api [WAITING: permission prompt — user types /router:approve (bare: lists ids), or runs:" in ctx, ctx
+assert f"\n  approval {n}: @api Bash: echo relay-ok" in ctx and not re.search(r"/router:approve +[0-9a-f]{8}", ctx), ctx
+assert "Never write a request id, or /router:approve with an id, in a reply" in ctx and "type /router:approve, " in ctx
 # not the front (a worker, a stranger) → refused, blocked (no model turn), no decision
 for sid in ("w-uuid", "stranger"):
     out = approve(sid, n)

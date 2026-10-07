@@ -51,7 +51,7 @@ def cleanup():
 # sandbox (workspace-write: /tmp and $TMPDIR excluded, writable roots = BIN/roots if present; any other type on
 # BIN/badsandbox) and policy; a turn sends the server requests named in BIN/script (cmd, patch, or a method) and logs
 # their answers, waits while BIN/hold exists, fails on BIN/fail, else ends with "pong <n>" (n = codex.log lines). It
-# exits at once on BIN/nothread.
+# exits at once on BIN/nothread, and refuses thread/resume on BIN/writer (another writer holds the thread).
 (BIN / "codex").write_text("""#!/usr/bin/env python3
 import json, os, pathlib, sys, time, uuid
 B = pathlib.Path(__file__).parent
@@ -86,6 +86,9 @@ while True:
     if meth in ("thread/start", "thread/resume"):
         log("codex.log", {"argv": a, "call": meth, "params": p, "reg": os.environ.get("ROUTER_REGISTRY")})
         tid, cwd = p.get("threadId") or str(uuid.uuid4()), p["cwd"]
+        if meth == "thread/resume" and (B / "writer").exists():
+            out({"id": m["id"], "error": {"message": "thread %s already has an active writer" % tid}})
+            continue
         sb = dict(POL[p["sandbox"]])
         if (B / "roots").exists():
             sb["writableRoots"] = [(B / "roots").read_text()]
@@ -151,7 +154,7 @@ def prompts():
 
 
 def call_after(n):
-    """The first codex call after the first N (a resume returns before its run reaches codex: the thread id is known)."""
+    """The first codex call after the first N."""
     until(lambda: len(calls()) > n, f"codex call {n + 1}")
     return calls()[n]
 
@@ -192,6 +195,23 @@ def idle(name, job=None):
 
 
 registry.set_front(REG, "front-uuid", "boss", None)
+
+# the front's recorded mode → sandbox + approval policy, on every spawn: danger-full-access only when the front itself
+# is bypass; modes that ask before acting → on-request (relayed), the others never ask
+SANDBOX = {"default": ("workspace-write", "on-request"), "acceptEdits": ("workspace-write", "on-request"),
+           "auto": ("workspace-write", "on-request"), "dontAsk": ("workspace-write", "never"),
+           "plan": ("read-only", "never"), "bypassPermissions": ("danger-full-access", "never")}
+if sys.argv[1:] == ["modes"]:  # run alongside the rest (verify.sh's time): its own TMP, stub, registry
+    for mode, (sb, ap) in SANDBOX.items():
+        registry.record_mode(REG, "front-uuid", mode)
+        r = cli("spawn", f"m-{mode.lower()}", "--backend", "codex", "--cwd", str(CWD), "--request", "x")
+        assert r.returncode == 0, r
+        c = calls()[-1]["params"]
+        assert (c["sandbox"], c["approvalPolicy"]) == (sb, ap), (mode, c)
+    for mode in SANDBOX:
+        idle(f"m-{mode.lower()}")
+    sys.exit(print("PASS test_codex modes"))
+MODES = subprocess.Popen([sys.executable, __file__, "modes"])
 
 # backend-codex.sh: fixed argument lists; bad mode, model, thread/job id or arity → exit 2, codex never reached
 for bad in (["spawn", "w", str(CWD), "", "yolo"], ["spawn", "w", str(CWD), "--dangerously-bypass-approvals-and-sandbox",
@@ -237,18 +257,6 @@ assert e == [{"id": job, "kind": "codex", "sessionId": thread, "name": "cx", "st
 r = cli("refresh")
 assert r.returncode == 0 and "- cx [idle codex] topic: T" in r.stdout and "last: pong 1" in r.stdout, r
 
-# the front's recorded mode → sandbox + approval policy, on every spawn: danger-full-access only when the front itself
-# is bypass; modes that ask before acting → on-request (relayed), the others never ask
-SANDBOX = {"default": ("workspace-write", "on-request"), "acceptEdits": ("workspace-write", "on-request"),
-           "auto": ("workspace-write", "on-request"), "dontAsk": ("workspace-write", "never"),
-           "plan": ("read-only", "never"), "bypassPermissions": ("danger-full-access", "never")}
-for mode, (sb, ap) in SANDBOX.items():
-    registry.record_mode(REG, "front-uuid", mode)
-    assert cli("spawn", f"m-{mode.lower()}", "--backend", "codex", "--cwd", str(CWD), "--request", "x").returncode == 0
-    c = calls()[-1]["params"]
-    assert (c["sandbox"], c["approvalPolicy"]) == (sb, ap), (mode, c)
-for mode in SANDBOX:
-    idle(f"m-{mode.lower()}")
 # The front mode is what the front's hook last recorded (Codex labels a sandboxed exec run bypassPermissions): no
 # worker carries a mode; a Codex thread id cannot record one either.
 registry.record_mode(REG, "front-uuid", "default")
@@ -299,30 +307,64 @@ assert [(r["job"], r["text"], r.get("chained")) for r in cx["results"][-2:]] == 
 out = cli("list").stdout
 assert f"last: pong {n + 1}\n  earlier result (its held follow-ups ran right after): pong {n}\n" in out, out
 
-# stop: SIGTERM to the run's process group (supervisor, codex-turn.py, app-server); refresh then shows it exited;
-# resumable
-(BIN / "hold").touch()
-n = len(calls())
-job = cli("resume", "cx", "--request", "long").stdout.strip()
-call_after(n)  # the app-server is running, in the supervisor's process group
-pid = json.loads((RUNS / job / "run.json").read_text())["pid"]
-assert cli("stop", "cx").returncode == 0
-until(lambda: json.loads((RUNS / job / "run.json").read_text())["state"] == "stopped", "run stopped")
 
-
-def gone():
+def gone(pid):
     try:
         os.killpg(pid, 0)
     except ProcessLookupError:
         return True
+    except PermissionError:  # macOS, for a moment: only the killed leader is left, not yet reaped
+        pass
     return False
 
 
-until(gone, "process group gone")
+def busy_with(held):
+    """A run going (BIN/hold) with HELD queued meanwhile (as a forward holds it, above); returns its supervisor pid."""
+    (BIN / "hold").touch()
+    n = len(calls())
+    job = cli("resume", "cx", "--request", "slow").stdout.strip()
+    call_after(n)  # the app-server is running, in the supervisor's process group
+    with registry.locked(REG) as r:
+        r["sessions"]["cx"]["held"] = [held]
+    return json.loads((RUNS / job / "run.json").read_text())["pid"]
+
+
+# a resume Codex refuses (9th live test: an orphan of a killed supervisor still held the thread's writer lock) is no
+# run: it fails, and the held follow-ups that went with it go back to the queue. From the supervisor (the held
+# follow-ups' chained run) and from registry.py resume (its request too, behind them); the next forward sends them all.
+busy_with("f1")
+(BIN / "writer").touch()
 (BIN / "hold").unlink()
-assert "- cx [exited/stopped codex]" in cli("refresh").stdout
+until(lambda: worker("cx").get("held") == ["f1"] and worker("cx")["state"] == "exited", "chained run's held requeued")
+(BIN / "writer").unlink()
+pid = busy_with("f2")
+os.kill(pid, signal.SIGKILL)  # the supervisor only: codex-turn.py and its app-server end with it (no orphan)
+until(lambda: gone(pid), "orphaned run ended")
+(BIN / "writer").touch()
+r = cli("resume", "cx", "--request", "R")
+assert r.returncode == 1 and "already has an active writer" in r.stderr and "do not send it again" in r.stderr, r
+assert worker("cx")["held"] == ["f2", "R"] and worker("cx")["state"] == "exited", worker("cx")
+(BIN / "writer").unlink()
+(BIN / "hold").unlink()
+assert cli("resume", "cx", "--request", "R2").returncode == 0
+assert "held" not in idle("cx") and prompts()[-1].endswith("Request from the user:\nf2\n\nR\n\nR2"), prompts()[-1]
+
+# stop: SIGTERM to the run's process group (supervisor, codex-turn.py, app-server). The worker is exited at once, so
+# an armed `wait` ends (9th live test: active until a refresh); held follow-ups stay for the next forward. Resumable.
+pid = busy_with("kept")
+w = subprocess.Popen([sys.executable, str(ROOT / "scripts/registry.py"), "wait", "cx", "--timeout", "20"], env=ENV,
+                     stdout=subprocess.PIPE, text=True)
+assert cli("stop", "cx").returncode == 0
+assert worker("cx")["state"] == "exited" and worker("cx")["held"] == ["kept"], worker("cx")
+assert w.communicate(timeout=5)[0].startswith("[router] wait cx (codex): exited — last: pong "), w
+job = worker("cx")["job_id"]
+until(lambda: json.loads((RUNS / job / "run.json").read_text())["state"] == "stopped", "run stopped")
+until(lambda: gone(pid), "process group gone")
+(BIN / "hold").unlink()
+assert "- cx [exited/stopped codex held 1]" in cli("refresh").stdout
 r = cli("resume", "cx", "--request", "back")
 assert r.returncode == 0 and idle("cx")["last_result"] == f"pong {len(calls())}", r
+assert prompts()[-1].endswith("Request from the user:\nkept\n\nback"), prompts()[-1]
 assert "earlier result" not in cli("list").stdout  # a run the front sent itself ends the chain's listing
 
 # a failed run: its error becomes last_result (not a stale result), the worker stays resumable (idle/failed)
@@ -331,14 +373,14 @@ job = cli("resume", "cx", "--request", "x").stdout.strip()
 until(lambda: worker("cx").get("last_result") == "codex run failed (exit 1): boom", "failure recorded")
 (BIN / "fail").unlink()
 assert "- cx [idle/failed codex]" in cli("refresh").stdout
-# Codex reports another sandbox than the one asked for (e.g. a config profile): the run fails before any turn
+# Codex reports another sandbox than the one asked for (e.g. a config profile): the run fails before any turn, so the
+# resume fails with the reason and keeps its request (it goes out with the next forward, here the relay's below)
 (BIN / "badsandbox").touch()
 n = len(prompts())
-job = cli("resume", "cx", "--request", "x").stdout.strip()
-until(lambda: worker("cx").get("last_result", "").startswith("codex run failed (exit 1): codex applied sandbox"),
-      "sandbox mismatch")
+r = cli("resume", "cx", "--request", "x")
+assert r.returncode == 1 and "codex applied sandbox" in r.stderr and "'dangerFullAccess'" in r.stderr, r
 (BIN / "badsandbox").unlink()
-assert len(prompts()) == n and "'dangerFullAccess'" in worker("cx")["last_result"], worker("cx")
+assert len(prompts()) == n and worker("cx")["held"] == ["x"], worker("cx")
 # a spawn whose app-server never started a thread fails at once: exit 1, name exited without ids (reusable)
 (BIN / "nothread").touch()
 r = cli("spawn", "cx-bad", "--backend", "codex", "--cwd", str(CWD), "--request", "x")
@@ -357,7 +399,7 @@ assert argv[6:9] == ["-m", "gpt-mini", thread], argv
 # record shape (worker, job, exact command and cwd, never the model's reason; no session_id: never superseded), listed
 # in the front as WAITING without a claude attach hint; a stale decision is ignored; the typed /router:approve answers.
 # The same run's file change next: relayed as apply_patch with its changes; deny → decline.
-assert worker("cx")["state"] == "idle" and registry.front_mode(reg()) == "default"
+assert worker("cx")["state"] == "exited" and registry.front_mode(reg()) == "default"  # the refused resume above
 (BIN / "script").write_text("cmd patch")
 job = cli("resume", "cx", "--request", "touch x").stdout.strip()
 until(pend, "request pending")
@@ -366,7 +408,8 @@ assert {k: r[k] for k in ("worker", "backend", "job_id", "thread", "tool_name", 
     "worker": "cx", "backend": "codex", "job_id": job, "thread": thread, "tool_name": "Bash",
     "tool_input": {"command": "/bin/zsh -lc 'touch x'", "cwd": str(CWD)}} and "session_id" not in r, r
 out = cli("list").stdout
-assert "- cx [WAITING: permission prompt — user types /router:approve below; codex" in out, out
+assert ("- cx [WAITING: permission prompt — user types /router:approve (bare: lists ids; unanswered = denied when it "
+        "expires); codex") in out, out
 assert f"approval {r['nonce']}: @cx Bash: /bin/zsh -lc 'touch x' [input: " in out and "claude attach" not in out, out
 registry.save(APPR / "decisions" / f"{r['nonce']}.json",
               {"nonce": r["nonce"], "behavior": "allow", "created": r["created"] - 1})  # older than the request
@@ -421,6 +464,8 @@ r = cli("refresh", "--json")
 assert r.returncode == 0 and json.loads(r.stdout)["sessions"]["cx"]["state"] == "exited", r  # stopped above
 assert cli("stop", "cl").returncode == 0 and (BIN / "claude.log").read_text().splitlines()[-1] == "stop c1a0de01"
 
-# no supervisor left running
-assert not [f for f in RUNS.glob("*/run.json") if json.loads(f.read_text())["state"] == "working"]
+# no supervisor left running (the one killed above stays `working` in its run.json: listed as crashed)
+assert not [st for st in (json.loads(f.read_text()) for f in RUNS.glob("*/run.json"))
+            if st["state"] == "working" and registry.alive(st["pid"])]
+assert MODES.wait(timeout=60) == 0
 print("PASS test_codex")

@@ -51,7 +51,7 @@ spawn)
     check model "$model" "$MODEL"
     j=$(job)
     cd "$cwd"
-    python3 "$RUN" start "$DIR/$j" "$name" "" python3 "$TURN" "$DIR/$j" "$name" "$cwd" "$sb" "$(approval "$4")" "$model" ""
+    python3 "$RUN" start "$DIR/$j" "$name" python3 "$TURN" "$DIR/$j" "$name" "$cwd" "$sb" "$(approval "$4")" "$model" ""
     ;;
 resume)
     [ $# -eq 5 ] || { echo "usage: backend-codex.sh resume <thread-id> <name> <cwd> <perm-mode> <model|\"\"> <prompt" >&2; exit 2; }
@@ -61,8 +61,7 @@ resume)
     check "thread id" "$thread" "$ID"
     j=$(job)
     cd "$cwd"
-    python3 "$RUN" start "$DIR/$j" "$name" "$thread" \
-        python3 "$TURN" "$DIR/$j" "$name" "$cwd" "$sb" "$(approval "$4")" "$model" "$thread"
+    python3 "$RUN" start "$DIR/$j" "$name" python3 "$TURN" "$DIR/$j" "$name" "$cwd" "$sb" "$(approval "$4")" "$model" "$thread"
     ;;
 list) python3 "$RUN" list "$DIR" ;;
 stop)

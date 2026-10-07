@@ -48,7 +48,9 @@ REF = re.compile(r"(\s*\[[0-9A-Fa-f]+\])+\s*$")  # the ` [ref]` Claude Code appe
 HINT = (
     "This is the router front session. Before answering, follow the router:route skill: classify the "
     "message against the workers above (forward / new / broadcast / status, or merge only on explicit "
-    "request) instead of doing topic work here."
+    "request) instead of doing topic work here. Never write a request id, or /router:approve with an id, in a "
+    "reply (the prompt suggestion would prefill it): tell the user to type /router:approve, which lists the open "
+    "requests with their ids."
 )
 
 

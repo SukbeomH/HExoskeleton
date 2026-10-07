@@ -306,7 +306,8 @@ assert "- pow2 [WAITING: permission prompt — user must run: claude attach 7895
 assert f"- hk [idle pid {os.getpid()}]" in out and f"- ask [idle/blocked pid {os.getpid()}]" in out, out
 
 # an open approval request (the worker's PermissionRequest hook wrote it) shows under its worker on plain `list`, no
-# refresh needed: WAITING, id, the exact command sanitized, the approve/deny line. Expired or misfiled ones do not.
+# refresh needed: WAITING, id, the exact command sanitized, no approve command (the front would copy it into replies;
+# the user's bare /router:approve lists those). Expired or misfiled ones do not.
 PEND = registry.approvals(REG) / "pending"
 PEND.mkdir(parents=True)
 t = time.time()
@@ -322,9 +323,9 @@ ask("0a0a0a0a")
 ask("0b0b0b0b", expires=t - 1)
 ask("0c0c0c0c", nonce="0d0d0d0d")
 out = cli("list").stdout
-assert "- hk [WAITING: permission prompt — user types /router:approve below, or runs: claude attach fc6d12ed;" in out
-assert ("\n  approval 0a0a0a0a: @hk Bash: echo hi⏎rm x [4 hidden chars removed]\n  approve: /router:approve 0a0a0a0a"
-        "   deny: /router:approve 0a0a0a0a deny   (or claude attach fc6d12ed)\n") in out, out
+assert ("- hk [WAITING: permission prompt — user types /router:approve (bare: lists ids), or runs: claude attach "
+        "fc6d12ed;") in out, out
+assert "\n  approval 0a0a0a0a: @hk Bash: echo hi⏎rm x [4 hidden chars removed]\n" in out and "approve:" not in out, out
 assert not any(x in out for x in ("0b0b0b0b", "0c0c0c0c", "0d0d0d0d", "SAFE")), out
 assert "- pow2 [WAITING: permission prompt — user must run: claude attach 7895904c;" in out  # no request: attach only
 # answered elsewhere (claude attach): a request its hook saw on the prompt ("seen") is hidden once `claude agents` no
@@ -415,5 +416,10 @@ assert r.returncode == 0 and r.stdout == "[router] wait wt (codex): idle — las
 assert cli("summarize", "w2").returncode == 0 and argv_lines()[-1].startswith("-p --resume w2-uuid --fork-session ")
 assert cli("stop", "w2").returncode == 0 and argv_lines()[-1] == "stop 5eed0001"
 assert cli("stop", "noid").returncode == 1 and cli("summarize", "ghost").returncode == 1
+# a stopped worker is exited at once (an armed `wait` ends); a merged source the user stops after a merge stays merged
+put("w2", state="merged")
+assert cli("stop", "w2").returncode == 0 and reg()["sessions"]["w2"]["state"] == "merged"
+put("w2", state="active")
+assert cli("stop", "w2").returncode == 0 and reg()["sessions"]["w2"]["state"] == "exited"
 
 print("PASS test_registry")
